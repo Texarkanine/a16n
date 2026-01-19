@@ -628,13 +628,20 @@ export async function emit(
   const agentSkills = models.filter(isAgentSkill);
   const agentIgnores = models.filter(isAgentIgnore);
   
-  // Ensure .cursor/rules/ exists
-  const rulesDir = path.join(root, '.cursor', 'rules');
-  await fs.mkdir(rulesDir, { recursive: true });
+  // Helper to determine output directory for a model
+  // Preserves nesting: src/CLAUDE.md → src/.cursor/rules/
+  // Cursor supports nested .cursor/rules directories
+  function getOutputDir(sourcePath: string): string {
+    const sourceDir = path.dirname(sourcePath);
+    const baseDir = sourceDir === '.' ? root : path.join(root, sourceDir);
+    return path.join(baseDir, '.cursor', 'rules');
+  }
   
   // Emit global prompts as alwaysApply rules
   for (const gp of globalPrompts) {
-    const filename = sanitizeFilename(gp.sourcePath) + '.mdc';
+    const rulesDir = getOutputDir(gp.sourcePath);
+    await fs.mkdir(rulesDir, { recursive: true });
+    const filename = sanitizeFilename(path.basename(gp.sourcePath)) + '.mdc';
     const filepath = path.join(rulesDir, filename);
     const content = formatMdc({ alwaysApply: true }, gp.content);
     await fs.writeFile(filepath, content);
@@ -643,7 +650,9 @@ export async function emit(
   
   // Emit file rules
   for (const fr of fileRules) {
-    const filename = sanitizeFilename(fr.sourcePath) + '.mdc';
+    const rulesDir = getOutputDir(fr.sourcePath);
+    await fs.mkdir(rulesDir, { recursive: true });
+    const filename = sanitizeFilename(path.basename(fr.sourcePath)) + '.mdc';
     const filepath = path.join(rulesDir, filename);
     const content = formatMdc({ globs: fr.globs }, fr.content);
     await fs.writeFile(filepath, content);
@@ -652,14 +661,16 @@ export async function emit(
   
   // Emit agent skills
   for (const skill of agentSkills) {
-    const filename = sanitizeFilename(skill.sourcePath) + '.mdc';
+    const rulesDir = getOutputDir(skill.sourcePath);
+    await fs.mkdir(rulesDir, { recursive: true });
+    const filename = sanitizeFilename(path.basename(skill.sourcePath)) + '.mdc';
     const filepath = path.join(rulesDir, filename);
     const content = formatMdc({ description: skill.description }, skill.content);
     await fs.writeFile(filepath, content);
     written.push({ path: filepath, type: skill.type, itemCount: 1 });
   }
   
-  // Emit ignore file
+  // Emit ignore file (always at root - .cursorignore doesn't support nesting)
   if (agentIgnores.length > 0) {
     const allPatterns = agentIgnores.flatMap(ai => ai.patterns);
     const filepath = path.join(root, '.cursorignore');

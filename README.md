@@ -9,7 +9,6 @@ When this warning is gone, this project will behave as described.
 Convert your Cursor rules to Claude Code config, or vice versa. Take your agent customization anywhere.
 
 [![npm version](https://img.shields.io/npm/v/a16n.svg)](https://www.npmjs.com/package/a16n)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## Why a16n?
 
@@ -73,7 +72,7 @@ a16n convert --from cursor --to claude --dry-run .
 ### Discover Without Converting
 
 ```bash
-a16n discover --agent cursor .
+a16n discover --from cursor .
 ```
 
 Lists all agent customization found, useful for debugging.
@@ -104,7 +103,6 @@ Different tools have different capabilities. a16n handles this transparently.
 | Feature | From | To | Behavior |
 |---------|------|-----|----------|
 | `.cursorignore` | Cursor | Claude | ⚠️ Skipped (no equivalent) |
-| Nested `CLAUDE.md` | Claude | Cursor | ⚠️ Flattened with warning |
 | Multiple `alwaysApply` rules | Cursor | Claude | ⚠️ Merged into one file |
 
 a16n always warns you when conversions are lossy or irreversible.
@@ -143,7 +141,7 @@ Convert Options:
 Examples:
   a16n convert --from cursor --to claude .
   a16n convert -f claude -t cursor ./project --dry-run
-  a16n discover --agent cursor . --json
+  a16n discover --from cursor . --json
   a16n plugins
 ```
 

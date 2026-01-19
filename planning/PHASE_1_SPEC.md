@@ -137,7 +137,7 @@ a16n convert --from cursor --to claude --json ./project
 
 **When** I run:
 ```bash
-a16n discover --agent cursor ./project
+a16n discover --from cursor ./project
 ```
 
 **Then**:
@@ -388,7 +388,7 @@ pnpm --filter @a16n/engine test
 
 **Commands**:
 - `a16n convert --from <source> --to <target> [path]`
-- `a16n discover --agent <agent> [path]`
+- `a16n discover --from <agent> [path]`
 - `a16n plugins`
 
 **Dependencies**:
@@ -399,7 +399,7 @@ pnpm --filter @a16n/engine test
 ```bash
 # Manual testing against fixtures
 pnpm --filter a16n dev -- convert --from cursor --to claude ./test/fixtures/cursor-basic
-pnpm --filter a16n dev -- discover --agent cursor ./test/fixtures/cursor-basic
+pnpm --filter a16n dev -- discover --from cursor ./test/fixtures/cursor-basic
 pnpm --filter a16n dev -- plugins
 ```
 
