@@ -235,7 +235,7 @@ interface AgentSkill extends AgentCustomization {
 ```
 
 **Cursor equivalent**: `.mdc` files with `description` but no `globs`
-**Claude equivalent**: Skills in `/mnt/skills/`
+**Claude equivalent**: Skills in `.claude/skills/`
 
 ### FileRule
 Prompts triggered when working with specific file types.

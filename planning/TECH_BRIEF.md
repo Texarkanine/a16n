@@ -285,13 +285,13 @@ Note that this is also now INVALID YAML, because a string value starts with a `*
 
 **Discovery locations**:
 - `CLAUDE.md` at root and nested in directories
-- `/mnt/skills/` directories (when in Claude environment)
+- `.claude/skills/` directories containing skill definitions
 
 **Mapping to models**:
 | Claude Concept | a16n Model |
 |----------------|------------|
 | `CLAUDE.md` | GlobalPrompt (one per file) |
-| Skill directories with `SKILL.md` | AgentSkill |
+| `.claude/skills/` directories | AgentSkill |
 | Read and/or Write hooks w/ file patterns (file-specific) | FileRule |
 | (no direct equivalent) | AgentIgnore → warning, skip |
 

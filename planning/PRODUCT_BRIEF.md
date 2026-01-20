@@ -7,7 +7,7 @@
 Development teams increasingly use multiple AI coding agents — Cursor, Claude Code, Codex, Windsurf, and others. Each tool has evolved its own convention for customization:
 
 - **Cursor**: `.cursor/rules/*.mdc` files with YAML frontmatter (globs, descriptions, `alwaysApply`)
-- **Claude Code**: `CLAUDE.md` files (nestable), `/mnt/skills/` directories, tool hooks
+- **Claude Code**: `CLAUDE.md` files (nestable), `.claude/skills/` directories, hooks
 - **Others**: Various proprietary formats
 
 When teams switch tools, try new ones, or use multiple agents across different contexts, they face a painful choice: manually recreate all their carefully-crafted prompts and rules, or lose that customization entirely.
