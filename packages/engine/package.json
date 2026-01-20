@@ -23,6 +23,9 @@
     "@a16n/models": "workspace:*"
   },
   "devDependencies": {
+    "@a16n/plugin-cursor": "workspace:*",
+    "@a16n/plugin-claude": "workspace:*",
+    "@types/node": "^20.0.0",
     "typescript": "^5.4.0",
     "vitest": "^2.0.0"
   }
