@@ -1,4 +1,21 @@
-// @a16n/plugin-cursor - Cursor IDE plugin
-// This file will be populated in Task 3-4
+import type { A16nPlugin, CustomizationType } from '@a16n/models';
+import { discover } from './discover.js';
 
-export {};
+/**
+ * Cursor IDE plugin for a16n.
+ * Supports discovery and emission of Cursor rules.
+ */
+const cursorPlugin: A16nPlugin = {
+  id: 'cursor',
+  name: 'Cursor IDE',
+  supports: ['global-prompt' as CustomizationType],
+
+  discover,
+
+  async emit(models, root) {
+    // TODO: Implement in Task 4
+    return { written: [], warnings: [], unsupported: [] };
+  },
+};
+
+export default cursorPlugin;

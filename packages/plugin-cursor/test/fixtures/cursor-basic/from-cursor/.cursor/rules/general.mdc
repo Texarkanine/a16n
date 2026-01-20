@@ -1,0 +1,6 @@
+---
+alwaysApply: true
+---
+
+Use TypeScript for all new files.
+Prefer functional components.
