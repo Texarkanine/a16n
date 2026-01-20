@@ -1,5 +1,6 @@
 import type { A16nPlugin, CustomizationType } from '@a16n/models';
 import { discover } from './discover.js';
+import { emit } from './emit.js';
 
 /**
  * Cursor IDE plugin for a16n.
@@ -11,11 +12,7 @@ const cursorPlugin: A16nPlugin = {
   supports: ['global-prompt' as CustomizationType],
 
   discover,
-
-  async emit(models, root) {
-    // TODO: Implement in Task 4
-    return { written: [], warnings: [], unsupported: [] };
-  },
+  emit,
 };
 
 export default cursorPlugin;

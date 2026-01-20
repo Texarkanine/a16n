@@ -42,7 +42,7 @@
 |------|--------|--------|
 | Task 1 | Complete | 4016df2 |
 | Task 2 | Complete | 6af74a4 |
-| Task 3 | Pending | - |
+| Task 3 | Complete | 9ae8f27 |
 | Task 4 | Pending | - |
 | Task 5 | Pending | - |
 | Task 6 | Pending | - |
