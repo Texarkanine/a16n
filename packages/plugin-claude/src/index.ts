@@ -1,4 +1,21 @@
-// @a16n/plugin-claude - Claude Code plugin
-// This file will be populated in Task 5-6
+import type { A16nPlugin, CustomizationType } from '@a16n/models';
+import { discover } from './discover.js';
 
-export {};
+/**
+ * Claude Code plugin for a16n.
+ * Supports discovery and emission of Claude configuration.
+ */
+const claudePlugin: A16nPlugin = {
+  id: 'claude',
+  name: 'Claude Code',
+  supports: ['global-prompt' as CustomizationType],
+
+  discover,
+
+  async emit(models, root) {
+    // TODO: Implement in Task 6
+    return { written: [], warnings: [], unsupported: [] };
+  },
+};
+
+export default claudePlugin;
