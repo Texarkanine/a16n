@@ -44,7 +44,7 @@
 | Task 2 | Complete | 6af74a4 |
 | Task 3 | Complete | 9ae8f27 |
 | Task 4 | Complete | 4d2700e |
-| Task 5 | Pending | - |
+| Task 5 | Complete | dc9b98d |
 | Task 6 | Pending | - |
 | Task 7 | Pending | - |
 | Task 8 | Pending | - |
