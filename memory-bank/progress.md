@@ -40,7 +40,7 @@
 
 | Task | Status | Commit |
 |------|--------|--------|
-| Task 1 | In Progress | - |
+| Task 1 | Complete | 4016df2 |
 | Task 2 | Pending | - |
 | Task 3 | Pending | - |
 | Task 4 | Pending | - |
