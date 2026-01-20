@@ -48,7 +48,7 @@
 | Task 6 | Complete | 354e130 |
 | Task 7 | Complete | c04430b |
 | Task 8 | Complete | ae17551 |
-| Task 9 | Pending | - |
+| Task 9 | Complete | 6b7a3e1 |
 | Task 10 | Pending | - |
 
 ## Key Metrics

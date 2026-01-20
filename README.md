@@ -1,7 +1,3 @@
-# ⚠️ This README is currently a mockup.
-We're doing spec-driven development. This README describes the ideal state, not the current state.
-When this warning is gone, this project will behave as described.
-
 # a16n
 
 **Agent customization portability for AI coding tools.**
