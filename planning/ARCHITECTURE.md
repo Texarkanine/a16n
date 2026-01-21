@@ -529,18 +529,8 @@ export async function discover(root: string): Promise<DiscoveryResult> {
     items.push(item);
   }
   
-  // Check for legacy .cursorrules
-  const legacyPath = path.join(root, '.cursorrules');
-  if (await fileExists(legacyPath)) {
-    const content = await fs.readFile(legacyPath, 'utf-8');
-    items.push({
-      id: createId(CustomizationType.GlobalPrompt, '.cursorrules'),
-      type: CustomizationType.GlobalPrompt,
-      sourcePath: '.cursorrules',
-      content,
-      metadata: { legacy: true },
-    });
-  }
+  // NOTE: Legacy .cursorrules is NOT supported by this plugin.
+  // A community plugin (a16n-plugin-cursor-legacy) could add support if needed.
   
   // Check for .cursorignore
   const ignorePath = path.join(root, '.cursorignore');

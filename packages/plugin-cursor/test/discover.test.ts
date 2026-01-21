@@ -22,19 +22,6 @@ describe('Cursor Plugin Discovery', () => {
     });
   });
 
-  describe('legacy .cursorrules file', () => {
-    it('should discover GlobalPrompt from legacy .cursorrules', async () => {
-      const root = path.join(fixturesDir, 'cursor-legacy/from-cursor');
-      const result = await cursorPlugin.discover(root);
-
-      expect(result.items).toHaveLength(1);
-      expect(result.items[0]?.type).toBe(CustomizationType.GlobalPrompt);
-      expect(result.items[0]?.sourcePath).toBe('.cursorrules');
-      expect(result.items[0]?.content).toContain('Be concise in responses');
-      expect(result.items[0]?.metadata).toHaveProperty('legacy', true);
-    });
-  });
-
   describe('multiple .mdc files', () => {
     it('should discover all GlobalPrompt items from multiple files', async () => {
       const root = path.join(fixturesDir, 'cursor-multiple/from-cursor');

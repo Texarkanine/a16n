@@ -15,7 +15,9 @@ npm install @a16n/plugin-cursor
 ### Discovery
 
 - `.cursor/rules/*.mdc` - MDC format rules with frontmatter
-- `.cursorrules` - Legacy single-file format
+
+> **Note:** Legacy `.cursorrules` files are not supported. Use `.cursor/rules/*.mdc` instead.
+> A community plugin `a16n-plugin-cursor-legacy` could be created for legacy support if needed.
 
 ### Emission
 

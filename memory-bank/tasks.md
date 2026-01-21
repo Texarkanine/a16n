@@ -44,7 +44,7 @@ Implement the complete a16n pipeline for GlobalPrompt customization type with Cu
 - [ ] Implement MDC parsing (regex-based)
 - [ ] Implement file discovery
 - [ ] Implement GlobalPrompt classification
-- [ ] Implement legacy .cursorrules support
+- [x] Legacy .cursorrules NOT supported (decision made)
 - [ ] Verify all tests pass
 - [ ] **CHECKPOINT COMMIT**
 

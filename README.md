@@ -41,8 +41,6 @@ a16n convert --from cursor --to claude ./my-project
 
 This reads:
 - `.cursor/rules/*.mdc`
-- `.cursorrules` (legacy)
-- `.cursorignore`
 
 And writes:
 - `CLAUDE.md`

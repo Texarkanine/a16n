@@ -40,7 +40,7 @@ interface A16nPlugin {
 
 ### Cursor
 - `.cursor/rules/*.mdc` → GlobalPrompt/AgentSkill/FileRule
-- `.cursorrules` (legacy) → GlobalPrompt
+- Legacy `.cursorrules` is NOT supported (use `.cursor/rules/*.mdc`)
 - `.cursorignore` → AgentIgnore
 
 ### Claude Code

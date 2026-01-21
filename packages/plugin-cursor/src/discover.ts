@@ -10,18 +10,6 @@ import {
 import { parseMdc, type MdcFrontmatter } from './mdc.js';
 
 /**
- * Check if a file exists.
- */
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Find all .mdc files in a directory.
  */
 async function findMdcFiles(rulesDir: string): Promise<string[]> {
@@ -79,19 +67,6 @@ export async function discover(root: string): Promise<DiscoveryResult> {
       const item = classifyRule(frontmatter, body, relativePath);
       items.push(item);
     }
-  }
-
-  // Check for legacy .cursorrules file
-  const legacyPath = path.join(root, '.cursorrules');
-  if (await fileExists(legacyPath)) {
-    const content = await fs.readFile(legacyPath, 'utf-8');
-    items.push({
-      id: createId(CustomizationType.GlobalPrompt, '.cursorrules'),
-      type: CustomizationType.GlobalPrompt,
-      sourcePath: '.cursorrules',
-      content: content.trim(),
-      metadata: { legacy: true },
-    });
   }
 
   return { items, warnings };

@@ -87,23 +87,7 @@ a16n convert --from cursor --to claude ./project
 - Warning lists source files
 - Exit code is 0
 
-### AC4: Legacy .cursorrules Support
-
-**Given** a project with `.cursorrules` (legacy single file):
-```
-Be concise in responses.
-```
-
-**When** I run:
-```bash
-a16n convert --from cursor --to claude ./project
-```
-
-**Then**:
-- `CLAUDE.md` is created with content
-- Exit code is 0
-
-### AC5: Dry Run Mode
+### AC4: Dry Run Mode
 
 **Given** a project with Cursor rules
 
@@ -117,7 +101,7 @@ a16n convert --from cursor --to claude --dry-run ./project
 - Output shows what would be discovered
 - Exit code is 0
 
-### AC6: JSON Output
+### AC5: JSON Output
 
 **Given** a project with agent customization
 
@@ -282,9 +266,10 @@ pnpm --filter @a16n/models test  # Type tests
 
 **Behavior**:
 1. Find all `.cursor/rules/*.mdc` files
-2. Parse YAML frontmatter
+2. Parse YAML frontmatter (using regex, not YAML parser)
 3. If `alwaysApply: true`, create GlobalPrompt
-4. Also check for legacy `.cursorrules` file
+
+> **Note:** Legacy `.cursorrules` files are not supported. A community plugin could add this.
 
 **Test fixtures**:
 ```
@@ -294,10 +279,6 @@ test/fixtures/cursor-basic/
 │       ├── always.mdc      # alwaysApply: true
 │       └── not-always.mdc  # alwaysApply: false (skip for Phase 1)
 └── expected.json           # Expected discovery output
-
-test/fixtures/cursor-legacy/
-├── .cursorrules
-└── expected.json
 ```
 
 **Verification**:

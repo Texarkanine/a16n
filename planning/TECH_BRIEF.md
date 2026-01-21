@@ -253,9 +253,10 @@ Output is human-friendly by default, with `--json` for scripting.
 ## Cursor Plugin Implementation Notes
 
 **Discovery locations**:
-- `.cursor/rules/*.mdc` (new format)
-- `.cursorrules` (legacy, single file)
-- `.cursorignore`
+- `.cursor/rules/*.mdc` (current format)
+- `.cursorignore` (Phase 3)
+
+> **Note:** Legacy `.cursorrules` is not supported. A community plugin could add this.
 
 **MDC frontmatter parsing**:
 ```yaml

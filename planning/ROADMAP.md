@@ -187,5 +187,7 @@ Decisions made during planning that affect future phases:
 
 Future decisions to make:
 - How to handle Claude skills outside Claude environment (Phase 2)
-- Whether to support `.cursorrules` (legacy) long-term or deprecate (Phase 2)
 - Plugin API stability guarantee timing (Future)
+
+Decisions made:
+- `.cursorrules` (legacy) is NOT supported by the core Cursor plugin. A community `a16n-plugin-cursor-legacy` could add this if needed.
