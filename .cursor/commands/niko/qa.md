@@ -62,7 +62,7 @@ Load: .cursor/rules/shared/niko/visual-maps/van_mode_split/van-qa-utils/common-f
    - Read design decisions to extract technical requirements
 
 2. **Phase Detection**
-   - Detect current development phase (VAN, PLAN, CREATIVE, BUILD)
+   - Detect current development phase (NIKO, PLAN, CREATIVE, BUILD)
    - Load phase-specific validation checks
 
 3. **Universal Validation**
