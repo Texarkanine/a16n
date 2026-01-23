@@ -2,9 +2,9 @@
 
 ## Overall Project Status
 
-**Phase**: Phase 1 Implementation
-**Current Task**: PHASE1-IMPL - Reflection Complete
-**Complexity Level**: 4 (Complex System)
+**Phase**: Phase 1 Bug Fix
+**Current Task**: CURSOR-RECURSIVE-DISCOVERY - In Progress
+**Complexity Level**: 2 (Bug Fix)
 
 ## Completed Work
 
@@ -29,10 +29,17 @@
 - [x] Task 9: Integration Tests (6b7a3e1)
 - [x] Task 10: Documentation & Polish (663a388)
 - [x] Refactor: Remove .cursorrules legacy support (e97ba9b)
-- [x] **Reflection Complete** ← CURRENT
+- [x] Reflection Complete
+
+## Current Bug Fix
+
+- [ ] **CURSOR-RECURSIVE-DISCOVERY** ← CURRENT
+  - Fix: Cursor plugin doesn't find rules in subdirectories
+  - Scope: `.cursor/rules/**/*.mdc` (recursive)
 
 ## Next Phase
 
+- [ ] Archive PHASE1-IMPL
 - [ ] Phase 2: AgentSkill and FileRule support
 
 ## Checkpoint Commits

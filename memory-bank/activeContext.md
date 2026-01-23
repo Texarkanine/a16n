@@ -2,7 +2,7 @@
 
 ## Current Focus
 
-**Task 1: Monorepo Setup** - Creating the foundational project structure.
+**Bug Fix**: Cursor plugin recursive discovery - rules in subdirectories not found
 
 ## Current Mode
 
@@ -10,28 +10,31 @@ BUILD (Implementation)
 
 ## Session Context
 
-- **Date**: 2026-01-20
+- **Date**: 2026-01-21
 - **Platform**: Linux (WSL2)
 - **Shell**: Bash
-- **Task**: PHASE1-IMPL (Phase 1 Implementation)
-- **Complexity**: Level 4
+- **Task**: CURSOR-RECURSIVE-DISCOVERY
+- **Complexity**: Level 2
 
 ## Active Decisions
 
-1. **TDD Mandatory**: All code must have tests written first
-2. **MDC Parsing**: Use regex-based line parsing, not YAML
-3. **Integration Tests**: Fixture-based filesystem tests (from-X → to-X)
-4. **Commits**: Checkpoint after each major task
+1. **TDD Mandatory**: Write test first, then implement fix
+2. **Scope Limited**: Only root `.cursor/rules/**/*.mdc` for now
+3. **Future Enhancement**: Nested `.cursor/rules/` dirs in subdirectories (TBD)
 
-## Latest Changes
+## Problem Statement
 
-- Memory Bank updated with task breakdown
-- Starting Task 1: Monorepo Setup
-- Following PROJECT_SETUP.md commands
+Running `a16n discover --from cursor .` on this repo returns 0 items, but we have rules in:
+- `.cursor/rules/shared/always-tdd.mdc` (alwaysApply: true)
+- `.cursor/rules/shared/niko-core.mdc` (alwaysApply: true)
+- etc.
+
+Current code only looks at `.cursor/rules/*.mdc` (flat), not subdirectories.
 
 ## Next Steps
 
-1. Execute monorepo setup commands
-2. Verify build works
-3. Create checkpoint commit
-4. Proceed to Task 2: Models Package
+1. Create test fixture with nested subdirs
+2. Write failing test for recursive discovery
+3. Implement recursive `findMdcFiles`
+4. Verify fix works on this repo
+5. Commit

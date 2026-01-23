@@ -2,6 +2,31 @@
 
 ## Current Task
 
+**Task ID**: CURSOR-RECURSIVE-DISCOVERY
+**Title**: Fix Cursor plugin to recursively discover rules in subdirectories
+**Complexity**: Level 2 (Bug Fix / Enhancement)
+**Status**: In Progress
+
+### Problem
+Cursor plugin only discovers `.cursor/rules/*.mdc` (flat), but Cursor supports subdirectories like `shared/`, `local/` within the rules directory.
+
+### Scope
+- **In scope**: `.cursor/rules/**/*.mdc` (recursive within root rules dir)
+- **Future (TBD)**: `**/.cursor/rules/**/*.mdc` (nested rules dirs in subdirectories)
+
+### Implementation Plan
+- [ ] Write test for recursive discovery within `.cursor/rules/`
+- [ ] Create fixture with nested subdirectories
+- [ ] Implement recursive `findMdcFiles` function
+- [ ] Update `sourcePath` to include subdirectory path
+- [ ] Verify all tests pass
+- [ ] Verify on this repo (`.cursor/rules/shared/`)
+- [ ] Commit fix
+
+---
+
+## Previous Task (Awaiting Archive)
+
 **Task ID**: PHASE1-IMPL
 **Title**: Implement Phase 1 - GlobalPrompt MVP
 **Complexity**: Level 4 (Complex System)

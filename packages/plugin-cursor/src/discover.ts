@@ -10,17 +10,34 @@ import {
 import { parseMdc, type MdcFrontmatter } from './mdc.js';
 
 /**
- * Find all .mdc files in a directory.
+ * Recursively find all .mdc files in a directory and its subdirectories.
+ * Returns paths relative to the rulesDir (e.g., "shared/core.mdc").
+ * 
+ * NOTE: This only searches within the given rulesDir. Finding nested
+ * .cursor/rules/ directories elsewhere in the project is a future enhancement.
  */
-async function findMdcFiles(rulesDir: string): Promise<string[]> {
+async function findMdcFiles(rulesDir: string, relativePath: string = ''): Promise<string[]> {
+  const results: string[] = [];
+  
   try {
-    const entries = await fs.readdir(rulesDir, { withFileTypes: true });
-    return entries
-      .filter(entry => entry.isFile() && entry.name.endsWith('.mdc'))
-      .map(entry => entry.name);
+    const entries = await fs.readdir(path.join(rulesDir, relativePath), { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const entryRelativePath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
+      
+      if (entry.isFile() && entry.name.endsWith('.mdc')) {
+        results.push(entryRelativePath);
+      } else if (entry.isDirectory()) {
+        // Recurse into subdirectories
+        const subFiles = await findMdcFiles(rulesDir, entryRelativePath);
+        results.push(...subFiles);
+      }
+    }
   } catch {
-    return [];
+    // Directory doesn't exist or can't be read
   }
+  
+  return results;
 }
 
 /**
@@ -63,8 +80,8 @@ export async function discover(root: string): Promise<DiscoveryResult> {
 
     // For Phase 1, only process alwaysApply: true rules
     if (frontmatter.alwaysApply === true) {
-      const relativePath = `.cursor/rules/${file}`;
-      const item = classifyRule(frontmatter, body, relativePath);
+      const sourcePath = `.cursor/rules/${file}`;
+      const item = classifyRule(frontmatter, body, sourcePath);
       items.push(item);
     }
   }

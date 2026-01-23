@@ -51,6 +51,27 @@ describe('Cursor Plugin Discovery', () => {
       expect(result.warnings).toHaveLength(0);
     });
   });
+
+  describe('nested subdirectories', () => {
+    it('should discover rules in subdirectories like shared/ and local/', async () => {
+      const root = path.join(fixturesDir, 'cursor-nested/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      // Should find 3 rules: root.mdc, shared/core.mdc, local/project.mdc
+      expect(result.items).toHaveLength(3);
+
+      // All should be GlobalPrompt
+      for (const item of result.items) {
+        expect(item.type).toBe(CustomizationType.GlobalPrompt);
+      }
+
+      // Check we got all three files with correct paths
+      const sourcePaths = result.items.map(i => i.sourcePath);
+      expect(sourcePaths).toContain('.cursor/rules/root.mdc');
+      expect(sourcePaths).toContain('.cursor/rules/shared/core.mdc');
+      expect(sourcePaths).toContain('.cursor/rules/local/project.mdc');
+    });
+  });
 });
 
 describe('MDC Parsing', () => {
