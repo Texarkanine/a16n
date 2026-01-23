@@ -31,10 +31,10 @@
 - [x] Refactor: Remove .cursorrules legacy support (e97ba9b)
 - [x] Reflection Complete
 
-## Current Bug Fix
+## Completed Bug Fix
 
-- [ ] **CURSOR-RECURSIVE-DISCOVERY** ← CURRENT
-  - Fix: Cursor plugin doesn't find rules in subdirectories
+- [x] **CURSOR-RECURSIVE-DISCOVERY** (2665a22)
+  - Fixed: Cursor plugin now finds rules in subdirectories
   - Scope: `.cursor/rules/**/*.mdc` (recursive)
 
 ## Next Phase
