@@ -36,6 +36,12 @@
 
 **Total tests**: 37 passing
 
+## Reflection
+
+- [x] Reflection document created: `memory-bank/reflection/reflection-GLOB-HOOK-BUILD.md`
+- Key learnings documented (micromatch options, stdin handling, TDD benefits)
+- Process improvements identified
+
 ## Phase 2 Remaining (after glob-hook)
 
 | Task | Status |
