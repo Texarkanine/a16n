@@ -1,0 +1,6 @@
+---
+alwaysApply: true
+---
+
+Prefer composition over inheritance.
+Use dependency injection.
