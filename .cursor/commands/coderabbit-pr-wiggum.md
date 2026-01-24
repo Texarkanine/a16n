@@ -34,7 +34,7 @@ flowchart TD
     
     Process[Process actionable items] --> Fix[Fix each item<br/>using /niko/build]
     Fix --> Test{Tests pass?}
-    Test -->|No| Revert[Revert, mark REQUIRES_HUMAN]
+    Test -->|No| Revert[Revert, mark NEEDS_HUMAN]
     Revert --> ExitFail([Exit])
     
     Test -->|Yes| Reflect["/niko/reflect"]
@@ -130,7 +130,7 @@ Location: `memory-bank/wiggum/pr-<number>.md`
 **If `IN_PROGRESS`:**
 - No new actionable items → Exit (idle)
 - New actionable items → Continue to Phase 4
-- Only REQUIRES_HUMAN remain → `NEEDS_HUMAN`, delete semaphore
+- Only NEEDS_HUMAN remain → `NEEDS_HUMAN`, delete semaphore
 
 ### Phase 4: Fix → Reflect → Push
 
@@ -143,7 +143,7 @@ For each actionable item:
 After all fixes:
 
 4. **Test**: `pnpm test && pnpm build`
-   - If fail: Revert, mark as REQUIRES_HUMAN, exit
+   - If fail: Revert, mark as NEEDS_HUMAN, exit
 5. **Reflect**: Run `/niko/reflect` to document changes
 6. **Commit & Push**:
    ```bash
