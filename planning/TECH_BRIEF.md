@@ -37,7 +37,8 @@ a16n/
 │   ├── engine/          # @a16n/engine - Orchestration, plugin discovery
 │   ├── cli/             # a16n (main package) - User-facing CLI
 │   ├── plugin-cursor/   # @a16n/plugin-cursor - Bundled Cursor support
-│   └── plugin-claude/   # @a16n/plugin-claude - Bundled Claude Code support
+│   ├── plugin-claude/   # @a16n/plugin-claude - Bundled Claude Code support
+│   └── glob-hook/       # @a16n/glob-hook - CLI glob matcher for hooks (Phase 2)
 ├── pnpm-workspace.yaml
 ├── turbo.json
 └── .changeset/
@@ -288,17 +289,58 @@ Note that this is also now INVALID YAML, because a string value starts with a `*
 - `CLAUDE.md` at root and nested in directories
 - `.claude/skills/` directories containing skill definitions
 
-**Mapping to models**:
+**Mapping to models (discovery)**:
 | Claude Concept | a16n Model |
 |----------------|------------|
 | `CLAUDE.md` | GlobalPrompt (one per file) |
 | `.claude/skills/` directories | AgentSkill |
-| Read and/or Write hooks w/ file patterns (file-specific) | FileRule |
+| (no native equivalent) | FileRule — not discovered from Claude |
 | (no direct equivalent) | AgentIgnore → warning, skip |
+
+**Note**: FileRules can be *emitted* to Claude as hooks (see below), but Claude has no native FileRule concept to discover. This is a lossy transformation—the standard a16n warning system handles it.
 
 **Emission behavior**:
 - Multiple GlobalPrompts → single `CLAUDE.md` with sections (emit Merged warning)
 - AgentIgnore → skip with warning (Claude has no equivalent)
+
+### FileRule Emission (Phase 2)
+
+FileRules require special handling because Claude Code has no native glob-based rule system. Instead, we use the Claude Code hooks mechanism with `@a16n/glob-hook`.
+
+**Generated artifacts when emitting FileRules to Claude**:
+
+1. **`.claude/settings.local.json`** - Hook configuration
+2. **`.a16n/rules/<name>.txt`** - Rule content files (a16n-owned directory)
+
+The `.a16n/` directory is tool-agnostic storage for generated artifacts that don't have a natural home in the target tool's config.
+
+**Hook configuration structure**:
+```json
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Write|Edit",
+      "hooks": [{
+        "type": "command",
+        "command": "npx @a16n/glob-hook --globs \"**/*.ts\" --context-file \".a16n/rules/typescript.txt\""
+      }]
+    }],
+    "PostToolUse": [{
+      "matcher": "Read",
+      "hooks": [{
+        "type": "command",
+        "command": "npx @a16n/glob-hook --globs \"**/*.ts\" --context-file \".a16n/rules/typescript.txt\""
+      }]
+    }]
+  }
+}
+```
+
+**Why PreToolUse for Write/Edit, PostToolUse for Read**:
+- **PreToolUse (Write/Edit)**: Claude sees rules BEFORE writing, so it knows conventions to follow
+- **PostToolUse (Read)**: Claude sees rules AFTER reading, giving context for what it just read
+
+**Dependency**: Users converting FileRules to Claude need `npx` available (standard for Claude Code users since Claude itself is installed via npm).
 
 ## Error Handling Philosophy
 
