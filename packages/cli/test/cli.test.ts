@@ -9,18 +9,19 @@ const tempDir = path.join(__dirname, '.temp-cli-test');
 const cliPath = path.join(__dirname, '..', 'dist', 'index.js');
 
 // Helper to run CLI
-function runCli(args: string, cwd: string = tempDir): { stdout: string; exitCode: number } {
+function runCli(args: string, cwd: string = tempDir): { stdout: string; stderr: string; exitCode: number } {
   try {
     const stdout = execSync(`node ${cliPath} ${args}`, {
       cwd,
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
     });
-    return { stdout, exitCode: 0 };
+    return { stdout, stderr: '', exitCode: 0 };
   } catch (error: unknown) {
-    const execError = error as { stdout?: string; status?: number };
+    const execError = error as { stdout?: string; stderr?: string; status?: number };
     return {
       stdout: execError.stdout || '',
+      stderr: execError.stderr || '',
       exitCode: execError.status ?? 1,
     };
   }
@@ -84,10 +85,10 @@ describe('CLI', () => {
     });
 
     it('should error on unknown plugin', () => {
-      const { stdout, exitCode } = runCli('discover --from unknown');
+      const { stderr, exitCode } = runCli('discover --from unknown');
 
       expect(exitCode).toBe(1);
-      expect(stdout).toContain('Unknown');
+      expect(stderr).toContain('Unknown');
     });
   });
 
@@ -144,17 +145,17 @@ describe('CLI', () => {
     });
 
     it('should error on unknown source', () => {
-      const { stdout, exitCode } = runCli('convert --from unknown --to claude');
+      const { stderr, exitCode } = runCli('convert --from unknown --to claude');
 
       expect(exitCode).toBe(1);
-      expect(stdout).toContain('Unknown source');
+      expect(stderr).toContain('Unknown source');
     });
 
     it('should error on unknown target', () => {
-      const { stdout, exitCode } = runCli('convert --from cursor --to unknown');
+      const { stderr, exitCode } = runCli('convert --from cursor --to unknown');
 
       expect(exitCode).toBe(1);
-      expect(stdout).toContain('Unknown target');
+      expect(stderr).toContain('Unknown target');
     });
   });
 });

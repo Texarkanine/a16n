@@ -2,7 +2,7 @@
 
 ## Current Focus
 
-**PR Feedback Round 2**: Reflection complete
+**PR Feedback Round 3**: Reflection complete
 
 ## Current Mode
 
@@ -13,7 +13,7 @@ REFLECT (Complete)
 - **Date**: 2026-01-24
 - **Platform**: Linux (WSL2)
 - **Shell**: Bash
-- **Task**: PR1-FEEDBACK-ROUND2
+- **Task**: PR1-FEEDBACK-ROUND3
 - **Complexity**: Level 2
 - **PR**: #1 (feat: Phase 1 - GlobalPrompt MVP)
 - **Status**: Complete - 88 tests passing
@@ -25,16 +25,13 @@ REFLECT (Complete)
 3. **content.trim()**: Remove (preserve exact content)
 4. **.cursor/rules files**: Do NOT fix (internal docs)
 
-## Changes Made
+## Changes Made (Round 3)
 
 | File | Change |
 |------|--------|
-| `README.md:230` | Fixed broken link `./docs/` → `./planning/` |
-| `README.md:106` | Added `text` language tag |
-| `README.md:120` | Added `text` language tag |
-| `packages/plugin-cursor/README.md:59` | Fixed `items` → `result.items` |
-| `packages/cli/src/index.ts` | Implemented `--quiet` flag |
-| `packages/plugin-claude/src/discover.ts` | Removed `content.trim()` |
+| `packages/cli/src/index.ts` | Use console.error + process.exitCode instead of console.log + process.exit(1) |
+| `packages/plugin-claude/src/discover.ts` | Wrap file reads in try/catch, add warning on error, continue |
+| `packages/cli/test/cli.test.ts` | Update test helper to capture stderr, fix error assertions |
 
 ## Next Steps
 

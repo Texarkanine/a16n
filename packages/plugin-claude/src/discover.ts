@@ -5,6 +5,7 @@ import {
   type DiscoveryResult,
   type Warning,
   CustomizationType,
+  WarningCode,
   createId,
 } from '@a16n/models';
 
@@ -57,25 +58,35 @@ export async function discover(root: string): Promise<DiscoveryResult> {
 
   for (const file of claudeFiles) {
     const fullPath = path.join(root, file);
-    const content = await fs.readFile(fullPath, 'utf-8');
-
-    // Calculate nesting depth
-    const depth = file.split(path.sep).length - 1;
-    const isNested = depth > 0;
-
+    
     // Normalize path separators for cross-platform consistency
     const normalizedPath = file.split(path.sep).join('/');
+    
+    try {
+      const content = await fs.readFile(fullPath, 'utf-8');
 
-    items.push({
-      id: createId(CustomizationType.GlobalPrompt, normalizedPath),
-      type: CustomizationType.GlobalPrompt,
-      sourcePath: normalizedPath,
-      content,
-      metadata: {
-        nested: isNested,
-        depth,
-      },
-    });
+      // Calculate nesting depth
+      const depth = file.split(path.sep).length - 1;
+      const isNested = depth > 0;
+
+      items.push({
+        id: createId(CustomizationType.GlobalPrompt, normalizedPath),
+        type: CustomizationType.GlobalPrompt,
+        sourcePath: normalizedPath,
+        content,
+        metadata: {
+          nested: isNested,
+          depth,
+        },
+      });
+    } catch (error) {
+      // File couldn't be read - add warning and continue
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Could not read ${normalizedPath}: ${(error as Error).message}`,
+        sources: [normalizedPath],
+      });
+    }
   }
 
   return { items, warnings };
