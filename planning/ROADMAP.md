@@ -56,18 +56,23 @@ gantt
 - Extend Cursor plugin: parse `description` and `globs` frontmatter
 - Extend Claude plugin: map to/from skills and tool hooks
 - Handle mixed-type conversions (some translate, some don't)
+- **Detect and skip Claude skills with embedded hooks** (unsupported)
 
 **Key Challenges**:
 - Claude skills live in `.claude/skills/` — need to handle skill directory structure
 - Cursor globs vs Claude hook patterns aren't 1:1 — **SOLVED via `@a16n/glob-hook`**
 - FileRule requires deterministic glob matching in Claude hooks
 
-**Critical Dependency**: `@a16n/glob-hook` package must be built first.
-See [glob-hook/PRODUCT_BRIEF.md](./glob-hook/PRODUCT_BRIEF.md) for details.
+**Critical Dependency**: `@a16n/glob-hook` package must be built first. ✅ Complete (PR #2)
 
-**Spec**: See [how-to-xlate-cursor-globs-to-claude-hooks.md](./how-to-xlate-cursor-globs-to-claude-hooks.md) for technical research.
+**Out of Scope (Phase 2)**:
+- **Claude skills with `hooks:` in frontmatter** — These are not convertible because:
+  - Skill-scoped hooks only run during that skill's lifecycle
+  - Cursor has no equivalent concept
+  - Stripping hooks would produce broken/unsafe skills
+  - Will report as unsupported with clear warning
 
-**Estimated Scope**: ~20-25 hours (includes glob-hook package)
+**Estimated Scope**: ~15-20 hours (glob-hook already complete)
 
 ---
 
@@ -102,6 +107,7 @@ See [glob-hook/PRODUCT_BRIEF.md](./glob-hook/PRODUCT_BRIEF.md) for details.
 - Additional bundled plugins based on demand (Codex, Windsurf, Continue)
 - CI/CD integration examples
 - Config linting / best practices checker
+- **Claude skills with hooks**: Investigate if skill-scoped hooks can be approximated or if certain patterns are convertible to Cursor. Currently these are skipped as unsupported.
 
 **Spec**: To be authored based on user feedback and adoption metrics.
 
@@ -194,3 +200,4 @@ Future decisions to make:
 
 Decisions made:
 - `.cursorrules` (legacy) is NOT supported by the core Cursor plugin. A community `a16n-plugin-cursor-legacy` could add this if needed.
+- **Claude skills with hooks are skipped** (Phase 2): Skills containing `hooks:` in frontmatter are not convertible to Cursor. Stripping hooks would produce broken skills. Reported as unsupported with warning.

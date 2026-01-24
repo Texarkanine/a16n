@@ -711,6 +711,48 @@ packages/plugin-cursor/
 
 **Purpose**: Claude Code support.
 
+### Claude Skill Format
+
+Claude skills are stored in `.claude/skills/<name>/SKILL.md` with YAML frontmatter:
+
+```markdown
+---
+name: my-skill
+description: When to use this skill
+---
+
+Instructions for Claude when this skill is active...
+```
+
+**Skills with hooks** can embed lifecycle hooks in frontmatter:
+
+```markdown
+---
+name: secure-operations
+description: Perform operations with security checks
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "./scripts/security-check.sh"
+---
+
+Instructions when skill is active...
+```
+
+#### Skills with Hooks Limitation (Phase 2)
+
+Skills with `hooks:` in their frontmatter are **not convertible** to Cursor:
+
+1. Cursor has no concept of skill-scoped hooks
+2. Stripping hooks would produce broken/unsafe skills
+3. The skill's functionality depends on those hooks running
+
+**Handling**: Detect `hooks:` key in skill frontmatter → report as unsupported, skip with warning.
+
+**Future consideration**: Investigate if skill hooks can be approximated or certain patterns are convertible.
+
 ### Discovery Logic
 
 ```typescript
