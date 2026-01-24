@@ -711,7 +711,56 @@ packages/plugin-cursor/
 
 **Purpose**: Claude Code support.
 
+### Claude Skill Format
+
+Claude skills are stored in `.claude/skills/<name>/SKILL.md` with YAML frontmatter:
+
+```markdown
+---
+name: my-skill
+description: When to use this skill
+---
+
+Instructions for Claude when this skill is active...
+```
+
+**Skills with hooks** can embed lifecycle hooks in frontmatter:
+
+```markdown
+---
+name: secure-operations
+description: Perform operations with security checks
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "./scripts/security-check.sh"
+---
+
+Instructions when skill is active...
+```
+
+#### Skills with Hooks Limitation (Phase 2)
+
+Skills with `hooks:` in their frontmatter are **not convertible** to Cursor:
+
+1. Cursor has no concept of skill-scoped hooks
+2. Stripping hooks would produce broken/unsafe skills
+3. The skill's functionality depends on those hooks running
+
+**Handling**: Detect `hooks:` key in skill frontmatter → report as unsupported, skip with warning.
+
+**Future consideration**: Investigate if skill hooks can be approximated or certain patterns are convertible.
+
 ### Discovery Logic
+
+Claude plugin discovers:
+
+1. **CLAUDE.md files** - All `**/CLAUDE.md` files (may be nested) → GlobalPrompt
+2. **Skills** - All `.claude/skills/*/SKILL.md` files with YAML frontmatter → AgentSkill
+   - Skills with `hooks:` in frontmatter are skipped with warning (see "Skills with Hooks Limitation" above)
+   - Skills without `description:` are skipped
 
 ```typescript
 // discover.ts
@@ -741,9 +790,36 @@ export async function discover(root: string): Promise<DiscoveryResult> {
     });
   }
   
-  // Note: Skills and hooks require Claude environment
-  // We can only discover them if running inside Claude
-  // For now, we focus on CLAUDE.md files
+  // Find all SKILL.md files in .claude/skills/*/
+  const skillFiles = await glob('.claude/skills/*/SKILL.md', { cwd: root });
+  
+  for (const file of skillFiles) {
+    const fullPath = path.join(root, file);
+    const content = await fs.readFile(fullPath, 'utf-8');
+    const { frontmatter, body } = parseYamlFrontmatter(content);
+    
+    // Skip skills with hooks (not convertible)
+    if (frontmatter.hooks) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Skipped skill with hooks (not convertible): ${file}`,
+        sources: [file],
+      });
+      continue;
+    }
+    
+    // Skip skills without description
+    if (!frontmatter.description) continue;
+    
+    items.push({
+      id: createId(CustomizationType.AgentSkill, file),
+      type: CustomizationType.AgentSkill,
+      sourcePath: file,
+      content: body,
+      description: frontmatter.description,
+      metadata: { name: frontmatter.name },
+    } as AgentSkill);
+  }
   
   return { items, warnings };
 }

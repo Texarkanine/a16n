@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import claudePlugin from '../src/index.js';
-import { CustomizationType } from '@a16n/models';
+import { CustomizationType, WarningCode, type AgentSkill } from '@a16n/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
@@ -69,6 +69,57 @@ describe('Claude Plugin Discovery', () => {
 
       expect(result.items).toHaveLength(0);
       expect(result.warnings).toHaveLength(0);
+    });
+  });
+});
+
+describe('Claude AgentSkill Discovery (Phase 2)', () => {
+  describe('simple skills without hooks', () => {
+    it('should discover AgentSkill from .claude/skills/*/SKILL.md', async () => {
+      const root = path.join(fixturesDir, 'claude-skills/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skills = result.items.filter(i => i.type === CustomizationType.AgentSkill);
+      expect(skills).toHaveLength(1);
+      expect(skills[0]?.sourcePath).toBe('.claude/skills/testing/SKILL.md');
+    });
+
+    it('should extract description from skill frontmatter', async () => {
+      const root = path.join(fixturesDir, 'claude-skills/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skill = result.items.find(i => i.type === CustomizationType.AgentSkill) as AgentSkill;
+      expect(skill).toBeDefined();
+      expect(skill.description).toBe('Testing best practices');
+    });
+
+    it('should include skill content in AgentSkill items', async () => {
+      const root = path.join(fixturesDir, 'claude-skills/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skill = result.items.find(i => i.type === CustomizationType.AgentSkill);
+      expect(skill?.content).toContain('Write unit tests first');
+    });
+  });
+
+  describe('skills with hooks (unsupported)', () => {
+    it('should skip skills that contain hooks in frontmatter', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-with-hooks/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      // No skills should be discovered (the one skill has hooks)
+      const skills = result.items.filter(i => i.type === CustomizationType.AgentSkill);
+      expect(skills).toHaveLength(0);
+    });
+
+    it('should emit warning when skipping skill with hooks', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-with-hooks/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0]?.code).toBe(WarningCode.Skipped);
+      expect(result.warnings[0]?.message).toContain('hooks');
+      expect(result.warnings[0]?.message).toContain('secure-operations');
     });
   });
 });

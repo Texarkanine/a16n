@@ -4,6 +4,9 @@ import {
   type AgentCustomization,
   type DiscoveryResult,
   type Warning,
+  type FileRule,
+  type AgentSkill,
+  type GlobalPrompt,
   CustomizationType,
   createId,
 } from '@a16n/models';
@@ -41,25 +44,74 @@ async function findMdcFiles(rulesDir: string, relativePath: string = ''): Promis
 }
 
 /**
+ * Parse comma-separated glob patterns into an array.
+ * Handles various formats: "*.ts,*.tsx" or "*.ts, *.tsx"
+ */
+function parseGlobs(globsString: string): string[] {
+  return globsString
+    .split(',')
+    .map(g => g.trim())
+    .filter(g => g.length > 0);
+}
+
+/**
  * Classify a Cursor rule based on its frontmatter.
- * Phase 1: Only GlobalPrompt (alwaysApply: true or no criteria).
- * Phase 2 will add AgentSkill and FileRule classification.
+ * 
+ * Classification priority:
+ * 1. alwaysApply: true → GlobalPrompt
+ * 2. globs: present → FileRule
+ * 3. description: present → AgentSkill
+ * 4. None of above → GlobalPrompt (fallback)
  */
 function classifyRule(
   frontmatter: MdcFrontmatter,
   body: string,
   sourcePath: string
 ): AgentCustomization {
-  // For Phase 1, we only handle GlobalPrompt (alwaysApply: true)
-  // In Phase 2, we'll add classification for globs and description
-  
+  // Priority 1: alwaysApply: true → GlobalPrompt
+  if (frontmatter.alwaysApply === true) {
+    return {
+      id: createId(CustomizationType.GlobalPrompt, sourcePath),
+      type: CustomizationType.GlobalPrompt,
+      sourcePath,
+      content: body,
+      metadata: { ...frontmatter },
+    } as GlobalPrompt;
+  }
+
+  // Priority 2: globs present → FileRule
+  if (frontmatter.globs) {
+    const globs = parseGlobs(frontmatter.globs);
+    return {
+      id: createId(CustomizationType.FileRule, sourcePath),
+      type: CustomizationType.FileRule,
+      sourcePath,
+      content: body,
+      globs,
+      metadata: { ...frontmatter },
+    } as FileRule;
+  }
+
+  // Priority 3: description present → AgentSkill
+  if (frontmatter.description) {
+    return {
+      id: createId(CustomizationType.AgentSkill, sourcePath),
+      type: CustomizationType.AgentSkill,
+      sourcePath,
+      content: body,
+      description: frontmatter.description,
+      metadata: { ...frontmatter },
+    } as AgentSkill;
+  }
+
+  // Priority 4: Fallback → GlobalPrompt
   return {
     id: createId(CustomizationType.GlobalPrompt, sourcePath),
     type: CustomizationType.GlobalPrompt,
     sourcePath,
     content: body,
     metadata: { ...frontmatter },
-  };
+  } as GlobalPrompt;
 }
 
 /**
@@ -78,12 +130,10 @@ export async function discover(root: string): Promise<DiscoveryResult> {
     const content = await fs.readFile(filePath, 'utf-8');
     const { frontmatter, body } = parseMdc(content);
 
-    // For Phase 1, only process alwaysApply: true rules
-    if (frontmatter.alwaysApply === true) {
-      const sourcePath = `.cursor/rules/${file}`;
-      const item = classifyRule(frontmatter, body, sourcePath);
-      items.push(item);
-    }
+    // Classify and add all rules (Phase 2: supports GlobalPrompt, FileRule, AgentSkill)
+    const sourcePath = `.cursor/rules/${file}`;
+    const item = classifyRule(frontmatter, body, sourcePath);
+    items.push(item);
   }
 
   return { items, warnings };

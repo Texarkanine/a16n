@@ -239,3 +239,122 @@ describe('Integration Tests - Fixture Based', () => {
     });
   });
 });
+
+describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
+  beforeEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('cursor-filerule-to-claude', () => {
+    it('should convert Cursor FileRule to Claude hooks', async () => {
+      const fixturePath = path.join(fixturesDir, 'cursor-filerule-to-claude');
+      const fromDir = path.join(fixturePath, 'from-cursor');
+      
+      // Copy input to temp
+      await copyDir(fromDir, tempDir);
+      
+      // Run conversion
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+      
+      // Verify FileRule was discovered
+      const fileRules = result.discovered.filter(d => d.type === 'file-rule');
+      expect(fileRules).toHaveLength(1);
+      
+      // Verify rule content file was created
+      const ruleContent = await fs.readFile(
+        path.join(tempDir, '.a16n', 'rules', 'react.txt'),
+        'utf-8'
+      );
+      expect(ruleContent).toContain('Use React best practices');
+      
+      // Verify settings.local.json was created with hooks
+      const settings = JSON.parse(
+        await fs.readFile(
+          path.join(tempDir, '.claude', 'settings.local.json'),
+          'utf-8'
+        )
+      );
+      expect(settings.hooks).toBeDefined();
+      expect(settings.hooks.PreToolUse).toHaveLength(1);
+      expect(settings.hooks.PreToolUse[0].hooks[0].command).toContain('@a16n/glob-hook');
+      expect(settings.hooks.PreToolUse[0].hooks[0].command).toContain('**/*.tsx');
+      
+      // Verify approximation warning was emitted
+      const approxWarning = result.warnings.find(w => w.code === 'approximated');
+      expect(approxWarning).toBeDefined();
+    });
+  });
+
+  describe('cursor-agentskill-to-claude', () => {
+    it('should convert Cursor AgentSkill to Claude skill', async () => {
+      const fixturePath = path.join(fixturesDir, 'cursor-agentskill-to-claude');
+      const fromDir = path.join(fixturePath, 'from-cursor');
+      
+      // Copy input to temp
+      await copyDir(fromDir, tempDir);
+      
+      // Run conversion
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+      
+      // Verify AgentSkill was discovered
+      const agentSkills = result.discovered.filter(d => d.type === 'agent-skill');
+      expect(agentSkills).toHaveLength(1);
+      
+      // Verify skill file was created
+      const skillContent = await fs.readFile(
+        path.join(tempDir, '.claude', 'skills', 'auth', 'SKILL.md'),
+        'utf-8'
+      );
+      // Description is quoted for YAML safety
+      expect(skillContent).toContain('description: "Authentication and authorization helper"');
+      expect(skillContent).toContain('Use JWT for stateless authentication');
+    });
+  });
+
+  describe('claude-skill-to-cursor', () => {
+    it('should convert Claude skill to Cursor rule with description', async () => {
+      const fixturePath = path.join(fixturesDir, 'claude-skill-to-cursor');
+      const fromDir = path.join(fixturePath, 'from-claude');
+      
+      // Copy input to temp
+      await copyDir(fromDir, tempDir);
+      
+      // Run conversion
+      const result = await engine.convert({
+        source: 'claude',
+        target: 'cursor',
+        root: tempDir,
+      });
+      
+      // Verify AgentSkill was discovered
+      const agentSkills = result.discovered.filter(d => d.type === 'agent-skill');
+      expect(agentSkills).toHaveLength(1);
+      
+      // Read the output rule files
+      const rulesDir = path.join(tempDir, '.cursor', 'rules');
+      const files = await fs.readdir(rulesDir);
+      expect(files).toHaveLength(1);
+      
+      const ruleContent = await fs.readFile(
+        path.join(rulesDir, files[0]!),
+        'utf-8'
+      );
+      expect(ruleContent).toContain('description:');
+      expect(ruleContent).toContain('Testing best practices');
+      expect(ruleContent).toContain('Write unit tests first');
+    });
+  });
+});

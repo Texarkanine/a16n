@@ -10,21 +10,35 @@ This plugin is bundled with the `a16n` CLI. For programmatic use:
 npm install @a16n/plugin-claude
 ```
 
+## Supported Types
+
+This plugin supports three customization types:
+
+| Type | Claude Format | Description |
+|------|---------------|-------------|
+| **GlobalPrompt** | `CLAUDE.md` | Always-active instructions |
+| **FileRule** | `.claude/settings.local.json` + `.a16n/rules/` | Glob-triggered via hooks |
+| **AgentSkill** | `.claude/skills/*/SKILL.md` | Description-triggered skills |
+
 ## Supported Files
 
 ### Discovery
 
-- `CLAUDE.md` - Root Claude configuration
-- `*/CLAUDE.md` - Nested Claude configuration files
+- `CLAUDE.md` - Root Claude configuration (GlobalPrompt)
+- `*/CLAUDE.md` - Nested Claude configuration files (GlobalPrompt)
+- `.claude/skills/*/SKILL.md` - Skills with description frontmatter (AgentSkill)
+
+> **Note:** Skills with `hooks:` in their frontmatter are skipped (not convertible to Cursor).
 
 ### Emission
 
-- Creates `CLAUDE.md` at project root
-- Merges multiple GlobalPrompts into single file with section headers
+- **GlobalPrompt** → `CLAUDE.md` (merged with section headers)
+- **FileRule** → `.a16n/rules/<name>.txt` + `.claude/settings.local.json` with hooks
+- **AgentSkill** → `.claude/skills/<name>/SKILL.md` with description frontmatter
 
-## CLAUDE.md Format
+## File Formats
 
-Claude uses plain Markdown files for configuration:
+### CLAUDE.md (GlobalPrompt)
 
 ```markdown
 # Project Guidelines
@@ -32,7 +46,36 @@ Claude uses plain Markdown files for configuration:
 Your instructions for Claude here.
 ```
 
-Nested `CLAUDE.md` files provide directory-specific context.
+### SKILL.md (AgentSkill)
+
+```markdown
+---
+description: Testing best practices
+---
+
+Write unit tests first.
+Aim for 80% code coverage.
+```
+
+### settings.local.json (FileRule via hooks)
+
+FileRules are converted using `@a16n/glob-hook` for runtime glob matching:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Read|Write|Edit",
+      "hooks": [{
+        "type": "command",
+        "command": "npx @a16n/glob-hook --globs \"**/*.tsx\" --context-file \".a16n/rules/react.txt\""
+      }]
+    }]
+  }
+}
+```
+
+> **Note:** FileRule conversion emits an "Approximated" warning because hook-based matching may differ slightly from Cursor's native glob matching.
 
 ## Usage
 
@@ -44,29 +87,11 @@ const engine = new A16nEngine([claudePlugin]);
 
 // Discover Claude configuration
 const result = await claudePlugin.discover('./my-project');
-console.log(`Found ${result.items.length} CLAUDE.md files`);
+console.log(`Found ${result.items.length} items`);
 
 // Emit to Claude format
 await claudePlugin.emit(result.items, './my-project');
 ```
-
-## Conversion Behavior
-
-When emitting multiple GlobalPrompts, they are merged into a single `CLAUDE.md`:
-
-```markdown
-## From: .cursor/rules/style.mdc
-
-Style guidelines...
-
----
-
-## From: .cursor/rules/testing.mdc
-
-Testing guidelines...
-```
-
-A `Merged` warning is emitted when this occurs.
 
 ## License
 

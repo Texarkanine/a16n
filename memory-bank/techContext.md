@@ -1,11 +1,13 @@
 # Memory Bank: Technical Context
 
 ## Architecture Overview
+
 Plugin-based monorepo with:
 - `@a16n/models` - Shared types and plugin interface
 - `@a16n/engine` - Conversion orchestration
 - `@a16n/plugin-cursor` - Cursor IDE support
 - `@a16n/plugin-claude` - Claude Code support
+- `@a16n/glob-hook` - CLI glob matcher for Claude hooks (Phase 2)
 - `a16n` - CLI package
 
 ## Technology Choices
@@ -16,16 +18,23 @@ Plugin-based monorepo with:
 | Versioning | Changesets | Auto-cascades dependency bumps |
 | Build | Turborepo | Minimal config, aggressive caching |
 | Language | TypeScript | Type safety for plugin interfaces |
+| Glob Matching | micromatch | Battle-tested, comprehensive glob support |
 
 ## Core Abstractions
 
 ### CustomizationType Enum
-- `GlobalPrompt` - Always-applied prompts
-- `AgentSkill` - Description-triggered skills
-- `FileRule` - Glob-triggered rules
-- `AgentIgnore` - Exclusion patterns
+
+```typescript
+enum CustomizationType {
+  GlobalPrompt = 'global-prompt',  // Always-applied prompts
+  AgentSkill = 'agent-skill',      // Description-triggered skills
+  FileRule = 'file-rule',          // Glob-triggered rules
+  AgentIgnore = 'agent-ignore',    // Exclusion patterns (Phase 3)
+}
+```
 
 ### Plugin Interface
+
 ```typescript
 interface A16nPlugin {
   id: string;
@@ -39,17 +48,210 @@ interface A16nPlugin {
 ## Tool Mappings
 
 ### Cursor
-- `.cursor/rules/*.mdc` → GlobalPrompt/AgentSkill/FileRule
-- Legacy `.cursorrules` is NOT supported (use `.cursor/rules/*.mdc`)
-- `.cursorignore` → AgentIgnore
+
+| Type | Source Format | Notes |
+|------|---------------|-------|
+| GlobalPrompt | `.cursor/rules/*.mdc` with `alwaysApply: true` | |
+| FileRule | `.cursor/rules/*.mdc` with `globs:` | Comma-separated patterns |
+| AgentSkill | `.cursor/rules/*.mdc` with `description:` | No globs |
+| AgentIgnore | `.cursorignore` | Phase 3 |
+
+**Cursor MDC Classification Priority**:
+1. `alwaysApply: true` → GlobalPrompt
+2. `globs:` present → FileRule
+3. `description:` present (no globs) → AgentSkill
+4. None of above → GlobalPrompt (fallback)
 
 ### Claude Code
-- `CLAUDE.md` (nestable) → GlobalPrompt
-- `.claude/skills/` → AgentSkill
-- Tool hooks → FileRule (approximated)
-- No equivalent → AgentIgnore (skipped)
+
+| Type | Target Format | Notes |
+|------|---------------|-------|
+| GlobalPrompt | `CLAUDE.md` (nestable) | Merges multiple into one |
+| FileRule | `.claude/settings.local.json` + `.a16n/rules/*.txt` | Uses glob-hook |
+| AgentSkill | `.claude/skills/<name>/SKILL.md` | With description frontmatter |
+| AgentSkill (with hooks) | **Unsupported** | Skipped - see below |
+| AgentIgnore | (none) | Skipped with warning |
+
+#### Claude Skills with Hooks (Unsupported)
+
+Claude skills can embed lifecycle hooks in their YAML frontmatter:
+
+```markdown
+---
+name: secure-operations
+description: Perform operations with security checks
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "./scripts/security-check.sh"
+---
+
+Instructions when skill is active...
+```
+
+**Why these are not convertible**:
+1. Skill-scoped hooks only run during that skill's lifecycle
+2. Cursor has no equivalent concept of skill-scoped hooks
+3. Stripping hooks would produce broken/unsafe skills
+4. The skill's functionality depends on those hooks
+
+**Handling**: Detect `hooks:` key in skill frontmatter → skip with warning, do not convert.
+
+**Future**: Investigate if certain hook patterns could be approximated.
+
+## Phase 2: FileRule Implementation
+
+### Claude Hook Configuration
+
+FileRules are emitted as Claude PreToolUse hooks that invoke `@a16n/glob-hook`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Read|Write|Edit",
+      "hooks": [{
+        "type": "command",
+        "command": "npx @a16n/glob-hook --globs \"**/*.tsx,**/*.ts\" --context-file \".a16n/rules/typescript.txt\""
+      }]
+    }]
+  }
+}
+```
+
+### Hook Runtime Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Claude
+    participant Hook as PreToolUse Hook
+    participant GlobHook as @a16n/glob-hook
+    
+    User->>Claude: Edit src/Button.tsx
+    Claude->>Hook: PreToolUse(Write, file_path: src/Button.tsx)
+    Hook->>GlobHook: stdin: {"tool_input":{"file_path":"src/Button.tsx"}}
+    GlobHook->>GlobHook: micromatch("src/Button.tsx", ["**/*.tsx"])
+    GlobHook-->>Hook: {"hookSpecificOutput":{"additionalContext":"..."}}
+    Hook-->>Claude: additionalContext injected
+    Claude->>User: Applies rule context
+```
+
+### Directory Structure for FileRules
+
+```
+project/
+├── .a16n/
+│   └── rules/
+│       ├── typescript.txt    # Rule content
+│       └── react.txt         # Rule content
+└── .claude/
+    └── settings.local.json   # Hook configuration
+```
+
+## Phase 2: AgentSkill Implementation
+
+### Claude Skill Format
+
+**Simple skill** (convertible to Cursor):
+```markdown
+---
+name: my-skill
+description: "Skill activation description for Claude to match"
+---
+
+Instructions for Claude when this skill is active...
+```
+
+**Skill with hooks** (NOT convertible - skipped with warning):
+```markdown
+---
+name: secure-operations
+description: "Perform operations with security checks"
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "./scripts/security-check.sh"
+---
+
+Instructions when skill is active...
+```
+
+Only simple skills (without `hooks:` in frontmatter) can be converted to Cursor.
+
+### Skill Directory Structure
+
+```
+.claude/
+└── skills/
+    ├── auth-patterns/
+    │   └── SKILL.md
+    └── testing-helper/
+        └── SKILL.md
+```
+
+### Cursor Skill Format (description-only rule)
+
+```markdown
+---
+description: "Authentication and authorization patterns"
+---
+
+Use JWT tokens for stateless authentication.
+Always validate tokens server-side.
+```
 
 ## Key Technical Decisions
-- Warn on lossy conversion, don't fail
-- Support nested directory structures (both tools)
-- MDC frontmatter uses text parsing (not YAML - globs are comma-separated strings)
+
+| Decision | Rationale |
+|----------|-----------|
+| Warn on lossy conversion, don't fail | Better UX than blocking |
+| FileRule via hooks + glob-hook | Deterministic matching (vs semantic) |
+| Skill names sanitized for filesystem | Avoid special characters |
+| `.a16n/` directory for generated artifacts | Clean separation from tool configs |
+| Hook matcher `Read\|Write\|Edit` | Covers file operations |
+| MDC frontmatter via regex, not YAML | Cursor's format isn't standard YAML |
+| Skip skills with hooks | Stripping hooks would break skills; Cursor has no equivalent |
+
+## Error Handling Philosophy
+
+1. **Fail fast on invalid input** - Bad syntax, missing fields → error
+2. **Warn and continue on capability gaps** - Unsupported features → warning + skip/approximate
+3. **Never silently drop data** - Every skipped item produces a warning
+4. **Aggregate warnings** - Show all issues at end, not one at a time
+
+## Warning System
+
+```typescript
+enum WarningCode {
+  Merged = 'merged',           // Multiple items collapsed into one
+  Approximated = 'approximated', // Feature translated imperfectly
+  Skipped = 'skipped',         // Feature not supported, omitted
+  Overwritten = 'overwritten', // Existing file replaced
+  FileRenamed = 'file-renamed', // Filename collision resolved
+}
+```
+
+## Conversion Flow
+
+```
+Source Plugin.discover() → AgentCustomization[] → Target Plugin.emit()
+```
+
+## File Structure Preservation
+
+- Nested CLAUDE.md → Nested .cursor/rules/ (structure preserved)
+- Nested .cursor/rules/ → Nested CLAUDE.md (structure preserved)
+- Skills maintain simple flat structure in both tools
+
+## CLI Output Conventions
+
+- Human-friendly by default
+- `--json` for scripting
+- `--dry-run` for preview
+- Exit 0 on success (even with warnings)
+- Exit 1 on errors
