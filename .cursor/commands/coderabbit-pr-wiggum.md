@@ -1,39 +1,65 @@
 # CodeRabbit PR Wiggum - Automated PR Feedback Loop
 
-This command processes CodeRabbit PR feedback in an automated loop, integrating with the Niko workflow system.
+Process CodeRabbit feedback in a loop until resolved or requires human decision.
 
 ## Usage
 
-This command is designed to be run in a shell loop:
-
 ```bash
-touch wiggum.semaphore; while [ -e wiggum.semaphore ]; do cursor agent /coderabbit-pr-wiggum <pr-url>; sleep 300; done
+touch wiggum.semaphore
+while [ -e wiggum.semaphore ]; do
+  cursor agent /coderabbit-pr-wiggum <pr-url>
+  sleep 300
+done
 ```
 
-The agent will:
-- Process new CodeRabbit feedback each iteration
-- Fix actionable items automatically
-- Exit when all feedback is resolved OR requires human decision
-- Delete `wiggum.semaphore` to signal the loop should terminate
+## Workflow Overview
 
-## Parameters
-
-The PR URL is passed as an argument after the command name. Extract it from the user's message.
+```mermaid
+flowchart TD
+    Start([Agent Invoked]) --> Fetch[Fetch CodeRabbit comments]
+    Fetch --> UpdateCR[Update Last CodeRabbit Response timestamp]
+    
+    UpdateCR --> CheckStatus{Status?}
+    
+    CheckStatus -->|PUSHED_AWAITING_REVIEW| CheckCR{CodeRabbit responded<br/>since Last Push?}
+    CheckCR -->|No| ExitWait([Exit - keep waiting])
+    CheckCR -->|Yes| EvalNew{New actionable<br/>items?}
+    EvalNew -->|No| Complete[Mark COMPLETE<br/>Delete semaphore]
+    EvalNew -->|Yes| SetInProgress[Status → IN_PROGRESS]
+    SetInProgress --> Process
+    
+    CheckStatus -->|IN_PROGRESS| HasNew{New actionable<br/>items?}
+    HasNew -->|No| ExitIdle([Exit - nothing to do])
+    HasNew -->|Yes| Process
+    
+    Process[Process actionable items] --> Fix[Fix each item<br/>using /niko/build]
+    Fix --> Test{Tests pass?}
+    Test -->|No| Revert[Revert, mark REQUIRES_HUMAN]
+    Revert --> ExitFail([Exit])
+    
+    Test -->|Yes| Reflect[/niko/reflect]
+    Reflect --> Commit[Commit & Push]
+    Commit --> SetPushed[Status → PUSHED_AWAITING_REVIEW<br/>Update Last Push timestamp]
+    SetPushed --> ExitPushed([Exit - await CR response])
+    
+    Complete --> ExitDone([Exit - done])
+```
 
 ## Semaphore Contract
 
-| Condition | Action |
-|-----------|--------|
-| No new actionable feedback since last check | Exit (loop continues, semaphore stays) |
-| All actionable feedback resolved | Delete `wiggum.semaphore`, exit |
-| Only human-decision items remain | Delete `wiggum.semaphore`, exit |
-| Actionable items found | Process them, exit (loop continues) |
+| Status | Semaphore | Next Action |
+|--------|-----------|-------------|
+| `IN_PROGRESS` | Keep | Process items or wait for new ones |
+| `PUSHED_AWAITING_REVIEW` | Keep | Wait for CodeRabbit to respond |
+| `COMPLETE` | Delete | Loop terminates |
+| `NEEDS_HUMAN` | Delete | Loop terminates |
 
-## Memory Bank Integration
+**Key rule**: Only delete semaphore after CodeRabbit has responded to your push with no actionable feedback.
 
-Uses a dedicated tracking file: `memory-bank/wiggum/pr-<number>.md`
+## Tracking File
 
-**Structure:**
+Location: `memory-bank/wiggum/pr-<number>.md`
+
 ```markdown
 # Wiggum: PR #<number>
 
@@ -42,222 +68,101 @@ Uses a dedicated tracking file: `memory-bank/wiggum/pr-<number>.md`
 |-------|-------|
 | PR URL | <url> |
 | Last Check | <ISO timestamp> |
-| Status | IN_PROGRESS / COMPLETE / NEEDS_HUMAN |
+| Last Push | <ISO timestamp or "never"> |
+| Last CodeRabbit Response | <ISO timestamp> |
+| Status | IN_PROGRESS / PUSHED_AWAITING_REVIEW / COMPLETE / NEEDS_HUMAN |
 
 ## Feedback Tracking
 
-### Actionable (Correct, Auto-fixable)
-- [ ] Comment ID: <id> - <summary> - Status: PENDING/FIXED
-- [x] Comment ID: <id> - <summary> - Status: FIXED
+### Actionable
+- [ ] ID: <id> - <summary> - PENDING
+- [x] ID: <id> - <summary> - FIXED
 
 ### Requires Human Decision
-- Comment ID: <id> - <summary> - Reason: <why it needs human>
+- ID: <id> - <summary> - Reason: <why>
 
-### Ignored (Incorrect/Not Applicable)
-- Comment ID: <id> - <summary> - Reason: <why ignored>
+### Ignored
+- ID: <id> - <summary> - Reason: <why>
 
 ## Fix History
 ### Fix 1 - <timestamp>
-- Comment: <id>
-- Issue: <description>
-- Resolution: <what was done>
+- Comments: <ids>
+- Resolution: <summary>
+- Files: <list>
 ```
 
-## Workflow
+## Phase Details
 
-### Phase 1: Initialize / Resume
+### Phase 1: Fetch & Track
 
-1. **Extract PR number** from the provided URL
-2. **Check for existing tracking file** at `memory-bank/wiggum/pr-<number>.md`
-   - If missing: Initialize memory bank for this PR (first run)
-   - If exists: Resume from previous state
-
-3. **Ensure Memory Bank exists**
+1. Extract PR number from URL
+2. Load or create tracking file (`mkdir -p memory-bank/wiggum`)
+3. Fetch CodeRabbit comments:
    ```bash
-   mkdir -p memory-bank/wiggum
-   ```
-
-### Phase 2: Fetch & Categorize Feedback
-
-1. **Fetch PR comments from CodeRabbit** using GitHub CLI:
-   ```bash
-   # Get PR review comments (inline code comments)
    gh api repos/{owner}/{repo}/pulls/{number}/comments --paginate
-
-   # Get PR reviews (top-level review bodies)
    gh api repos/{owner}/{repo}/pulls/{number}/reviews --paginate
    ```
+4. Filter for `coderabbitai[bot]` user
+5. Update `Last CodeRabbit Response` to most recent comment timestamp
 
-2. **Filter for CodeRabbit comments** - look for comments from `coderabbitai[bot]` or containing CodeRabbit signatures
+### Phase 2: Categorize
 
-3. **Parse each CodeRabbit comment** to extract:
-   - Suggestion type (bug, style, performance, security, etc.)
-   - Specific file/line references
-   - Suggested change or action
+**ACTIONABLE** - Auto-fixable:
+- Code style, missing error handling, type issues
+- Documentation gaps, import/export issues
 
-4. **Categorize each comment** as one of:
+**REQUIRES_HUMAN** - Needs decision:
+- Architectural changes, API design, breaking changes
+- Security-sensitive, public interface changes
 
-   **ACTIONABLE** (Correct + Auto-fixable):
-   - Code style issues with clear fixes
-   - Missing error handling with clear pattern
-   - Type issues with obvious solutions
-   - Documentation gaps
-   - Test coverage gaps
-   - Import/export issues
+**IGNORED** - Not applicable:
+- False positives, already addressed, conflicts with project standards
 
-   **REQUIRES_HUMAN** (Correct but needs decision):
-   - Architectural suggestions
-   - API design changes
-   - Breaking change suggestions
-   - Trade-off decisions (performance vs readability)
-   - Security-sensitive changes
-   - Changes affecting public interfaces
+### Phase 3: Decide
 
-   **IGNORED** (Incorrect or Not Applicable):
-   - False positives
-   - Already addressed in code
-   - Out of scope for this PR
-   - Conflicting with project standards
+**If `PUSHED_AWAITING_REVIEW`:**
+- Compare `Last CodeRabbit Response` vs `Last Push`
+- If CR hasn't responded yet → Exit (keep waiting)
+- If CR responded → Check for new actionable items
+  - None → `COMPLETE`, delete semaphore
+  - Found → `IN_PROGRESS`, continue to Phase 4
 
-5. **Compare with previous state** to identify NEW feedback:
-   - New comments not in tracking file
-   - Resolved comments that were re-opened
+**If `IN_PROGRESS`:**
+- No new actionable items → Exit (idle)
+- New actionable items → Continue to Phase 4
+- Only REQUIRES_HUMAN remain → `NEEDS_HUMAN`, delete semaphore
 
-### Phase 3: Decision Point
+### Phase 4: Fix → Reflect → Push
 
-**If no NEW actionable items AND tracking file exists:**
-- Exit immediately (loop continues, waits for new feedback)
+For each actionable item:
 
-**If only REQUIRES_HUMAN items remain (no ACTIONABLE):**
-- Update tracking file status to `NEEDS_HUMAN`
-- Delete `wiggum.semaphore`
-- Exit with summary of items needing human review
+1. **Fix** using `/niko/build` workflow (Level 1 complexity)
+2. Mark as FIXED in tracking file
+3. Record in Fix History
 
-**If all items resolved (FIXED or IGNORED):**
-- Update tracking file status to `COMPLETE`
-- Delete `wiggum.semaphore`
-- Exit with completion summary
+After all fixes:
 
-**If NEW ACTIONABLE items found:**
-- Continue to Phase 4
-
-### Phase 4: Fix Actionable Items (Niko Integration)
-
-For each ACTIONABLE item:
-
-1. **Create/Update task in memory bank** (`memory-bank/tasks.md`):
-   ```markdown
-   ## Current Task
-   | Field | Value |
-   |-------|-------|
-   | **Task ID** | WIGGUM-PR<number>-<comment-id> |
-   | **Phase** | CodeRabbit PR Feedback Fix |
-   | **Complexity** | Level 1 (Quick Fix) |
-   | **Status** | IN_PROGRESS |
-   ```
-
-2. **Execute fix using Niko workflow:**
-   - Read the specific file(s) mentioned in the comment
-   - Understand the issue from CodeRabbit's analysis
-   - Apply the fix following project patterns
-   - Run relevant tests to verify fix
-   - Update tracking file to mark as FIXED
-
-3. **Record in Fix History:**
-   ```markdown
-   ### Fix N - <timestamp>
-   - Comment: <id>
-   - Issue: <CodeRabbit's description>
-   - Resolution: <what was changed>
-   - Files Modified: <list>
-   ```
-
-### Phase 5: Reflect & Push
-
-1. **Run tests** to ensure all fixes are valid:
+4. **Test**: `pnpm test && pnpm build`
+   - If fail: Revert, mark as REQUIRES_HUMAN, exit
+5. **Reflect**: Run `/niko/reflect` to document changes
+6. **Commit & Push**:
    ```bash
-   pnpm test
-   pnpm build
+   git add -A
+   git commit --no-gpg-sign -m "fix: address CodeRabbit feedback
+
+   <summary of fixes>
+
+   Generated by wiggum automation"
+   git push
    ```
-
-2. **If tests pass:**
-   - Stage and commit changes:
-     ```bash
-     git add -A
-     git commit --no-gpg-sign -m "fix: address CodeRabbit feedback
-
-     Automated fixes for PR review comments:
-     - <summary of fixes>
-     
-     Generated by wiggum automation"
-     ```
-   - Push to PR branch:
-     ```bash
-     git push
-     ```
-
-3. **Update tracking file** with push timestamp
-
-4. **Exit** (loop continues if semaphore exists)
-
-### Phase 6: Handle Failures
-
-**If tests fail after fixes:**
-- Revert the problematic fix
-- Move comment from ACTIONABLE to REQUIRES_HUMAN with reason
-- Continue with remaining fixes or exit
-
-**If unable to parse CodeRabbit comment:**
-- Log warning
-- Move to REQUIRES_HUMAN with reason "Unable to parse"
-
-## Example Tracking File
-
-```markdown
-# Wiggum: PR #42
-
-## Metadata
-| Field | Value |
-|-------|-------|
-| PR URL | https://github.com/example/repo/pull/42 |
-| Last Check | 2026-01-24T15:30:00Z |
-| Status | IN_PROGRESS |
-
-## Feedback Tracking
-
-### Actionable (Correct, Auto-fixable)
-- [x] Comment ID: 1234567 - Missing null check in parser.ts:45 - Status: FIXED
-- [ ] Comment ID: 1234568 - Unused import in utils.ts:3 - Status: PENDING
-
-### Requires Human Decision
-- Comment ID: 1234569 - Consider using dependency injection pattern - Reason: Architectural decision
-
-### Ignored (Incorrect/Not Applicable)
-- Comment ID: 1234570 - Variable naming style - Reason: Follows project convention
-
-## Fix History
-### Fix 1 - 2026-01-24T15:25:00Z
-- Comment: 1234567
-- Issue: Missing null check before accessing property
-- Resolution: Added null coalescing operator with default value
-- Files Modified: packages/engine/src/parser.ts
-```
-
-## Exit Codes
-
-The agent should communicate status via the tracking file. The shell loop handles retries.
-
-| Tracking Status | Semaphore | Meaning |
-|-----------------|-----------|---------|
-| `IN_PROGRESS` | Kept | More work possible, loop continues |
-| `COMPLETE` | Deleted | All done, loop terminates |
-| `NEEDS_HUMAN` | Deleted | Human intervention required, loop terminates |
+7. Update tracking:
+   - `Last Push` → current timestamp
+   - `Status` → `PUSHED_AWAITING_REVIEW`
+8. **Exit** (semaphore stays, await CR response)
 
 ## Notes
 
-- This command is intentionally Level 1 complexity per fix - each fix is small and focused
-- The outer shell loop handles timing and retries
-- CodeRabbit typically responds within 1-5 minutes of push
-- 5-minute sleep between iterations is recommended to allow CodeRabbit to re-analyze
-- All git operations use `--no-gpg-sign` per project conventions
-- All git commands use `--no-pager` per project conventions
+- Each fix is Level 1 complexity (small, focused)
+- 5-minute sleep allows CodeRabbit time to re-analyze
+- Use `--no-gpg-sign` and `--no-pager` for git commands
+- "No new comments" ≠ approval (CR might still be processing)
