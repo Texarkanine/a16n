@@ -37,8 +37,8 @@ flowchart TD
     Test -->|No| Revert[Revert, mark REQUIRES_HUMAN]
     Revert --> ExitFail([Exit])
     
-    Test -->|Yes| Reflect[/niko/reflect]
-    Reflect --> Commit[Commit & Push]
+    Test -->|Yes| Reflect["/niko/reflect"]
+    Reflect --> Commit["Commit & Push"]
     Commit --> SetPushed[Status → PUSHED_AWAITING_REVIEW<br/>Update Last Push timestamp]
     SetPushed --> ExitPushed([Exit - await CR response])
     
