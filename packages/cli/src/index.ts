@@ -34,8 +34,8 @@ program
 
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));
-      } else {
-        // Print summary
+      } else if (!options.quiet) {
+        // Print summary (suppressed with --quiet)
         console.log(`Discovered: ${result.discovered.length} items`);
         
         if (result.written.length > 0) {

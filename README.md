@@ -103,7 +103,7 @@ a16n always warns you when conversions are lossy or irreversible.
 
 ### Example Warning Output
 
-```
+```text
 ⚠ Merged 3 Cursor rules with alwaysApply:true into single CLAUDE.md
   Sources: general.mdc, style.mdc, testing.mdc
   Note: Converting back will produce 1 file, not 3
@@ -117,7 +117,7 @@ a16n always warns you when conversions are lossy or irreversible.
 
 ## CLI Reference
 
-```
+```text
 a16n <command> [options]
 
 Commands:
@@ -227,7 +227,7 @@ a16n convert --from cursor --to claude . --json || echo "Conversion failed"
 
 **Q: How do I add support for a new tool?**
 
-Write a plugin! See [Plugin Development Guide](./docs/PLUGIN_DEVELOPMENT.md). If it's useful to others, publish it to npm as `a16n-plugin-<name>`.
+Write a plugin! See [Plugin Development Guide](./planning/PLUGIN_DEVELOPMENT.md). If it's useful to others, publish it to npm as `a16n-plugin-<name>`.
 
 **Q: Why "a16n"?**
 

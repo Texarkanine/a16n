@@ -2,7 +2,7 @@
 
 ## Current Focus
 
-**PR Feedback Remediation**: Complete - ready to commit
+**PR Feedback Round 2**: Complete - ready to commit
 
 ## Current Mode
 
@@ -10,35 +10,31 @@ BUILD (Implementation Complete)
 
 ## Session Context
 
-- **Date**: 2026-01-23
+- **Date**: 2026-01-24
 - **Platform**: Linux (WSL2)
 - **Shell**: Bash
-- **Task**: PR1-FEEDBACK-REMEDIATION
+- **Task**: PR1-FEEDBACK-ROUND2
 - **Complexity**: Level 2
 - **PR**: #1 (feat: Phase 1 - GlobalPrompt MVP)
-- **Status**: All fixes implemented, 88 tests passing
+- **Status**: Complete - 88 tests passing
 
-## Decisions Made
+## User Decisions (This Session)
 
-1. **Fix valid issues only**: Skipped cosmetic markdown lint issues (MD040)
-2. **Enum values in type guards**: More robust than string literals with cast
-3. **Filename collision handling**: Counter-based suffix with warning (WarningCode.FileRenamed)
-4. **Cross-platform scripts**: Added rimraf for Windows compatibility
-5. **Copyright**: Used "Texarkanine" per user preference
+1. **rimraf in packages**: Skip (YAGNI, pnpm hoisting works)
+2. **--quiet flag**: Must implement (docs are the bible)
+3. **content.trim()**: Remove (preserve exact content)
+4. **.cursor/rules files**: Do NOT fix (internal docs)
 
 ## Changes Made
 
 | File | Change |
 |------|--------|
-| `.gitignore` | Added `*.timestamp-*.mjs` pattern |
-| `packages/models/vitest.config.ts.timestamp-*.mjs` | Deleted (build artifact) |
-| `packages/plugin-cursor/src/emit.ts` | Added collision handling + warning |
-| `packages/models/src/helpers.ts` | Use enum values directly |
-| `packages/models/src/warnings.ts` | Added `FileRenamed` warning code |
-| `README.md` | Fixed link, copyright, removed placeholders |
-| `packages/plugin-cursor/README.md` | Updated pattern to `**/*.mdc` |
-| `packages/plugin-claude/README.md` | Fixed `items` → `result.items` |
-| `package.json` (6 files) | Added rimraf, updated clean scripts |
+| `README.md:230` | Fixed broken link `./docs/` → `./planning/` |
+| `README.md:106` | Added `text` language tag |
+| `README.md:120` | Added `text` language tag |
+| `packages/plugin-cursor/README.md:59` | Fixed `items` → `result.items` |
+| `packages/cli/src/index.ts` | Implemented `--quiet` flag |
+| `packages/plugin-claude/src/discover.ts` | Removed `content.trim()` |
 
 ## Next Steps
 

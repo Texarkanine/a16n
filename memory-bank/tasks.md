@@ -2,10 +2,45 @@
 
 ## Current Task
 
+**Task ID**: PR1-FEEDBACK-ROUND2
+**Title**: Address CodeRabbit PR #1 Feedback (Round 2)
+**Complexity**: Level 2 (Bug Fixes / Code Quality)
+**Status**: Complete
+
+### Summary
+Second round of CodeRabbit feedback after initial fixes. Addresses remaining documentation issues and implements the `--quiet` flag that's advertised but not functional.
+
+### User Decisions
+- **rimraf**: Skip adding to each package (YAGNI, pnpm hoisting handles it)
+- **--quiet flag**: Must implement (docs are the bible)
+- **content.trim()**: Remove (preserve exact content, minimal transformation)
+- **.cursor/rules files**: Do NOT fix MD040 issues
+
+### Implementation Checklist
+
+#### Documentation Fixes
+- [x] 1. Fix broken link `README.md:230` (`./docs/PLUGIN_DEVELOPMENT.md` → `./planning/PLUGIN_DEVELOPMENT.md`)
+- [x] 2. Add language tag to `README.md:106` warning output code block
+- [x] 3. Add language tag to `README.md:120` CLI reference code block
+- [x] 4. Fix `packages/plugin-cursor/README.md` (`items` → `result.items`) - NOTE: plugin-cursor, not plugin-claude
+- [x] 5. `packages/plugin-cursor/README.md:17` already shows `**/*.mdc` (verified)
+
+#### Code Fixes
+- [x] 6. Implement `--quiet` flag in `packages/cli/src/index.ts` (suppress non-error output)
+- [x] 7. Remove `content.trim()` in `packages/plugin-claude/src/discover.ts` (preserve exact content)
+
+#### Verification
+- [x] 8. Run tests to ensure no regressions - **88 tests passing**
+- [x] 9. Verify build passes - **5 packages built successfully**
+
+---
+
+## Previous Task
+
 **Task ID**: PR1-FEEDBACK-REMEDIATION
 **Title**: Address CodeRabbit PR #1 Feedback
 **Complexity**: Level 2 (Bug Fixes / Code Quality)
-**Status**: In Progress
+**Status**: Complete
 
 ### Summary
 PR #1 (feat: Phase 1 - GlobalPrompt MVP) received automated review from CodeRabbit with 3 Major issues and 21 Minor suggestions. This task addresses the valid, actionable items.

@@ -70,7 +70,7 @@ export async function discover(root: string): Promise<DiscoveryResult> {
       id: createId(CustomizationType.GlobalPrompt, normalizedPath),
       type: CustomizationType.GlobalPrompt,
       sourcePath: normalizedPath,
-      content: content.trim(),
+      content,
       metadata: {
         nested: isNested,
         depth,

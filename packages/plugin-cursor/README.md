@@ -56,7 +56,7 @@ const result = await cursorPlugin.discover('./my-project');
 console.log(`Found ${result.items.length} rules`);
 
 // Emit to Cursor format
-await cursorPlugin.emit(items, './my-project');
+await cursorPlugin.emit(result.items, './my-project');
 ```
 
 ## Phase 1 Limitations
