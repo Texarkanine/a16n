@@ -2,19 +2,20 @@
 
 ## Current Focus
 
-No active task. Ready for new work.
+No active task. IDLE mode.
 
-## Current Mode
+## Previous Context
 
-IDLE
+Phase 2 (AgentSkill + FileRule) planning is complete, but implementation is blocked pending the `@a16n/glob-hook` package.
 
-## Session Context
+## Recommended Next Steps
 
-- **Date**: 2026-01-24
-- **Platform**: Linux (WSL2)
-- **Shell**: Bash
-- **Last Completed**: Phase 1 - GlobalPrompt MVP (PR #1 merged)
+1. Build `@a16n/glob-hook` package (see `planning/glob-hook/`)
+2. Resume Phase 2 implementation with FileRule → Claude hooks support
 
-## Recent Context
+## Reference Documents
 
-Phase 1 complete. All 88 tests passing. Ready for Phase 2 or new tasks.
+- `planning/glob-hook/PRODUCT_BRIEF.md` - Why we need glob-hook
+- `planning/glob-hook/TECH_BRIEF.md` - Technical architecture
+- `planning/glob-hook/IMPLEMENTATION_PLAN.md` - Tasks and acceptance criteria
+- `planning/how-to-xlate-cursor-globs-to-claude-hooks.md` - Full planning discussion

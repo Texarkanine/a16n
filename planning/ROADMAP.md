@@ -59,12 +59,15 @@ gantt
 
 **Key Challenges**:
 - Claude skills live in `.claude/skills/` — need to handle skill directory structure
-- Cursor globs vs Claude hook patterns aren't 1:1
-- Need to decide: emit approximations or skip with warnings?
+- Cursor globs vs Claude hook patterns aren't 1:1 — **SOLVED via `@a16n/glob-hook`**
+- FileRule requires deterministic glob matching in Claude hooks
 
-**Spec**: To be authored after Phase 1 exit criteria met.
+**Critical Dependency**: `@a16n/glob-hook` package must be built first.
+See [glob-hook/PRODUCT_BRIEF.md](./glob-hook/PRODUCT_BRIEF.md) for details.
 
-**Estimated Scope**: ~15-20 hours
+**Spec**: See [how-to-xlate-cursor-globs-to-claude-hooks.md](./how-to-xlate-cursor-globs-to-claude-hooks.md) for technical research.
+
+**Estimated Scope**: ~20-25 hours (includes glob-hook package)
 
 ---
 

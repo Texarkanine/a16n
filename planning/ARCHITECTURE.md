@@ -11,7 +11,8 @@ a16n/
 │   ├── engine/          # @a16n/engine  
 │   ├── cli/             # a16n
 │   ├── plugin-cursor/   # @a16n/plugin-cursor
-│   └── plugin-claude/   # @a16n/plugin-claude
+│   ├── plugin-claude/   # @a16n/plugin-claude
+│   └── glob-hook/       # @a16n/glob-hook (Phase 2)
 ├── pnpm-workspace.yaml
 ├── turbo.json
 ├── tsconfig.base.json
@@ -28,6 +29,7 @@ flowchart TD
     engine["@a16n/engine<br/>Orchestration"]
     cursor["@a16n/plugin-cursor<br/>Cursor IDE Support"]
     claude["@a16n/plugin-claude<br/>Claude Code Support"]
+    globhook["@a16n/glob-hook<br/>CLI Glob Matcher (Phase 2)"]
     cli["a16n<br/>CLI Package"]
 
     models --> engine
@@ -36,9 +38,12 @@ flowchart TD
     engine --> cli
     cursor -.->|"bundled in"| cli
     claude -.->|"bundled in"| cli
+    globhook -.->|"runtime dependency"| claude
 ```
 
 The CLI depends on engine (and transitively on models). Plugin packages are dependencies of CLI so users get them out of the box, but they're discovered at runtime rather than imported directly by the engine.
+
+**Note**: `@a16n/glob-hook` is a standalone CLI tool that `@a16n/plugin-claude` references in generated hook configurations. It's invoked via `npx` at runtime by Claude Code hooks, not imported as a library.
 
 ---
 
@@ -828,6 +833,97 @@ packages/plugin-claude/
 
 - `@a16n/models` (workspace)
 - `glob` (file matching)
+
+---
+
+## Package: `@a16n/glob-hook` (Phase 2)
+
+**Purpose**: CLI tool for deterministic glob matching in Claude Code hooks. Enables FileRule support by providing a cross-platform glob matcher that integrates with Claude's hook system.
+
+### Why This Package Exists
+
+Claude Code hooks can inject `additionalContext` via shell commands, but:
+1. The `matcher` field matches **tool names** (Read, Write, Edit), not file patterns
+2. There's no built-in glob matching for file paths
+3. Existing npm glob packages are libraries, not CLIs
+
+This package bridges the gap: it reads hook input from stdin, checks if the file path matches glob patterns, and outputs the appropriate JSON.
+
+### CLI Interface
+
+```bash
+# Read hook JSON from stdin, check file_path against globs
+# Output additionalContext JSON if match, empty object if not
+# Always exit 0 (non-zero = hook failure in Claude)
+
+echo '{"tool_input":{"file_path":"src/Button.tsx"}}' | \
+  npx @a16n/glob-hook \
+    --globs "**/*.tsx,**/*.ts" \
+    --context-file ".claude/rules/typescript.txt"
+```
+
+**Match output:**
+```json
+{"hookSpecificOutput":{"additionalContext":"<content from typescript.txt>"}}
+```
+
+**No match output:**
+```json
+{}
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--globs <patterns>` | Comma-separated glob patterns (required) |
+| `--context <text>` | Inline context to inject if match |
+| `--context-file <path>` | Read context from file (recommended for multiline) |
+
+### Integration with Claude Hooks
+
+When `@a16n/plugin-claude` emits FileRules, it generates:
+
+1. `.claude/rules/<name>.txt` - Rule content files
+2. `.claude/settings.local.json` - Hook configuration referencing `npx @a16n/glob-hook`
+
+Example generated hook:
+```json
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Write|Edit",
+      "hooks": [{
+        "type": "command",
+        "command": "npx @a16n/glob-hook --globs \"**/*.ts,**/*.tsx\" --context-file \".claude/rules/typescript.txt\""
+      }]
+    }]
+  }
+}
+```
+
+### File Structure
+
+```
+packages/glob-hook/
+├── src/
+│   ├── index.ts         # CLI entry point
+│   └── matcher.ts       # Glob matching logic
+├── package.json
+├── README.md
+└── tsconfig.json
+```
+
+### Dependencies
+
+- `micromatch` (glob matching)
+
+No CLI framework - uses raw `process.argv` for fastest possible startup.
+
+### Requirements for Users
+
+- Node.js with `npx` available (standard for Claude Code users)
+- No Python or other runtimes required
 
 ---
 

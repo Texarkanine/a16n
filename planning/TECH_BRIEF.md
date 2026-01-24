@@ -37,7 +37,8 @@ a16n/
 │   ├── engine/          # @a16n/engine - Orchestration, plugin discovery
 │   ├── cli/             # a16n (main package) - User-facing CLI
 │   ├── plugin-cursor/   # @a16n/plugin-cursor - Bundled Cursor support
-│   └── plugin-claude/   # @a16n/plugin-claude - Bundled Claude Code support
+│   ├── plugin-claude/   # @a16n/plugin-claude - Bundled Claude Code support
+│   └── glob-hook/       # @a16n/glob-hook - CLI glob matcher for hooks (Phase 2)
 ├── pnpm-workspace.yaml
 ├── turbo.json
 └── .changeset/
@@ -299,6 +300,43 @@ Note that this is also now INVALID YAML, because a string value starts with a `*
 **Emission behavior**:
 - Multiple GlobalPrompts → single `CLAUDE.md` with sections (emit Merged warning)
 - AgentIgnore → skip with warning (Claude has no equivalent)
+
+### FileRule Emission (Phase 2)
+
+FileRules require special handling because Claude Code has no native glob-based rule system. Instead, we use the Claude Code hooks mechanism with `@a16n/glob-hook`.
+
+**Generated artifacts when emitting FileRules to Claude**:
+
+1. **`.claude/rules/<name>.txt`** - Plain text files containing rule content
+2. **`.claude/settings.local.json`** - Hook configuration
+
+**Hook configuration structure**:
+```json
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Write|Edit",
+      "hooks": [{
+        "type": "command",
+        "command": "npx @a16n/glob-hook --globs \"**/*.ts\" --context-file \".claude/rules/typescript.txt\""
+      }]
+    }],
+    "PostToolUse": [{
+      "matcher": "Read",
+      "hooks": [{
+        "type": "command",
+        "command": "npx @a16n/glob-hook --globs \"**/*.ts\" --context-file \".claude/rules/typescript.txt\""
+      }]
+    }]
+  }
+}
+```
+
+**Why PreToolUse for Write/Edit, PostToolUse for Read**:
+- **PreToolUse (Write/Edit)**: Claude sees rules BEFORE writing, so it knows conventions to follow
+- **PostToolUse (Read)**: Claude sees rules AFTER reading, giving context for what it just read
+
+**Dependency**: Users converting FileRules to Claude need `npx` available (standard for Claude Code users since Claude itself is installed via npm).
 
 ## Error Handling Philosophy
 
