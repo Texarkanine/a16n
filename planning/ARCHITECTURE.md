@@ -755,6 +755,13 @@ Skills with `hooks:` in their frontmatter are **not convertible** to Cursor:
 
 ### Discovery Logic
 
+Claude plugin discovers:
+
+1. **CLAUDE.md files** - All `**/CLAUDE.md` files (may be nested) → GlobalPrompt
+2. **Skills** - All `.claude/skills/*/SKILL.md` files with YAML frontmatter → AgentSkill
+   - Skills with `hooks:` in frontmatter are skipped with warning (see "Skills with Hooks Limitation" above)
+   - Skills without `description:` are skipped
+
 ```typescript
 // discover.ts
 export async function discover(root: string): Promise<DiscoveryResult> {
@@ -783,9 +790,36 @@ export async function discover(root: string): Promise<DiscoveryResult> {
     });
   }
   
-  // Note: Skills and hooks require Claude environment
-  // We can only discover them if running inside Claude
-  // For now, we focus on CLAUDE.md files
+  // Find all SKILL.md files in .claude/skills/*/
+  const skillFiles = await glob('.claude/skills/*/SKILL.md', { cwd: root });
+  
+  for (const file of skillFiles) {
+    const fullPath = path.join(root, file);
+    const content = await fs.readFile(fullPath, 'utf-8');
+    const { frontmatter, body } = parseYamlFrontmatter(content);
+    
+    // Skip skills with hooks (not convertible)
+    if (frontmatter.hooks) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Skipped skill with hooks (not convertible): ${file}`,
+        sources: [file],
+      });
+      continue;
+    }
+    
+    // Skip skills without description
+    if (!frontmatter.description) continue;
+    
+    items.push({
+      id: createId(CustomizationType.AgentSkill, file),
+      type: CustomizationType.AgentSkill,
+      sourcePath: file,
+      content: body,
+      description: frontmatter.description,
+      metadata: { name: frontmatter.name },
+    } as AgentSkill);
+  }
   
   return { items, warnings };
 }

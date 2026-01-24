@@ -318,7 +318,8 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
         path.join(tempDir, '.claude', 'skills', 'auth', 'SKILL.md'),
         'utf-8'
       );
-      expect(skillContent).toContain('description: Authentication and authorization helper');
+      // Description is quoted for YAML safety
+      expect(skillContent).toContain('description: "Authentication and authorization helper"');
       expect(skillContent).toContain('Use JWT for stateless authentication');
     });
   });

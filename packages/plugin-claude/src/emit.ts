@@ -29,25 +29,39 @@ function sanitizeFilename(sourcePath: string): string {
 }
 
 /**
+ * Escape a string for safe use in double-quoted shell arguments.
+ * Escapes: backslash, double quote, dollar sign, backtick.
+ */
+function escapeShellArg(str: string): string {
+  return str.replace(/[\\"`$]/g, '\\$&');
+}
+
+/**
  * Build hook configuration for a FileRule.
  */
 function buildHookConfig(fileRule: FileRule, rulePath: string): object {
-  const globsArg = fileRule.globs.join(',');
+  // Escape globs and rulePath to prevent command injection
+  const escapedGlobs = fileRule.globs.map(g => escapeShellArg(g));
+  const globsArg = escapedGlobs.join(',');
+  const escapedRulePath = escapeShellArg(rulePath);
   return {
     matcher: 'Read|Write|Edit',
     hooks: [{
       type: 'command',
-      command: `npx @a16n/glob-hook --globs "${globsArg}" --context-file "${rulePath}"`,
+      command: `npx @a16n/glob-hook --globs "${globsArg}" --context-file "${escapedRulePath}"`,
     }],
   };
 }
 
 /**
  * Format a skill file with YAML frontmatter.
+ * Description is quoted to handle YAML special characters.
  */
 function formatSkill(skill: AgentSkill): string {
+  // Quote description to handle YAML special characters (: # { } etc.)
+  const safeDescription = JSON.stringify(skill.description);
   return `---
-description: ${skill.description}
+description: ${safeDescription}
 ---
 
 ${skill.content}
@@ -118,9 +132,19 @@ export async function emit(
     await fs.mkdir(claudeDir, { recursive: true });
 
     const hooks: object[] = [];
+    const usedFilenames = new Set<string>();
 
     for (const rule of fileRules) {
-      const filename = sanitizeFilename(rule.sourcePath) + '.txt';
+      // Get unique filename to avoid collisions
+      let baseName = sanitizeFilename(rule.sourcePath);
+      let filename = baseName + '.txt';
+      let counter = 1;
+      while (usedFilenames.has(filename)) {
+        filename = `${baseName}-${counter}.txt`;
+        counter++;
+      }
+      usedFilenames.add(filename);
+
       const rulePath = `.a16n/rules/${filename}`;
       const fullPath = path.join(root, rulePath);
 
@@ -162,8 +186,19 @@ export async function emit(
 
   // === Emit AgentSkills as .claude/skills/*/SKILL.md ===
   if (agentSkills.length > 0) {
+    const usedSkillNames = new Set<string>();
+
     for (const skill of agentSkills) {
-      const skillName = sanitizeFilename(skill.sourcePath);
+      // Get unique skill name to avoid directory collisions
+      let baseName = sanitizeFilename(skill.sourcePath);
+      let skillName = baseName;
+      let counter = 1;
+      while (usedSkillNames.has(skillName)) {
+        skillName = `${baseName}-${counter}`;
+        counter++;
+      }
+      usedSkillNames.add(skillName);
+
       const skillDir = path.join(root, '.claude', 'skills', skillName);
       await fs.mkdir(skillDir, { recursive: true });
 

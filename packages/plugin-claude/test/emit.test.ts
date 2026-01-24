@@ -327,7 +327,8 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
       const skillPath = path.join(tempDir, '.claude', 'skills', 'auth', 'SKILL.md');
       const content = await fs.readFile(skillPath, 'utf-8');
       expect(content).toContain('---');
-      expect(content).toContain('description: Authentication patterns');
+      // Description is quoted for YAML safety
+      expect(content).toContain('description: "Authentication patterns"');
     });
   });
 
