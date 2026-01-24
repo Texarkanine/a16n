@@ -365,6 +365,156 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
       expect(dbContent).toContain('Database content');
     });
   });
+
+  describe('skill name in frontmatter', () => {
+    it('should include name from metadata in skill frontmatter', async () => {
+      const models: AgentSkill[] = [
+        {
+          id: createId(CustomizationType.AgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.AgentSkill,
+          sourcePath: '.cursor/rules/auth.mdc',
+          content: 'Use JWT for authentication.',
+          description: 'Authentication patterns',
+          metadata: { name: 'Auth Helper' },
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'auth', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('name: "Auth Helper"');
+      expect(content).toContain('description: "Authentication patterns"');
+    });
+
+    it('should omit name if not present in metadata', async () => {
+      const models: AgentSkill[] = [
+        {
+          id: createId(CustomizationType.AgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.AgentSkill,
+          sourcePath: '.cursor/rules/auth.mdc',
+          content: 'Use JWT for authentication.',
+          description: 'Authentication patterns',
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'auth', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).not.toContain('name:');
+      expect(content).toContain('description: "Authentication patterns"');
+    });
+  });
+});
+
+describe('Claude Settings Merge Behavior (Phase 2)', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it('should merge with existing settings.local.json', async () => {
+    // Create pre-existing settings
+    const claudeDir = path.join(tempDir, '.claude');
+    await fs.mkdir(claudeDir, { recursive: true });
+    const existingSettings = {
+      userPreference: 'keep-me',
+      hooks: {
+        PreToolUse: [{ matcher: 'existing', hooks: [{ type: 'command', command: 'existing-cmd' }] }],
+        PostToolUse: [{ matcher: 'post', hooks: [] }],
+      },
+    };
+    await fs.writeFile(
+      path.join(claudeDir, 'settings.local.json'),
+      JSON.stringify(existingSettings, null, 2),
+      'utf-8'
+    );
+
+    // Emit FileRule
+    const models: FileRule[] = [
+      {
+        id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
+        type: CustomizationType.FileRule,
+        sourcePath: '.cursor/rules/react.mdc',
+        content: 'React rules',
+        globs: ['**/*.tsx'],
+        metadata: {},
+      },
+    ];
+
+    await claudePlugin.emit(models, tempDir);
+
+    // Verify merge
+    const settingsPath = path.join(tempDir, '.claude', 'settings.local.json');
+    const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
+    
+    // Existing settings preserved
+    expect(settings.userPreference).toBe('keep-me');
+    expect(settings.hooks.PostToolUse).toHaveLength(1);
+    
+    // PreToolUse hooks merged (existing + new)
+    expect(settings.hooks.PreToolUse).toHaveLength(2);
+    expect(settings.hooks.PreToolUse[0].matcher).toBe('existing');
+    expect(settings.hooks.PreToolUse[1].matcher).toBe('Read|Write|Edit');
+  });
+
+  it('should create fresh settings if file does not exist', async () => {
+    const models: FileRule[] = [
+      {
+        id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
+        type: CustomizationType.FileRule,
+        sourcePath: '.cursor/rules/react.mdc',
+        content: 'React rules',
+        globs: ['**/*.tsx'],
+        metadata: {},
+      },
+    ];
+
+    await claudePlugin.emit(models, tempDir);
+
+    const settingsPath = path.join(tempDir, '.claude', 'settings.local.json');
+    const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
+    
+    expect(settings.hooks.PreToolUse).toHaveLength(1);
+  });
+
+  it('should warn and overwrite if existing settings is invalid JSON', async () => {
+    const claudeDir = path.join(tempDir, '.claude');
+    await fs.mkdir(claudeDir, { recursive: true });
+    await fs.writeFile(
+      path.join(claudeDir, 'settings.local.json'),
+      'not valid json {{{',
+      'utf-8'
+    );
+
+    const models: FileRule[] = [
+      {
+        id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
+        type: CustomizationType.FileRule,
+        sourcePath: '.cursor/rules/react.mdc',
+        content: 'React rules',
+        globs: ['**/*.tsx'],
+        metadata: {},
+      },
+    ];
+
+    const result = await claudePlugin.emit(models, tempDir);
+
+    // Should have a warning about the invalid JSON
+    const skipWarning = result.warnings.find(w => w.code === WarningCode.Skipped);
+    expect(skipWarning).toBeDefined();
+    expect(skipWarning?.message).toContain('Could not parse existing settings.local.json');
+
+    // But should still write valid settings
+    const settingsPath = path.join(tempDir, '.claude', 'settings.local.json');
+    const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
+    expect(settings.hooks.PreToolUse).toHaveLength(1);
+  });
 });
 
 describe('Mixed Model Emission (Phase 2)', () => {

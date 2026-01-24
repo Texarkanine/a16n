@@ -55,11 +55,25 @@ function buildHookConfig(fileRule: FileRule, rulePath: string): object {
 
 /**
  * Format a skill file with YAML frontmatter.
- * Description is quoted to handle YAML special characters.
+ * Name and description are quoted to handle YAML special characters.
  */
 function formatSkill(skill: AgentSkill): string {
-  // Quote description to handle YAML special characters (: # { } etc.)
+  // Quote values to handle YAML special characters (: # { } etc.)
   const safeDescription = JSON.stringify(skill.description);
+  const skillName = skill.metadata?.name as string | undefined;
+  
+  // Include name in frontmatter if available
+  if (skillName) {
+    const safeName = JSON.stringify(skillName);
+    return `---
+name: ${safeName}
+description: ${safeDescription}
+---
+
+${skill.content}
+`;
+  }
+  
   return `---
 description: ${safeDescription}
 ---
@@ -161,13 +175,38 @@ export async function emit(
       hooks.push(buildHookConfig(rule, rulePath));
     }
 
-    // Write settings.local.json with all hooks
-    const settings = {
-      hooks: {
-        PreToolUse: hooks,
-      },
-    };
+    // Write settings.local.json, merging with existing content if present
     const settingsPath = path.join(claudeDir, 'settings.local.json');
+    let settings: Record<string, unknown> = { hooks: { PreToolUse: hooks } };
+    
+    try {
+      const existingContent = await fs.readFile(settingsPath, 'utf-8');
+      const existing = JSON.parse(existingContent) as Record<string, unknown>;
+      const existingHooks = existing.hooks as Record<string, unknown[]> | undefined;
+      const existingPreToolUse = Array.isArray(existingHooks?.PreToolUse)
+        ? existingHooks.PreToolUse
+        : [];
+      
+      // Merge: preserve existing settings, append new PreToolUse hooks
+      settings = {
+        ...existing,
+        hooks: {
+          ...existingHooks,
+          PreToolUse: [...existingPreToolUse, ...hooks],
+        },
+      };
+    } catch (err: unknown) {
+      // File doesn't exist or isn't valid JSON - use fresh settings
+      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+        // Only warn if it's not a "file not found" error
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Could not parse existing settings.local.json, overwriting: ${(err as Error).message}`,
+          sources: [settingsPath],
+        });
+      }
+    }
+    
     await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
 
     written.push({
