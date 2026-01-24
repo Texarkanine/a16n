@@ -89,26 +89,23 @@ No other runtime dependencies. CLI argument parsing is done with raw `process.ar
 
 ## Relationship to a16n
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         a16n Ecosystem                              │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  @a16n/plugin-claude                                                │
-│  ├── Emits FileRules as:                                            │
-│  │   ├── .claude/rules/<name>.txt (rule content)                    │
-│  │   └── .claude/settings.local.json (hook config)                  │
-│  │                                                                  │
-│  └── Hook config references @a16n/glob-hook:                        │
-│      "command": "npx @a16n/glob-hook --globs ... --context-file ..." │
-│                                                                     │
-│  @a16n/glob-hook (this package)                                     │
-│  ├── Invoked at runtime by Claude Code hooks                        │
-│  ├── Reads hook input from stdin                                    │
-│  ├── Matches file_path against globs                                │
-│  └── Outputs additionalContext JSON                                 │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph convert["a16n convert"]
+        cursor[".cursor/rules/*.mdc<br/>(with globs)"]
+        plugin["@a16n/plugin-claude"]
+        settings[".claude/settings.local.json"]
+        cursor --> plugin --> settings
+    end
+    
+    subgraph runtime["Claude Code Runtime"]
+        hook["Hook triggers"]
+        globhook["npx @a16n/glob-hook"]
+        context["additionalContext injected"]
+        hook --> globhook --> context
+    end
+    
+    settings -.->|"configures"| hook
 ```
 
 ## Future Considerations

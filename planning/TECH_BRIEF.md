@@ -289,13 +289,15 @@ Note that this is also now INVALID YAML, because a string value starts with a `*
 - `CLAUDE.md` at root and nested in directories
 - `.claude/skills/` directories containing skill definitions
 
-**Mapping to models**:
+**Mapping to models (discovery)**:
 | Claude Concept | a16n Model |
 |----------------|------------|
 | `CLAUDE.md` | GlobalPrompt (one per file) |
 | `.claude/skills/` directories | AgentSkill |
-| Read and/or Write hooks w/ file patterns (file-specific) | FileRule |
+| (no native equivalent) | FileRule — not discovered from Claude |
 | (no direct equivalent) | AgentIgnore → warning, skip |
+
+**Note**: FileRules can be *emitted* to Claude as hooks (see below), but Claude has no native FileRule concept to discover. This is a lossy transformation—the standard a16n warning system handles it.
 
 **Emission behavior**:
 - Multiple GlobalPrompts → single `CLAUDE.md` with sections (emit Merged warning)
@@ -307,8 +309,10 @@ FileRules require special handling because Claude Code has no native glob-based 
 
 **Generated artifacts when emitting FileRules to Claude**:
 
-1. **`.claude/rules/<name>.txt`** - Plain text files containing rule content
-2. **`.claude/settings.local.json`** - Hook configuration
+1. **`.claude/settings.local.json`** - Hook configuration
+2. **`.a16n/rules/<name>.txt`** - Rule content files (a16n-owned directory)
+
+The `.a16n/` directory is tool-agnostic storage for generated artifacts that don't have a natural home in the target tool's config.
 
 **Hook configuration structure**:
 ```json
@@ -318,14 +322,14 @@ FileRules require special handling because Claude Code has no native glob-based 
       "matcher": "Write|Edit",
       "hooks": [{
         "type": "command",
-        "command": "npx @a16n/glob-hook --globs \"**/*.ts\" --context-file \".claude/rules/typescript.txt\""
+        "command": "npx @a16n/glob-hook --globs \"**/*.ts\" --context-file \".a16n/rules/typescript.txt\""
       }]
     }],
     "PostToolUse": [{
       "matcher": "Read",
       "hooks": [{
         "type": "command",
-        "command": "npx @a16n/glob-hook --globs \"**/*.ts\" --context-file \".claude/rules/typescript.txt\""
+        "command": "npx @a16n/glob-hook --globs \"**/*.ts\" --context-file \".a16n/rules/typescript.txt\""
       }]
     }]
   }

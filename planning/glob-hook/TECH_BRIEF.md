@@ -26,74 +26,62 @@
 
 ### Data Flow
 
+```mermaid
+flowchart TD
+    subgraph claude1["Claude Code"]
+        action["1. User action triggers tool<br/>(Read/Write/Edit)"]
+    end
+    
+    subgraph hooks["Hook System"]
+        pipe["Pipes to stdin:<br/>{tool_name, tool_input: {file_path, ...}}"]
+    end
+    
+    subgraph globhook["npx @a16n/glob-hook"]
+        parse["1. Parse stdin JSON"]
+        extract["2. Extract file_path"]
+        check["3. micromatch.isMatch()"]
+        parse --> extract --> check
+    end
+    
+    check -->|"Pattern matches"| matchOut["Output JSON:<br/>{hookSpecificOutput:<br/>{additionalContext: ...}}"]
+    check -->|"No match"| noMatch["Output: {}"]
+    
+    subgraph claude2["Claude Code"]
+        inject["Parses stdout JSON<br/>Injects additionalContext"]
+    end
+    
+    action --> hooks
+    hooks --> globhook
+    matchOut --> claude2
+    noMatch --> claude2
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        glob-hook Execution Flow                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  Claude Code                                                                │
-│  │                                                                          │
-│  │  1. User action triggers tool (Read/Write/Edit)                          │
-│  │                                                                          │
-│  ▼                                                                          │
-│  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │ Hook System                                                          │   │
-│  │                                                                      │   │
-│  │ Pipes to stdin:                                                      │   │
-│  │ {                                                                    │   │
-│  │   "hook_event_name": "PreToolUse",                                   │   │
-│  │   "tool_name": "Write",                                              │   │
-│  │   "tool_input": {                                                    │   │
-│  │     "file_path": "src/components/Button.tsx",                        │   │
-│  │     "content": "..."                                                 │   │
-│  │   }                                                                  │   │
-│  │ }                                                                    │   │
-│  └──────────────────────────────────────────────────────────────────────┘   │
-│                          │                                                  │
-│                          ▼                                                  │
-│  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │ npx @a16n/glob-hook                                                  │   │
-│  │   --globs "**/*.tsx,**/*.ts"                                         │   │
-│  │   --context-file ".claude/rules/typescript.txt"                      │   │
-│  │                                                                      │   │
-│  │ 1. Parse stdin JSON                                                  │   │
-│  │ 2. Extract file_path from tool_input                                 │   │
-│  │ 3. Check: micromatch.isMatch(file_path, patterns)                    │   │
-│  │ 4. If match: read context file, output JSON                          │   │
-│  │ 5. If no match: output empty JSON                                    │   │
-│  │ 6. Exit 0 (always)                                                   │   │
-│  └──────────────────────────────────────────────────────────────────────┘   │
-│                          │                                                  │
-│             ┌────────────┴────────────┐                                     │
-│             ▼                         ▼                                     │
-│  ┌────────────────────┐    ┌────────────────────┐                           │
-│  │ MATCH: Output JSON │    │ NO MATCH: Output   │                           │
-│  │ {                  │    │ {}                 │                           │
-│  │   "hookSpecific-   │    │                    │                           │
-│  │    Output": {      │    │                    │                           │
-│  │     "additional-   │    │                    │                           │
-│  │      Context": ... │    │                    │                           │
-│  │   }                │    │                    │                           │
-│  │ }                  │    │                    │                           │
-│  └────────────────────┘    └────────────────────┘                           │
-│             │                         │                                     │
-│             └────────────┬────────────┘                                     │
-│                          ▼                                                  │
-│  ┌──────────────────────────────────────────────────────────────────────┐   │
-│  │ Claude Code                                                          │   │
-│  │                                                                      │   │
-│  │ Parses stdout JSON, injects additionalContext into Claude's context  │   │
-│  └──────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+
+**Hook Input Example:**
+```json
+{
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "src/components/Button.tsx",
+    "content": "..."
+  }
+}
 ```
+
+**glob-hook Processing:**
+1. Parse stdin JSON
+2. Extract `file_path` from `tool_input`
+3. Check: `micromatch.isMatch(file_path, patterns)`
+4. If match: read context file, output JSON
+5. If no match: output empty JSON
+6. Exit 0 (always)
 
 ### File Structure
 
 ```
 packages/glob-hook/
 ├── src/
-│   ├── index.ts         # CLI entry point (shebang, commander setup)
+│   ├── index.ts         # CLI entry point (shebang, arg parsing)
 │   ├── matcher.ts       # Glob matching logic (micromatch wrapper)
 │   ├── io.ts            # Stdin reading and JSON output
 │   └── types.ts         # TypeScript interfaces
@@ -142,9 +130,8 @@ interface HookOutput {
 
 ```typescript
 interface CliOptions {
-  globs: string;        // Required: comma-separated glob patterns
-  context?: string;     // Optional: inline context string
-  contextFile?: string; // Optional: path to context file
+  globs: string;       // Required: comma-separated glob patterns
+  contextFile: string; // Required: path to context file
 }
 ```
 
@@ -159,15 +146,13 @@ import { readStdin, writeOutput } from './io';
 import { matchesAny } from './matcher';
 
 // Minimal arg parsing - no dependencies needed
-function parseArgs(argv: string[]): { globs?: string; context?: string; contextFile?: string } {
+function parseArgs(argv: string[]): { globs?: string; contextFile?: string } {
   const args = argv.slice(2);
-  const result: { globs?: string; context?: string; contextFile?: string } = {};
+  const result: { globs?: string; contextFile?: string } = {};
   
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--globs' && args[i + 1]) {
       result.globs = args[++i];
-    } else if (args[i] === '--context' && args[i + 1]) {
-      result.context = args[++i];
     } else if (args[i] === '--context-file' && args[i + 1]) {
       result.contextFile = args[++i];
     }
@@ -179,8 +164,8 @@ function parseArgs(argv: string[]): { globs?: string; context?: string; contextF
 async function main() {
   const opts = parseArgs(process.argv);
   
-  if (!opts.globs) {
-    console.error('glob-hook: --globs required');
+  if (!opts.globs || !opts.contextFile) {
+    console.error('glob-hook: --globs and --context-file required');
     writeOutput({});
     process.exit(0);
   }
@@ -205,10 +190,8 @@ async function main() {
       return;
     }
     
-    // 5. Get context
-    const context = opts.contextFile
-      ? readFileSync(opts.contextFile, 'utf-8')
-      : opts.context || '';
+    // 5. Read context from file
+    const context = readFileSync(opts.contextFile, 'utf-8');
     
     // 6. Output result
     writeOutput({
@@ -351,38 +334,7 @@ describe('matchesAny', () => {
 // cli.test.ts
 describe('CLI', () => {
   it('outputs additionalContext when pattern matches', async () => {
-    const input = {
-      tool_name: 'Write',
-      tool_input: { file_path: 'src/Button.tsx' }
-    };
-    
-    const result = await runCli(
-      ['--globs', '**/*.tsx', '--context', 'Use React best practices'],
-      input
-    );
-    
-    expect(JSON.parse(result.stdout)).toEqual({
-      hookSpecificOutput: {
-        additionalContext: 'Use React best practices'
-      }
-    });
-  });
-  
-  it('outputs empty object when pattern does not match', async () => {
-    const input = {
-      tool_name: 'Write',
-      tool_input: { file_path: 'src/Button.py' }
-    };
-    
-    const result = await runCli(['--globs', '**/*.tsx', '--context', 'React'], input);
-    
-    expect(JSON.parse(result.stdout)).toEqual({});
-  });
-  
-  it('reads context from file', async () => {
-    // Create temp context file
-    const contextFile = await createTempFile('My rule content');
-    
+    const contextFile = await createTempFile('Use React best practices');
     const input = {
       tool_name: 'Write',
       tool_input: { file_path: 'src/Button.tsx' }
@@ -395,7 +347,41 @@ describe('CLI', () => {
     
     expect(JSON.parse(result.stdout)).toEqual({
       hookSpecificOutput: {
-        additionalContext: 'My rule content'
+        additionalContext: 'Use React best practices'
+      }
+    });
+  });
+  
+  it('outputs empty object when pattern does not match', async () => {
+    const contextFile = await createTempFile('React rules');
+    const input = {
+      tool_name: 'Write',
+      tool_input: { file_path: 'src/Button.py' }
+    };
+    
+    const result = await runCli(
+      ['--globs', '**/*.tsx', '--context-file', contextFile],
+      input
+    );
+    
+    expect(JSON.parse(result.stdout)).toEqual({});
+  });
+  
+  it('reads multiline context from file', async () => {
+    const contextFile = await createTempFile('Line 1\nLine 2\nLine 3');
+    const input = {
+      tool_name: 'Write',
+      tool_input: { file_path: 'src/Button.tsx' }
+    };
+    
+    const result = await runCli(
+      ['--globs', '**/*.tsx', '--context-file', contextFile],
+      input
+    );
+    
+    expect(JSON.parse(result.stdout)).toEqual({
+      hookSpecificOutput: {
+        additionalContext: 'Line 1\nLine 2\nLine 3'
       }
     });
   });
@@ -411,7 +397,7 @@ describe('CLI', () => {
 | npx startup | ~100ms | First run may be slower due to fetch |
 | Stdin read | ~1ms | Immediate, small JSON |
 | Glob match | ~1ms | micromatch is fast |
-| File read | ~5ms | Only if context-file used |
+| File read | ~5ms | Reading context file |
 | JSON output | ~1ms | Small output |
 | **Total** | **< 200ms** | User-imperceptible |
 

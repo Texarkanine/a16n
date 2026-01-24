@@ -884,8 +884,10 @@ echo '{"tool_input":{"file_path":"src/Button.tsx"}}' | \
 
 When `@a16n/plugin-claude` emits FileRules, it generates:
 
-1. `.claude/rules/<name>.txt` - Rule content files
-2. `.claude/settings.local.json` - Hook configuration referencing `npx @a16n/glob-hook`
+1. `.claude/settings.local.json` - Hook configuration
+2. `.a16n/rules/<name>.txt` - Rule content files
+
+The `.a16n/` directory is a16n-owned storage for generated artifacts that don't have a natural home in the target tool's config.
 
 Example generated hook:
 ```json
@@ -895,7 +897,7 @@ Example generated hook:
       "matcher": "Write|Edit",
       "hooks": [{
         "type": "command",
-        "command": "npx @a16n/glob-hook --globs \"**/*.ts,**/*.tsx\" --context-file \".claude/rules/typescript.txt\""
+        "command": "npx @a16n/glob-hook --globs \"**/*.ts,**/*.tsx\" --context-file \".a16n/rules/typescript.txt\""
       }]
     }]
   }

@@ -10,7 +10,7 @@ Build a CLI tool that enables deterministic glob-based file matching for Claude 
 
 ### In Scope
 
-- CLI entry point with `--globs`, `--context`, and `--context-file` options
+- CLI entry point with `--globs` and `--context-file` options
 - Stdin JSON parsing for Claude hook input
 - Glob matching via micromatch
 - JSON output matching Claude hook spec
@@ -35,8 +35,9 @@ Build a CLI tool that enables deterministic glob-based file matching for Claude 
 ```json
 {"tool_input":{"file_path":"src/Button.tsx"}}
 ```
+And a context file `.a16n/rules/react.txt` containing `React rules`
 
-**When** run with `--globs "**/*.tsx" --context "React rules"`
+**When** run with `--globs "**/*.tsx" --context-file ".a16n/rules/react.txt"`
 
 **Then** output:
 ```json
@@ -50,7 +51,7 @@ Build a CLI tool that enables deterministic glob-based file matching for Claude 
 {"tool_input":{"file_path":"src/utils.py"}}
 ```
 
-**When** run with `--globs "**/*.tsx" --context "React rules"`
+**When** run with `--globs "**/*.tsx" --context-file ".a16n/rules/react.txt"`
 
 **Then** output:
 ```json
@@ -64,19 +65,19 @@ Build a CLI tool that enables deterministic glob-based file matching for Claude 
 {"tool_input":{"file_path":"src/index.ts"}}
 ```
 
-**When** run with `--globs "**/*.ts,**/*.tsx" --context "TypeScript rules"`
+**When** run with `--globs "**/*.ts,**/*.tsx" --context-file ".a16n/rules/typescript.txt"`
 
 **Then** output includes `additionalContext`
 
-### AC4: Context File
+### AC4: Multiline Context File
 
-**Given** a context file `.claude/rules/ts.txt` containing:
+**Given** a context file `.a16n/rules/ts.txt` containing:
 ```
 Use TypeScript strict mode.
 Prefer interfaces over types.
 ```
 
-**When** run with `--globs "**/*.ts" --context-file ".claude/rules/ts.txt"`
+**When** run with `--globs "**/*.ts" --context-file ".a16n/rules/ts.txt"`
 
 **Then** output `additionalContext` contains the file contents
 
@@ -101,7 +102,7 @@ Prefer interfaces over types.
 
 ### AC7: npx Invocation
 
-**When** run via `npx @a16n/glob-hook --globs "**/*.ts" --context "test"`
+**When** run via `npx @a16n/glob-hook --globs "**/*.ts" --context-file ".a16n/rules/test.txt"`
 
 **Then** executes successfully
 
@@ -199,9 +200,8 @@ export interface HookOutput {
  * Parsed CLI options.
  */
 export interface CliOptions {
-  globs: string;
-  context?: string;
-  contextFile?: string;
+  globs: string;       // Required: comma-separated glob patterns
+  contextFile: string; // Required: path to context file
 }
 ```
 
@@ -299,15 +299,13 @@ import { readStdin, writeOutput } from './io';
 import { matchesAny } from './matcher';
 
 // Minimal arg parsing - zero dependencies
-function parseArgs(argv: string[]): { globs?: string; context?: string; contextFile?: string } {
+function parseArgs(argv: string[]): { globs?: string; contextFile?: string } {
   const args = argv.slice(2);
-  const result: { globs?: string; context?: string; contextFile?: string } = {};
+  const result: { globs?: string; contextFile?: string } = {};
   
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--globs' && args[i + 1]) {
       result.globs = args[++i];
-    } else if (args[i] === '--context' && args[i + 1]) {
-      result.context = args[++i];
     } else if (args[i] === '--context-file' && args[i + 1]) {
       result.contextFile = args[++i];
     }
@@ -319,8 +317,8 @@ function parseArgs(argv: string[]): { globs?: string; context?: string; contextF
 async function main() {
   const opts = parseArgs(process.argv);
   
-  if (!opts.globs) {
-    console.error('glob-hook: --globs required');
+  if (!opts.globs || !opts.contextFile) {
+    console.error('glob-hook: --globs and --context-file required');
     writeOutput({});
     process.exit(0);
   }
@@ -341,9 +339,7 @@ async function main() {
       return;
     }
     
-    const context = opts.contextFile
-      ? readFileSync(opts.contextFile, 'utf-8')
-      : opts.context || '';
+    const context = readFileSync(opts.contextFile, 'utf-8');
     
     writeOutput({
       hookSpecificOutput: {
@@ -397,31 +393,47 @@ function runCli(args: string[], stdin: object): Promise<{ stdout: string; stderr
 
 describe('CLI', () => {
   it('matches and outputs context', async () => {
-    const result = await runCli(
-      ['--globs', '**/*.tsx', '--context', 'React rules'],
-      { tool_input: { file_path: 'src/Button.tsx' } }
-    );
+    const tmpDir = mkdtempSync(join(tmpdir(), 'glob-hook-test-'));
+    const contextFile = join(tmpDir, 'react.txt');
+    writeFileSync(contextFile, 'React rules');
     
-    expect(result.code).toBe(0);
-    expect(JSON.parse(result.stdout)).toEqual({
-      hookSpecificOutput: { additionalContext: 'React rules' }
-    });
+    try {
+      const result = await runCli(
+        ['--globs', '**/*.tsx', '--context-file', contextFile],
+        { tool_input: { file_path: 'src/Button.tsx' } }
+      );
+      
+      expect(result.code).toBe(0);
+      expect(JSON.parse(result.stdout)).toEqual({
+        hookSpecificOutput: { additionalContext: 'React rules' }
+      });
+    } finally {
+      rmSync(tmpDir, { recursive: true });
+    }
   });
   
   it('outputs empty on no match', async () => {
-    const result = await runCli(
-      ['--globs', '**/*.tsx', '--context', 'React rules'],
-      { tool_input: { file_path: 'src/utils.py' } }
-    );
+    const tmpDir = mkdtempSync(join(tmpdir(), 'glob-hook-test-'));
+    const contextFile = join(tmpDir, 'react.txt');
+    writeFileSync(contextFile, 'React rules');
     
-    expect(result.code).toBe(0);
-    expect(JSON.parse(result.stdout)).toEqual({});
+    try {
+      const result = await runCli(
+        ['--globs', '**/*.tsx', '--context-file', contextFile],
+        { tool_input: { file_path: 'src/utils.py' } }
+      );
+      
+      expect(result.code).toBe(0);
+      expect(JSON.parse(result.stdout)).toEqual({});
+    } finally {
+      rmSync(tmpDir, { recursive: true });
+    }
   });
   
-  it('reads context from file', async () => {
+  it('reads multiline context from file', async () => {
     const tmpDir = mkdtempSync(join(tmpdir(), 'glob-hook-test-'));
     const contextFile = join(tmpDir, 'context.txt');
-    writeFileSync(contextFile, 'File content here');
+    writeFileSync(contextFile, 'Line 1\nLine 2\nLine 3');
     
     try {
       const result = await runCli(
@@ -431,7 +443,7 @@ describe('CLI', () => {
       
       expect(result.code).toBe(0);
       expect(JSON.parse(result.stdout)).toEqual({
-        hookSpecificOutput: { additionalContext: 'File content here' }
+        hookSpecificOutput: { additionalContext: 'Line 1\nLine 2\nLine 3' }
       });
     } finally {
       rmSync(tmpDir, { recursive: true });
@@ -439,13 +451,21 @@ describe('CLI', () => {
   });
   
   it('handles missing file_path gracefully', async () => {
-    const result = await runCli(
-      ['--globs', '**/*.ts', '--context', 'test'],
-      { tool_input: { command: 'ls' } }
-    );
+    const tmpDir = mkdtempSync(join(tmpdir(), 'glob-hook-test-'));
+    const contextFile = join(tmpDir, 'test.txt');
+    writeFileSync(contextFile, 'test');
     
-    expect(result.code).toBe(0);
-    expect(JSON.parse(result.stdout)).toEqual({});
+    try {
+      const result = await runCli(
+        ['--globs', '**/*.ts', '--context-file', contextFile],
+        { tool_input: { command: 'ls' } }
+      );
+      
+      expect(result.code).toBe(0);
+      expect(JSON.parse(result.stdout)).toEqual({});
+    } finally {
+      rmSync(tmpDir, { recursive: true });
+    }
   });
 });
 ```
@@ -478,17 +498,10 @@ npx @a16n/glob-hook --help
 ## Usage
 
 ```bash
-# Match TypeScript files and inject context
 echo '{"tool_input":{"file_path":"src/Button.tsx"}}' | \
   npx @a16n/glob-hook \
     --globs "**/*.tsx,**/*.ts" \
-    --context "Use React best practices"
-
-# Read context from file
-echo '{"tool_input":{"file_path":"src/index.ts"}}' | \
-  npx @a16n/glob-hook \
-    --globs "**/*.ts" \
-    --context-file ".claude/rules/typescript.txt"
+    --context-file ".a16n/rules/typescript.txt"
 ```
 
 ## Options
@@ -496,10 +509,7 @@ echo '{"tool_input":{"file_path":"src/index.ts"}}' | \
 | Option | Required | Description |
 |--------|----------|-------------|
 | `--globs <patterns>` | Yes | Comma-separated glob patterns |
-| `--context <text>` | No* | Inline context to inject |
-| `--context-file <path>` | No* | Read context from file |
-
-\* One of `--context` or `--context-file` should be provided.
+| `--context-file <path>` | Yes | Path to context file |
 
 ## Output
 
