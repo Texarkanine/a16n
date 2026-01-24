@@ -1,0 +1,7 @@
+---
+description: Authentication and authorization patterns
+---
+
+Use JWT for stateless authentication.
+Always validate tokens on the server side.
+Implement proper session management.

@@ -1,4 +1,4 @@
-import type { A16nPlugin, CustomizationType } from '@a16n/models';
+import { type A16nPlugin, CustomizationType } from '@a16n/models';
 import { discover } from './discover.js';
 import { emit } from './emit.js';
 
@@ -9,7 +9,11 @@ import { emit } from './emit.js';
 const cursorPlugin: A16nPlugin = {
   id: 'cursor',
   name: 'Cursor IDE',
-  supports: ['global-prompt' as CustomizationType],
+  supports: [
+    CustomizationType.GlobalPrompt,
+    CustomizationType.FileRule,
+    CustomizationType.AgentSkill,
+  ],
 
   discover,
   emit,

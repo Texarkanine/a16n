@@ -93,3 +93,115 @@ describe('MDC Parsing', () => {
     expect(item?.content).not.toContain('alwaysApply');
   });
 });
+
+describe('FileRule Discovery (Phase 2)', () => {
+  it('should discover FileRule items from rules with globs: frontmatter', async () => {
+    const root = path.join(fixturesDir, 'cursor-filerule/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    expect(result.items).toHaveLength(2);
+    
+    // All should be FileRule
+    for (const item of result.items) {
+      expect(item.type).toBe(CustomizationType.FileRule);
+    }
+  });
+
+  it('should parse single glob pattern correctly', async () => {
+    const root = path.join(fixturesDir, 'cursor-filerule/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    const tsRule = result.items.find(i => i.sourcePath.includes('typescript'));
+    expect(tsRule).toBeDefined();
+    expect(tsRule?.type).toBe(CustomizationType.FileRule);
+    expect((tsRule as import('@a16n/models').FileRule).globs).toEqual(['**/*.ts']);
+  });
+
+  it('should parse comma-separated glob patterns into array', async () => {
+    const root = path.join(fixturesDir, 'cursor-filerule/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    const reactRule = result.items.find(i => i.sourcePath.includes('react'));
+    expect(reactRule).toBeDefined();
+    expect(reactRule?.type).toBe(CustomizationType.FileRule);
+    expect((reactRule as import('@a16n/models').FileRule).globs).toEqual(['**/*.tsx', '**/*.jsx']);
+  });
+
+  it('should include rule content in FileRule items', async () => {
+    const root = path.join(fixturesDir, 'cursor-filerule/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    const reactRule = result.items.find(i => i.sourcePath.includes('react'));
+    expect(reactRule?.content).toContain('Use React best practices');
+  });
+});
+
+describe('AgentSkill Discovery (Phase 2)', () => {
+  it('should discover AgentSkill items from rules with description: frontmatter', async () => {
+    const root = path.join(fixturesDir, 'cursor-agentskill/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    expect(result.items).toHaveLength(2);
+    
+    // All should be AgentSkill
+    for (const item of result.items) {
+      expect(item.type).toBe(CustomizationType.AgentSkill);
+    }
+  });
+
+  it('should extract description from frontmatter without quotes', async () => {
+    const root = path.join(fixturesDir, 'cursor-agentskill/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    const authSkill = result.items.find(i => i.sourcePath.includes('auth'));
+    expect(authSkill).toBeDefined();
+    expect(authSkill?.type).toBe(CustomizationType.AgentSkill);
+    expect((authSkill as import('@a16n/models').AgentSkill).description).toBe('Authentication and authorization patterns');
+  });
+
+  it('should extract description from frontmatter with quotes', async () => {
+    const root = path.join(fixturesDir, 'cursor-agentskill/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    const dbSkill = result.items.find(i => i.sourcePath.includes('database'));
+    expect(dbSkill).toBeDefined();
+    expect(dbSkill?.type).toBe(CustomizationType.AgentSkill);
+    expect((dbSkill as import('@a16n/models').AgentSkill).description).toBe('Database operations and ORM usage');
+  });
+
+  it('should include rule content in AgentSkill items', async () => {
+    const root = path.join(fixturesDir, 'cursor-agentskill/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    const authSkill = result.items.find(i => i.sourcePath.includes('auth'));
+    expect(authSkill?.content).toContain('Use JWT for stateless authentication');
+  });
+});
+
+describe('Classification Priority (Phase 2)', () => {
+  it('should prioritize alwaysApply: true as GlobalPrompt', async () => {
+    const root = path.join(fixturesDir, 'cursor-basic/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.type).toBe(CustomizationType.GlobalPrompt);
+  });
+
+  it('should classify rules with globs as FileRule', async () => {
+    const root = path.join(fixturesDir, 'cursor-filerule/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    for (const item of result.items) {
+      expect(item.type).toBe(CustomizationType.FileRule);
+    }
+  });
+
+  it('should classify rules with description (no globs) as AgentSkill', async () => {
+    const root = path.join(fixturesDir, 'cursor-agentskill/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    for (const item of result.items) {
+      expect(item.type).toBe(CustomizationType.AgentSkill);
+    }
+  });
+});

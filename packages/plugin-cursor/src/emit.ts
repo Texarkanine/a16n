@@ -5,9 +5,13 @@ import {
   type EmitResult,
   type WrittenFile,
   type Warning,
+  type FileRule,
+  type AgentSkill,
   CustomizationType,
   WarningCode,
   isGlobalPrompt,
+  isFileRule,
+  isAgentSkill,
 } from '@a16n/models';
 
 /**
@@ -57,11 +61,39 @@ function getUniqueFilename(
 }
 
 /**
- * Format content as MDC with frontmatter.
+ * Format content as MDC with GlobalPrompt frontmatter.
  */
-function formatMdc(content: string, alwaysApply: boolean = true): string {
+function formatGlobalPromptMdc(content: string): string {
   return `---
-alwaysApply: ${alwaysApply}
+alwaysApply: true
+---
+
+${content}
+`;
+}
+
+/**
+ * Format content as MDC with FileRule frontmatter (globs).
+ */
+function formatFileRuleMdc(content: string, globs: string[]): string {
+  const globsLine = globs.join(',');
+  return `---
+globs: ${globsLine}
+---
+
+${content}
+`;
+}
+
+/**
+ * Format content as MDC with AgentSkill frontmatter (description).
+ */
+function formatAgentSkillMdc(content: string, description: string): string {
+  // Quote description if it contains special YAML characters
+  const needsQuotes = /[:&*#?|\-<>=!%@`]/.test(description);
+  const quotedDesc = needsQuotes ? `"${description.replace(/"/g, '\\"')}"` : description;
+  return `---
+description: ${quotedDesc}
 ---
 
 ${content}
@@ -70,6 +102,9 @@ ${content}
 
 /**
  * Emit agent customizations to Cursor format.
+ * - GlobalPrompt → .mdc with alwaysApply: true
+ * - FileRule → .mdc with globs:
+ * - AgentSkill → .mdc with description:
  */
 export async function emit(
   models: AgentCustomization[],
@@ -80,17 +115,21 @@ export async function emit(
   const unsupported: AgentCustomization[] = [];
   const usedFilenames = new Set<string>();
 
-  // Filter to GlobalPrompt items only (Phase 1)
+  // Separate by type
   const globalPrompts = models.filter(isGlobalPrompt);
+  const fileRules = models.filter(isFileRule);
+  const agentSkills = models.filter(isAgentSkill);
   
-  // Track items that aren't GlobalPrompt as unsupported for Phase 1
+  // Track unsupported types (AgentIgnore, etc.)
   for (const model of models) {
-    if (!isGlobalPrompt(model)) {
+    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model)) {
       unsupported.push(model);
     }
   }
 
-  if (globalPrompts.length === 0) {
+  const allItems = [...globalPrompts, ...fileRules, ...agentSkills];
+  
+  if (allItems.length === 0) {
     return { written, warnings, unsupported };
   }
 
@@ -111,13 +150,55 @@ export async function emit(
     }
 
     const filepath = path.join(rulesDir, filename);
-    const content = formatMdc(gp.content);
+    const content = formatGlobalPromptMdc(gp.content);
 
     await fs.writeFile(filepath, content, 'utf-8');
 
     written.push({
       path: filepath,
       type: CustomizationType.GlobalPrompt,
+      itemCount: 1,
+    });
+  }
+
+  // Emit each FileRule as a separate .mdc file with globs
+  for (const fr of fileRules) {
+    const baseName = sanitizeFilename(fr.sourcePath) + '.mdc';
+    const { filename, collision } = getUniqueFilename(baseName, usedFilenames);
+    
+    if (collision) {
+      collisionSources.push(fr.sourcePath);
+    }
+
+    const filepath = path.join(rulesDir, filename);
+    const content = formatFileRuleMdc(fr.content, fr.globs);
+
+    await fs.writeFile(filepath, content, 'utf-8');
+
+    written.push({
+      path: filepath,
+      type: CustomizationType.FileRule,
+      itemCount: 1,
+    });
+  }
+
+  // Emit each AgentSkill as a separate .mdc file with description
+  for (const skill of agentSkills) {
+    const baseName = sanitizeFilename(skill.sourcePath) + '.mdc';
+    const { filename, collision } = getUniqueFilename(baseName, usedFilenames);
+    
+    if (collision) {
+      collisionSources.push(skill.sourcePath);
+    }
+
+    const filepath = path.join(rulesDir, filename);
+    const content = formatAgentSkillMdc(skill.content, skill.description);
+
+    await fs.writeFile(filepath, content, 'utf-8');
+
+    written.push({
+      path: filepath,
+      type: CustomizationType.AgentSkill,
       itemCount: 1,
     });
   }

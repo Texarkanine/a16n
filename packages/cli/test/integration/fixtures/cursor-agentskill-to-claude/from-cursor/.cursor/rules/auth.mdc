@@ -1,0 +1,6 @@
+---
+description: Authentication and authorization helper
+---
+
+Use JWT for stateless authentication.
+Always validate tokens server-side.

@@ -3,7 +3,13 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import cursorPlugin from '../src/index.js';
-import { CustomizationType, type GlobalPrompt, createId } from '@a16n/models';
+import {
+  CustomizationType,
+  type GlobalPrompt,
+  type FileRule,
+  type AgentSkill,
+  createId,
+} from '@a16n/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -232,5 +238,209 @@ describe('Cursor Plugin Emission', () => {
       expect(result.warnings).toHaveLength(0);
       expect(result.unsupported).toHaveLength(0);
     });
+  });
+});
+
+describe('Cursor FileRule Emission (Phase 2)', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('single FileRule', () => {
+    it('should emit FileRule as .mdc with globs: frontmatter', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, '.claude/skills/react/SKILL.md'),
+          type: CustomizationType.FileRule,
+          sourcePath: '.claude/skills/react/SKILL.md',
+          content: 'Use React best practices.',
+          globs: ['**/*.tsx', '**/*.jsx'],
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      expect(result.unsupported).toHaveLength(0);
+
+      const content = await fs.readFile(result.written[0]!.path, 'utf-8');
+      expect(content).toContain('globs:');
+      expect(content).toContain('**/*.tsx');
+      expect(content).toContain('**/*.jsx');
+    });
+
+    it('should include rule content after frontmatter', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, 'react.md'),
+          type: CustomizationType.FileRule,
+          sourcePath: 'react.md',
+          content: 'Use React best practices.',
+          globs: ['**/*.tsx'],
+          metadata: {},
+        },
+      ];
+
+      await cursorPlugin.emit(models, tempDir);
+
+      const files = await fs.readdir(path.join(tempDir, '.cursor', 'rules'));
+      expect(files).toHaveLength(1);
+      
+      const content = await fs.readFile(
+        path.join(tempDir, '.cursor', 'rules', files[0]!),
+        'utf-8'
+      );
+      expect(content).toContain('Use React best practices.');
+    });
+
+    it('should format multiple globs as comma-separated string', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, 'react.md'),
+          type: CustomizationType.FileRule,
+          sourcePath: 'react.md',
+          content: 'Content',
+          globs: ['**/*.tsx', '**/*.jsx', 'src/components/**'],
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      const content = await fs.readFile(result.written[0]!.path, 'utf-8');
+      // Globs should be on a single line, comma-separated
+      expect(content).toMatch(/globs:.*\*\*\/\*\.tsx.*\*\*\/\*\.jsx.*src\/components\/\*\*/);
+    });
+  });
+});
+
+describe('Cursor AgentSkill Emission (Phase 2)', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('single AgentSkill', () => {
+    it('should emit AgentSkill as .mdc with description: frontmatter', async () => {
+      const models: AgentSkill[] = [
+        {
+          id: createId(CustomizationType.AgentSkill, '.claude/skills/auth/SKILL.md'),
+          type: CustomizationType.AgentSkill,
+          sourcePath: '.claude/skills/auth/SKILL.md',
+          content: 'Use JWT for authentication.',
+          description: 'Authentication patterns',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      expect(result.unsupported).toHaveLength(0);
+
+      const content = await fs.readFile(result.written[0]!.path, 'utf-8');
+      expect(content).toContain('description:');
+      expect(content).toContain('Authentication patterns');
+    });
+
+    it('should include skill content after frontmatter', async () => {
+      const models: AgentSkill[] = [
+        {
+          id: createId(CustomizationType.AgentSkill, 'auth.md'),
+          type: CustomizationType.AgentSkill,
+          sourcePath: 'auth.md',
+          content: 'Use JWT for authentication.',
+          description: 'Auth patterns',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      const content = await fs.readFile(result.written[0]!.path, 'utf-8');
+      expect(content).toContain('Use JWT for authentication.');
+    });
+
+    it('should quote description with special characters', async () => {
+      const models: AgentSkill[] = [
+        {
+          id: createId(CustomizationType.AgentSkill, 'test.md'),
+          type: CustomizationType.AgentSkill,
+          sourcePath: 'test.md',
+          content: 'Content',
+          description: 'Auth: patterns & guidelines',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      const content = await fs.readFile(result.written[0]!.path, 'utf-8');
+      // Description should be quoted to handle special characters
+      expect(content).toContain('description:');
+      expect(content).toContain('Auth: patterns & guidelines');
+    });
+  });
+});
+
+describe('Cursor Mixed Emission (Phase 2)', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it('should emit GlobalPrompt, FileRule, and AgentSkill together', async () => {
+    const models = [
+      {
+        id: createId(CustomizationType.GlobalPrompt, 'global.md'),
+        type: CustomizationType.GlobalPrompt,
+        sourcePath: 'global.md',
+        content: 'Global content',
+        metadata: {},
+      } as GlobalPrompt,
+      {
+        id: createId(CustomizationType.FileRule, 'react.md'),
+        type: CustomizationType.FileRule,
+        sourcePath: 'react.md',
+        content: 'React content',
+        globs: ['**/*.tsx'],
+        metadata: {},
+      } as FileRule,
+      {
+        id: createId(CustomizationType.AgentSkill, 'auth.md'),
+        type: CustomizationType.AgentSkill,
+        sourcePath: 'auth.md',
+        content: 'Auth content',
+        description: 'Auth patterns',
+        metadata: {},
+      } as AgentSkill,
+    ];
+
+    const result = await cursorPlugin.emit(models, tempDir);
+
+    expect(result.written).toHaveLength(3);
+
+    // Read all emitted files
+    const files = await fs.readdir(path.join(tempDir, '.cursor', 'rules'));
+    expect(files).toHaveLength(3);
+
+    // Check we have one with alwaysApply (GlobalPrompt)
+    const contents = await Promise.all(
+      files.map(f => fs.readFile(path.join(tempDir, '.cursor', 'rules', f), 'utf-8'))
+    );
+    expect(contents.some(c => c.includes('alwaysApply: true'))).toBe(true);
+    expect(contents.some(c => c.includes('globs:'))).toBe(true);
+    expect(contents.some(c => c.includes('description:'))).toBe(true);
   });
 });

@@ -5,7 +5,7 @@
 | Phase | Status | Notes |
 |-------|--------|-------|
 | **Phase 1** | ✅ Complete | PR #1 merged (GlobalPrompt MVP) |
-| **Phase 2** | 🔄 In Progress | Planning complete, implementation starting |
+| **Phase 2** | ✅ Complete | FileRule + AgentSkill support |
 | **Phase 3** | ⬜ Pending | AgentIgnore + Polish |
 
 ## Phase 2 Progress
@@ -15,22 +15,24 @@
 |------|------|--------|
 | 2026-01-24 | @a16n/glob-hook package | ✅ Complete (PR #2) |
 | 2026-01-24 | Phase 2 Implementation Plan | ✅ Complete |
+| 2026-01-24 | Task 1: Cursor FileRule Discovery | ✅ Complete |
+| 2026-01-24 | Task 2: Cursor AgentSkill Discovery | ✅ Complete |
+| 2026-01-24 | Task 3: Claude FileRule Emission | ✅ Complete |
+| 2026-01-24 | Task 4: Claude AgentSkill Emission | ✅ Complete |
+| 2026-01-24 | Task 5: Claude AgentSkill Discovery | ✅ Complete |
+| 2026-01-24 | Task 6: Cursor FileRule Emission | ✅ Complete |
+| 2026-01-24 | Task 7: Cursor AgentSkill Emission | ✅ Complete |
+| 2026-01-24 | Task 8: Update supports Arrays | ✅ Complete |
+| 2026-01-24 | Task 9: Test Fixtures | ✅ Complete |
+| 2026-01-24 | Task 10: Unit Tests | ✅ Complete |
+| 2026-01-24 | Task 11: Integration Tests | ✅ Complete |
+| 2026-01-24 | Task 12: Documentation | ✅ Complete |
 
-### In Progress
-| Task | Status | Notes |
-|------|--------|-------|
-| Task 1: Cursor FileRule Discovery | ⬜ Ready | Next up |
-| Task 2: Cursor AgentSkill Discovery | ⬜ Ready | |
-| Task 3: Claude FileRule Emission | ⬜ Blocked | Needs Task 1 |
-| Task 4: Claude AgentSkill Emission | ⬜ Blocked | Needs Task 2 |
-| Task 5: Claude AgentSkill Discovery | ⬜ Ready | |
-| Task 6: Cursor FileRule Emission | ⬜ Blocked | Needs Task 5 |
-| Task 7: Cursor AgentSkill Emission | ⬜ Blocked | Needs Task 5 |
-| Task 8: Update supports Arrays | ⬜ Blocked | Needs Tasks 1-7 |
-| Task 9: Test Fixtures | ⬜ Ready | Can start early |
-| Task 10: Unit Tests | ⬜ Blocked | Needs Task 9 |
-| Task 11: Integration Tests | ⬜ Blocked | Needs Task 10 |
-| Task 12: Documentation | ⬜ Blocked | Needs Task 11 |
+## Test Results
+
+- Total tests: 160 passing
+- Unit tests: 152 passing (models: 27, glob-hook: 37, plugin-cursor: 42, plugin-claude: 24, engine: 12)
+- Integration tests: 8 passing (cli)
 
 ## Task Dependency Graph
 

@@ -1,0 +1,6 @@
+---
+globs: **/*.ts
+---
+
+Use strict TypeScript configuration.
+Prefer explicit return types on functions.

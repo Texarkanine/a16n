@@ -10,6 +10,16 @@ This plugin is bundled with the `a16n` CLI. For programmatic use:
 npm install @a16n/plugin-cursor
 ```
 
+## Supported Types
+
+This plugin supports three customization types:
+
+| Type | Frontmatter | Description |
+|------|-------------|-------------|
+| **GlobalPrompt** | `alwaysApply: true` | Always-active rules |
+| **FileRule** | `globs: **/*.ts` | Triggered by file patterns |
+| **AgentSkill** | `description: "..."` | Triggered by context matching |
+
 ## Supported Files
 
 ### Discovery
@@ -17,11 +27,19 @@ npm install @a16n/plugin-cursor
 - `.cursor/rules/**/*.mdc` - MDC format rules with frontmatter (recursive)
 
 > **Note:** Legacy `.cursorrules` files are not supported. Use `.cursor/rules/*.mdc` instead.
-> A community plugin `a16n-plugin-cursor-legacy` could be created for legacy support if needed.
+
+### Classification Priority
+
+Rules are classified based on frontmatter (first match wins):
+
+1. `alwaysApply: true` → GlobalPrompt
+2. `globs:` present → FileRule  
+3. `description:` present → AgentSkill
+4. No frontmatter → GlobalPrompt (fallback)
 
 ### Emission
 
-- Creates `.cursor/rules/<name>.mdc` files with `alwaysApply: true` frontmatter
+- Creates `.cursor/rules/<name>.mdc` files with appropriate frontmatter
 
 ## MDC Format
 
@@ -30,18 +48,26 @@ Cursor uses MDC (Markdown Configuration) format with YAML frontmatter:
 ```markdown
 ---
 alwaysApply: true
-description: Optional description
-globs: **/*.ts
 ---
 
-Your rule content here.
+Always-applied rule content.
 ```
 
-### Frontmatter Fields
+```markdown
+---
+globs: **/*.tsx,**/*.jsx
+---
 
-- `alwaysApply` - If true, rule is always active (GlobalPrompt)
-- `description` - Context trigger description (AgentSkill, Phase 2)
-- `globs` - File patterns that trigger the rule (FileRule, Phase 2)
+React-specific guidelines.
+```
+
+```markdown
+---
+description: Authentication and authorization patterns
+---
+
+Auth-related guidelines.
+```
 
 ## Usage
 
@@ -58,11 +84,6 @@ console.log(`Found ${result.items.length} rules`);
 // Emit to Cursor format
 await cursorPlugin.emit(result.items, './my-project');
 ```
-
-## Phase 1 Limitations
-
-Currently only supports `alwaysApply: true` rules (GlobalPrompt type).
-Support for `description` and `globs` will be added in Phase 2.
 
 ## License
 

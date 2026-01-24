@@ -1,0 +1,6 @@
+---
+globs: **/*.tsx,**/*.jsx
+---
+
+Use React best practices.
+Always use functional components with hooks.
