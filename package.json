@@ -8,13 +8,14 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "clean": "turbo run clean && rm -rf node_modules",
+    "clean": "turbo run clean && rimraf node_modules",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.0",
+    "rimraf": "^5.0.0",
     "turbo": "^2.0.0",
     "typescript": "^5.4.0",
     "vitest": "^2.0.0"

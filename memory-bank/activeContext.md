@@ -2,39 +2,46 @@
 
 ## Current Focus
 
-**Bug Fix**: Cursor plugin recursive discovery - rules in subdirectories not found
+**PR Feedback Remediation**: Complete - ready to commit
 
 ## Current Mode
 
-BUILD (Implementation)
+BUILD (Implementation Complete)
 
 ## Session Context
 
-- **Date**: 2026-01-21
+- **Date**: 2026-01-23
 - **Platform**: Linux (WSL2)
 - **Shell**: Bash
-- **Task**: CURSOR-RECURSIVE-DISCOVERY
+- **Task**: PR1-FEEDBACK-REMEDIATION
 - **Complexity**: Level 2
+- **PR**: #1 (feat: Phase 1 - GlobalPrompt MVP)
+- **Status**: All fixes implemented, 88 tests passing
 
-## Active Decisions
+## Decisions Made
 
-1. **TDD Mandatory**: Write test first, then implement fix
-2. **Scope Limited**: Only root `.cursor/rules/**/*.mdc` for now
-3. **Future Enhancement**: Nested `.cursor/rules/` dirs in subdirectories (TBD)
+1. **Fix valid issues only**: Skipped cosmetic markdown lint issues (MD040)
+2. **Enum values in type guards**: More robust than string literals with cast
+3. **Filename collision handling**: Counter-based suffix with warning (WarningCode.FileRenamed)
+4. **Cross-platform scripts**: Added rimraf for Windows compatibility
+5. **Copyright**: Used "Texarkanine" per user preference
 
-## Problem Statement
+## Changes Made
 
-Running `a16n discover --from cursor .` on this repo returns 0 items, but we have rules in:
-- `.cursor/rules/shared/always-tdd.mdc` (alwaysApply: true)
-- `.cursor/rules/shared/niko-core.mdc` (alwaysApply: true)
-- etc.
-
-Current code only looks at `.cursor/rules/*.mdc` (flat), not subdirectories.
+| File | Change |
+|------|--------|
+| `.gitignore` | Added `*.timestamp-*.mjs` pattern |
+| `packages/models/vitest.config.ts.timestamp-*.mjs` | Deleted (build artifact) |
+| `packages/plugin-cursor/src/emit.ts` | Added collision handling + warning |
+| `packages/models/src/helpers.ts` | Use enum values directly |
+| `packages/models/src/warnings.ts` | Added `FileRenamed` warning code |
+| `README.md` | Fixed link, copyright, removed placeholders |
+| `packages/plugin-cursor/README.md` | Updated pattern to `**/*.mdc` |
+| `packages/plugin-claude/README.md` | Fixed `items` → `result.items` |
+| `package.json` (6 files) | Added rimraf, updated clean scripts |
 
 ## Next Steps
 
-1. Create test fixture with nested subdirs
-2. Write failing test for recursive discovery
-3. Implement recursive `findMdcFiles`
-4. Verify fix works on this repo
-5. Commit
+1. Commit changes to PR branch
+2. Push to update PR #1
+3. Wait for re-review

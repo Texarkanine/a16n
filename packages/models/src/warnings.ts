@@ -10,6 +10,8 @@ export enum WarningCode {
   Skipped = 'skipped',
   /** Existing file was replaced */
   Overwritten = 'overwritten',
+  /** File was renamed to avoid collision */
+  FileRenamed = 'file-renamed',
 }
 
 /**

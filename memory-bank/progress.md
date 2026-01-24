@@ -2,9 +2,9 @@
 
 ## Overall Project Status
 
-**Phase**: Phase 1 Bug Fix
-**Current Task**: CURSOR-RECURSIVE-DISCOVERY - In Progress
-**Complexity Level**: 2 (Bug Fix)
+**Phase**: Phase 1 PR Review
+**Current Task**: PR1-FEEDBACK-REMEDIATION - In Progress
+**Complexity Level**: 2 (Bug Fixes / Code Quality)
 
 ## Completed Work
 
@@ -30,15 +30,29 @@
 - [x] Task 10: Documentation & Polish (663a388)
 - [x] Refactor: Remove .cursorrules legacy support (e97ba9b)
 - [x] Reflection Complete
-
-## Completed Bug Fix
-
 - [x] **CURSOR-RECURSIVE-DISCOVERY** (2665a22)
-  - Fixed: Cursor plugin now finds rules in subdirectories
-  - Scope: `.cursor/rules/**/*.mdc` (recursive)
+
+## Current Task: PR1-FEEDBACK-REMEDIATION
+
+**Status**: Complete
+
+| Item | Category | Status |
+|------|----------|--------|
+| Delete vitest timestamp artifact | Critical | ✅ Done |
+| Add *.timestamp-*.mjs to .gitignore | Critical | ✅ Done |
+| Fix filename collision in emit.ts | Major | ✅ Done |
+| Use enum values in helpers.ts | Major | ✅ Done |
+| Fix README.md broken link | Doc | ✅ Done |
+| Fix plugin-claude README usage | Doc | ✅ Done |
+| Update plugin-cursor README pattern | Doc | ✅ Done |
+| Fix README copyright placeholder | Doc | ✅ Done |
+| Fix README placeholder URLs | Doc | ✅ Done |
+| Add rimraf cross-platform | Bonus | ✅ Done |
 
 ## Next Phase
 
+- [ ] Complete PR1-FEEDBACK-REMEDIATION
+- [ ] Merge PR #1
 - [ ] Archive PHASE1-IMPL
 - [ ] Phase 2: AgentSkill and FileRule support
 
@@ -60,8 +74,8 @@
 ## Key Metrics
 
 - **Total Tasks**: 10
-- **Completed**: 10 (+ 1 refactor)
-- **Tests**: 84 passing
+- **Completed**: 10 (+ 1 refactor + 1 bug fix + 1 PR remediation)
+- **Tests**: 88 passing (+3 for collision handling)
 - **Packages**: 5
 
 ## Session Activity Log
@@ -71,3 +85,7 @@
 - 2026-01-20: Completed all 10 tasks with TDD
 - 2026-01-20: Removed .cursorrules legacy support (design decision)
 - 2026-01-21: Completed reflection
+- 2026-01-21: Fixed recursive discovery bug (2665a22)
+- 2026-01-23: PR #1 opened, CodeRabbit review received
+- 2026-01-23: Analyzed PR feedback, created remediation plan
+- 2026-01-23: Implemented all PR feedback fixes (10 items)

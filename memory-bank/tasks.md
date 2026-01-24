@@ -2,10 +2,70 @@
 
 ## Current Task
 
+**Task ID**: PR1-FEEDBACK-REMEDIATION
+**Title**: Address CodeRabbit PR #1 Feedback
+**Complexity**: Level 2 (Bug Fixes / Code Quality)
+**Status**: In Progress
+
+### Summary
+PR #1 (feat: Phase 1 - GlobalPrompt MVP) received automated review from CodeRabbit with 3 Major issues and 21 Minor suggestions. This task addresses the valid, actionable items.
+
+### Feedback Analysis
+
+| Category | Count | Action |
+|----------|-------|--------|
+| Critical (must fix) | 1 | Fix |
+| Major (should fix) | 2 | Fix |
+| Documentation bugs | 5 | Fix |
+| Code quality | 4 | Fix where low-effort |
+| Markdown lint (MD040) | ~10 | Skip (cosmetic) |
+| Design decisions | 1 | User decided |
+
+### Implementation Checklist
+
+#### Must Fix (Critical/Major)
+- [x] 1. Delete `packages/models/vitest.config.ts.timestamp-*.mjs` (build artifact)
+- [x] 2. Add `*.timestamp-*.mjs` to `.gitignore`
+- [x] 3. Fix filename collision risk in `packages/plugin-cursor/src/emit.ts`
+  - Handle empty sanitized names (fallback to 'rule')
+  - Track used filenames and append counter on collision
+  - Add warning when collision occurs (WarningCode.FileRenamed)
+
+#### Should Fix (Code Quality)
+- [x] 4. Use enum values in type guards (`packages/models/src/helpers.ts`)
+  - Changed `'global-prompt' as CustomizationType` → `CustomizationType.GlobalPrompt`
+  - Same for AgentSkill, FileRule, AgentIgnore
+
+#### Documentation Fixes
+- [x] 5. Fix broken link in `README.md:186` (`./docs/` → `planning/`)
+- [x] 6. Fix undefined variable in `packages/plugin-claude/README.md` (`items` → `result.items`)
+- [x] 7. Update `packages/plugin-cursor/README.md:17` pattern (`*.mdc` → `**/*.mdc`)
+- [x] 8. Update copyright placeholder in `README.md:249` → `Texarkanine`
+- [x] 9. Remove placeholder URLs in `README.md:154-157` (no community plugins yet)
+
+#### Bonus (User Decision)
+- [x] 10. Add `rimraf` for cross-platform clean scripts (all 6 package.json files)
+
+#### Optional Improvements (Future)
+- [ ] Add error handling to file write operations
+- [ ] Add comment clarifying silent catch intent in discover.ts
+- [ ] Consider warning on duplicate plugin registration
+
+### Skipped Items (With Justification)
+- **Markdown lint (MD040)**: Cosmetic only, internal docs, no functional impact
+- **memory-bank status updates**: Will be correct after this task completes
+- **Cross-platform clean script**: Unix-only acceptable for dev tooling
+- **Test assertion patterns**: Current pattern works, stylistic preference
+- **Dry-run unsupported array**: Acceptable Phase 1 limitation
+
+---
+
+## Previous Task
+
 **Task ID**: CURSOR-RECURSIVE-DISCOVERY
 **Title**: Fix Cursor plugin to recursively discover rules in subdirectories
 **Complexity**: Level 2 (Bug Fix / Enhancement)
-**Status**: Reflection Complete (2665a22)
+**Status**: Complete (2665a22)
 
 ### Problem
 Cursor plugin only discovers `.cursor/rules/*.mdc` (flat), but Cursor supports subdirectories like `shared/`, `local/` within the rules directory.

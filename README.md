@@ -151,11 +151,9 @@ a16n convert --from cursor --to codex .
 
 ### Available Community Plugins
 
-- [`a16n-plugin-codex`](https://github.com/example/a16n-plugin-codex) — OpenAI Codex CLI support
-- [`a16n-plugin-windsurf`](https://github.com/example/a16n-plugin-windsurf) — Windsurf IDE support
-- [`a16n-plugin-continue`](https://github.com/example/a16n-plugin-continue) — Continue.dev support
+*No community plugins yet. Want to create one? See the [Plugin Development Guide](./planning/PLUGIN_DEVELOPMENT.md).*
 
-*Want to add your plugin? Open a PR to update this list.*
+*Once published, open a PR to add your plugin to this list.*
 
 ## Writing Plugins
 
@@ -183,7 +181,7 @@ const myPlugin: A16nPlugin = {
 export default myPlugin;
 ```
 
-See the [Plugin Development Guide](./docs/PLUGIN_DEVELOPMENT.md) for details.
+See the [Plugin Development Guide](./planning/PLUGIN_DEVELOPMENT.md) for details.
 
 ## Programmatic API
 
@@ -246,7 +244,7 @@ Contributions welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-MIT © [Your Name]
+MIT © Texarkanine
 
 ---
 

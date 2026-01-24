@@ -137,6 +137,91 @@ describe('Cursor Plugin Emission', () => {
       // Should be sanitized to safe characters
       expect(filename).toMatch(/^[\w-]+\.mdc$/);
     });
+
+    it('should use fallback name when sanitization produces empty string', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, '!!!.md'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: '!!!.md',
+          content: 'Content from special-only filename',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      const filename = path.basename(result.written[0]!.path);
+      // Should fall back to 'rule' when sanitization produces empty
+      expect(filename).toBe('rule.mdc');
+    });
+
+    it('should handle filename collisions by appending counter', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'dir1/CLAUDE.md'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: 'dir1/CLAUDE.md',
+          content: 'First',
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'dir2/CLAUDE.md'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: 'dir2/CLAUDE.md',
+          content: 'Second',
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'dir3/claude.md'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: 'dir3/claude.md',
+          content: 'Third',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(3);
+      
+      const filenames = result.written.map(w => path.basename(w.path)).sort();
+      expect(filenames).toEqual(['claude-2.mdc', 'claude-3.mdc', 'claude.mdc']);
+
+      // Verify each file has distinct content
+      const contents = await Promise.all(
+        result.written.map(w => fs.readFile(w.path, 'utf-8'))
+      );
+      expect(contents.some(c => c.includes('First'))).toBe(true);
+      expect(contents.some(c => c.includes('Second'))).toBe(true);
+      expect(contents.some(c => c.includes('Third'))).toBe(true);
+    });
+
+    it('should emit warning when filename collision occurs', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'a/test.md'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: 'a/test.md',
+          content: 'First',
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'b/test.md'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: 'b/test.md',
+          content: 'Second',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0]?.message).toContain('collision');
+    });
   });
 
   describe('empty input', () => {

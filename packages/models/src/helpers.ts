@@ -1,9 +1,9 @@
-import type {
-  AgentCustomization,
-  GlobalPrompt,
-  AgentSkill,
-  FileRule,
-  AgentIgnore,
+import {
+  type AgentCustomization,
+  type GlobalPrompt,
+  type AgentSkill,
+  type FileRule,
+  type AgentIgnore,
   CustomizationType,
 } from './types.js';
 
@@ -11,28 +11,28 @@ import type {
  * Type guard to check if an item is a GlobalPrompt.
  */
 export function isGlobalPrompt(item: AgentCustomization): item is GlobalPrompt {
-  return item.type === ('global-prompt' as CustomizationType);
+  return item.type === CustomizationType.GlobalPrompt;
 }
 
 /**
  * Type guard to check if an item is an AgentSkill.
  */
 export function isAgentSkill(item: AgentCustomization): item is AgentSkill {
-  return item.type === ('agent-skill' as CustomizationType);
+  return item.type === CustomizationType.AgentSkill;
 }
 
 /**
  * Type guard to check if an item is a FileRule.
  */
 export function isFileRule(item: AgentCustomization): item is FileRule {
-  return item.type === ('file-rule' as CustomizationType);
+  return item.type === CustomizationType.FileRule;
 }
 
 /**
  * Type guard to check if an item is an AgentIgnore.
  */
 export function isAgentIgnore(item: AgentCustomization): item is AgentIgnore {
-  return item.type === ('agent-ignore' as CustomizationType);
+  return item.type === CustomizationType.AgentIgnore;
 }
 
 /**

@@ -47,7 +47,7 @@ const result = await claudePlugin.discover('./my-project');
 console.log(`Found ${result.items.length} CLAUDE.md files`);
 
 // Emit to Claude format
-await claudePlugin.emit(items, './my-project');
+await claudePlugin.emit(result.items, './my-project');
 ```
 
 ## Conversion Behavior
