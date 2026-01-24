@@ -47,7 +47,7 @@ echo '{"tool_input":{"file_path":"src/Button.tsx"}}' | \
 ## Implementation Tasks
 
 ### Task 1: Package Setup
-**Status**: ⬜ Pending  
+**Status**: ✅ Complete  
 **Estimated**: 30 min
 
 **Deliverable**: Package skeleton in monorepo at `packages/glob-hook/`
@@ -78,7 +78,7 @@ pnpm --filter @a16n/glob-hook build
 ---
 
 ### Task 2: Types Module
-**Status**: ⬜ Pending  
+**Status**: ✅ Complete  
 **Estimated**: 15 min
 
 **Deliverable**: TypeScript interfaces for hook I/O
@@ -126,7 +126,7 @@ export interface CliOptions {
 ---
 
 ### Task 3: Matcher Module
-**Status**: ⬜ Pending  
+**Status**: ✅ Complete  
 **Estimated**: 1 hour (including tests)
 
 **Deliverable**: Glob matching logic with comprehensive tests
@@ -169,7 +169,7 @@ pnpm --filter @a16n/glob-hook test
 ---
 
 ### Task 4: I/O Module
-**Status**: ⬜ Pending  
+**Status**: ✅ Complete  
 **Estimated**: 30 min
 
 **Deliverable**: Stdin reading and stdout writing
@@ -214,7 +214,7 @@ Test cases:
 ---
 
 ### Task 5: CLI Entry Point
-**Status**: ⬜ Pending  
+**Status**: ✅ Complete  
 **Estimated**: 1 hour
 
 **Deliverable**: Main CLI with minimal arg parsing
@@ -236,7 +236,7 @@ Key requirements:
 ---
 
 ### Task 6: CLI Integration Tests
-**Status**: ⬜ Pending  
+**Status**: ✅ Complete  
 **Estimated**: 1 hour
 
 **Deliverable**: End-to-end CLI tests
@@ -266,7 +266,7 @@ function runCli(args: string[], stdin: object): Promise<{
 ---
 
 ### Task 7: Documentation
-**Status**: ⬜ Pending  
+**Status**: ✅ Complete  
 **Estimated**: 30 min
 
 **Deliverable**: Package README
@@ -347,12 +347,12 @@ Tasks 3 and 4 can be done in parallel after Task 2.
 ## Definition of Done
 
 glob-hook is complete when:
-- [ ] All 7 acceptance criteria pass
-- [ ] `pnpm --filter @a16n/glob-hook build` succeeds
-- [ ] `pnpm --filter @a16n/glob-hook test` passes (all tests green)
-- [ ] CLI works via `tsx` during development
-- [ ] README accurately describes usage
-- [ ] Package integrates with monorepo build
+- [x] All 7 acceptance criteria pass
+- [x] `pnpm --filter @a16n/glob-hook build` succeeds
+- [x] `pnpm --filter @a16n/glob-hook test` passes (all tests green)
+- [x] CLI works via `tsx` during development
+- [x] README accurately describes usage
+- [x] Package integrates with monorepo build
 
 ---
 

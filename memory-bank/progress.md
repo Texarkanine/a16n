@@ -11,7 +11,7 @@
 
 | Blocker | Status | Unblocks |
 |---------|--------|----------|
-| `@a16n/glob-hook` package | 📋 Planning Complete | Phase 2 FileRule implementation |
+| `@a16n/glob-hook` package | ✅ Implementation Complete | Phase 2 FileRule implementation |
 
 ## Recent Completions
 
@@ -26,15 +26,15 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| 1. Package Setup | ⬜ Pending | Scaffold in monorepo |
-| 2. Types Module | ⬜ Pending | Hook I/O interfaces |
-| 3. Matcher Module | ⬜ Pending | micromatch wrapper + tests |
-| 4. I/O Module | ⬜ Pending | stdin/stdout handling |
-| 5. CLI Entry Point | ⬜ Pending | Main logic |
-| 6. Integration Tests | ⬜ Pending | E2E tests |
-| 7. Documentation | ⬜ Pending | README |
+| 1. Package Setup | ✅ Complete | Package skeleton created |
+| 2. Types Module | ✅ Complete | HookInput, HookOutput, CliOptions |
+| 3. Matcher Module | ✅ Complete | micromatch wrapper + 14 tests |
+| 4. I/O Module | ✅ Complete | stdin/stdout handling + 11 tests |
+| 5. CLI Entry Point | ✅ Complete | Full CLI implementation |
+| 6. Integration Tests | ✅ Complete | 12 E2E tests (all AC covered) |
+| 7. Documentation | ✅ Complete | README with examples |
 
-**Estimated total**: ~5 hours
+**Total tests**: 37 passing
 
 ## Phase 2 Remaining (after glob-hook)
 

@@ -1,0 +1,3 @@
+React component guidelines:
+- Use functional components with hooks
+- Follow single responsibility principle

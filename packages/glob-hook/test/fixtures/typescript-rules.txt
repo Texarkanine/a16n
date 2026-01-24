@@ -1,0 +1,4 @@
+TypeScript guidelines:
+- Use strict mode
+- Prefer interfaces over types for object shapes
+- Always declare return types for public functions
