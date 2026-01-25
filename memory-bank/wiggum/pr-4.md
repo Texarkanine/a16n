@@ -5,9 +5,9 @@
 | Field | Value |
 |-------|-------|
 | PR URL | <https://github.com/Texarkanine/a16n/pull/4> |
-| Last Check | 2026-01-25T01:35:00Z |
-| Last Push | 2026-01-25T01:25:00Z |
-| Last CodeRabbit Response | 2026-01-25T01:20:19Z |
+| Last Check | 2026-01-25T01:50:00Z |
+| Last Push | 2026-01-25T01:40:00Z |
+| Last CodeRabbit Response | 2026-01-25T01:30:39Z |
 | Status | IN_PROGRESS |
 
 ## Feedback Tracking
@@ -26,6 +26,8 @@
 - [x] ID: 2724755671 - memory-bank/wiggum/pr-4.md MD058 table blank lines - FIXED
 - [x] ID: 2724755672 - packages/plugin-claude/src/emit.ts negation pattern handling - FIXED
 - [x] ID: 2724755673 - planning/PHASE_3_SPEC.md MD040 code block language (line 148) - FIXED
+- [x] ID: 2724761486 - planning/PHASE_3_SPEC.md Task 8 scenario wording vs AC3 - FIXED
+- [x] ID: 2724761487 - planning/PHASE_3_SPEC.md .cursorignore vs .gitignore contradiction - FIXED
 
 ### Requires Human Decision
 (none)
@@ -68,4 +70,12 @@
 - Files:
   - memory-bank/wiggum/pr-4.md
   - packages/plugin-claude/src/emit.ts
+  - planning/PHASE_3_SPEC.md
+
+### Fix 3 - 2026-01-25T01:50:00Z
+- Comments: 2724761486, 2724761487
+- Resolution: Fixed 2 CodeRabbit feedback items from third review:
+  1. Updated Task 8 scenario wording from "skipped with warning" to "converted to permissions.deny with warning" to align with AC3
+  2. Clarified .cursorignore vs .gitignore behavior - a16n only reads explicit .cursorignore patterns
+- Files:
   - planning/PHASE_3_SPEC.md

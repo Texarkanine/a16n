@@ -804,7 +804,7 @@ pnpm test
 **Deliverable**: End-to-end tests for AgentIgnore conversions.
 
 **Test scenarios**:
-1. Cursor → Claude with `.cursorignore` (skipped with warning)
+1. Cursor → Claude with `.cursorignore` (converted to `permissions.deny` with warning)
 2. Cursor → Cursor with `.cursorignore` (pass-through)
 3. Verbose mode output validation
 4. JSON output includes unsupported
@@ -970,5 +970,5 @@ config.local.json
 
 **Behavior notes**:
 - Patterns are relative to project root
-- `.cursorignore` respects `.gitignore` as baseline
+- a16n only reads explicit `.cursorignore` patterns (Cursor itself may also respect `.gitignore`, but a16n does not process it)
 - Terminal/MCP tools cannot be blocked (Cursor limitation)
