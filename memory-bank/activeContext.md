@@ -2,72 +2,101 @@
 
 ## Current Focus
 
-**Task ID**: PHASE3-PLANNING  
-**Phase**: Phase 3 Preparation  
-**Status**: ✅ Complete
+**Task ID**: PHASE3-IMPL  
+**Phase**: Phase 3 Implementation  
+**Status**: 🔄 Planning Complete - Ready for Build
 
 ## Session State
 
-Phase 3 planning has been completed. The following artifacts are now available for implementors:
+Phase 3 implementation plan has been created. The plan covers bidirectional AgentIgnore conversion and CLI polish features.
 
 ### Planning Documents
 - `planning/PHASE_3_SPEC.md` - Complete specification
+- `memory-bank/tasks.md` - Detailed implementation plan with code snippets
 
-### Key Decisions Made
+### Scope Summary
 
-1. **AgentIgnore Scope** (UPDATED):
-   - Cursor plugin: Full discovery + emission support for `.cursorignore`
-   - Claude plugin: Full discovery + emission support via `permissions.deny` Read rules
-   - **Bidirectional conversion** is now supported
-   - Pattern translation: `dist/` ↔ `Read(./dist/**)`
+**AgentIgnore Bidirectional Support**:
+| Direction | From | To |
+|-----------|------|-----|
+| Cursor → Claude | `.cursorignore` | `permissions.deny` Read rules |
+| Claude → Cursor | `permissions.deny` Read rules | `.cursorignore` |
 
-2. **Why Bidirectional Works**:
-   - Claude's `permissions.deny` with `Read()` patterns is functionally equivalent
-   - Patterns are translatable (gitignore-style ↔ Read() format)
-   - Documented in [Claude Code settings](https://code.claude.com/docs/en/settings#excluding-sensitive-files)
+**CLI Polish**:
+- `--verbose` flag for debugging output
+- Colored warnings with icons and hints (using chalk)
+- Improved error messages with suggestions
 
-3. **Polish Scope**:
-   - `--verbose` flag for debugging
-   - Improved warning formatting with chalk (colors, icons)
-   - Better error messages with suggestions
-   - Summary statistics at end of conversion
+### Pattern Translation Reference
 
-4. **Out of Scope**:
-   - Config file support
-   - Watch mode
-   - Other platforms (Android Studio `.aiexclude`)
+| `.cursorignore` | Claude `permissions.deny` |
+|-----------------|---------------------------|
+| `.env` | `Read(./.env)` |
+| `dist/` | `Read(./dist/**)` |
+| `*.log` | `Read(./**/*.log)` |
+| `**/*.tmp` | `Read(./**/*.tmp)` |
+| `secrets/` | `Read(./secrets/**)` |
 
-## Handoff Information
+## Implementation Tracks
 
-### For Phase 3 Implementors
+### Track A: Cursor Plugin (Tasks 1, 2)
+- Discover `.cursorignore` files
+- Emit `.cursorignore` from AgentIgnore items
 
-**Start here**: Task 7 (Test Fixtures) - enables TDD approach
+### Track B: Claude Plugin (Tasks 3, 3b)
+- Emit `permissions.deny` from AgentIgnore items
+- Discover `permissions.deny` Read rules as AgentIgnore
 
-**Parallel tracks**:
-- Track A: Cursor plugin (Tasks 1, 2)
-- Track B: Claude plugin (Task 3 after Task 1)
-- Track C: CLI improvements (Tasks 4, 5, 6)
+### Track C: CLI Polish (Tasks 4, 5, 6)
+- Add `--verbose` flag
+- Improve warning formatting
+- Improve error messages
 
-**Integration**: Task 8 requires Tasks 1-6 complete
+### Prerequisites (Task 7)
+- Create test fixtures for all scenarios
 
-**Finish**: Task 9 (Documentation)
+### Finalization (Tasks 8, 9)
+- Integration tests
+- Documentation updates
 
-### Estimated Effort
-- Total: 8-12 hours
-- Can be split across multiple PRs if needed
+## Files to Modify
 
-## Next Steps
+### Models Package
+- No changes needed (all types and helpers already exist)
 
-1. **Implementor**: Read `planning/PHASE_3_SPEC.md`
-2. **Start**: Create test fixtures (Task 7)
-3. **Implement**: Follow task order from spec
-4. **Validate**: Run integration tests (Task 8)
-5. **Document**: Update READMEs (Task 9)
+### Cursor Plugin
+- `packages/plugin-cursor/src/discover.ts` - Add `discoverCursorIgnore()`
+- `packages/plugin-cursor/src/emit.ts` - Handle AgentIgnore items
+
+### Claude Plugin
+- `packages/plugin-claude/src/discover.ts` - Add `discoverAgentIgnore()`
+- `packages/plugin-claude/src/emit.ts` - Handle AgentIgnore → permissions.deny
+
+### CLI
+- `packages/cli/src/index.ts` - Add `--verbose`, improve errors
+- `packages/cli/src/output.ts` - New file for formatted output
+- `packages/cli/package.json` - Add chalk dependency
+
+## Estimated Effort
+
+| Track | Tasks | Estimate |
+|-------|-------|----------|
+| Fixtures | Task 7 | 1 hour |
+| Cursor Plugin | Tasks 1, 2 | 2-3 hours |
+| Claude Plugin | Tasks 3, 3b | 2-4 hours |
+| CLI Polish | Tasks 4, 5, 6 | 3-5 hours |
+| Integration | Task 8 | 2-3 hours |
+| Documentation | Task 9 | 1 hour |
+| **Total** | | **12-18 hours** |
+
+## Next Command
+
+Run `/niko/build` to begin implementation starting with Task 7 (test fixtures).
 
 ## Reference Documents
 
 | Document | Purpose |
 |----------|---------|
 | `planning/PHASE_3_SPEC.md` | Full specification |
-| `planning/PHASE_1_SPEC.md` | Template reference |
+| `memory-bank/tasks.md` | Detailed implementation plan |
 | `memory-bank/archive/features/` | Past implementation patterns |
