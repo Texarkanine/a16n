@@ -17,6 +17,7 @@ Phase 3 implementation plan has been created. The plan covers bidirectional Agen
 ### Scope Summary
 
 **AgentIgnore Bidirectional Support**:
+
 | Direction | From | To |
 |-----------|------|-----|
 | Cursor → Claude | `.cursorignore` | `permissions.deny` Read rules |

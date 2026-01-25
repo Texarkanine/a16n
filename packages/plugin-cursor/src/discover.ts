@@ -125,9 +125,19 @@ async function discoverCursorIgnore(root: string): Promise<AgentIgnore | null> {
   try {
     const content = await fs.readFile(ignorePath, 'utf-8');
     const patterns = content
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line && !line.startsWith('#'));
+      .split(/\r?\n/)
+      .map(line => line.trimEnd())
+      .filter(line => {
+        const trimmedStart = line.trimStart();
+        return trimmedStart.length > 0 && !trimmedStart.startsWith('#');
+      })
+      .map(line => {
+        // Strip inline comments (unescaped ' #')
+        const inlineCommentIndex = line.indexOf(' #');
+        const cleaned = inlineCommentIndex >= 0 ? line.slice(0, inlineCommentIndex) : line;
+        return cleaned.trimEnd();
+      })
+      .filter(line => line.length > 0);
 
     if (patterns.length === 0) return null;
 

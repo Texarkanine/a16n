@@ -47,7 +47,7 @@
 
 ### Implementation Tracks (Can Run in Parallel)
 
-```
+```text
 Track A: Cursor Plugin
   └── Tasks 1, 2 (discover + emit .cursorignore)
 

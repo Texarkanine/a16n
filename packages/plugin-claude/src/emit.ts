@@ -289,9 +289,17 @@ export async function emit(
 
     try {
       const existing = await fs.readFile(settingsPath, 'utf-8');
-      settings = JSON.parse(existing);
-    } catch {
-      /* doesn't exist */
+      settings = JSON.parse(existing) as Record<string, unknown>;
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+        // File exists but is malformed - warn and proceed with fresh settings
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Could not parse existing settings.json, overwriting: ${(err as Error).message}`,
+          sources: [settingsPath],
+        });
+      }
+      // File doesn't exist or is malformed - use empty settings
     }
 
     // Merge deny rules (deduplicate)

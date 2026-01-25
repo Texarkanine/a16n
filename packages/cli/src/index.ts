@@ -33,10 +33,13 @@ program
         if (options.verbose) console.error(`[verbose] ${msg}`);
       };
 
-      // Validate directory exists
+      // Validate directory exists and is a directory
       const resolvedPath = path.resolve(projectPath);
       try {
-        await fs.access(resolvedPath);
+        const stat = await fs.stat(resolvedPath);
+        if (!stat.isDirectory()) {
+          throw new Error('not-a-directory');
+        }
       } catch {
         console.error(formatError(
           `Directory '${projectPath}' does not exist`,
@@ -108,10 +111,13 @@ program
         if (options.verbose) console.error(`[verbose] ${msg}`);
       };
 
-      // Validate directory exists
+      // Validate directory exists and is a directory
       const resolvedPath = path.resolve(projectPath);
       try {
-        await fs.access(resolvedPath);
+        const stat = await fs.stat(resolvedPath);
+        if (!stat.isDirectory()) {
+          throw new Error('not-a-directory');
+        }
       } catch {
         console.error(formatError(
           `Directory '${projectPath}' does not exist`,

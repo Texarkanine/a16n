@@ -186,9 +186,12 @@ async function discoverAgentIgnore(root: string): Promise<AgentIgnore | null> {
     const content = await fs.readFile(settingsPath, 'utf-8');
     const settings = JSON.parse(content) as Record<string, unknown>;
     const permissions = settings.permissions as Record<string, unknown> | undefined;
-    const denyRules = Array.isArray(permissions?.deny) ? (permissions.deny as string[]) : [];
+    const rawDeny = Array.isArray(permissions?.deny) ? permissions.deny : [];
+    // Filter to only string entries to avoid startsWith throwing on non-strings
+    const denyRules = rawDeny.filter((r): r is string => typeof r === 'string');
+    const readRules = denyRules.filter(r => r.startsWith('Read('));
 
-    const patterns = denyRules
+    const patterns = readRules
       .map(convertReadRuleToPattern)
       .filter((p): p is string => p !== null);
 
@@ -198,9 +201,9 @@ async function discoverAgentIgnore(root: string): Promise<AgentIgnore | null> {
       id: createId(CustomizationType.AgentIgnore, '.claude/settings.json'),
       type: CustomizationType.AgentIgnore,
       sourcePath: '.claude/settings.json',
-      content: JSON.stringify({ permissions: { deny: denyRules.filter(r => r.startsWith('Read(')) } }, null, 2),
+      content: JSON.stringify({ permissions: { deny: readRules } }, null, 2),
       patterns,
-      metadata: { originalRules: denyRules.filter(r => r.startsWith('Read(')) },
+      metadata: { originalRules: readRules },
     };
   } catch {
     return null;

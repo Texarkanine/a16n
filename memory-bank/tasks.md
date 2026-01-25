@@ -34,7 +34,7 @@
 
 **Files to create**:
 
-```
+```text
 packages/plugin-cursor/test/fixtures/
   cursor-ignore/
     from-cursor/

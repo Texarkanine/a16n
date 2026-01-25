@@ -76,7 +76,7 @@ gantt
 **Scope**:
 - Add `AgentIgnore` type support
 - Cursor plugin: `.cursorignore` discovery and emission
-- Claude plugin: skip with clear warning (no equivalent)
+- Claude plugin: permissions.deny Read rules discovery/emission (approximation + warning)
 - Improve warning messages based on Phase 1-2 feedback (colors, icons, hints)
 - Add `--verbose` flag for debugging
 - Improve error messages for common failure modes
@@ -84,7 +84,7 @@ gantt
 **Spec**: [PHASE_3_SPEC.md](./PHASE_3_SPEC.md)
 
 **Key Decisions**:
-- Claude has no official ignore mechanism - skip with helpful warning
+- Use permissions.deny Read rules as an approximation; warn about behavioral differences
 - No approximation via hooks (too complex, community can implement if needed)
 - 10 acceptance criteria defined
 - 9 implementation tasks planned

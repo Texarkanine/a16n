@@ -1,6 +1,6 @@
 # Phase 3 Specification
 
-**AgentIgnore + Polish**
+## AgentIgnore + Polish
 
 ## Objective
 
@@ -115,7 +115,7 @@ This blocks Claude from reading matching files, which is functionally equivalent
 ### AC1: Cursor Discovers `.cursorignore`
 
 **Given** a project with `.cursorignore`:
-```
+```gitignore
 # Ignore build artifacts
 dist/
 node_modules/
@@ -154,7 +154,7 @@ a16n discover --from cursor ./project
 ### AC3: Cursor → Claude Converts AgentIgnore to permissions.deny
 
 **Given** a project with `.cursorignore`:
-```
+```gitignore
 dist/
 .env
 *.log
@@ -259,7 +259,7 @@ a16n convert --from cursor --to claude ./project
 ### AC7: JSON Output Shows AgentIgnore Conversion
 
 **Given** a project with `.cursorignore`:
-```
+```gitignore
 .env
 secrets/
 ```
@@ -305,7 +305,7 @@ a16n discover --from cursor ./project
 ### AC9: Comments-Only .cursorignore Handling
 
 **Given** a project with `.cursorignore` containing only comments:
-```
+```gitignore
 # This is a comment
 # Another comment
 ```
@@ -712,7 +712,7 @@ pnpm --filter @a16n/engine test
 **Deliverable**: Test fixtures for AgentIgnore scenarios on both platforms.
 
 **Files to create**:
-```
+```text
 packages/plugin-cursor/test/fixtures/
   cursor-ignore/
     from-cursor/
