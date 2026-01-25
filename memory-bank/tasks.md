@@ -538,21 +538,22 @@ pnpm lint
 
 ## Definition of Done
 
-- [ ] All 11 acceptance criteria pass (AC1-AC10 + AC3b)
-- [ ] `pnpm build` succeeds
-- [ ] `pnpm test` passes (all packages)
-- [ ] `pnpm lint` passes
-- [ ] **Cursor plugin**: AgentIgnore discovery from `.cursorignore`
-- [ ] **Cursor plugin**: AgentIgnore emission to `.cursorignore`
-- [ ] **Claude plugin**: AgentIgnore emission to `permissions.deny` in settings.json
-- [ ] **Claude plugin**: AgentIgnore discovery from `permissions.deny` Read rules
-- [ ] Bidirectional Cursor ↔ Claude AgentIgnore conversion works
-- [ ] `--verbose` flag works for `convert` and `discover` commands
-- [ ] Warning messages include icons and hints
-- [ ] Error messages are clear and actionable
-- [ ] README documentation is updated
-- [ ] No TODO comments in shipped code
-- [ ] Changeset created for version bump
+- [x] All 11 acceptance criteria pass (AC1-AC10 + AC3b)
+- [x] `pnpm build` succeeds
+- [x] `pnpm test` passes (all packages)
+- [x] `pnpm lint` passes
+- [x] **Cursor plugin**: AgentIgnore discovery from `.cursorignore`
+- [x] **Cursor plugin**: AgentIgnore emission to `.cursorignore`
+- [x] **Claude plugin**: AgentIgnore emission to `permissions.deny` in settings.json
+- [x] **Claude plugin**: AgentIgnore discovery from `permissions.deny` Read rules
+- [x] Bidirectional Cursor ↔ Claude AgentIgnore conversion works
+- [x] `--verbose` flag works for `convert` and `discover` commands
+- [x] Warning messages include icons and hints
+- [x] Error messages are clear and actionable
+- [x] README documentation is updated
+- [x] No TODO comments in shipped code
+- [x] Changeset created for version bump
+- [x] **Reflection completed**: `memory-bank/reflection/reflection-PHASE3-IMPL.md`
 
 ---
 
