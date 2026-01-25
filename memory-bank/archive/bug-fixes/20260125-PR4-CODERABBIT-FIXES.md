@@ -1,3 +1,66 @@
+# Archived: PR #4 CodeRabbit Feedback Fixes
+
+**Archived**: 2026-01-25  
+**Original Location**: `memory-bank/wiggum/pr-4.md`  
+**Related PR**: https://github.com/Texarkanine/a16n/pull/4  
+**Reflection**: `memory-bank/reflection/reflection-PHASE3-IMPL.md`
+
+---
+
+## Summary
+
+PR #4 (Phase 3: AgentIgnore + CLI Polish) went through 3 CodeRabbit review cycles with 15 actionable feedback items, all successfully addressed.
+
+## Statistics
+
+| Metric | Value |
+|--------|-------|
+| Total Feedback Items | 15 |
+| Fix Cycles | 3 |
+| Human Decisions Required | 0 |
+| Items Ignored | 0 |
+
+## Feedback Categories
+
+| Category | Count | Items |
+|----------|-------|-------|
+| Markdown Linting (MD058, MD040, MD036) | 8 | Table blank lines, code block languages, bold vs heading |
+| Code Quality | 4 | fs.stat validation, type guards, warning emissions, negation patterns |
+| Documentation Clarity | 3 | Wording alignment, behavior clarification |
+
+## Fix Cycle Summary
+
+### Cycle 1 (10 items)
+- Markdown formatting fixes across multiple files
+- CLI directory validation improvement (`fs.access` → `fs.stat().isDirectory()`)
+- Type safety improvements in plugin discovery/emission
+- CRLF and inline comment handling in .cursorignore parser
+
+### Cycle 2 (3 items)
+- Self-referential MD058 fix in tracking file
+- Negation pattern handling with null return and warning
+- Additional code block language tags
+
+### Cycle 3 (2 items)
+- Scenario wording aligned with acceptance criteria
+- Clarified .cursorignore vs .gitignore behavior scope
+
+## Key Learnings
+
+1. **Markdown Consistency**: Always add blank lines around tables and specify language tags
+2. **Type Safety**: Guard against non-string values in JSON config parsing
+3. **Error Handling**: Emit warnings for parse failures rather than silent ignore
+4. **Edge Cases**: Handle negation patterns explicitly
+5. **Documentation Precision**: Match scenario descriptions to acceptance criteria exactly
+
+---
+
+## Original Tracking Document
+
+The full tracking document with detailed fix history is preserved below for reference.
+
+---
+
 # Wiggum: PR #4
 
 ## Metadata
@@ -79,11 +142,3 @@
   2. Clarified .cursorignore vs .gitignore behavior - a16n only reads explicit .cursorignore patterns
 - Files:
   - planning/PHASE_3_SPEC.md
-
----
-
-## Reflection
-
-**Documented in**: `memory-bank/reflection/reflection-PHASE3-IMPL.md`
-
-Key learnings from this CodeRabbit feedback cycle have been captured in the main Phase 3 reflection document under "CodeRabbit Feedback Cycle (PR #4)".
