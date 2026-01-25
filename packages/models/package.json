@@ -1,7 +1,24 @@
 {
-  "name": "@a16n/models",
+  "name": "@a16njs/models",
   "version": "0.0.1",
   "description": "Type definitions and plugin interface for a16n",
+  "license": "AGPL-3.0",
+  "author": "Texarkanine",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Texarkanine/a16n.git",
+    "directory": "packages/models"
+  },
+  "homepage": "https://github.com/Texarkanine/a16n#readme",
+  "bugs": {
+    "url": "https://github.com/Texarkanine/a16n/issues"
+  },
+  "keywords": [
+    "a16n",
+    "models",
+    "types",
+    "plugin"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

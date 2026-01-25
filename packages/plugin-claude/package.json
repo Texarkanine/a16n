@@ -1,7 +1,25 @@
 {
-  "name": "@a16n/plugin-claude",
+  "name": "@a16njs/plugin-claude",
   "version": "0.0.1",
   "description": "Claude Code plugin for a16n",
+  "license": "AGPL-3.0",
+  "author": "Texarkanine",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Texarkanine/a16n.git",
+    "directory": "packages/plugin-claude"
+  },
+  "homepage": "https://github.com/Texarkanine/a16n#readme",
+  "bugs": {
+    "url": "https://github.com/Texarkanine/a16n/issues"
+  },
+  "keywords": [
+    "a16n",
+    "plugin",
+    "claude",
+    "anthropic",
+    "claude-code"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,7 +38,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@a16n/models": "workspace:*"
+    "@a16njs/models": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

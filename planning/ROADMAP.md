@@ -29,10 +29,10 @@ gantt
 
 **Scope**:
 - Monorepo infrastructure (pnpm, Turborepo, Changesets)
-- `@a16n/models` with GlobalPrompt type and plugin interface
-- `@a16n/engine` with conversion orchestration
-- `@a16n/plugin-cursor` (GlobalPrompt only)
-- `@a16n/plugin-claude` (GlobalPrompt only)
+- `@a16njs/models` with GlobalPrompt type and plugin interface
+- `@a16njs/engine` with conversion orchestration
+- `@a16njs/plugin-cursor` (GlobalPrompt only)
+- `@a16njs/plugin-claude` (GlobalPrompt only)
 - `a16n` CLI with `convert`, `discover`, `plugins` commands
 - Warning system for merged files
 
@@ -59,7 +59,7 @@ gantt
 - **Detect and skip Claude skills with embedded hooks** (unsupported)
 
 **Completed**:
-- ✅ `@a16n/glob-hook` package (PR #2)
+- ✅ `@a16njs/glob-hook` package (PR #2)
 - ✅ AgentSkill + FileRule support (PR #3)
 - ✅ Claude skills directory structure handling
 - ✅ Skills with hooks detection and warning

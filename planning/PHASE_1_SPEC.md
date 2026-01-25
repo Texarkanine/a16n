@@ -9,10 +9,10 @@ Implement the complete a16n pipeline for a single customization type (GlobalProm
 ## Scope
 
 ### In Scope
-- `@a16n/models` package with GlobalPrompt type and plugin interface
-- `@a16n/engine` package with conversion orchestration
-- `@a16n/plugin-cursor` with GlobalPrompt discovery and emission
-- `@a16n/plugin-claude` with GlobalPrompt discovery and emission
+- `@a16njs/models` package with GlobalPrompt type and plugin interface
+- `@a16njs/engine` package with conversion orchestration
+- `@a16njs/plugin-cursor` with GlobalPrompt discovery and emission
+- `@a16njs/plugin-claude` with GlobalPrompt discovery and emission
 - `a16n` CLI with `convert`, `discover`, and `plugins` commands
 - Warning system for merged files
 - Monorepo infrastructure (pnpm, Turborepo, Changesets)
@@ -256,8 +256,8 @@ export interface GlobalPrompt extends AgentCustomization {
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/models build
-pnpm --filter @a16n/models test  # Type tests
+pnpm --filter @a16njs/models build
+pnpm --filter @a16njs/models test  # Type tests
 ```
 
 ### Task 3: Cursor Plugin - Discovery
@@ -283,7 +283,7 @@ test/fixtures/cursor-basic/
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/plugin-cursor test
+pnpm --filter @a16njs/plugin-cursor test
 ```
 
 ### Task 4: Cursor Plugin - Emission
@@ -297,7 +297,7 @@ pnpm --filter @a16n/plugin-cursor test
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/plugin-cursor test
+pnpm --filter @a16njs/plugin-cursor test
 ```
 
 ### Task 5: Claude Plugin - Discovery
@@ -324,7 +324,7 @@ test/fixtures/claude-nested/
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/plugin-claude test
+pnpm --filter @a16njs/plugin-claude test
 ```
 
 ### Task 6: Claude Plugin - Emission
@@ -338,7 +338,7 @@ pnpm --filter @a16n/plugin-claude test
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/plugin-claude test
+pnpm --filter @a16njs/plugin-claude test
 ```
 
 ### Task 7: Engine
@@ -360,7 +360,7 @@ class A16nEngine {
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/engine test
+pnpm --filter @a16njs/engine test
 ```
 
 ### Task 8: CLI

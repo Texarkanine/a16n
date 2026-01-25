@@ -7,12 +7,12 @@
 ```
 a16n/
 ├── packages/
-│   ├── models/          # @a16n/models
-│   ├── engine/          # @a16n/engine  
+│   ├── models/          # @a16njs/models
+│   ├── engine/          # @a16njs/engine  
 │   ├── cli/             # a16n
-│   ├── plugin-cursor/   # @a16n/plugin-cursor
-│   ├── plugin-claude/   # @a16n/plugin-claude
-│   └── glob-hook/       # @a16n/glob-hook (Phase 2)
+│   ├── plugin-cursor/   # @a16njs/plugin-cursor
+│   ├── plugin-claude/   # @a16njs/plugin-claude
+│   └── glob-hook/       # @a16njs/glob-hook (Phase 2)
 ├── pnpm-workspace.yaml
 ├── turbo.json
 ├── tsconfig.base.json
@@ -25,11 +25,11 @@ a16n/
 
 ```mermaid
 flowchart TD
-    models["@a16n/models<br/>Types + Plugin Interface"]
-    engine["@a16n/engine<br/>Orchestration"]
-    cursor["@a16n/plugin-cursor<br/>Cursor IDE Support"]
-    claude["@a16n/plugin-claude<br/>Claude Code Support"]
-    globhook["@a16n/glob-hook<br/>CLI Glob Matcher (Phase 2)"]
+    models["@a16njs/models<br/>Types + Plugin Interface"]
+    engine["@a16njs/engine<br/>Orchestration"]
+    cursor["@a16njs/plugin-cursor<br/>Cursor IDE Support"]
+    claude["@a16njs/plugin-claude<br/>Claude Code Support"]
+    globhook["@a16njs/glob-hook<br/>CLI Glob Matcher (Phase 2)"]
     cli["a16n<br/>CLI Package"]
 
     models --> engine
@@ -43,11 +43,11 @@ flowchart TD
 
 The CLI depends on engine (and transitively on models). Plugin packages are dependencies of CLI so users get them out of the box, but they're discovered at runtime rather than imported directly by the engine.
 
-**Note**: `@a16n/glob-hook` is a standalone CLI tool that `@a16n/plugin-claude` references in generated hook configurations. It's invoked via `npx` at runtime by Claude Code hooks, not imported as a library.
+**Note**: `@a16njs/glob-hook` is a standalone CLI tool that `@a16njs/plugin-claude` references in generated hook configurations. It's invoked via `npx` at runtime by Claude Code hooks, not imported as a library.
 
 ---
 
-## Package: `@a16n/models`
+## Package: `@a16njs/models`
 
 **Purpose**: Shared type definitions, interfaces, and constants. Zero runtime dependencies.
 
@@ -159,7 +159,7 @@ None (pure types).
 
 ---
 
-## Package: `@a16n/engine`
+## Package: `@a16njs/engine`
 
 **Purpose**: Orchestration layer. Manages plugins, runs conversions.
 
@@ -262,10 +262,10 @@ export class A16nEngine {
 ```typescript
 // discovery.ts
 import { createRequire } from 'module';
-import { A16nPlugin } from '@a16n/models';
+import { A16nPlugin } from '@a16njs/models';
 
 const PLUGIN_PATTERNS = [
-  '@a16n/plugin-',
+  '@a16njs/plugin-',
   'a16n-plugin-',
 ];
 
@@ -331,7 +331,7 @@ packages/engine/
 
 ### Dependencies
 
-- `@a16n/models` (workspace)
+- `@a16njs/models` (workspace)
 
 ---
 
@@ -354,9 +354,9 @@ a16n --version
 ```typescript
 // cli.ts
 import { Command } from 'commander';
-import { A16nEngine } from '@a16n/engine';
-import cursorPlugin from '@a16n/plugin-cursor';
-import claudePlugin from '@a16n/plugin-claude';
+import { A16nEngine } from '@a16njs/engine';
+import cursorPlugin from '@a16njs/plugin-cursor';
+import claudePlugin from '@a16njs/plugin-claude';
 
 const program = new Command();
 
@@ -438,7 +438,7 @@ program.parse();
 ```typescript
 // output.ts
 import chalk from 'chalk';
-import { ConversionResult, Warning, WarningCode } from '@a16n/models';
+import { ConversionResult, Warning, WarningCode } from '@a16njs/models';
 
 export function printResult(result: ConversionResult, quiet: boolean): void {
   // Print warnings
@@ -481,15 +481,15 @@ packages/cli/
 
 ### Dependencies
 
-- `@a16n/engine` (workspace)
-- `@a16n/plugin-cursor` (workspace)
-- `@a16n/plugin-claude` (workspace)
+- `@a16njs/engine` (workspace)
+- `@a16njs/plugin-cursor` (workspace)
+- `@a16njs/plugin-claude` (workspace)
 - `commander` (CLI framework)
 - `chalk` (Terminal colors)
 
 ---
 
-## Package: `@a16n/plugin-cursor`
+## Package: `@a16njs/plugin-cursor`
 
 **Purpose**: Cursor IDE support.
 
@@ -510,7 +510,7 @@ import {
   AgentIgnore,
   DiscoveryResult,
   createId,
-} from '@a16n/models';
+} from '@a16njs/models';
 
 interface CursorRuleFrontmatter {
   description?: string;
@@ -701,13 +701,13 @@ packages/plugin-cursor/
 
 ### Dependencies
 
-- `@a16n/models` (workspace)
+- `@a16njs/models` (workspace)
 - `glob` (file matching)
 - `yaml` (frontmatter parsing)
 
 ---
 
-## Package: `@a16n/plugin-claude`
+## Package: `@a16njs/plugin-claude`
 
 **Purpose**: Claude Code support.
 
@@ -907,12 +907,12 @@ packages/plugin-claude/
 
 ### Dependencies
 
-- `@a16n/models` (workspace)
+- `@a16njs/models` (workspace)
 - `glob` (file matching)
 
 ---
 
-## Package: `@a16n/glob-hook` (Phase 2)
+## Package: `@a16njs/glob-hook` (Phase 2)
 
 **Purpose**: CLI tool for deterministic glob matching in Claude Code hooks. Enables FileRule support by providing a cross-platform glob matcher that integrates with Claude's hook system.
 
@@ -933,7 +933,7 @@ This package bridges the gap: it reads hook input from stdin, checks if the file
 # Always exit 0 (non-zero = hook failure in Claude)
 
 echo '{"tool_input":{"file_path":"src/Button.tsx"}}' | \
-  npx @a16n/glob-hook \
+  npx @a16njs/glob-hook \
     --globs "**/*.tsx,**/*.ts" \
     --context-file ".claude/rules/typescript.txt"
 ```
@@ -958,7 +958,7 @@ echo '{"tool_input":{"file_path":"src/Button.tsx"}}' | \
 
 ### Integration with Claude Hooks
 
-When `@a16n/plugin-claude` emits FileRules, it generates:
+When `@a16njs/plugin-claude` emits FileRules, it generates:
 
 1. `.claude/settings.local.json` - Hook configuration
 2. `.a16n/rules/<name>.txt` - Rule content files
@@ -973,7 +973,7 @@ Example generated hook:
       "matcher": "Write|Edit",
       "hooks": [{
         "type": "command",
-        "command": "npx @a16n/glob-hook --globs \"**/*.ts,**/*.tsx\" --context-file \".a16n/rules/typescript.txt\""
+        "command": "npx @a16njs/glob-hook --globs \"**/*.ts,**/*.tsx\" --context-file \".a16n/rules/typescript.txt\""
       }]
     }]
   }

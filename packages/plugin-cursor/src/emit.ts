@@ -13,7 +13,7 @@ import {
   isFileRule,
   isAgentSkill,
   isAgentIgnore,
-} from '@a16n/models';
+} from '@a16njs/models';
 
 /**
  * Sanitize a filename to be safe for the filesystem.

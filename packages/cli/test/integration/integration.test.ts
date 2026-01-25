@@ -12,9 +12,9 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { A16nEngine } from '@a16n/engine';
-import cursorPlugin from '@a16n/plugin-cursor';
-import claudePlugin from '@a16n/plugin-claude';
+import { A16nEngine } from '@a16njs/engine';
+import cursorPlugin from '@a16njs/plugin-cursor';
+import claudePlugin from '@a16njs/plugin-claude';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
@@ -285,7 +285,7 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
       );
       expect(settings.hooks).toBeDefined();
       expect(settings.hooks.PreToolUse).toHaveLength(1);
-      expect(settings.hooks.PreToolUse[0].hooks[0].command).toContain('@a16n/glob-hook');
+      expect(settings.hooks.PreToolUse[0].hooks[0].command).toContain('@a16njs/glob-hook');
       expect(settings.hooks.PreToolUse[0].hooks[0].command).toContain('**/*.tsx');
       
       // Verify approximation warning was emitted

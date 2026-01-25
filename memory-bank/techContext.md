@@ -3,11 +3,11 @@
 ## Architecture Overview
 
 Plugin-based monorepo with:
-- `@a16n/models` - Shared types and plugin interface
-- `@a16n/engine` - Conversion orchestration
-- `@a16n/plugin-cursor` - Cursor IDE support
-- `@a16n/plugin-claude` - Claude Code support
-- `@a16n/glob-hook` - CLI glob matcher for Claude hooks (Phase 2)
+- `@a16njs/models` - Shared types and plugin interface
+- `@a16njs/engine` - Conversion orchestration
+- `@a16njs/plugin-cursor` - Cursor IDE support
+- `@a16njs/plugin-claude` - Claude Code support
+- `@a16njs/glob-hook` - CLI glob matcher for Claude hooks (Phase 2)
 - `a16n` - CLI package
 
 ## Technology Choices
@@ -158,7 +158,7 @@ Instructions when skill is active...
 
 ### Claude Hook Configuration
 
-FileRules are emitted as Claude PreToolUse hooks that invoke `@a16n/glob-hook`:
+FileRules are emitted as Claude PreToolUse hooks that invoke `@a16njs/glob-hook`:
 
 ```json
 {
@@ -167,7 +167,7 @@ FileRules are emitted as Claude PreToolUse hooks that invoke `@a16n/glob-hook`:
       "matcher": "Read|Write|Edit",
       "hooks": [{
         "type": "command",
-        "command": "npx @a16n/glob-hook --globs \"**/*.tsx,**/*.ts\" --context-file \".a16n/rules/typescript.txt\""
+        "command": "npx @a16njs/glob-hook --globs \"**/*.tsx,**/*.ts\" --context-file \".a16n/rules/typescript.txt\""
       }]
     }]
   }
@@ -181,7 +181,7 @@ sequenceDiagram
     participant User
     participant Claude
     participant Hook as PreToolUse Hook
-    participant GlobHook as @a16n/glob-hook
+    participant GlobHook as @a16njs/glob-hook
     
     User->>Claude: Edit src/Button.tsx
     Claude->>Hook: PreToolUse(Write, file_path: src/Button.tsx)

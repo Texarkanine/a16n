@@ -26,16 +26,16 @@ importers:
 
   packages/cli:
     dependencies:
-      '@a16n/engine':
+      '@a16njs/engine':
         specifier: workspace:*
         version: link:../engine
-      '@a16n/models':
+      '@a16njs/models':
         specifier: workspace:*
         version: link:../models
-      '@a16n/plugin-claude':
+      '@a16njs/plugin-claude':
         specifier: workspace:*
         version: link:../plugin-claude
-      '@a16n/plugin-cursor':
+      '@a16njs/plugin-cursor':
         specifier: workspace:*
         version: link:../plugin-cursor
       chalk:
@@ -57,14 +57,14 @@ importers:
 
   packages/engine:
     dependencies:
-      '@a16n/models':
+      '@a16njs/models':
         specifier: workspace:*
         version: link:../models
     devDependencies:
-      '@a16n/plugin-claude':
+      '@a16njs/plugin-claude':
         specifier: workspace:*
         version: link:../plugin-claude
-      '@a16n/plugin-cursor':
+      '@a16njs/plugin-cursor':
         specifier: workspace:*
         version: link:../plugin-cursor
       '@types/node':
@@ -107,7 +107,7 @@ importers:
 
   packages/plugin-claude:
     dependencies:
-      '@a16n/models':
+      '@a16njs/models':
         specifier: workspace:*
         version: link:../models
     devDependencies:
@@ -123,7 +123,7 @@ importers:
 
   packages/plugin-cursor:
     dependencies:
-      '@a16n/models':
+      '@a16njs/models':
         specifier: workspace:*
         version: link:../models
     devDependencies:

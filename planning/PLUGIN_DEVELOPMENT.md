@@ -18,7 +18,7 @@ cd a16n-plugin-myagent
 npm init -y
 
 # Install the models package
-npm install @a16n/models
+npm install @a16njs/models
 
 # Install dev dependencies
 npm install -D typescript @types/node
@@ -26,7 +26,7 @@ npm install -D typescript @types/node
 
 ## Plugin Interface
 
-Your plugin must implement `A16nPlugin` from `@a16n/models`:
+Your plugin must implement `A16nPlugin` from `@a16njs/models`:
 
 ```typescript
 import type {
@@ -35,7 +35,7 @@ import type {
   AgentCustomization,
   DiscoveryResult,
   EmitResult,
-} from '@a16n/models';
+} from '@a16njs/models';
 
 const myAgentPlugin: A16nPlugin = {
   // Unique identifier - used in CLI commands
@@ -78,7 +78,7 @@ import {
   DiscoveryResult,
   Warning,
   createId,
-} from '@a16n/models';
+} from '@a16njs/models';
 
 async function discover(root: string): Promise<DiscoveryResult> {
   const items: AgentCustomization[] = [];
@@ -145,7 +145,7 @@ import {
   WarningCode,
   WrittenFile,
   isGlobalPrompt,
-} from '@a16n/models';
+} from '@a16njs/models';
 
 async function emit(
   models: AgentCustomization[],
@@ -268,7 +268,7 @@ interface AgentIgnore extends AgentCustomization {
 Use warnings to communicate issues without failing:
 
 ```typescript
-import { WarningCode, Warning } from '@a16n/models';
+import { WarningCode, Warning } from '@a16njs/models';
 
 // When merging multiple sources into one output
 const merged: Warning = {
@@ -378,7 +378,7 @@ test/
 ### Package Naming
 
 Use one of these naming conventions for auto-discovery:
-- `@a16n/plugin-<name>` (if publishing to @a16n org)
+- `@a16njs/plugin-<name>` (if publishing to @a16n org)
 - `a16n-plugin-<name>` (community plugins)
 
 ### package.json
@@ -404,10 +404,10 @@ Use one of these naming conventions for auto-discovery:
     "myagent"
   ],
   "peerDependencies": {
-    "@a16n/models": "^0.1.0"
+    "@a16njs/models": "^0.1.0"
   },
   "devDependencies": {
-    "@a16n/models": "^0.1.0",
+    "@a16njs/models": "^0.1.0",
     "typescript": "^5.0.0"
   }
 }
@@ -438,8 +438,8 @@ import type {
   EmitResult,
   Warning,
   WarningCode,
-} from '@a16n/models';
-import { createId, isGlobalPrompt } from '@a16n/models';
+} from '@a16njs/models';
+import { createId, isGlobalPrompt } from '@a16njs/models';
 
 const myAgentPlugin: A16nPlugin = {
   id: 'myagent',
@@ -528,4 +528,4 @@ export default myAgentPlugin;
 
 - **Issues**: File bugs and feature requests on GitHub
 - **Discussions**: Ask questions in GitHub Discussions
-- **Examples**: See `@a16n/plugin-cursor` and `@a16n/plugin-claude` for reference implementations
+- **Examples**: See `@a16njs/plugin-cursor` and `@a16njs/plugin-claude` for reference implementations

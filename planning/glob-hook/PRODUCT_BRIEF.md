@@ -1,4 +1,4 @@
-# @a16n/glob-hook Product Brief
+# @a16njs/glob-hook Product Brief
 
 **CLI tool for deterministic glob matching in Claude Code hooks**
 
@@ -23,7 +23,7 @@ For a16n's portability promise, we need deterministic behavior. Users expect the
 
 ## Solution
 
-`@a16n/glob-hook` is a CLI tool that bridges the gap:
+`@a16njs/glob-hook` is a CLI tool that bridges the gap:
 
 1. **Reads** Claude Code hook input from stdin (JSON with `tool_input.file_path`)
 2. **Matches** the file path against provided glob patterns
@@ -38,7 +38,7 @@ This enables deterministic FileRule support in Claude Code via hook configuratio
 **I want** to convert them to Claude Code  
 **So that** my file-specific rules work identically in both tools
 
-**Acceptance**: When I run `a16n convert --from cursor --to claude`, FileRules with globs are converted to hook configurations that use `@a16n/glob-hook`, and the rules apply to the same files they did in Cursor.
+**Acceptance**: When I run `a16n convert --from cursor --to claude`, FileRules with globs are converted to hook configurations that use `@a16njs/glob-hook`, and the rules apply to the same files they did in Cursor.
 
 ### US2: Runtime Hook Execution
 **As** a Claude Code user with converted FileRules  
@@ -52,7 +52,7 @@ This enables deterministic FileRule support in Claude Code via hook configuratio
 **I want** glob-hook to work on Windows, Mac, and Linux  
 **So that** my team can use a16n regardless of their development environment
 
-**Acceptance**: `npx @a16n/glob-hook` works identically on all major platforms.
+**Acceptance**: `npx @a16njs/glob-hook` works identically on all major platforms.
 
 ## Non-Goals
 
@@ -93,14 +93,14 @@ No other runtime dependencies. CLI argument parsing is done with raw `process.ar
 flowchart LR
     subgraph convert["a16n convert"]
         cursor[".cursor/rules/*.mdc<br/>(with globs)"]
-        plugin["@a16n/plugin-claude"]
+        plugin["@a16njs/plugin-claude"]
         settings[".claude/settings.local.json"]
         cursor --> plugin --> settings
     end
     
     subgraph runtime["Claude Code Runtime"]
         hook["Hook triggers"]
-        globhook["npx @a16n/glob-hook"]
+        globhook["npx @a16njs/glob-hook"]
         context["additionalContext injected"]
         hook --> globhook --> context
     end

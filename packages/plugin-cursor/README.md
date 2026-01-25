@@ -1,4 +1,4 @@
-# @a16n/plugin-cursor
+# @a16njs/plugin-cursor
 
 Cursor IDE plugin for a16n. Discovers and emits Cursor rules.
 
@@ -7,7 +7,7 @@ Cursor IDE plugin for a16n. Discovers and emits Cursor rules.
 This plugin is bundled with the `a16n` CLI. For programmatic use:
 
 ```bash
-npm install @a16n/plugin-cursor
+npm install @a16njs/plugin-cursor
 ```
 
 ## Supported Types
@@ -95,8 +95,8 @@ Auth-related guidelines.
 ## Usage
 
 ```typescript
-import cursorPlugin from '@a16n/plugin-cursor';
-import { A16nEngine } from '@a16n/engine';
+import cursorPlugin from '@a16njs/plugin-cursor';
+import { A16nEngine } from '@a16njs/engine';
 
 const engine = new A16nEngine([cursorPlugin]);
 

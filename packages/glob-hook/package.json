@@ -1,7 +1,25 @@
 {
-  "name": "@a16n/glob-hook",
+  "name": "@a16njs/glob-hook",
   "version": "0.0.1",
   "description": "CLI tool for glob-based file path matching in Claude Code hooks",
+  "license": "AGPL-3.0",
+  "author": "Texarkanine",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Texarkanine/a16n.git",
+    "directory": "packages/glob-hook"
+  },
+  "homepage": "https://github.com/Texarkanine/a16n#readme",
+  "bugs": {
+    "url": "https://github.com/Texarkanine/a16n/issues"
+  },
+  "keywords": [
+    "a16n",
+    "glob",
+    "hook",
+    "claude",
+    "cli"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

@@ -1,4 +1,4 @@
-# @a16n/glob-hook Implementation Plan
+# @a16njs/glob-hook Implementation Plan
 
 **Specification for building the glob-hook package**
 
@@ -102,7 +102,7 @@ Prefer interfaces over types.
 
 ### AC7: npx Invocation
 
-**When** run via `npx @a16n/glob-hook --globs "**/*.ts" --context-file ".a16n/rules/test.txt"`
+**When** run via `npx @a16njs/glob-hook --globs "**/*.ts" --context-file ".a16n/rules/test.txt"`
 
 **Then** executes successfully
 
@@ -125,7 +125,7 @@ packages/glob-hook/
 **package.json**:
 ```json
 {
-  "name": "@a16n/glob-hook",
+  "name": "@a16njs/glob-hook",
   "version": "0.1.0",
   "description": "CLI glob matcher for Claude Code hooks",
   "type": "module",
@@ -158,7 +158,7 @@ packages/glob-hook/
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/glob-hook build
+pnpm --filter @a16njs/glob-hook build
 ```
 
 ---
@@ -243,7 +243,7 @@ export function matchesAny(filePath: string, patterns: string[]): boolean {
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/glob-hook test
+pnpm --filter @a16njs/glob-hook test
 ```
 
 ---
@@ -472,7 +472,7 @@ describe('CLI', () => {
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/glob-hook test
+pnpm --filter @a16njs/glob-hook test
 ```
 
 ---
@@ -484,7 +484,7 @@ pnpm --filter @a16n/glob-hook test
 **File**: `README.md`
 
 ```markdown
-# @a16n/glob-hook
+# @a16njs/glob-hook
 
 CLI tool for deterministic glob matching in Claude Code hooks.
 
@@ -492,14 +492,14 @@ CLI tool for deterministic glob matching in Claude Code hooks.
 
 ```bash
 # Usually not installed directly - used via npx
-npx @a16n/glob-hook --help
+npx @a16njs/glob-hook --help
 ```
 
 ## Usage
 
 ```bash
 echo '{"tool_input":{"file_path":"src/Button.tsx"}}' | \
-  npx @a16n/glob-hook \
+  npx @a16njs/glob-hook \
     --globs "**/*.tsx,**/*.ts" \
     --context-file ".a16n/rules/typescript.txt"
 ```
@@ -525,7 +525,7 @@ echo '{"tool_input":{"file_path":"src/Button.tsx"}}' | \
 
 ## Integration with a16n
 
-This package is used by `@a16n/plugin-claude` when converting Cursor FileRules. You typically don't use it directly - a16n generates the appropriate hook configurations automatically.
+This package is used by `@a16njs/plugin-claude` when converting Cursor FileRules. You typically don't use it directly - a16n generates the appropriate hook configurations automatically.
 
 ## Requirements
 
@@ -583,9 +583,9 @@ flowchart TD
 glob-hook is complete when:
 
 - [ ] All acceptance criteria pass
-- [ ] `pnpm --filter @a16n/glob-hook build` succeeds
-- [ ] `pnpm --filter @a16n/glob-hook test` passes
-- [ ] CLI works via `npx` (after publish) or `pnpm --filter @a16n/glob-hook dev`
+- [ ] `pnpm --filter @a16njs/glob-hook build` succeeds
+- [ ] `pnpm --filter @a16njs/glob-hook test` passes
+- [ ] CLI works via `npx` (after publish) or `pnpm --filter @a16njs/glob-hook dev`
 - [ ] README accurately describes usage
 - [ ] Package integrates with a16n monorepo build
 
@@ -595,7 +595,7 @@ glob-hook is complete when:
 
 After glob-hook is built:
 
-1. **Update @a16n/plugin-claude**: Add FileRule emission that generates hook configs using glob-hook
+1. **Update @a16njs/plugin-claude**: Add FileRule emission that generates hook configs using glob-hook
 2. **Integration testing**: Verify full Cursor FileRule → Claude conversion flow
 3. **Publish**: Include in next a16n release
 

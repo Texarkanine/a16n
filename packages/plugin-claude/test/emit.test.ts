@@ -11,7 +11,7 @@ import {
   type AgentSkill,
   type AgentIgnore,
   createId,
-} from '@a16n/models';
+} from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -219,7 +219,7 @@ describe('Claude FileRule Emission (Phase 2)', () => {
       const settings = JSON.parse(content);
 
       const command = settings.hooks.PreToolUse[0].hooks[0].command;
-      expect(command).toContain('@a16n/glob-hook');
+      expect(command).toContain('@a16njs/glob-hook');
       expect(command).toContain('**/*.tsx');
       expect(command).toContain('**/*.jsx');
       expect(command).toContain('.a16n/rules/react.txt');

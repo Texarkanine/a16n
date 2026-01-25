@@ -1,19 +1,19 @@
-# @a16n/engine
+# @a16njs/engine
 
 Conversion engine for a16n. Orchestrates plugins to convert between tools.
 
 ## Installation
 
 ```bash
-npm install @a16n/engine
+npm install @a16njs/engine
 ```
 
 ## Usage
 
 ```typescript
-import { A16nEngine } from '@a16n/engine';
-import cursorPlugin from '@a16n/plugin-cursor';
-import claudePlugin from '@a16n/plugin-claude';
+import { A16nEngine } from '@a16njs/engine';
+import cursorPlugin from '@a16njs/plugin-cursor';
+import claudePlugin from '@a16njs/plugin-claude';
 
 // Create engine with plugins
 const engine = new A16nEngine([cursorPlugin, claudePlugin]);

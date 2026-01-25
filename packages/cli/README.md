@@ -61,8 +61,8 @@ a16n plugins
 
 | Agent | Plugin | Status |
 |-------|--------|--------|
-| Cursor | @a16n/plugin-cursor | ✅ Bundled |
-| Claude Code | @a16n/plugin-claude | ✅ Bundled |
+| Cursor | @a16njs/plugin-cursor | ✅ Bundled |
+| Claude Code | @a16njs/plugin-claude | ✅ Bundled |
 
 ## Examples
 

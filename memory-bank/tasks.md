@@ -135,7 +135,7 @@ async function discoverCursorIgnore(root: string): Promise<AgentIgnore | null> {
 
 **Implementation**:
 ```typescript
-import { isAgentIgnore, type AgentIgnore } from '@a16n/models';
+import { isAgentIgnore, type AgentIgnore } from '@a16njs/models';
 
 // In emit():
 const agentIgnores = models.filter(isAgentIgnore);
@@ -347,7 +347,7 @@ if (options.verbose) {
 **Implementation**:
 ```typescript
 import chalk from 'chalk';
-import type { Warning } from '@a16n/models';
+import type { Warning } from '@a16njs/models';
 
 const ICONS: Record<string, string> = {
   merged: '⚠',
@@ -510,7 +510,7 @@ All tracks can proceed in parallel after Task 7 (fixtures).
 
 ## Models Package Checklist
 
-The `@a16n/models` package already has everything needed:
+The `@a16njs/models` package already has everything needed:
 - [x] `AgentIgnore` interface with `patterns: string[]`
 - [x] `CustomizationType.AgentIgnore` enum value
 - [x] `isAgentIgnore()` type guard (already exists in helpers.ts)
@@ -524,8 +524,8 @@ The `@a16n/models` package already has everything needed:
 
 ```bash
 # After each task
-pnpm --filter @a16n/plugin-cursor test
-pnpm --filter @a16n/plugin-claude test
+pnpm --filter @a16njs/plugin-cursor test
+pnpm --filter @a16njs/plugin-claude test
 pnpm --filter a16n test
 
 # Full verification

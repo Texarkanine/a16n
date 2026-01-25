@@ -13,7 +13,7 @@ import {
   isFileRule,
   isAgentSkill,
   isAgentIgnore,
-} from '@a16n/models';
+} from '@a16njs/models';
 
 /**
  * Convert a gitignore-style pattern to a Claude Read() permission rule.
@@ -75,7 +75,7 @@ function buildHookConfig(fileRule: FileRule, rulePath: string): object {
     matcher: 'Read|Write|Edit',
     hooks: [{
       type: 'command',
-      command: `npx @a16n/glob-hook --globs "${globsArg}" --context-file "${escapedRulePath}"`,
+      command: `npx @a16njs/glob-hook --globs "${globsArg}" --context-file "${escapedRulePath}"`,
     }],
   };
 }
@@ -246,7 +246,7 @@ export async function emit(
     // Emit approximation warning
     warnings.push({
       code: WarningCode.Approximated,
-      message: `FileRule approximated via @a16n/glob-hook (behavior may differ slightly)`,
+      message: `FileRule approximated via @a16njs/glob-hook (behavior may differ slightly)`,
       sources: fileRules.map((r) => r.sourcePath),
     });
   }

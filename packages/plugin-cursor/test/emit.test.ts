@@ -10,7 +10,7 @@ import {
   type AgentSkill,
   type AgentIgnore,
   createId,
-} from '@a16n/models';
+} from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

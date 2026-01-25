@@ -33,12 +33,12 @@ a16n is a TypeScript monorepo that provides:
 ```
 a16n/
 ├── packages/
-│   ├── models/          # @a16n/models - Data models + plugin interface
-│   ├── engine/          # @a16n/engine - Orchestration, plugin discovery
+│   ├── models/          # @a16njs/models - Data models + plugin interface
+│   ├── engine/          # @a16njs/engine - Orchestration, plugin discovery
 │   ├── cli/             # a16n (main package) - User-facing CLI
-│   ├── plugin-cursor/   # @a16n/plugin-cursor - Bundled Cursor support
-│   ├── plugin-claude/   # @a16n/plugin-claude - Bundled Claude Code support
-│   └── glob-hook/       # @a16n/glob-hook - CLI glob matcher for hooks (Phase 2)
+│   ├── plugin-cursor/   # @a16njs/plugin-cursor - Bundled Cursor support
+│   ├── plugin-claude/   # @a16njs/plugin-claude - Bundled Claude Code support
+│   └── glob-hook/       # @a16njs/glob-hook - CLI glob matcher for hooks (Phase 2)
 ├── pnpm-workspace.yaml
 ├── turbo.json
 └── .changeset/
@@ -49,10 +49,10 @@ a16n/
 
 ```mermaid
 flowchart TD
-    models["@a16n/models<br/>(interfaces + types)"]
-    engine["@a16n/engine<br/>(orchestration)"]
-    cursor["@a16n/plugin-cursor<br/>(bundled)"]
-    claude["@a16n/plugin-claude<br/>(bundled)"]
+    models["@a16njs/models<br/>(interfaces + types)"]
+    engine["@a16njs/engine<br/>(orchestration)"]
+    cursor["@a16njs/plugin-cursor<br/>(bundled)"]
+    claude["@a16njs/plugin-claude<br/>(bundled)"]
     cli["a16n CLI<br/>(user-facing)"]
 
     models --> engine
@@ -65,7 +65,7 @@ The CLI depends on engine (and transitively on models). It does NOT directly dep
 
 ## Core Abstractions
 
-### Data Models (`@a16n/models`)
+### Data Models (`@a16njs/models`)
 
 ```typescript
 // Base for all customization types
@@ -106,7 +106,7 @@ interface AgentIgnore extends AgentCustomization {
 }
 ```
 
-### Plugin Interface (`@a16n/models`)
+### Plugin Interface (`@a16njs/models`)
 
 ```typescript
 interface A16nPlugin {
@@ -157,7 +157,7 @@ enum WarningCode {
 }
 ```
 
-### Engine (`@a16n/engine`)
+### Engine (`@a16njs/engine`)
 
 The engine:
 1. Discovers available plugins (bundled + npm-installed)
@@ -199,7 +199,7 @@ class A16nEngine {
 Plugins are discovered via:
 
 1. **Bundled plugins**: Explicitly imported in the CLI
-2. **npm packages**: Packages matching `@a16n/plugin-*` or `a16n-plugin-*` in the same node_modules tree
+2. **npm packages**: Packages matching `@a16njs/plugin-*` or `a16n-plugin-*` in the same node_modules tree
 
 Discovery uses `require.resolve` to find packages, similar to ESLint's plugin discovery.
 
@@ -209,11 +209,11 @@ function discoverPlugins(): A16nPlugin[] {
   const plugins: A16nPlugin[] = [];
   
   // Bundled (always available)
-  plugins.push(require('@a16n/plugin-cursor').default);
-  plugins.push(require('@a16n/plugin-claude').default);
+  plugins.push(require('@a16njs/plugin-cursor').default);
+  plugins.push(require('@a16njs/plugin-claude').default);
   
   // Discover from node_modules
-  const candidates = findPackages(['@a16n/plugin-*', 'a16n-plugin-*']);
+  const candidates = findPackages(['@a16njs/plugin-*', 'a16n-plugin-*']);
   for (const pkg of candidates) {
     try {
       const plugin = require(pkg).default;
@@ -305,7 +305,7 @@ Note that this is also now INVALID YAML, because a string value starts with a `*
 
 ### FileRule Emission (Phase 2)
 
-FileRules require special handling because Claude Code has no native glob-based rule system. Instead, we use the Claude Code hooks mechanism with `@a16n/glob-hook`.
+FileRules require special handling because Claude Code has no native glob-based rule system. Instead, we use the Claude Code hooks mechanism with `@a16njs/glob-hook`.
 
 **Generated artifacts when emitting FileRules to Claude**:
 
@@ -322,14 +322,14 @@ The `.a16n/` directory is tool-agnostic storage for generated artifacts that don
       "matcher": "Write|Edit",
       "hooks": [{
         "type": "command",
-        "command": "npx @a16n/glob-hook --globs \"**/*.ts\" --context-file \".a16n/rules/typescript.txt\""
+        "command": "npx @a16njs/glob-hook --globs \"**/*.ts\" --context-file \".a16n/rules/typescript.txt\""
       }]
     }],
     "PostToolUse": [{
       "matcher": "Read",
       "hooks": [{
         "type": "command",
-        "command": "npx @a16n/glob-hook --globs \"**/*.ts\" --context-file \".a16n/rules/typescript.txt\""
+        "command": "npx @a16njs/glob-hook --globs \"**/*.ts\" --context-file \".a16n/rules/typescript.txt\""
       }]
     }]
   }

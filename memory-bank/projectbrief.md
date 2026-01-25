@@ -30,11 +30,11 @@ a16n is a CLI tool and library that translates agent customization between codin
 ```
 a16n/
 ├── packages/
-│   ├── models/          # @a16n/models - Types + plugin interface
-│   ├── engine/          # @a16n/engine - Orchestration
+│   ├── models/          # @a16njs/models - Types + plugin interface
+│   ├── engine/          # @a16njs/engine - Orchestration
 │   ├── cli/             # a16n - CLI package
-│   ├── plugin-cursor/   # @a16n/plugin-cursor
-│   └── plugin-claude/   # @a16n/plugin-claude
+│   ├── plugin-cursor/   # @a16njs/plugin-cursor
+│   └── plugin-claude/   # @a16njs/plugin-claude
 └── planning/            # Specification documents
 ```
 

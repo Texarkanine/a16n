@@ -195,12 +195,12 @@ mkdir -p packages/plugin-cursor/src
 mkdir -p packages/plugin-claude/src
 ```
 
-## Step 8: Initialize @a16n/models
+## Step 8: Initialize @a16njs/models
 
 ```bash
 cat > packages/models/package.json << 'EOF'
 {
-  "name": "@a16n/models",
+  "name": "@a16njs/models",
   "version": "0.0.1",
   "description": "Type definitions and plugin interface for a16n",
   "type": "module",
@@ -309,12 +309,12 @@ export function createId(type: CustomizationType, sourcePath: string): string {
 EOF
 ```
 
-## Step 9: Initialize @a16n/engine
+## Step 9: Initialize @a16njs/engine
 
 ```bash
 cat > packages/engine/package.json << 'EOF'
 {
-  "name": "@a16n/engine",
+  "name": "@a16njs/engine",
   "version": "0.0.1",
   "description": "Conversion engine for a16n",
   "type": "module",
@@ -334,7 +334,7 @@ cat > packages/engine/package.json << 'EOF'
     "test": "echo 'No tests yet'"
   },
   "dependencies": {
-    "@a16n/models": "workspace:*"
+    "@a16njs/models": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.4.0"
@@ -361,7 +361,7 @@ import type {
   Warning,
   WrittenFile,
   CustomizationType,
-} from '@a16n/models';
+} from '@a16njs/models';
 
 export interface ConversionOptions {
   source: string;
@@ -458,10 +458,10 @@ EOF
 ## Step 10: Initialize Plugin Stubs
 
 ```bash
-# @a16n/plugin-cursor
+# @a16njs/plugin-cursor
 cat > packages/plugin-cursor/package.json << 'EOF'
 {
-  "name": "@a16n/plugin-cursor",
+  "name": "@a16njs/plugin-cursor",
   "version": "0.0.1",
   "description": "Cursor IDE plugin for a16n",
   "type": "module",
@@ -481,7 +481,7 @@ cat > packages/plugin-cursor/package.json << 'EOF'
     "test": "echo 'No tests yet'"
   },
   "dependencies": {
-    "@a16n/models": "workspace:*",
+    "@a16njs/models": "workspace:*",
     "glob": "^10.3.0",
     "yaml": "^2.4.0"
   },
@@ -504,7 +504,7 @@ cat > packages/plugin-cursor/tsconfig.json << 'EOF'
 EOF
 
 cat > packages/plugin-cursor/src/index.ts << 'EOF'
-import type { A16nPlugin, CustomizationType } from '@a16n/models';
+import type { A16nPlugin, CustomizationType } from '@a16njs/models';
 
 const cursorPlugin: A16nPlugin = {
   id: 'cursor',
@@ -525,10 +525,10 @@ const cursorPlugin: A16nPlugin = {
 export default cursorPlugin;
 EOF
 
-# @a16n/plugin-claude
+# @a16njs/plugin-claude
 cat > packages/plugin-claude/package.json << 'EOF'
 {
-  "name": "@a16n/plugin-claude",
+  "name": "@a16njs/plugin-claude",
   "version": "0.0.1",
   "description": "Claude Code plugin for a16n",
   "type": "module",
@@ -548,7 +548,7 @@ cat > packages/plugin-claude/package.json << 'EOF'
     "test": "echo 'No tests yet'"
   },
   "dependencies": {
-    "@a16n/models": "workspace:*",
+    "@a16njs/models": "workspace:*",
     "glob": "^10.3.0"
   },
   "devDependencies": {
@@ -570,7 +570,7 @@ cat > packages/plugin-claude/tsconfig.json << 'EOF'
 EOF
 
 cat > packages/plugin-claude/src/index.ts << 'EOF'
-import type { A16nPlugin, CustomizationType } from '@a16n/models';
+import type { A16nPlugin, CustomizationType } from '@a16njs/models';
 
 const claudePlugin: A16nPlugin = {
   id: 'claude',
@@ -613,9 +613,9 @@ cat > packages/cli/package.json << 'EOF'
     "test": "echo 'No tests yet'"
   },
   "dependencies": {
-    "@a16n/engine": "workspace:*",
-    "@a16n/plugin-cursor": "workspace:*",
-    "@a16n/plugin-claude": "workspace:*",
+    "@a16njs/engine": "workspace:*",
+    "@a16njs/plugin-cursor": "workspace:*",
+    "@a16njs/plugin-claude": "workspace:*",
     "commander": "^12.0.0",
     "chalk": "^5.3.0"
   },
@@ -641,9 +641,9 @@ EOF
 cat > packages/cli/src/index.ts << 'EOF'
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { A16nEngine } from '@a16n/engine';
-import cursorPlugin from '@a16n/plugin-cursor';
-import claudePlugin from '@a16n/plugin-claude';
+import { A16nEngine } from '@a16njs/engine';
+import cursorPlugin from '@a16njs/plugin-cursor';
+import claudePlugin from '@a16njs/plugin-claude';
 
 const program = new Command();
 
