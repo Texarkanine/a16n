@@ -122,7 +122,3 @@ pnpm --filter @a16njs/glob-hook test
 # Build
 pnpm --filter @a16njs/glob-hook build
 ```
-
-## License
-
-MIT

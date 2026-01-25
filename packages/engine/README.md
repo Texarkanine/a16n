@@ -73,7 +73,3 @@ List all registered plugins.
 ### `engine.getPlugin(id)`
 
 Get a plugin by ID.
-
-## License
-
-MIT

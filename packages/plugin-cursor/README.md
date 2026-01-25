@@ -107,7 +107,3 @@ console.log(`Found ${result.items.length} rules`);
 // Emit to Cursor format
 await cursorPlugin.emit(result.items, './my-project');
 ```
-
-## License
-
-MIT

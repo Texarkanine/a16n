@@ -79,7 +79,3 @@ a16n convert --from cursor --to claude --dry-run .
 # List what's in a project
 a16n discover --from cursor .
 ```
-
-## License
-
-MIT

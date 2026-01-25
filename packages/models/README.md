@@ -51,7 +51,3 @@ import {
 - `isFileRule(item)` - Type guard for FileRule
 - `isAgentIgnore(item)` - Type guard for AgentIgnore
 - `createId(type, sourcePath)` - Create unique ID
-
-## License
-
-MIT

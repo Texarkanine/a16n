@@ -121,7 +121,3 @@ console.log(`Found ${result.items.length} items`);
 // Emit to Claude format
 await claudePlugin.emit(result.items, './my-project');
 ```
-
-## License
-
-MIT
