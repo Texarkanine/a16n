@@ -23,7 +23,7 @@ gantt
 
 ---
 
-## Phase 1: GlobalPrompt MVP ✅ Spec Complete
+## Phase 1: GlobalPrompt MVP ✅ Complete
 
 **Goal**: Validate architecture with simplest customization type.
 
@@ -39,14 +39,14 @@ gantt
 **Spec**: [PHASE_1_SPEC.md](./PHASE_1_SPEC.md)
 
 **Exit Criteria**:
-- [ ] `a16n convert --from cursor --to claude .` works end-to-end
-- [ ] `a16n convert --from claude --to cursor .` works end-to-end
-- [ ] All 10 acceptance criteria pass
+- [x] `a16n convert --from cursor --to claude .` works end-to-end
+- [x] `a16n convert --from claude --to cursor .` works end-to-end
+- [x] All 10 acceptance criteria pass
 - [ ] Published to npm as `a16n@0.1.0`
 
 ---
 
-## Phase 2: AgentSkill + FileRule
+## Phase 2: AgentSkill + FileRule ✅ Complete
 
 **Goal**: Support activation-criteria-based rules (the most common customization pattern).
 
@@ -58,37 +58,36 @@ gantt
 - Handle mixed-type conversions (some translate, some don't)
 - **Detect and skip Claude skills with embedded hooks** (unsupported)
 
-**Key Challenges**:
-- Claude skills live in `.claude/skills/` — need to handle skill directory structure
-- Cursor globs vs Claude hook patterns aren't 1:1 — **SOLVED via `@a16n/glob-hook`**
-- FileRule requires deterministic glob matching in Claude hooks
+**Completed**:
+- ✅ `@a16n/glob-hook` package (PR #2)
+- ✅ AgentSkill + FileRule support (PR #3)
+- ✅ Claude skills directory structure handling
+- ✅ Skills with hooks detection and warning
 
-**Critical Dependency**: `@a16n/glob-hook` package must be built first. ✅ Complete (PR #2)
-
-**Out of Scope (Phase 2)**:
-- **Claude skills with `hooks:` in frontmatter** — These are not convertible because:
-  - Skill-scoped hooks only run during that skill's lifecycle
-  - Cursor has no equivalent concept
-  - Stripping hooks would produce broken/unsafe skills
-  - Will report as unsupported with clear warning
-
-**Estimated Scope**: ~15-20 hours (glob-hook already complete)
+**Out of Scope (deferred)**:
+- **Claude skills with `hooks:` in frontmatter** — Reported as unsupported with clear warning
 
 ---
 
-## Phase 3: AgentIgnore + Polish
+## Phase 3: AgentIgnore + Polish ✅ Spec Complete
 
 **Goal**: Complete the type taxonomy; polish warnings and edge cases.
 
 **Scope**:
-- Add `AgentIgnore` type
-- Cursor plugin: `.cursorignore` support
+- Add `AgentIgnore` type support
+- Cursor plugin: `.cursorignore` discovery and emission
 - Claude plugin: skip with clear warning (no equivalent)
-- Improve warning messages based on Phase 1-2 feedback
+- Improve warning messages based on Phase 1-2 feedback (colors, icons, hints)
 - Add `--verbose` flag for debugging
 - Improve error messages for common failure modes
 
-**Spec**: To be authored after Phase 2 exit criteria met.
+**Spec**: [PHASE_3_SPEC.md](./PHASE_3_SPEC.md)
+
+**Key Decisions**:
+- Claude has no official ignore mechanism - skip with helpful warning
+- No approximation via hooks (too complex, community can implement if needed)
+- 10 acceptance criteria defined
+- 9 implementation tasks planned
 
 **Estimated Scope**: ~8-12 hours
 
