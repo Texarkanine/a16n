@@ -9,7 +9,7 @@ import {
   CustomizationType,
   WarningCode,
   createId,
-} from '@a16n/models';
+} from '@a16njs/models';
 
 /**
  * Convert a Claude Read() permission rule to a gitignore-style pattern.

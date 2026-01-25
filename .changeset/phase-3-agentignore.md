@@ -1,7 +1,7 @@
 ---
 "a16n": minor
-"@a16n/plugin-cursor": minor
-"@a16n/plugin-claude": minor
+"@a16njs/plugin-cursor": minor
+"@a16njs/plugin-claude": minor
 ---
 
 Add AgentIgnore bidirectional support and CLI polish

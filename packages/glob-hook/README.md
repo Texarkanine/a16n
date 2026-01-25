@@ -1,4 +1,4 @@
-# @a16n/glob-hook
+# @a16njs/glob-hook
 
 CLI tool for glob-based file path matching in Claude Code hooks. Part of the [a16n](https://github.com/your-org/a16n) project.
 
@@ -15,10 +15,10 @@ Claude Code hooks use a `matcher` field that matches **tool names** (Read, Write
 
 ```bash
 # Via npx (recommended for hooks)
-npx @a16n/glob-hook --globs "**/*.tsx" --context-file "rules.txt"
+npx @a16njs/glob-hook --globs "**/*.tsx" --context-file "rules.txt"
 
 # Or install globally
-npm install -g @a16n/glob-hook
+npm install -g @a16njs/glob-hook
 ```
 
 ## Usage
@@ -28,7 +28,7 @@ npm install -g @a16n/glob-hook
 ```bash
 # Pipe hook JSON to glob-hook
 echo '{"tool_input":{"file_path":"src/Button.tsx"}}' | \
-  npx @a16n/glob-hook \
+  npx @a16njs/glob-hook \
     --globs "**/*.tsx" \
     --context-file ".a16n/rules/react.txt"
 ```
@@ -46,7 +46,7 @@ Configure in `.claude/settings.local.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "npx @a16n/glob-hook --globs '**/*.tsx,**/*.ts' --context-file '.a16n/rules/typescript.txt'"
+            "command": "npx @a16njs/glob-hook --globs '**/*.tsx,**/*.ts' --context-file '.a16n/rules/typescript.txt'"
           }
         ]
       }
@@ -117,10 +117,10 @@ This package is part of the a16n conversion pipeline. When converting Cursor Fil
 pnpm install
 
 # Run tests
-pnpm --filter @a16n/glob-hook test
+pnpm --filter @a16njs/glob-hook test
 
 # Build
-pnpm --filter @a16n/glob-hook build
+pnpm --filter @a16njs/glob-hook build
 ```
 
 ## License

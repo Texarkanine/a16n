@@ -1,7 +1,23 @@
 {
-  "name": "@a16n/engine",
+  "name": "@a16njs/engine",
   "version": "0.0.1",
   "description": "Conversion engine for a16n",
+  "license": "AGPL-3.0",
+  "author": "Texarkanine",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Texarkanine/a16n.git",
+    "directory": "packages/engine"
+  },
+  "homepage": "https://github.com/Texarkanine/a16n#readme",
+  "bugs": {
+    "url": "https://github.com/Texarkanine/a16n/issues"
+  },
+  "keywords": [
+    "a16n",
+    "engine",
+    "conversion"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,11 +36,11 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@a16n/models": "workspace:*"
+    "@a16njs/models": "workspace:*"
   },
   "devDependencies": {
-    "@a16n/plugin-cursor": "workspace:*",
-    "@a16n/plugin-claude": "workspace:*",
+    "@a16njs/plugin-cursor": "workspace:*",
+    "@a16njs/plugin-claude": "workspace:*",
     "@types/node": "^20.0.0",
     "typescript": "^5.4.0",
     "vitest": "^2.0.0"

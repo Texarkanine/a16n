@@ -2,9 +2,9 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Command } from 'commander';
-import { A16nEngine } from '@a16n/engine';
-import cursorPlugin from '@a16n/plugin-cursor';
-import claudePlugin from '@a16n/plugin-claude';
+import { A16nEngine } from '@a16njs/engine';
+import cursorPlugin from '@a16njs/plugin-cursor';
+import claudePlugin from '@a16njs/plugin-claude';
 import { formatWarning, formatError, formatSummary } from './output.js';
 
 const program = new Command();

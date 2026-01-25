@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import claudePlugin from '../src/index.js';
-import { CustomizationType, WarningCode, type AgentSkill, type AgentIgnore } from '@a16n/models';
+import { CustomizationType, WarningCode, type AgentSkill, type AgentIgnore } from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');

@@ -5,7 +5,7 @@ import type {
   Warning,
   WrittenFile,
   CustomizationType,
-} from '@a16n/models';
+} from '@a16njs/models';
 
 /**
  * Options for a conversion operation.

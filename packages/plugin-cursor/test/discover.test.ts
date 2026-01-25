@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import cursorPlugin from '../src/index.js';
-import { CustomizationType } from '@a16n/models';
+import { CustomizationType } from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
@@ -114,7 +114,7 @@ describe('FileRule Discovery (Phase 2)', () => {
     const tsRule = result.items.find(i => i.sourcePath.includes('typescript'));
     expect(tsRule).toBeDefined();
     expect(tsRule?.type).toBe(CustomizationType.FileRule);
-    expect((tsRule as import('@a16n/models').FileRule).globs).toEqual(['**/*.ts']);
+    expect((tsRule as import('@a16njs/models').FileRule).globs).toEqual(['**/*.ts']);
   });
 
   it('should parse comma-separated glob patterns into array', async () => {
@@ -124,7 +124,7 @@ describe('FileRule Discovery (Phase 2)', () => {
     const reactRule = result.items.find(i => i.sourcePath.includes('react'));
     expect(reactRule).toBeDefined();
     expect(reactRule?.type).toBe(CustomizationType.FileRule);
-    expect((reactRule as import('@a16n/models').FileRule).globs).toEqual(['**/*.tsx', '**/*.jsx']);
+    expect((reactRule as import('@a16njs/models').FileRule).globs).toEqual(['**/*.tsx', '**/*.jsx']);
   });
 
   it('should include rule content in FileRule items', async () => {
@@ -156,7 +156,7 @@ describe('AgentSkill Discovery (Phase 2)', () => {
     const authSkill = result.items.find(i => i.sourcePath.includes('auth'));
     expect(authSkill).toBeDefined();
     expect(authSkill?.type).toBe(CustomizationType.AgentSkill);
-    expect((authSkill as import('@a16n/models').AgentSkill).description).toBe('Authentication and authorization patterns');
+    expect((authSkill as import('@a16njs/models').AgentSkill).description).toBe('Authentication and authorization patterns');
   });
 
   it('should extract description from frontmatter with quotes', async () => {
@@ -166,7 +166,7 @@ describe('AgentSkill Discovery (Phase 2)', () => {
     const dbSkill = result.items.find(i => i.sourcePath.includes('database'));
     expect(dbSkill).toBeDefined();
     expect(dbSkill?.type).toBe(CustomizationType.AgentSkill);
-    expect((dbSkill as import('@a16n/models').AgentSkill).description).toBe('Database operations and ORM usage');
+    expect((dbSkill as import('@a16njs/models').AgentSkill).description).toBe('Database operations and ORM usage');
   });
 
   it('should include rule content in AgentSkill items', async () => {
@@ -220,7 +220,7 @@ describe('AgentIgnore Discovery (Phase 3)', () => {
     const root = path.join(fixturesDir, 'cursor-ignore/from-cursor');
     const result = await cursorPlugin.discover(root);
 
-    const agentIgnore = result.items.find(i => i.type === CustomizationType.AgentIgnore) as import('@a16n/models').AgentIgnore;
+    const agentIgnore = result.items.find(i => i.type === CustomizationType.AgentIgnore) as import('@a16njs/models').AgentIgnore;
     expect(agentIgnore).toBeDefined();
     
     // Should have patterns, not comments

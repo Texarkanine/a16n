@@ -1,10 +1,10 @@
-# @a16n/glob-hook Technical Brief
+# @a16njs/glob-hook Technical Brief
 
 **Architecture and Implementation Details**
 
 ## Overview
 
-`@a16n/glob-hook` is a Node.js CLI tool that provides deterministic glob matching for Claude Code hooks. It reads hook input from stdin, matches file paths against glob patterns, and outputs JSON for context injection.
+`@a16njs/glob-hook` is a Node.js CLI tool that provides deterministic glob matching for Claude Code hooks. It reads hook input from stdin, matches file paths against glob patterns, and outputs JSON for context injection.
 
 ## Technology Decisions
 
@@ -36,7 +36,7 @@ flowchart TD
         pipe["Pipes to stdin:<br/>{tool_name, tool_input: {file_path, ...}}"]
     end
     
-    subgraph globhook["npx @a16n/glob-hook"]
+    subgraph globhook["npx @a16njs/glob-hook"]
         parse["1. Parse stdin JSON"]
         extract["2. Extract file_path"]
         check["3. micromatch.isMatch()"]
@@ -424,7 +424,7 @@ describe('CLI', () => {
 
 ```json
 {
-  "name": "@a16n/glob-hook",
+  "name": "@a16njs/glob-hook",
   "version": "0.1.0",
   "description": "CLI glob matcher for Claude Code hooks",
   "type": "module",

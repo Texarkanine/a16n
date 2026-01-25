@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import type { Warning, WarningCode } from '@a16n/models';
+import type { Warning, WarningCode } from '@a16njs/models';
 
 const ICONS: Record<WarningCode, string> = {
   merged: '⚠',

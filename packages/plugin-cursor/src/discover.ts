@@ -10,7 +10,7 @@ import {
   type GlobalPrompt,
   CustomizationType,
   createId,
-} from '@a16n/models';
+} from '@a16njs/models';
 import { parseMdc, type MdcFrontmatter } from './mdc.js';
 
 /**

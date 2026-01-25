@@ -1,4 +1,4 @@
-// @a16n/models - Type definitions and plugin interface for a16n
+// @a16njs/models - Type definitions and plugin interface for a16n
 
 // Types
 export {

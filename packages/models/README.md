@@ -1,11 +1,11 @@
-# @a16n/models
+# @a16njs/models
 
 Type definitions and plugin interface for a16n.
 
 ## Installation
 
 ```bash
-npm install @a16n/models
+npm install @a16njs/models
 ```
 
 ## Usage
@@ -18,7 +18,7 @@ import {
   type GlobalPrompt,
   isGlobalPrompt,
   createId,
-} from '@a16n/models';
+} from '@a16njs/models';
 ```
 
 ## Exports

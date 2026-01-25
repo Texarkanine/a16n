@@ -24,10 +24,10 @@
 Implemented the complete a16n pipeline for GlobalPrompt customization type with Cursor and Claude plugins. This establishes the foundation for bi-directional conversion of AI agent customizations between different coding tools.
 
 ### What Was Built
-- **@a16n/models** - Core types, interfaces, and helpers
-- **@a16n/plugin-cursor** - Cursor IDE rule discovery and emission (.mdc files)
-- **@a16n/plugin-claude** - Claude Code config discovery and emission (CLAUDE.md)
-- **@a16n/engine** - Plugin orchestration and conversion logic
+- **@a16njs/models** - Core types, interfaces, and helpers
+- **@a16njs/plugin-cursor** - Cursor IDE rule discovery and emission (.mdc files)
+- **@a16njs/plugin-claude** - Claude Code config discovery and emission (CLAUDE.md)
+- **@a16njs/engine** - Plugin orchestration and conversion logic
 - **a16n** - CLI tool with convert, discover, and plugins commands
 
 ## REQUIREMENTS
@@ -95,10 +95,10 @@ packages/
 ### Test Distribution
 | Package | Tests |
 |---------|-------|
-| @a16n/models | 27 |
-| @a16n/plugin-cursor | 24 |
-| @a16n/plugin-claude | 10 |
-| @a16n/engine | 12 |
+| @a16njs/models | 27 |
+| @a16njs/plugin-cursor | 24 |
+| @a16njs/plugin-claude | 10 |
+| @a16njs/engine | 12 |
 | a16n (CLI) | 15 |
 
 ### Testing Strategy

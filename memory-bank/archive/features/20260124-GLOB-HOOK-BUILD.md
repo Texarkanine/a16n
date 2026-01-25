@@ -1,4 +1,4 @@
-# TASK ARCHIVE: @a16n/glob-hook Package
+# TASK ARCHIVE: @a16njs/glob-hook Package
 
 ## METADATA
 
@@ -14,7 +14,7 @@
 
 ## SUMMARY
 
-Built `@a16n/glob-hook`, a CLI tool for deterministic glob-based file path matching in Claude Code hooks. This package is the critical enabler for Phase 2 FileRule support, bridging the gap between Cursor's glob patterns and Claude's hook system.
+Built `@a16njs/glob-hook`, a CLI tool for deterministic glob-based file path matching in Claude Code hooks. This package is the critical enabler for Phase 2 FileRule support, bridging the gap between Cursor's glob patterns and Claude's hook system.
 
 **Key Deliverables:**
 - 4 source modules (types.ts, matcher.ts, io.ts, index.ts)
@@ -85,7 +85,7 @@ packages/glob-hook/
 
 ```bash
 echo '{"tool_input":{"file_path":"src/Button.tsx"}}' | \
-  npx @a16n/glob-hook \
+  npx @a16njs/glob-hook \
     --globs "**/*.tsx" \
     --context-file ".a16n/rules/react.txt"
 ```
@@ -129,7 +129,7 @@ echo '{"tool_input":{"file_path":"src/Button.tsx"}}' | \
 
 2. **TDD catches design issues early**: The `matchBase` bug was caught in red-green-refactor cycle.
 
-3. **Monorepo patterns help**: Using `@a16n/models` as template made setup trivial.
+3. **Monorepo patterns help**: Using `@a16njs/models` as template made setup trivial.
 
 ### Future Improvements
 
@@ -153,5 +153,5 @@ echo '{"tool_input":{"file_path":"src/Button.tsx"}}' | \
 ## NEXT STEPS
 
 1. **Merge PR #2** after review
-2. **Phase 2 continuation**: Implement FileRule emission in `@a16n/plugin-claude` using glob-hook
+2. **Phase 2 continuation**: Implement FileRule emission in `@a16njs/plugin-claude` using glob-hook
 3. **Integration testing**: End-to-end Cursor → Claude conversion with FileRules

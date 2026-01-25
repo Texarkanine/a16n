@@ -32,7 +32,7 @@ The planning phase produced detailed code snippets that were ~95% accurate. The 
 Organizing work into three parallel tracks (Cursor Plugin, Claude Plugin, CLI Polish) made the implementation logical and modular. Each track could be reasoned about independently.
 
 ### 4. Existing Infrastructure Leveraged
-The `@a16n/models` package already had:
+The `@a16njs/models` package already had:
 - `AgentIgnore` interface with `patterns: string[]`
 - `CustomizationType.AgentIgnore` enum
 - `isAgentIgnore()` type guard

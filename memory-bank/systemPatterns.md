@@ -18,7 +18,7 @@ enum WarningCode {
 
 ## Plugin Discovery Pattern
 1. Bundled plugins (always available)
-2. npm packages matching `@a16n/plugin-*` or `a16n-plugin-*`
+2. npm packages matching `@a16njs/plugin-*` or `a16n-plugin-*`
 3. Uses `require.resolve` similar to ESLint
 
 ## Conversion Flow

@@ -1,4 +1,4 @@
-# @a16n/plugin-claude
+# @a16njs/plugin-claude
 
 Claude Code plugin for a16n. Discovers and emits Claude configuration.
 
@@ -7,7 +7,7 @@ Claude Code plugin for a16n. Discovers and emits Claude configuration.
 This plugin is bundled with the `a16n` CLI. For programmatic use:
 
 ```bash
-npm install @a16n/plugin-claude
+npm install @a16njs/plugin-claude
 ```
 
 ## Supported Types
@@ -63,7 +63,7 @@ Aim for 80% code coverage.
 
 ### settings.local.json (FileRule via hooks)
 
-FileRules are converted using `@a16n/glob-hook` for runtime glob matching:
+FileRules are converted using `@a16njs/glob-hook` for runtime glob matching:
 
 ```json
 {
@@ -72,7 +72,7 @@ FileRules are converted using `@a16n/glob-hook` for runtime glob matching:
       "matcher": "Read|Write|Edit",
       "hooks": [{
         "type": "command",
-        "command": "npx @a16n/glob-hook --globs \"**/*.tsx\" --context-file \".a16n/rules/react.txt\""
+        "command": "npx @a16njs/glob-hook --globs \"**/*.tsx\" --context-file \".a16n/rules/react.txt\""
       }]
     }]
   }
@@ -109,8 +109,8 @@ Pattern conversion rules:
 ## Usage
 
 ```typescript
-import claudePlugin from '@a16n/plugin-claude';
-import { A16nEngine } from '@a16n/engine';
+import claudePlugin from '@a16njs/plugin-claude';
+import { A16nEngine } from '@a16njs/engine';
 
 const engine = new A16nEngine([claudePlugin]);
 

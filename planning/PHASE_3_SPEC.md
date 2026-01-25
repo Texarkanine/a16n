@@ -385,7 +385,7 @@ async function discoverCursorIgnore(root: string): Promise<AgentIgnore | null> {
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/plugin-cursor test
+pnpm --filter @a16njs/plugin-cursor test
 ```
 
 ### Task 2: Cursor Plugin - AgentIgnore Emission
@@ -427,7 +427,7 @@ if (agentIgnores.length > 0) {
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/plugin-cursor test
+pnpm --filter @a16njs/plugin-cursor test
 ```
 
 ### Task 3: Claude Plugin - AgentIgnore Emission (permissions.deny)
@@ -504,7 +504,7 @@ if (agentIgnores.length > 0) {
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/plugin-claude test
+pnpm --filter @a16njs/plugin-claude test
 ```
 
 ### Task 3b: Claude Plugin - AgentIgnore Discovery (permissions.deny)
@@ -573,7 +573,7 @@ async function discoverAgentIgnore(root: string): Promise<AgentIgnore | null> {
 
 **Verification**:
 ```bash
-pnpm --filter @a16n/plugin-claude test
+pnpm --filter @a16njs/plugin-claude test
 ```
 
 ### Task 4: CLI - Add --verbose Flag
@@ -704,7 +704,7 @@ throw new Error(`Unknown ${type} plugin '${id}'. Available: ${available}`);
 **Verification**:
 ```bash
 pnpm --filter a16n test
-pnpm --filter @a16n/engine test
+pnpm --filter @a16njs/engine test
 ```
 
 ### Task 7: Test Fixtures for AgentIgnore

@@ -80,8 +80,8 @@ Lists all agent customization found, useful for debugging.
 
 | Tool | Plugin | Status |
 |------|--------|--------|
-| Cursor | `@a16n/plugin-cursor` | ✅ Bundled |
-| Claude Code | `@a16n/plugin-claude` | ✅ Bundled |
+| Cursor | `@a16njs/plugin-cursor` | ✅ Bundled |
+| Claude Code | `@a16njs/plugin-claude` | ✅ Bundled |
 | Codex | Community | 🔌 [See plugins](#community-plugins) |
 | Windsurf | Community | 🔌 [See plugins](#community-plugins) |
 
@@ -156,7 +156,7 @@ Examples:
 
 ## Community Plugins
 
-a16n automatically discovers plugins from npm. Install any `@a16n/plugin-*` or `a16n-plugin-*` package:
+a16n automatically discovers plugins from npm. Install any `@a16njs/plugin-*` or `a16n-plugin-*` package:
 
 ```bash
 npm install -g a16n-plugin-codex
@@ -175,7 +175,7 @@ a16n convert --from cursor --to codex .
 Plugins implement a simple interface:
 
 ```typescript
-import { A16nPlugin, CustomizationType } from '@a16n/models';
+import { A16nPlugin, CustomizationType } from '@a16njs/models';
 
 const myPlugin: A16nPlugin = {
   id: 'my-agent',
@@ -201,9 +201,9 @@ See the [Plugin Development Guide](./planning/PLUGIN_DEVELOPMENT.md) for details
 ## Programmatic API
 
 ```typescript
-import { A16nEngine } from '@a16n/engine';
-import cursorPlugin from '@a16n/plugin-cursor';
-import claudePlugin from '@a16n/plugin-claude';
+import { A16nEngine } from '@a16njs/engine';
+import cursorPlugin from '@a16njs/plugin-cursor';
+import claudePlugin from '@a16njs/plugin-claude';
 
 const engine = new A16nEngine([cursorPlugin, claudePlugin]);
 
