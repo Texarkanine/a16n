@@ -257,10 +257,6 @@ Contributions welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md).
 - 🔌 **New plugins**: Publish to npm, then PR to add to the community list
 - 📖 **Documentation**: PRs welcome for typos, clarifications, examples
 
-## License
-
-MIT © Texarkanine
-
 ---
 
 <p align="center">
