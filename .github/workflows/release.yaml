@@ -9,18 +9,18 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
-    name: Release
+  # Job 1: Version - Creates/updates "Version Packages" PR
+  # No environment approval needed for this
+  version:
+    name: Version
     runs-on: ubuntu-latest
-    environment: npmjs.org
-    # Only run on main branch, not on PRs
     if: github.ref == 'refs/heads/main'
+    outputs:
+      hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
 
     permissions:
       contents: write
       pull-requests: write
-      # Required for npm trusted publishing (OIDC)
-      id-token: write
 
     steps:
       - name: Generate GitHub App Token
@@ -41,7 +41,6 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: "pnpm"
-          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -52,15 +51,54 @@ jobs:
       - name: Test
         run: pnpm test
 
-      - name: Create Release PR or Publish
+      - name: Create Release PR (if changesets exist)
         id: changesets
         uses: changesets/action@v1
         with:
           version: pnpm version-packages
-          publish: pnpm release
           title: "chore: version packages"
           commit: "chore: version packages"
+          # Note: no publish here - that's handled by the publish job
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-          # Use npm provenance (trusted publishing via OIDC) instead of NPM_TOKEN
+
+  # Job 2: Publish - Only runs when version PR was merged (no changesets left)
+  # Requires npmjs.org environment approval
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    needs: version
+    # Only publish when there are NO changesets (version PR was just merged)
+    if: needs.version.outputs.hasChangesets == 'false'
+    environment: npmjs.org
+
+    permissions:
+      contents: write
+      # Required for npm trusted publishing (OIDC)
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish to npm
+        run: pnpm release
+        env:
+          # Use npm provenance (trusted publishing via OIDC)
           NPM_CONFIG_PROVENANCE: true
