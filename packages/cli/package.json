@@ -6,7 +6,9 @@
   "bin": {
     "a16n": "./dist/index.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist *.tsbuildinfo",
@@ -16,10 +18,11 @@
   },
   "dependencies": {
     "@a16n/engine": "workspace:*",
-    "@a16n/plugin-cursor": "workspace:*",
+    "@a16n/models": "workspace:*",
     "@a16n/plugin-claude": "workspace:*",
-    "commander": "^12.0.0",
-    "chalk": "^5.3.0"
+    "@a16n/plugin-cursor": "workspace:*",
+    "chalk": "^5.6.2",
+    "commander": "^12.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

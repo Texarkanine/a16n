@@ -2,6 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
   type AgentCustomization,
+  type AgentIgnore,
   type DiscoveryResult,
   type Warning,
   type FileRule,
@@ -115,6 +116,35 @@ function classifyRule(
 }
 
 /**
+ * Discover .cursorignore file and parse its patterns.
+ * Returns null if file doesn't exist or has no valid patterns.
+ */
+async function discoverCursorIgnore(root: string): Promise<AgentIgnore | null> {
+  const ignorePath = path.join(root, '.cursorignore');
+
+  try {
+    const content = await fs.readFile(ignorePath, 'utf-8');
+    const patterns = content
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#'));
+
+    if (patterns.length === 0) return null;
+
+    return {
+      id: createId(CustomizationType.AgentIgnore, '.cursorignore'),
+      type: CustomizationType.AgentIgnore,
+      sourcePath: '.cursorignore',
+      content,
+      patterns,
+      metadata: {},
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Discover all Cursor rules in a project directory.
  */
 export async function discover(root: string): Promise<DiscoveryResult> {
@@ -134,6 +164,12 @@ export async function discover(root: string): Promise<DiscoveryResult> {
     const sourcePath = `.cursor/rules/${file}`;
     const item = classifyRule(frontmatter, body, sourcePath);
     items.push(item);
+  }
+
+  // Discover .cursorignore (Phase 3)
+  const agentIgnore = await discoverCursorIgnore(root);
+  if (agentIgnore) {
+    items.push(agentIgnore);
   }
 
   return { items, warnings };

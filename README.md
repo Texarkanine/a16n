@@ -1,7 +1,3 @@
-# ⚠️ This README is currently a mockup.
-We're doing spec-driven development. This README describes the ideal state, not the current state.
-When this warning is gone, this project will behave as described.
-
 # a16n
 
 **Agent customization portability for AI coding tools.**
@@ -95,13 +91,14 @@ Different tools have different capabilities. a16n handles this transparently.
 | Global prompts | `alwaysApply: true` rules | `CLAUDE.md` |
 | File-specific rules | `globs: [...]` rules | Tool hooks |
 | Context-triggered | `description: ...` rules | Skills |
+| Ignore patterns | `.cursorignore` | `permissions.deny` Read rules |
 
-### What Doesn't Translate
+### What Gets Approximated
 
 | Feature | From | To | Behavior |
 |---------|------|-----|----------|
-| `.cursorignore` | Cursor | Claude | ⚠️ Skipped (no equivalent) |
 | Multiple `alwaysApply` rules | Cursor | Claude | ⚠️ Merged into one file |
+| Ignore patterns | Cursor | Claude | ≈ Converted to Read permission denials |
 
 a16n always warns you when conversions are lossy or irreversible.
 
@@ -110,13 +107,15 @@ a16n always warns you when conversions are lossy or irreversible.
 ```text
 ⚠ Merged 3 Cursor rules with alwaysApply:true into single CLAUDE.md
   Sources: general.mdc, style.mdc, testing.mdc
-  Note: Converting back will produce 1 file, not 3
+  Hint: Converting back will produce 1 file, not the original count
 
-⚠ Skipped .cursorignore (Claude Code has no equivalent)
-  Patterns: node_modules/**, dist/**
+≈ AgentIgnore approximated as permissions.deny (behavior may differ slightly)
+  Sources: .cursorignore
+  Hint: Behavior may differ slightly between tools
 
 ✓ Wrote CLAUDE.md (3 sections, 127 lines)
-✓ Conversion complete: 4 items processed, 2 warnings
+✓ Wrote .claude/settings.json (4 deny rules)
+Summary: 4 discovered, 2 written, 2 warnings
 ```
 
 ## CLI Reference
@@ -135,10 +134,17 @@ Convert Options:
   --dry-run     Show what would happen without writing
   --json        Output as JSON (for scripting)
   --quiet       Suppress non-error output
+  --verbose     Show detailed debugging output
+
+Discover Options:
+  --from, -f    Agent to discover (required)
+  --json        Output as JSON (for scripting)
+  --verbose     Show detailed debugging output
 
 Examples:
   a16n convert --from cursor --to claude .
   a16n convert -f claude -t cursor ./project --dry-run
+  a16n convert --from cursor --to claude --verbose .
   a16n discover --from cursor . --json
   a16n plugins
 ```

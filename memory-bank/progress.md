@@ -6,7 +6,7 @@
 |-------|--------|-------|
 | **Phase 1** | ✅ Complete | PR #1 merged (GlobalPrompt MVP) |
 | **Phase 2** | ✅ Complete | PR #3 merged (FileRule + AgentSkill) |
-| **Phase 3** | 📋 Planning Complete | Ready for implementation |
+| **Phase 3** | ✅ Complete | AgentIgnore + CLI polish implemented |
 
 ## Current Session
 

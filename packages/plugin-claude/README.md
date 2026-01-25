@@ -12,13 +12,14 @@ npm install @a16n/plugin-claude
 
 ## Supported Types
 
-This plugin supports three customization types:
+This plugin supports four customization types:
 
 | Type | Claude Format | Description |
 |------|---------------|-------------|
 | **GlobalPrompt** | `CLAUDE.md` | Always-active instructions |
 | **FileRule** | `.claude/settings.local.json` + `.a16n/rules/` | Glob-triggered via hooks |
 | **AgentSkill** | `.claude/skills/*/SKILL.md` | Description-triggered skills |
+| **AgentIgnore** | `.claude/settings.json` `permissions.deny` | Files to exclude |
 
 ## Supported Files
 
@@ -27,14 +28,17 @@ This plugin supports three customization types:
 - `CLAUDE.md` - Root Claude configuration (GlobalPrompt)
 - `*/CLAUDE.md` - Nested Claude configuration files (GlobalPrompt)
 - `.claude/skills/*/SKILL.md` - Skills with description frontmatter (AgentSkill)
+- `.claude/settings.json` - Permissions deny rules (AgentIgnore)
 
 > **Note:** Skills with `hooks:` in their frontmatter are skipped (not convertible to Cursor).
+> **Note:** Only `Read()` permission denials are discovered (other types like `Bash()` or `Edit()` are ignored).
 
 ### Emission
 
 - **GlobalPrompt** → `CLAUDE.md` (merged with section headers)
 - **FileRule** → `.a16n/rules/<name>.txt` + `.claude/settings.local.json` with hooks
 - **AgentSkill** → `.claude/skills/<name>/SKILL.md` with description frontmatter
+- **AgentIgnore** → `.claude/settings.json` with `permissions.deny` Read rules
 
 ## File Formats
 
@@ -76,6 +80,31 @@ FileRules are converted using `@a16n/glob-hook` for runtime glob matching:
 ```
 
 > **Note:** FileRule conversion emits an "Approximated" warning because hook-based matching may differ slightly from Cursor's native glob matching.
+
+### settings.json (AgentIgnore via permissions.deny)
+
+AgentIgnore patterns are converted to `permissions.deny` Read rules:
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Read(./dist/**)",
+      "Read(./.env)",
+      "Read(./**/*.log)",
+      "Read(./secrets/**)"
+    ]
+  }
+}
+```
+
+Pattern conversion rules:
+- `dist/` → `Read(./dist/**)`
+- `.env` → `Read(./.env)`
+- `*.log` → `Read(./**/*.log)`
+- `**/*.tmp` → `Read(./**/*.tmp)`
+
+> **Note:** AgentIgnore conversion emits an "Approximated" warning because Claude's permission system may behave slightly differently than `.cursorignore`.
 
 ## Usage
 
