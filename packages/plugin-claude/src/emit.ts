@@ -17,8 +17,14 @@ import {
 
 /**
  * Convert a gitignore-style pattern to a Claude Read() permission rule.
+ * Returns null for patterns that cannot be converted (e.g., negation patterns).
  */
-function convertPatternToReadRule(pattern: string): string {
+function convertPatternToReadRule(pattern: string): string | null {
+  // Negation patterns cannot be converted to deny rules
+  // (they would need to REMOVE entries from deny, not add them)
+  if (pattern.startsWith('!')) {
+    return null;
+  }
   // Directory pattern: dist/ → Read(./dist/**)
   if (pattern.endsWith('/')) {
     return `Read(./${pattern}**)`;
@@ -277,9 +283,22 @@ export async function emit(
 
   // === Emit AgentIgnores as .claude/settings.json permissions.deny ===
   if (agentIgnores.length > 0) {
-    const denyRules = agentIgnores
-      .flatMap(ai => ai.patterns)
-      .map(convertPatternToReadRule);
+    const allPatterns = agentIgnores.flatMap(ai => ai.patterns);
+    const negationPatterns = allPatterns.filter(p => p.startsWith('!'));
+    const convertiblePatterns = allPatterns.filter(p => !p.startsWith('!'));
+    
+    const denyRules = convertiblePatterns
+      .map(convertPatternToReadRule)
+      .filter((rule): rule is string => rule !== null);
+
+    // Warn about skipped negation patterns
+    if (negationPatterns.length > 0) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Negation patterns cannot be converted to permissions.deny (skipped ${negationPatterns.length} pattern${negationPatterns.length > 1 ? 's' : ''}: ${negationPatterns.join(', ')})`,
+        sources: agentIgnores.map(ai => ai.sourcePath),
+      });
+    }
 
     const claudeDir = path.join(root, '.claude');
     await fs.mkdir(claudeDir, { recursive: true });

@@ -1,13 +1,14 @@
 # Wiggum: PR #4
 
 ## Metadata
+
 | Field | Value |
 |-------|-------|
-| PR URL | https://github.com/Texarkanine/a16n/pull/4 |
-| Last Check | 2026-01-25T01:15:00Z |
+| PR URL | <https://github.com/Texarkanine/a16n/pull/4> |
+| Last Check | 2026-01-25T01:35:00Z |
 | Last Push | 2026-01-25T01:25:00Z |
-| Last CodeRabbit Response | 2026-01-25T01:12:02Z |
-| Status | PUSHED_AWAITING_REVIEW |
+| Last CodeRabbit Response | 2026-01-25T01:20:19Z |
+| Status | IN_PROGRESS |
 
 ## Feedback Tracking
 
@@ -22,6 +23,9 @@
 - [x] ID: 2724752134 - planning/PHASE_3_SPEC.md MD040 code block languages - FIXED
 - [x] ID: 2724752135 - planning/ROADMAP.md clarify AgentIgnore handling - FIXED
 - [x] ID: nitpick-1 - memory-bank/progress.md MD040 language tag - FIXED
+- [x] ID: 2724755671 - memory-bank/wiggum/pr-4.md MD058 table blank lines - FIXED
+- [x] ID: 2724755672 - packages/plugin-claude/src/emit.ts negation pattern handling - FIXED
+- [x] ID: 2724755673 - planning/PHASE_3_SPEC.md MD040 code block language (line 148) - FIXED
 
 ### Requires Human Decision
 (none)
@@ -54,3 +58,14 @@
   - packages/plugin-cursor/src/discover.ts
   - planning/PHASE_3_SPEC.md
   - planning/ROADMAP.md
+
+### Fix 2 - 2026-01-25T01:35:00Z
+- Comments: 2724755671, 2724755672, 2724755673
+- Resolution: Fixed 3 CodeRabbit feedback items from second review:
+  1. Added blank lines around metadata table in wiggum/pr-4.md (MD058)
+  2. Made convertPatternToReadRule return null for negation patterns and emit warning
+  3. Added `text` language tags to code blocks in PHASE_3_SPEC.md (lines 148, 209)
+- Files:
+  - memory-bank/wiggum/pr-4.md
+  - packages/plugin-claude/src/emit.ts
+  - planning/PHASE_3_SPEC.md

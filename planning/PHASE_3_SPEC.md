@@ -145,7 +145,7 @@ a16n discover --from cursor ./project
 **Then**:
 - `.cursorignore` file is created at project root
 - Content is:
-  ```
+  ```text
   dist/
   *.log
   ```
@@ -206,7 +206,7 @@ a16n convert --from claude --to cursor ./project
 
 **Then**:
 - `.cursorignore` is created with patterns:
-  ```
+  ```text
   .env
   secrets/
   ```
