@@ -16,10 +16,21 @@ done
 
 ```mermaid
 flowchart TD
-    Start([Agent Invoked]) --> Fetch[Fetch CodeRabbit comments]
-    Fetch --> UpdateCR[Update Last CodeRabbit Response timestamp]
+    Start([Agent Invoked]) --> CheckRL{Rate Limit Until<br/>in the future?}
+    CheckRL -->|Yes| ExitRL([Exit immediately<br/>- rate limited])
+    CheckRL -->|No/None| Fetch[Fetch CodeRabbit comments]
+    
+    Fetch --> CheckRLMsg{Rate limit message<br/>detected?}
+    CheckRLMsg -->|Yes| ParseRL[Parse wait time<br/>Set Rate Limit Until]
+    ParseRL --> ExitRLNew([Exit - rate limited])
+    
+    CheckRLMsg -->|No| UpdateCR[Update Last CodeRabbit Response timestamp<br/>Clear Rate Limit Until]
     
     UpdateCR --> CheckStatus{Status?}
+    
+    CheckStatus -->|RATE_LIMITED| TriggerReview[Comment @coderabbitai review]
+    TriggerReview --> SetAwaiting[Status → PUSHED_AWAITING_REVIEW]
+    SetAwaiting --> ExitTriggered([Exit - review triggered])
     
     CheckStatus -->|PUSHED_AWAITING_REVIEW| CheckCR{CodeRabbit responded<br/>since Last Push?}
     CheckCR -->|No| ExitWait([Exit - keep waiting])
@@ -51,6 +62,7 @@ flowchart TD
 |--------|-----------|-------------|
 | `IN_PROGRESS` | Keep | Process items or wait for new ones |
 | `PUSHED_AWAITING_REVIEW` | Keep | Wait for CodeRabbit to respond |
+| `RATE_LIMITED` | Keep | Wait until rate limit expires, then trigger review |
 | `COMPLETE` | Delete | Loop terminates |
 | `NEEDS_HUMAN` | Delete | Loop terminates |
 
@@ -70,7 +82,8 @@ Location: `memory-bank/wiggum/pr-<number>.md`
 | Last Check | <ISO timestamp> |
 | Last Push | <ISO timestamp or "never"> |
 | Last CodeRabbit Response | <ISO timestamp> |
-| Status | IN_PROGRESS / PUSHED_AWAITING_REVIEW / COMPLETE / NEEDS_HUMAN |
+| Rate Limit Until | <ISO timestamp or empty> |
+| Status | IN_PROGRESS / PUSHED_AWAITING_REVIEW / RATE_LIMITED / COMPLETE / NEEDS_HUMAN |
 
 ## Feedback Tracking
 
@@ -93,6 +106,30 @@ Location: `memory-bank/wiggum/pr-<number>.md`
 
 ## Phase Details
 
+### Phase 0: Rate Limit Check (FIRST)
+
+**Before doing anything else:**
+
+1. Load tracking file if it exists
+2. Check `Rate Limit Until` field
+3. If `Rate Limit Until` is in the future:
+   - Log: "Rate limited until {timestamp}, exiting"
+   - **Exit immediately** (do not fetch, do not process)
+4. If `Rate Limit Until` is in the past and `Status` is `RATE_LIMITED`:
+   - Continue to Phase 0b (trigger review)
+5. Otherwise continue to Phase 1
+
+### Phase 0b: Trigger Review (after rate limit expires)
+
+1. Comment on the PR to trigger CodeRabbit review:
+   ```bash
+   gh pr comment {number} --body "@coderabbitai review"
+   ```
+2. Update tracking file:
+   - Clear `Rate Limit Until`
+   - Set `Status` → `PUSHED_AWAITING_REVIEW`
+3. **Exit** (wait for CodeRabbit to respond)
+
 ### Phase 1: Fetch & Track
 
 1. Extract PR number from URL
@@ -103,7 +140,11 @@ Location: `memory-bank/wiggum/pr-<number>.md`
    gh api repos/{owner}/{repo}/pulls/{number}/reviews --paginate
    ```
 4. Filter for `coderabbitai[bot]` user
-5. Update `Last CodeRabbit Response` to most recent comment timestamp
+5. **Check for rate limit message** in most recent CodeRabbit comment:
+   - Look for patterns like: "please wait", "rate limit", "try again in X minutes/hours"
+   - If found: Parse wait time, set `Rate Limit Until`, set `Status` → `RATE_LIMITED`, **exit**
+6. Update `Last CodeRabbit Response` to most recent comment timestamp
+7. Clear `Rate Limit Until` if it was set (rate limit has passed)
 
 ### Phase 2: Categorize
 
@@ -119,6 +160,10 @@ Location: `memory-bank/wiggum/pr-<number>.md`
 - False positives, already addressed, conflicts with project standards
 
 ### Phase 3: Decide
+
+**If `RATE_LIMITED`:**
+- Should not reach here (handled in Phase 0/0b)
+- If somehow reached: Check `Rate Limit Until` and either exit or trigger review
 
 **If `PUSHED_AWAITING_REVIEW`:**
 - Compare `Last CodeRabbit Response` vs `Last Push`
@@ -166,3 +211,25 @@ After all fixes:
 - 5-minute sleep allows CodeRabbit time to re-analyze
 - Use `--no-gpg-sign` and `--no-pager` for git commands
 - "No new comments" ≠ approval (CR might still be processing)
+
+## Rate Limit Handling
+
+CodeRabbit may respond with rate limit messages like:
+- "Please wait X minutes before requesting another review"
+- "Rate limit exceeded. Try again in X hours"
+- "I'm currently processing too many requests. Please try again later"
+
+**Detection patterns** (case-insensitive):
+- `please wait \d+ (minute|hour|second)`
+- `rate limit`
+- `try again in \d+`
+- `too many requests`
+
+**Parsing wait time:**
+- Extract numeric value and unit (minutes/hours/seconds)
+- Calculate `Rate Limit Until` = now + wait time
+- Default to 1 hour if time cannot be parsed
+
+**After rate limit expires:**
+- Comment `@coderabbitai review` to explicitly request a new review
+- This ensures CodeRabbit re-analyzes the PR after the limit clears
