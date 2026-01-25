@@ -146,9 +146,53 @@ The `--verbose` pattern using a closure `const verbose = (msg) => { if (options.
 
 ---
 
+## CodeRabbit Feedback Cycle (PR #4)
+
+### Overview
+PR #4 went through 3 CodeRabbit review cycles with 15 actionable feedback items, all successfully addressed.
+
+### Feedback Categories
+
+| Category | Count | Examples |
+|----------|-------|----------|
+| Markdown Linting | 8 | MD058 (table blank lines), MD040 (code block languages), MD036 (bold vs heading) |
+| Code Quality | 4 | fs.stat validation, type guards, warning emissions |
+| Documentation | 3 | Wording clarity, behavior clarification |
+
+### Fix Cycles
+
+**Fix 1 (10 items)**:
+- Added blank lines around MD tables
+- Added language tags to fenced code blocks
+- Changed `fs.access()` to `fs.stat().isDirectory()` for proper directory validation
+- Added type guard for non-string deny entries in claude/discover.ts
+- Added warning when settings.json parse fails
+- Improved .cursorignore parsing to handle inline comments and CRLF line endings
+- Converted bold emphasis to proper headings in PHASE_3_SPEC.md
+- Updated ROADMAP.md to reflect implemented AgentIgnore behavior
+
+**Fix 2 (3 items)**:
+- Fixed MD058 in wiggum/pr-4.md tracking file
+- Made `convertPatternToReadRule` return null for negation patterns with warning
+- Added remaining language tags to code blocks
+
+**Fix 3 (2 items)**:
+- Updated Task 8 scenario wording to align with AC3 ("converted to permissions.deny with warning" instead of "skipped with warning")
+- Clarified .cursorignore vs .gitignore behavior - a16n only reads explicit .cursorignore patterns
+
+### Lessons from CodeRabbit Review
+
+1. **Markdown Consistency**: Always add blank lines around tables (MD058) and specify language tags for code blocks (MD040)
+2. **Type Safety**: Add guards for non-string values when processing JSON config files
+3. **Error Handling**: Emit warnings for parse failures instead of silently ignoring
+4. **Edge Cases**: Handle negation patterns explicitly rather than converting them incorrectly
+5. **Documentation Precision**: Ensure scenario descriptions match acceptance criteria wording exactly
+
+---
+
 ## Next Steps
 
-1. **PR Review**: PR #4 is ready for review
+1. **PR Merge**: PR #4 ready for final review and merge
 2. **Archive**: Archive this task using `/niko/archive`
 3. **Phase 4 Planning**: Consider next features (community plugins, additional tool support)
 
