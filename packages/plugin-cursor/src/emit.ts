@@ -12,6 +12,7 @@ import {
   isGlobalPrompt,
   isFileRule,
   isAgentSkill,
+  isAgentIgnore,
 } from '@a16n/models';
 
 /**
@@ -119,26 +120,30 @@ export async function emit(
   const globalPrompts = models.filter(isGlobalPrompt);
   const fileRules = models.filter(isFileRule);
   const agentSkills = models.filter(isAgentSkill);
+  const agentIgnores = models.filter(isAgentIgnore);
   
-  // Track unsupported types (AgentIgnore, etc.)
+  // Track unsupported types (future types)
   for (const model of models) {
-    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model)) {
+    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model)) {
       unsupported.push(model);
     }
   }
 
   const allItems = [...globalPrompts, ...fileRules, ...agentSkills];
   
-  if (allItems.length === 0) {
+  // Early return only if no items at all (including agentIgnores)
+  if (allItems.length === 0 && agentIgnores.length === 0) {
     return { written, warnings, unsupported };
   }
 
-  // Ensure .cursor/rules directory exists
-  const rulesDir = path.join(root, '.cursor', 'rules');
-  await fs.mkdir(rulesDir, { recursive: true });
-
   // Track sources that had collisions for warning
   const collisionSources: string[] = [];
+  
+  // Ensure .cursor/rules directory exists (only if we have mdc items)
+  const rulesDir = path.join(root, '.cursor', 'rules');
+  if (allItems.length > 0) {
+    await fs.mkdir(rulesDir, { recursive: true });
+  }
 
   // Emit each GlobalPrompt as a separate .mdc file
   for (const gp of globalPrompts) {
@@ -210,6 +215,29 @@ export async function emit(
       message: `Filename collision: ${collisionSources.length} file(s) renamed to avoid overwrite`,
       sources: collisionSources,
     });
+  }
+
+  // === Emit AgentIgnores as .cursorignore ===
+  if (agentIgnores.length > 0) {
+    const allPatterns = agentIgnores.flatMap(ai => ai.patterns);
+    const uniquePatterns = [...new Set(allPatterns)];
+    const filepath = path.join(root, '.cursorignore');
+    
+    await fs.writeFile(filepath, uniquePatterns.join('\n') + '\n', 'utf-8');
+
+    written.push({
+      path: filepath,
+      type: CustomizationType.AgentIgnore,
+      itemCount: agentIgnores.length,
+    });
+
+    if (agentIgnores.length > 1) {
+      warnings.push({
+        code: WarningCode.Merged,
+        message: `Merged ${agentIgnores.length} ignore sources into .cursorignore`,
+        sources: agentIgnores.map(ai => ai.sourcePath),
+      });
+    }
   }
 
   return { written, warnings, unsupported };

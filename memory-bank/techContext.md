@@ -54,13 +54,66 @@ interface A16nPlugin {
 | GlobalPrompt | `.cursor/rules/*.mdc` with `alwaysApply: true` | |
 | FileRule | `.cursor/rules/*.mdc` with `globs:` | Comma-separated patterns |
 | AgentSkill | `.cursor/rules/*.mdc` with `description:` | No globs |
-| AgentIgnore | `.cursorignore` | Phase 3 |
+| AgentIgnore | `.cursorignore` | Phase 3: gitignore-style patterns |
 
 **Cursor MDC Classification Priority**:
 1. `alwaysApply: true` → GlobalPrompt
 2. `globs:` present → FileRule
 3. `description:` present (no globs) → AgentSkill
 4. None of above → GlobalPrompt (fallback)
+
+## Phase 3: AgentIgnore Implementation
+
+### Pattern Translation (Bidirectional)
+
+| `.cursorignore` | Claude `permissions.deny` |
+|-----------------|---------------------------|
+| `.env` | `Read(./.env)` |
+| `dist/` | `Read(./dist/**)` |
+| `*.log` | `Read(./**/*.log)` |
+| `**/*.tmp` | `Read(./**/*.tmp)` |
+| `secrets/` | `Read(./secrets/**)` |
+
+### Conversion Functions
+
+**Cursor → Claude** (`convertPatternToReadRule`):
+```typescript
+function convertPatternToReadRule(pattern: string): string {
+  if (pattern.endsWith('/')) return `Read(./${pattern}**)`;
+  if (pattern.startsWith('*') && !pattern.startsWith('**')) return `Read(./**/${pattern})`;
+  if (pattern.startsWith('**')) return `Read(./${pattern})`;
+  return `Read(./${pattern})`;
+}
+```
+
+**Claude → Cursor** (`convertReadRuleToPattern`):
+```typescript
+function convertReadRuleToPattern(rule: string): string | null {
+  const match = rule.match(/^Read\(\.\/(.+)\)$/);
+  if (!match) return null;
+  let pattern = match[1];
+  if (pattern.endsWith('/**')) return pattern.slice(0, -2);
+  if (pattern.startsWith('**/')) return pattern.slice(3);
+  return pattern;
+}
+```
+
+### Settings.json Structure
+
+Claude uses `permissions.deny` in `.claude/settings.json`:
+```json
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./dist/**)",
+      "Read(./**/*.log)"
+    ]
+  }
+}
+```
+
+Non-Read rules (e.g., `Bash(rm:*)`, `Edit(*)`) are ignored during AgentIgnore discovery.
 
 ### Claude Code
 
@@ -70,7 +123,7 @@ interface A16nPlugin {
 | FileRule | `.claude/settings.local.json` + `.a16n/rules/*.txt` | Uses glob-hook |
 | AgentSkill | `.claude/skills/<name>/SKILL.md` | With description frontmatter |
 | AgentSkill (with hooks) | **Unsupported** | Skipped - see below |
-| AgentIgnore | (none) | Skipped with warning |
+| AgentIgnore | `.claude/settings.json` `permissions.deny` | Phase 3: Read() rules |
 
 #### Claude Skills with Hooks (Unsupported)
 

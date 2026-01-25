@@ -1,8 +1,11 @@
 #!/usr/bin/env node
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import { Command } from 'commander';
 import { A16nEngine } from '@a16n/engine';
 import cursorPlugin from '@a16n/plugin-cursor';
 import claudePlugin from '@a16n/plugin-claude';
+import { formatWarning, formatError, formatSummary } from './output.js';
 
 const program = new Command();
 
@@ -22,15 +25,47 @@ program
   .option('--dry-run', 'Show what would happen without writing')
   .option('--json', 'Output as JSON')
   .option('-q, --quiet', 'Suppress non-error output')
+  .option('-v, --verbose', 'Show detailed output')
   .argument('[path]', 'Project path', '.')
   .action(async (projectPath, options) => {
     try {
+      const verbose = (msg: string) => {
+        if (options.verbose) console.error(`[verbose] ${msg}`);
+      };
+
+      // Validate directory exists and is a directory
+      const resolvedPath = path.resolve(projectPath);
+      try {
+        const stat = await fs.stat(resolvedPath);
+        if (!stat.isDirectory()) {
+          throw new Error('not-a-directory');
+        }
+      } catch {
+        console.error(formatError(
+          `Directory '${projectPath}' does not exist`,
+          'Make sure the path is correct and the directory exists.'
+        ));
+        process.exitCode = 1;
+        return;
+      }
+
+      verbose(`Discovering from ${options.from}...`);
+      verbose(`Root: ${resolvedPath}`);
+
       const result = await engine.convert({
         source: options.from,
         target: options.to,
         root: projectPath,
         dryRun: options.dryRun,
       });
+
+      verbose(`Discovered ${result.discovered.length} items:`);
+      if (options.verbose) {
+        for (const item of result.discovered) {
+          verbose(`  - ${item.type}: ${item.sourcePath}`);
+        }
+      }
+      verbose(`Writing ${result.written.length} files...`);
 
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));
@@ -46,16 +81,19 @@ program
         
         if (result.warnings.length > 0) {
           for (const warning of result.warnings) {
-            console.log(`Warning: ${warning.message}`);
+            console.log(formatWarning(warning));
           }
         }
         
         if (result.unsupported.length > 0) {
           console.log(`Unsupported: ${result.unsupported.length} items`);
         }
+
+        // Print summary
+        console.log(formatSummary(result.discovered.length, result.written.length, result.warnings.length));
       }
     } catch (error) {
-      console.error(`Error: ${(error as Error).message}`);
+      console.error(formatError((error as Error).message));
       process.exitCode = 1;
     }
   });
@@ -65,10 +103,36 @@ program
   .description('List agent customization without converting')
   .requiredOption('-f, --from <agent>', 'Agent to discover')
   .option('--json', 'Output as JSON')
+  .option('-v, --verbose', 'Show detailed output')
   .argument('[path]', 'Project path', '.')
   .action(async (projectPath, options) => {
     try {
+      const verbose = (msg: string) => {
+        if (options.verbose) console.error(`[verbose] ${msg}`);
+      };
+
+      // Validate directory exists and is a directory
+      const resolvedPath = path.resolve(projectPath);
+      try {
+        const stat = await fs.stat(resolvedPath);
+        if (!stat.isDirectory()) {
+          throw new Error('not-a-directory');
+        }
+      } catch {
+        console.error(formatError(
+          `Directory '${projectPath}' does not exist`,
+          'Make sure the path is correct and the directory exists.'
+        ));
+        process.exitCode = 1;
+        return;
+      }
+
+      verbose(`Discovering from ${options.from}...`);
+      verbose(`Root: ${resolvedPath}`);
+
       const result = await engine.discover(options.from, projectPath);
+
+      verbose(`Found ${result.items.length} items`);
 
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));
@@ -80,12 +144,12 @@ program
         
         if (result.warnings.length > 0) {
           for (const warning of result.warnings) {
-            console.log(`Warning: ${warning.message}`);
+            console.log(formatWarning(warning));
           }
         }
       }
     } catch (error) {
-      console.error(`Error: ${(error as Error).message}`);
+      console.error(formatError((error as Error).message));
       process.exitCode = 1;
     }
   });

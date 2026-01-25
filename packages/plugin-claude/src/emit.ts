@@ -12,7 +12,34 @@ import {
   isGlobalPrompt,
   isFileRule,
   isAgentSkill,
+  isAgentIgnore,
 } from '@a16n/models';
+
+/**
+ * Convert a gitignore-style pattern to a Claude Read() permission rule.
+ * Returns null for patterns that cannot be converted (e.g., negation patterns).
+ */
+function convertPatternToReadRule(pattern: string): string | null {
+  // Negation patterns cannot be converted to deny rules
+  // (they would need to REMOVE entries from deny, not add them)
+  if (pattern.startsWith('!')) {
+    return null;
+  }
+  // Directory pattern: dist/ → Read(./dist/**)
+  if (pattern.endsWith('/')) {
+    return `Read(./${pattern}**)`;
+  }
+  // Glob pattern: *.log → Read(./**/*.log)
+  if (pattern.startsWith('*') && !pattern.startsWith('**')) {
+    return `Read(./**/${pattern})`;
+  }
+  // Already has **: **/*.tmp → Read(./**/*.tmp)
+  if (pattern.startsWith('**')) {
+    return `Read(./${pattern})`;
+  }
+  // Simple file: .env → Read(./.env)
+  return `Read(./${pattern})`;
+}
 
 /**
  * Sanitize a filename from a source path.
@@ -100,10 +127,11 @@ export async function emit(
   const globalPrompts = models.filter(isGlobalPrompt);
   const fileRules = models.filter(isFileRule);
   const agentSkills = models.filter(isAgentSkill);
+  const agentIgnores = models.filter(isAgentIgnore);
 
-  // Track unsupported types (AgentIgnore, etc.)
+  // Track unsupported types (future types)
   for (const model of models) {
-    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model)) {
+    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model)) {
       unsupported.push(model);
     }
   }
@@ -251,6 +279,72 @@ export async function emit(
         itemCount: 1,
       });
     }
+  }
+
+  // === Emit AgentIgnores as .claude/settings.json permissions.deny ===
+  if (agentIgnores.length > 0) {
+    const allPatterns = agentIgnores.flatMap(ai => ai.patterns);
+    const negationPatterns = allPatterns.filter(p => p.startsWith('!'));
+    const convertiblePatterns = allPatterns.filter(p => !p.startsWith('!'));
+    
+    const denyRules = convertiblePatterns
+      .map(convertPatternToReadRule)
+      .filter((rule): rule is string => rule !== null);
+
+    // Warn about skipped negation patterns
+    if (negationPatterns.length > 0) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Negation patterns cannot be converted to permissions.deny (skipped ${negationPatterns.length} pattern${negationPatterns.length > 1 ? 's' : ''}: ${negationPatterns.join(', ')})`,
+        sources: agentIgnores.map(ai => ai.sourcePath),
+      });
+    }
+
+    const claudeDir = path.join(root, '.claude');
+    await fs.mkdir(claudeDir, { recursive: true });
+
+    const settingsPath = path.join(claudeDir, 'settings.json');
+    let settings: Record<string, unknown> = {};
+
+    try {
+      const existing = await fs.readFile(settingsPath, 'utf-8');
+      settings = JSON.parse(existing) as Record<string, unknown>;
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+        // File exists but is malformed - warn and proceed with fresh settings
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Could not parse existing settings.json, overwriting: ${(err as Error).message}`,
+          sources: [settingsPath],
+        });
+      }
+      // File doesn't exist or is malformed - use empty settings
+    }
+
+    // Merge deny rules (deduplicate)
+    const existingPermissions = settings.permissions as Record<string, unknown> | undefined;
+    const existingDeny = Array.isArray(existingPermissions?.deny)
+      ? existingPermissions.deny as string[]
+      : [];
+
+    settings.permissions = {
+      ...existingPermissions,
+      deny: [...new Set([...existingDeny, ...denyRules])],
+    };
+
+    await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
+
+    written.push({
+      path: settingsPath,
+      type: CustomizationType.AgentIgnore,
+      itemCount: agentIgnores.length,
+    });
+
+    warnings.push({
+      code: WarningCode.Approximated,
+      message: `AgentIgnore approximated as permissions.deny (behavior may differ slightly)`,
+      sources: agentIgnores.map(ai => ai.sourcePath),
+    });
   }
 
   return { written, warnings, unsupported };

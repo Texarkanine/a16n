@@ -12,19 +12,21 @@ npm install @a16n/plugin-cursor
 
 ## Supported Types
 
-This plugin supports three customization types:
+This plugin supports four customization types:
 
-| Type | Frontmatter | Description |
-|------|-------------|-------------|
-| **GlobalPrompt** | `alwaysApply: true` | Always-active rules |
-| **FileRule** | `globs: **/*.ts` | Triggered by file patterns |
-| **AgentSkill** | `description: "..."` | Triggered by context matching |
+| Type | Format | Description |
+|------|--------|-------------|
+| **GlobalPrompt** | `alwaysApply: true` frontmatter | Always-active rules |
+| **FileRule** | `globs: **/*.ts` frontmatter | Triggered by file patterns |
+| **AgentSkill** | `description: "..."` frontmatter | Triggered by context matching |
+| **AgentIgnore** | `.cursorignore` file | Files/patterns to exclude |
 
 ## Supported Files
 
 ### Discovery
 
 - `.cursor/rules/**/*.mdc` - MDC format rules with frontmatter (recursive)
+- `.cursorignore` - Gitignore-style patterns for files to exclude
 
 > **Note:** Legacy `.cursorrules` files are not supported. Use `.cursor/rules/*.mdc` instead.
 
@@ -40,6 +42,27 @@ Rules are classified based on frontmatter (first match wins):
 ### Emission
 
 - Creates `.cursor/rules/<name>.mdc` files with appropriate frontmatter
+- Creates `.cursorignore` from AgentIgnore patterns
+
+## .cursorignore Format
+
+The `.cursorignore` file uses gitignore-style patterns:
+
+```text
+# Build output
+dist/
+build/
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+
+# Secrets
+secrets/
+```
 
 ## MDC Format
 

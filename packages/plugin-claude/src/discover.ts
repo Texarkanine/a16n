@@ -2,6 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
   type AgentCustomization,
+  type AgentIgnore,
   type AgentSkill,
   type DiscoveryResult,
   type Warning,
@@ -9,6 +10,28 @@ import {
   WarningCode,
   createId,
 } from '@a16n/models';
+
+/**
+ * Convert a Claude Read() permission rule to a gitignore-style pattern.
+ * Returns null for non-Read rules.
+ */
+function convertReadRuleToPattern(rule: string): string | null {
+  const match = rule.match(/^Read\(\.\/(.+)\)$/);
+  if (!match) return null;
+
+  let pattern = match[1]!;
+
+  // Read(./dist/**) → dist/
+  if (pattern.endsWith('/**')) {
+    return pattern.slice(0, -2);
+  }
+  // Read(./**/*.log) → *.log
+  if (pattern.startsWith('**/')) {
+    return pattern.slice(3);
+  }
+  // Read(./.env) → .env
+  return pattern;
+}
 
 /**
  * Parse YAML-like frontmatter from a SKILL.md file.
@@ -153,6 +176,41 @@ async function findClaudeFiles(
 }
 
 /**
+ * Discover AgentIgnore from .claude/settings.json permissions.deny Read rules.
+ * Returns null if settings.json doesn't exist or has no Read rules.
+ */
+async function discoverAgentIgnore(root: string): Promise<AgentIgnore | null> {
+  const settingsPath = path.join(root, '.claude', 'settings.json');
+
+  try {
+    const content = await fs.readFile(settingsPath, 'utf-8');
+    const settings = JSON.parse(content) as Record<string, unknown>;
+    const permissions = settings.permissions as Record<string, unknown> | undefined;
+    const rawDeny = Array.isArray(permissions?.deny) ? permissions.deny : [];
+    // Filter to only string entries to avoid startsWith throwing on non-strings
+    const denyRules = rawDeny.filter((r): r is string => typeof r === 'string');
+    const readRules = denyRules.filter(r => r.startsWith('Read('));
+
+    const patterns = readRules
+      .map(convertReadRuleToPattern)
+      .filter((p): p is string => p !== null);
+
+    if (patterns.length === 0) return null;
+
+    return {
+      id: createId(CustomizationType.AgentIgnore, '.claude/settings.json'),
+      type: CustomizationType.AgentIgnore,
+      sourcePath: '.claude/settings.json',
+      content: JSON.stringify({ permissions: { deny: readRules } }, null, 2),
+      patterns,
+      metadata: { originalRules: readRules },
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Discover all CLAUDE.md files and skills in a project directory.
  */
 export async function discover(root: string): Promise<DiscoveryResult> {
@@ -240,6 +298,12 @@ export async function discover(root: string): Promise<DiscoveryResult> {
         sources: [skillPath],
       });
     }
+  }
+
+  // Discover AgentIgnore from .claude/settings.json (Phase 3)
+  const agentIgnore = await discoverAgentIgnore(root);
+  if (agentIgnore) {
+    items.push(agentIgnore);
   }
 
   return { items, warnings };

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tempDir = path.join(__dirname, '.temp-cli-test');
@@ -10,21 +10,16 @@ const cliPath = path.join(__dirname, '..', 'dist', 'index.js');
 
 // Helper to run CLI
 function runCli(args: string, cwd: string = tempDir): { stdout: string; stderr: string; exitCode: number } {
-  try {
-    const stdout = execSync(`node ${cliPath} ${args}`, {
-      cwd,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    return { stdout, stderr: '', exitCode: 0 };
-  } catch (error: unknown) {
-    const execError = error as { stdout?: string; stderr?: string; status?: number };
-    return {
-      stdout: execError.stdout || '',
-      stderr: execError.stderr || '',
-      exitCode: execError.status ?? 1,
-    };
-  }
+  const result = spawnSync('node', [cliPath, ...args.split(' ')], {
+    cwd,
+    encoding: 'utf-8',
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  return {
+    stdout: result.stdout || '',
+    stderr: result.stderr || '',
+    exitCode: result.status ?? 1,
+  };
 }
 
 describe('CLI', () => {
@@ -156,6 +151,67 @@ describe('CLI', () => {
 
       expect(exitCode).toBe(1);
       expect(stderr).toContain('Unknown target');
+    });
+
+    it('should support --verbose flag', async () => {
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nVerbose test'
+      );
+
+      const { stdout, stderr, exitCode } = runCli('convert --from cursor --to claude --verbose');
+
+      expect(exitCode).toBe(0);
+      // Verbose output goes to stderr
+      expect(stderr).toContain('[verbose]');
+      expect(stderr).toContain('Discovering');
+    });
+
+    it('should support --verbose with --json (verbose to stderr, JSON to stdout)', async () => {
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nJSON verbose test'
+      );
+
+      const { stdout, stderr, exitCode } = runCli('convert --from cursor --to claude --verbose --json');
+
+      expect(exitCode).toBe(0);
+      // Verbose output goes to stderr
+      expect(stderr).toContain('[verbose]');
+      // JSON goes to stdout, should be valid
+      const result = JSON.parse(stdout);
+      expect(result).toHaveProperty('discovered');
+    });
+  });
+
+  describe('discover command with verbose', () => {
+    it('should support --verbose flag', async () => {
+      await fs.writeFile(path.join(tempDir, 'CLAUDE.md'), 'Verbose discover test');
+
+      const { stderr, exitCode } = runCli('discover --from claude --verbose');
+
+      expect(exitCode).toBe(0);
+      expect(stderr).toContain('[verbose]');
+      expect(stderr).toContain('Discovering');
+    });
+  });
+
+  describe('error handling', () => {
+    it('should error with helpful message for non-existent directory', () => {
+      const { stderr, exitCode } = runCli('convert --from cursor --to claude /nonexistent/path');
+
+      expect(exitCode).toBe(1);
+      expect(stderr).toContain('does not exist');
+      expect(stderr).toContain('Make sure');
+    });
+
+    it('should error with helpful message for non-existent path in discover', () => {
+      const { stderr, exitCode } = runCli('discover --from cursor /nonexistent/path');
+
+      expect(exitCode).toBe(1);
+      expect(stderr).toContain('does not exist');
     });
   });
 });
