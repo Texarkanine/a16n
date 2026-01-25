@@ -1,6 +1,6 @@
 # @a16njs/glob-hook
 
-CLI tool for glob-based file path matching in Claude Code hooks. Part of the [a16n](https://github.com/your-org/a16n) project.
+CLI tool for glob-based file path matching in Claude Code hooks. Part of the [a16n](https://github.com/texarkanine/a16n) project.
 
 ## Why This Package?
 
