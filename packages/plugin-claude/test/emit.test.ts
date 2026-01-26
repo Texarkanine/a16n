@@ -1015,4 +1015,76 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
       expect(skillContent).toContain('Review code.');
     });
   });
+
+  describe('command name sanitization (security)', () => {
+    it('should sanitize command names with path traversal attempts', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/evil.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/evil.md',
+          content: 'Malicious content',
+          commandName: '../../../etc/passwd',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+
+      // Should NOT create file outside .claude/skills/
+      const skillsDir = path.join(tempDir, '.claude', 'skills');
+      const entries = await fs.readdir(skillsDir);
+      expect(entries).toHaveLength(1);
+      // Name should be sanitized to safe characters only
+      expect(entries[0]).not.toContain('..');
+      expect(entries[0]).not.toContain('/');
+    });
+
+    it('should sanitize command names with backslash path separators', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/evil.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/evil.md',
+          content: 'Malicious content',
+          commandName: '..\\..\\..\\etc\\passwd',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+
+      // Should NOT create file outside .claude/skills/
+      const skillsDir = path.join(tempDir, '.claude', 'skills');
+      const entries = await fs.readdir(skillsDir);
+      expect(entries).toHaveLength(1);
+      expect(entries[0]).not.toContain('\\');
+    });
+
+    it('should use fallback name for empty sanitized command name', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/special.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/special.md',
+          content: 'Content',
+          commandName: '!!!',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+
+      // Should use fallback name 'command'
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'command', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Content');
+    });
+  });
 });

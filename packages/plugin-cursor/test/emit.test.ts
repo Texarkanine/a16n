@@ -749,4 +749,106 @@ describe('Cursor AgentCommand Emission (Phase 4)', () => {
       expect(commandExists).not.toBeNull();
     });
   });
+
+  describe('command name sanitization (security)', () => {
+    it('should sanitize command names with path traversal attempts', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/evil.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/evil.md',
+          content: 'Malicious content',
+          commandName: '../../../etc/passwd',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+
+      // Should NOT create file outside .cursor/commands/
+      const commandsDir = path.join(tempDir, '.cursor', 'commands');
+      const entries = await fs.readdir(commandsDir);
+      expect(entries).toHaveLength(1);
+      // Name should be sanitized to safe characters only
+      expect(entries[0]).not.toContain('..');
+      expect(entries[0]).not.toContain('/');
+    });
+
+    it('should sanitize command names with backslash path separators', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/evil.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/evil.md',
+          content: 'Malicious content',
+          commandName: '..\\..\\..\\etc\\passwd',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+
+      // Should NOT create file outside .cursor/commands/
+      const commandsDir = path.join(tempDir, '.cursor', 'commands');
+      const entries = await fs.readdir(commandsDir);
+      expect(entries).toHaveLength(1);
+      expect(entries[0]).not.toContain('\\');
+    });
+
+    it('should use fallback name for empty sanitized command name', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/special.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/special.md',
+          content: 'Content',
+          commandName: '!!!',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+
+      // Should use fallback name 'command'
+      const commandPath = path.join(tempDir, '.cursor', 'commands', 'command.md');
+      const content = await fs.readFile(commandPath, 'utf-8');
+      expect(content).toBe('Content');
+    });
+
+    it('should handle command name collisions with sanitization and de-duplication', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'First review',
+          commandName: 'review',
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/shared/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/shared/review.md',
+          content: 'Second review',
+          commandName: 'review',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+
+      // First should be 'review.md', second should be 'review-2.md'
+      const commandsDir = path.join(tempDir, '.cursor', 'commands');
+      const entries = await fs.readdir(commandsDir);
+      expect(entries.sort()).toEqual(['review-2.md', 'review.md']);
+    });
+  });
 });

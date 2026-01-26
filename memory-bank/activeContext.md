@@ -35,7 +35,7 @@ Phase 4 implementation and reflection are complete. All AgentCommand functionali
 | Type | Features | Behavior |
 |------|----------|----------|
 | Simple | Plain markdown prompt | Converted to Claude skill |
-| Complex | `$ARGUMENTS`, `$1`-`$9`, `!`bash`, `@refs`, `allowed-tools` | Skipped with warning |
+| Complex | `$ARGUMENTS`, `$1`-`$9`, `!` (bash), `@refs`, `allowed-tools` | Skipped with warning |
 
 ### Command Classification Reference
 

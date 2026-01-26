@@ -552,19 +552,19 @@ pnpm lint
 
 ## Definition of Done
 
-- [ ] All 10 acceptance criteria pass (AC1-AC10)
-- [ ] `pnpm build` succeeds
-- [ ] `pnpm test` passes (all packages)
-- [ ] `pnpm lint` passes
-- [ ] **Models package**: `AgentCommand` type and helpers exported
-- [ ] **Cursor plugin**: Commands discovered from `.cursor/commands/**/*.md`
-- [ ] **Cursor plugin**: Complex commands skipped with clear warnings
-- [ ] **Cursor plugin**: Simple commands emitted as `.cursor/commands/*.md`
-- [ ] **Claude plugin**: Commands emitted as `.claude/skills/*/SKILL.md`
-- [ ] **Claude plugin**: No AgentCommand discovery (confirmed by tests)
-- [ ] README documentation updated
-- [ ] No TODO comments in shipped code
-- [ ] Changeset created for version bump
+- [x] All 10 acceptance criteria pass (AC1-AC10)
+- [x] `pnpm build` succeeds
+- [x] `pnpm test` passes (all packages)
+- [x] `pnpm lint` passes
+- [x] **Models package**: `AgentCommand` type and helpers exported
+- [x] **Cursor plugin**: Commands discovered from `.cursor/commands/**/*.md`
+- [x] **Cursor plugin**: Complex commands skipped with clear warnings
+- [x] **Cursor plugin**: Simple commands emitted as `.cursor/commands/*.md`
+- [x] **Claude plugin**: Commands emitted as `.claude/skills/*/SKILL.md`
+- [x] **Claude plugin**: No AgentCommand discovery (confirmed by tests)
+- [x] README documentation updated
+- [x] No TODO comments in shipped code
+- [x] Changeset created for version bump
 
 ---
 

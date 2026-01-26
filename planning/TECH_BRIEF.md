@@ -109,6 +109,7 @@ interface AgentIgnore extends AgentCustomization {
 // Future: Explicitly invoked slash commands
 interface AgentCommand extends AgentCustomization {
   type: CustomizationType.AgentCommand;
+  commandName: string;             // Slash command name (e.g., "review" for /review)
   // Note: Cursor → Claude only. Claude plugin never discovers AgentCommand.
   // Commands with special features ($ARGUMENTS, !, @, allowed-tools) are skipped.
 }

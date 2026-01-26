@@ -58,6 +58,20 @@ function sanitizeFilename(sourcePath: string): string {
 }
 
 /**
+ * Sanitize a command name to prevent path traversal and ensure filesystem safety.
+ * Returns a safe string with only alphanumeric characters and hyphens.
+ */
+function sanitizeCommandName(commandName: string): string {
+  // Remove any path separators and normalize
+  const sanitized = commandName
+    .toLowerCase()
+    .replace(/[/\\]/g, '-')  // Replace path separators with hyphens
+    .replace(/[^a-z0-9]+/g, '-')  // Replace other unsafe chars with hyphens
+    .replace(/^-+|-+$/g, '');  // Trim leading/trailing hyphens
+  return sanitized || 'command';
+}
+
+/**
  * Escape a string for safe use in double-quoted shell arguments.
  * Escapes: backslash, double quote, dollar sign, backtick.
  */
@@ -373,11 +387,14 @@ export async function emit(
     const usedSkillNames = new Set<string>();
 
     for (const command of agentCommands) {
+      // Sanitize command name to prevent path traversal
+      const baseName = sanitizeCommandName(command.commandName);
+      
       // Get unique skill name to avoid directory collisions
-      let skillName = command.commandName;
+      let skillName = baseName;
       let counter = 1;
       while (usedSkillNames.has(skillName)) {
-        skillName = `${command.commandName}-${counter}`;
+        skillName = `${baseName}-${counter}`;
         counter++;
       }
       usedSkillNames.add(skillName);

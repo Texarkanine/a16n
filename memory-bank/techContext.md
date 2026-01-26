@@ -83,7 +83,7 @@ Commands with special features are NOT translatable:
 |---------|-----------|---------|----------|
 | `$ARGUMENTS` | `/\$ARGUMENTS/` | `Fix #$ARGUMENTS` | Skip |
 | Positional | `/\$[1-9]/` | `PR #$1 by $2` | Skip |
-| Bash | `/!\s*`[^`]+`/` | `!`git status`` | Skip |
+| Bash | ``/!\s*`[^`]+`/`` | ``!`git status` `` | Skip |
 | File refs | `/@\S+/` | `@src/utils.js` | Skip |
 | allowed-tools | Frontmatter | `allowed-tools: Bash(*)` | Skip |
 

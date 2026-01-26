@@ -39,6 +39,20 @@ function sanitizeFilename(sourcePath: string): string {
 }
 
 /**
+ * Sanitize a command name to prevent path traversal and ensure filesystem safety.
+ * Returns a safe string with only alphanumeric characters and hyphens.
+ */
+function sanitizeCommandName(commandName: string): string {
+  // Remove any path separators and normalize
+  const sanitized = commandName
+    .toLowerCase()
+    .replace(/[/\\]/g, '-')  // Replace path separators with hyphens
+    .replace(/[^a-z0-9]+/g, '-')  // Replace other unsafe chars with hyphens
+    .replace(/^-+|-+$/g, '');  // Trim leading/trailing hyphens
+  return sanitized || 'command';
+}
+
+/**
  * Generate a unique filename by appending a counter if needed.
  * Returns the unique filename and whether a collision occurred.
  */
@@ -246,9 +260,22 @@ export async function emit(
   if (agentCommands.length > 0) {
     const commandsDir = path.join(root, '.cursor', 'commands');
     await fs.mkdir(commandsDir, { recursive: true });
+    const usedCommandNames = new Set<string>();
 
     for (const command of agentCommands) {
-      const commandPath = path.join(commandsDir, `${command.commandName}.md`);
+      // Sanitize command name to prevent path traversal
+      const baseName = sanitizeCommandName(command.commandName);
+      
+      // Get unique filename to avoid collisions
+      let filename = `${baseName}.md`;
+      let counter = 2;
+      while (usedCommandNames.has(filename)) {
+        filename = `${baseName}-${counter}.md`;
+        counter++;
+      }
+      usedCommandNames.add(filename);
+
+      const commandPath = path.join(commandsDir, filename);
       await fs.writeFile(commandPath, command.content, 'utf-8');
 
       written.push({
