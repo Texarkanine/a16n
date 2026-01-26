@@ -198,3 +198,40 @@ describe('Claude AgentIgnore Discovery (Phase 3)', () => {
     });
   });
 });
+
+describe('Claude Plugin Never Discovers AgentCommand (Phase 4)', () => {
+  it('should never return AgentCommand items from any discovery', async () => {
+    // Test across multiple fixture directories
+    const fixtureDirs = [
+      'claude-basic/from-claude',
+      'claude-nested/from-claude',
+      'claude-skills/from-claude',
+      'claude-ignore/from-claude',
+    ];
+
+    for (const dir of fixtureDirs) {
+      const root = path.join(fixturesDir, dir);
+      const result = await claudePlugin.discover(root);
+
+      // No items should be of type AgentCommand
+      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+      expect(commands).toHaveLength(0);
+    }
+  });
+
+  it('should only discover GlobalPrompt, AgentSkill, FileRule, and AgentIgnore', async () => {
+    const root = path.join(fixturesDir, 'claude-skills/from-claude');
+    const result = await claudePlugin.discover(root);
+
+    const validTypes = [
+      CustomizationType.GlobalPrompt,
+      CustomizationType.AgentSkill,
+      CustomizationType.FileRule,
+      CustomizationType.AgentIgnore,
+    ];
+
+    for (const item of result.items) {
+      expect(validTypes).toContain(item.type);
+    }
+  });
+});

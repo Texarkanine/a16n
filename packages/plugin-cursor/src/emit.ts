@@ -13,6 +13,7 @@ import {
   isFileRule,
   isAgentSkill,
   isAgentIgnore,
+  isAgentCommand,
 } from '@a16njs/models';
 
 /**
@@ -35,6 +36,20 @@ function sanitizeFilename(sourcePath: string): string {
   
   // Return fallback if empty
   return sanitized || 'rule';
+}
+
+/**
+ * Sanitize a command name to prevent path traversal and ensure filesystem safety.
+ * Returns a safe string with only alphanumeric characters and hyphens.
+ */
+function sanitizeCommandName(commandName: string): string {
+  // Remove any path separators and normalize
+  const sanitized = commandName
+    .toLowerCase()
+    .replace(/[/\\]/g, '-')  // Replace path separators with hyphens
+    .replace(/[^a-z0-9]+/g, '-')  // Replace other unsafe chars with hyphens
+    .replace(/^-+|-+$/g, '');  // Trim leading/trailing hyphens
+  return sanitized || 'command';
 }
 
 /**
@@ -121,18 +136,19 @@ export async function emit(
   const fileRules = models.filter(isFileRule);
   const agentSkills = models.filter(isAgentSkill);
   const agentIgnores = models.filter(isAgentIgnore);
+  const agentCommands = models.filter(isAgentCommand);
   
   // Track unsupported types (future types)
   for (const model of models) {
-    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model)) {
+    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model) && !isAgentCommand(model)) {
       unsupported.push(model);
     }
   }
 
   const allItems = [...globalPrompts, ...fileRules, ...agentSkills];
   
-  // Early return only if no items at all (including agentIgnores)
-  if (allItems.length === 0 && agentIgnores.length === 0) {
+  // Early return only if no items at all (including agentIgnores and agentCommands)
+  if (allItems.length === 0 && agentIgnores.length === 0 && agentCommands.length === 0) {
     return { written, warnings, unsupported };
   }
 
@@ -236,6 +252,50 @@ export async function emit(
         code: WarningCode.Merged,
         message: `Merged ${agentIgnores.length} ignore sources into .cursorignore`,
         sources: agentIgnores.map(ai => ai.sourcePath),
+      });
+    }
+  }
+
+  // === Emit AgentCommands as .cursor/commands/*.md ===
+  if (agentCommands.length > 0) {
+    const commandsDir = path.join(root, '.cursor', 'commands');
+    await fs.mkdir(commandsDir, { recursive: true });
+    const usedCommandNames = new Set<string>();
+    const commandCollisionSources: string[] = [];
+
+    for (const command of agentCommands) {
+      // Sanitize command name to prevent path traversal
+      const baseName = sanitizeCommandName(command.commandName);
+      
+      // Get unique filename to avoid collisions
+      let filename = `${baseName}.md`;
+      if (usedCommandNames.has(filename)) {
+        // Collision detected - track for warning
+        commandCollisionSources.push(command.sourcePath);
+        let counter = 2;
+        while (usedCommandNames.has(`${baseName}-${counter}.md`)) {
+          counter++;
+        }
+        filename = `${baseName}-${counter}.md`;
+      }
+      usedCommandNames.add(filename);
+
+      const commandPath = path.join(commandsDir, filename);
+      await fs.writeFile(commandPath, command.content, 'utf-8');
+
+      written.push({
+        path: commandPath,
+        type: CustomizationType.AgentCommand,
+        itemCount: 1,
+      });
+    }
+
+    // Emit warning if any command collisions occurred
+    if (commandCollisionSources.length > 0) {
+      warnings.push({
+        code: WarningCode.FileRenamed,
+        message: `Command filename collision: ${commandCollisionSources.length} file(s) renamed to avoid overwrite`,
+        sources: commandCollisionSources,
       });
     }
   }

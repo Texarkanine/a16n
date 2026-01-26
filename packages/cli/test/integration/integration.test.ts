@@ -490,3 +490,141 @@ describe('Integration Tests - Phase 3 AgentIgnore', () => {
     });
   });
 });
+
+describe('Integration Tests - Phase 4 AgentCommand', () => {
+  beforeEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('cursor-command-to-claude', () => {
+    it('should convert simple Cursor command to Claude skill', async () => {
+      const fixturePath = path.join(fixturesDir, 'cursor-command-to-claude');
+      const fromDir = path.join(fixturePath, 'from-cursor');
+      
+      // Copy input to temp
+      await copyDir(fromDir, tempDir);
+      
+      // Run conversion
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+      
+      // Verify AgentCommand was discovered
+      const agentCommands = result.discovered.filter(d => d.type === 'agent-command');
+      expect(agentCommands).toHaveLength(1);
+      
+      // Verify skill file was created
+      const skillContent = await fs.readFile(
+        path.join(tempDir, '.claude', 'skills', 'review', 'SKILL.md'),
+        'utf-8'
+      );
+      expect(skillContent).toContain('name: "review"');
+      expect(skillContent).toContain('description: "Invoke with /review"');
+      expect(skillContent).toContain('Security vulnerabilities');
+    });
+  });
+
+  describe('cursor-command-complex-skipped', () => {
+    it('should skip complex commands and emit warning', async () => {
+      // Create a fixture with complex commands
+      await fs.mkdir(path.join(tempDir, '.cursor', 'commands'), { recursive: true });
+      
+      // Complex command with $ARGUMENTS
+      await fs.writeFile(
+        path.join(tempDir, '.cursor', 'commands', 'fix-issue.md'),
+        'Fix issue #$ARGUMENTS following best practices.',
+        'utf-8'
+      );
+      
+      // Run conversion
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+      
+      // No commands should be discovered (complex is skipped)
+      const agentCommands = result.discovered.filter(d => d.type === 'agent-command');
+      expect(agentCommands).toHaveLength(0);
+      
+      // Should have a skipped warning
+      const skippedWarning = result.warnings.find(
+        w => w.code === 'skipped' && w.message.includes('fix-issue')
+      );
+      expect(skippedWarning).toBeDefined();
+      expect(skippedWarning?.message).toContain('$ARGUMENTS');
+    });
+  });
+
+  describe('cursor-to-cursor-command-passthrough', () => {
+    it('should preserve commands in cursor-to-cursor conversion', async () => {
+      // Create input commands
+      await fs.mkdir(path.join(tempDir, '.cursor', 'commands'), { recursive: true });
+      
+      const commandContent = 'Review this code for security.';
+      await fs.writeFile(
+        path.join(tempDir, '.cursor', 'commands', 'review.md'),
+        commandContent,
+        'utf-8'
+      );
+      
+      // Run cursor-to-cursor conversion (effectively a round-trip)
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'cursor',
+        root: tempDir,
+      });
+      
+      // Command should be discovered and written back
+      const agentCommands = result.discovered.filter(d => d.type === 'agent-command');
+      expect(agentCommands).toHaveLength(1);
+      
+      // Verify file was written
+      const outputContent = await fs.readFile(
+        path.join(tempDir, '.cursor', 'commands', 'review.md'),
+        'utf-8'
+      );
+      expect(outputContent).toBe(commandContent);
+    });
+  });
+
+  describe('claude-to-cursor-no-commands', () => {
+    it('should not produce AgentCommands when converting from Claude', async () => {
+      // Create Claude input with skills (but no commands - Claude has no command concept)
+      await fs.mkdir(path.join(tempDir, '.claude', 'skills', 'testing'), { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.claude', 'skills', 'testing', 'SKILL.md'),
+        `---
+description: "Testing best practices"
+---
+
+Write unit tests first.
+`,
+        'utf-8'
+      );
+      
+      // Run conversion
+      const result = await engine.convert({
+        source: 'claude',
+        target: 'cursor',
+        root: tempDir,
+      });
+      
+      // No AgentCommands should be discovered (Claude has no command concept)
+      const agentCommands = result.discovered.filter(d => d.type === 'agent-command');
+      expect(agentCommands).toHaveLength(0);
+      
+      // .cursor/commands directory should NOT exist
+      await expect(
+        fs.access(path.join(tempDir, '.cursor', 'commands'))
+      ).rejects.toThrow();
+    });
+  });
+});

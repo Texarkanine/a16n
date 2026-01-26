@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import cursorPlugin from '../src/index.js';
-import { CustomizationType } from '@a16njs/models';
+import { CustomizationType, WarningCode, type AgentCommand } from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
@@ -261,5 +261,171 @@ describe('AgentIgnore Discovery (Phase 3)', () => {
     
     expect(globalPrompt).toBeDefined();
     expect(agentIgnore).toBeDefined();
+  });
+});
+
+describe('AgentCommand Discovery (Phase 4)', () => {
+  describe('simple commands', () => {
+    it('should discover simple commands from .cursor/commands/', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-simple/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+      expect(commands).toHaveLength(2);
+    });
+
+    it('should extract commandName from filename', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-simple/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const reviewCommand = result.items.find(
+        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'review'
+      );
+      expect(reviewCommand).toBeDefined();
+      expect(reviewCommand?.sourcePath).toBe('.cursor/commands/review.md');
+    });
+
+    it('should include command content', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-simple/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const reviewCommand = result.items.find(
+        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'review'
+      ) as AgentCommand;
+      expect(reviewCommand.content).toContain('Security vulnerabilities');
+      expect(reviewCommand.content).toContain('Performance issues');
+    });
+
+    it('should discover commands alongside rules', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-simple/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const globalPrompt = result.items.find(i => i.type === CustomizationType.GlobalPrompt);
+      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+
+      expect(globalPrompt).toBeDefined();
+      expect(commands).toHaveLength(2);
+    });
+  });
+
+  describe('complex commands (skipped)', () => {
+    it('should skip commands with $ARGUMENTS', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const fixIssueCommand = result.items.find(
+        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'fix-issue'
+      );
+      expect(fixIssueCommand).toBeUndefined();
+
+      const warning = result.warnings.find(w => w.message.includes('fix-issue'));
+      expect(warning).toBeDefined();
+      expect(warning?.code).toBe(WarningCode.Skipped);
+      expect(warning?.message).toContain('$ARGUMENTS');
+    });
+
+    it('should skip commands with positional parameters ($1, $2)', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const prReviewCommand = result.items.find(
+        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'pr-review'
+      );
+      expect(prReviewCommand).toBeUndefined();
+
+      const warning = result.warnings.find(w => w.message.includes('pr-review'));
+      expect(warning).toBeDefined();
+      expect(warning?.message).toContain('$ARGUMENTS');
+    });
+
+    it('should skip commands with bash execution (!)', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const deployCommand = result.items.find(
+        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'deploy'
+      );
+      expect(deployCommand).toBeUndefined();
+
+      const warning = result.warnings.find(w => w.message.includes('deploy'));
+      expect(warning).toBeDefined();
+      expect(warning?.message).toContain('bash execution');
+    });
+
+    it('should skip commands with file references (@)', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const analyzeCommand = result.items.find(
+        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'analyze'
+      );
+      expect(analyzeCommand).toBeUndefined();
+
+      const warning = result.warnings.find(w => w.message.includes('analyze'));
+      expect(warning).toBeDefined();
+      expect(warning?.message).toContain('file references');
+    });
+
+    it('should skip commands with allowed-tools frontmatter', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const secureCommand = result.items.find(
+        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'secure'
+      );
+      expect(secureCommand).toBeUndefined();
+
+      const warning = result.warnings.find(w => w.message.includes('secure'));
+      expect(warning).toBeDefined();
+      expect(warning?.message).toContain('allowed-tools');
+    });
+  });
+
+  describe('mixed commands', () => {
+    it('should discover simple commands and skip complex ones', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-mixed/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+      expect(commands).toHaveLength(1);
+      expect((commands[0] as AgentCommand).commandName).toBe('simple');
+
+      const warning = result.warnings.find(w => w.message.includes('complex'));
+      expect(warning).toBeDefined();
+    });
+  });
+
+  describe('nested commands', () => {
+    it('should discover commands in subdirectories', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-nested/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+      expect(commands).toHaveLength(2);
+
+      const commandNames = commands.map(c => (c as AgentCommand).commandName);
+      expect(commandNames).toContain('component');
+      expect(commandNames).toContain('api');
+    });
+
+    it('should include nested path in sourcePath', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-nested/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const componentCommand = result.items.find(
+        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'component'
+      );
+      expect(componentCommand?.sourcePath).toBe('.cursor/commands/frontend/component.md');
+    });
+  });
+
+  describe('no commands', () => {
+    it('should return no commands for project without .cursor/commands/', async () => {
+      const root = path.join(fixturesDir, 'cursor-basic/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+      expect(commands).toHaveLength(0);
+    });
   });
 });

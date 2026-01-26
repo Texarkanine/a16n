@@ -17,8 +17,14 @@ gantt
     section Phase 3
         AgentIgnore + Polish       :p3, after p2, 1w
         Phase 3 Spec               :p3spec, after p2, 1d
+    section Phase 4
+        AgentCommand               :p4, after p3, 1w
+        Phase 4 Spec               :p4spec, after p3, 1d
+    section Phase 5
+        Git Ignore Management      :p5, after p4, 2w
+        Phase 5 Spec               :p5spec, after p4, 1d
     section Future
-        Ecosystem + Tooling        :p4, after p3, 4w
+        Ecosystem + Tooling        :p6, after p5, 4w
 ```
 
 ---
@@ -93,6 +99,119 @@ gantt
 
 ---
 
+## Phase 4: AgentCommand Support
+
+**Goal**: Support slash command customizations (Cursor → Claude only).
+
+**Background**: Both Cursor and Claude support slash commands — prepackaged prompts invoked explicitly via `/command-name`. However, the semantics differ:
+- **Cursor**: `.cursor/commands/*.md` files with optional features (`$ARGUMENTS`, `$1/$2`, bash execution `!`, file refs `@`, `allowed-tools` frontmatter)
+- **Claude**: Invokes skills via `/skill-name` — there is no separate commands directory; skills serve double duty
+
+**Scope**:
+- Add `AgentCommand` to `CustomizationType` enum
+- Cursor plugin: discover `.cursor/commands/**/*.md` files as `AgentCommand`
+- Cursor plugin: classify commands as "simple" (translatable) vs "complex" (has special features)
+- Claude plugin: emit simple `AgentCommand` → `.claude/skills/*/SKILL.md` with appropriate description for `/invocation`
+- **Skip with warning** any command containing `$ARGUMENTS`, `$1`-`$9`, `!` bash execution, `@` file refs, or `allowed-tools` frontmatter
+
+**Direction**: Cursor → Claude **only**. Claude → Cursor is unsupported because:
+- Claude has no dedicated command concept to discover
+- Claude skills are already discovered as `AgentSkill` (which converts to Cursor rules with `description:`)
+- Users can `@reference` the converted rule in Cursor, achieving similar explicit invocation
+
+**Key Decisions**:
+- Commands with special features are NOT translatable — the basic "prepackaged prompt" is all that can cross the boundary
+- Claude plugin will never discover/report `AgentCommand` entries
+- Converted commands become Claude skills (invocable via `/skill-name`)
+
+**Spec**: To be authored after Phase 3 implementation.
+
+**Estimated Scope**: ~4-6 hours
+
+---
+
+## Phase 5: Git Ignore Output Management
+
+**Goal**: Provide CLI options to manage git tracking of output files.
+
+**Background**: Users may want converted output files to be git-ignored, especially for:
+- Local customizations that shouldn't be committed
+- Generated files that can be regenerated from source
+- Maintaining parity with how source files were tracked
+
+**Scope**:
+- Add `--gitignore-output-with <style>` CLI flag to `convert` command
+- Styles:
+  - `none` (default when flag omitted) — no git ignore management
+  - `ignore` — add entries to `.gitignore`
+  - `exclude` — add entries to `.git/info/exclude`
+  - `hook` — generate/update pre-commit hook that unstages output files
+  - `match` — mirror each source file's git-ignore status to its output(s)
+
+**Style Details**:
+
+| Style | Scope | Mechanism |
+|-------|-------|-----------|
+| `none` | — | No action (current behavior) |
+| `ignore` | All outputs | Append to `.gitignore` |
+| `exclude` | All outputs | Append to `.git/info/exclude` |
+| `hook` | All outputs | Generate `.git/hooks/pre-commit` with semaphore comments; unstages all output paths |
+| `match` | Per-file | Check each source's ignore status; apply same mechanism to output |
+
+**Critical Constraints**:
+- **Only manage files WE CREATE** — if output is an edit to an existing file (e.g., appending to existing `CLAUDE.md`), do not modify its git-ignore status
+- **Warn on boundary crossings** — if source is git-ignored but output file already exists and is tracked (or vice versa), emit warning that parity cannot be maintained
+- **Hook uses semaphore pattern** — like ai-rizz's `# BEGIN a16n hook` / `# END a16n hook`, regenerate the section on each run
+
+**Example Warning**:
+```
+⚠ Cannot match git-ignore status: source '.cursor/rules/local/foo.mdc' is ignored,
+  but output 'CLAUDE.md' already exists and is tracked.
+  Output file's git status will not be changed.
+```
+
+**Dependencies**: Requires resolution of "Output File Strategy" (overwrite vs merge) to correctly identify which files are created vs edited.
+
+**Spec**: To be authored after Phase 4 implementation.
+
+**Estimated Scope**: ~8-12 hours
+
+---
+
+## Future: Output File Strategy (Overwrite vs Merge)
+
+**Goal**: Define and implement consistent behavior for how output files are written when they already exist.
+
+**Background**: Current behavior always overwrites output files. This is problematic for:
+- `CLAUDE.md` — overwriting loses user's manual additions
+- `.claude/settings.json` — overwriting loses other settings (permissions, hooks, etc.)
+- `.cursor/rules/*.mdc` — less problematic (one file per rule)
+
+**Research Questions**:
+1. Should `CLAUDE.md` support append/merge, or always overwrite with documentation that users should maintain source-of-truth elsewhere?
+2. For JSON files (`.claude/settings.json`, `.claude/settings.local.json`), should we deep-merge specific keys?
+3. How do we track "what we wrote last time" to enable intelligent updates when source changes?
+4. Should there be per-file-type defaults with user overrides?
+
+**Potential Options**:
+- `--output-strategy <overwrite|merge|prompt>` global flag
+- Per-file-type defaults (e.g., always merge JSON, always overwrite markdown)
+- Manifest file (`.a16n/manifest.json`) tracking previous outputs for diff-based updates
+
+**Key Insight**: Append CANNOT work reliably over time for markdown files — if source changes, we lose the ability to know what part of the destination should be edited. This suggests:
+- **Markdown outputs** (CLAUDE.md): Default to overwrite; document that users should maintain canonical source elsewhere
+- **JSON outputs** (settings.json): Default to merge; insert/update specific keys without touching others
+
+**Scope**:
+- Research and document recommended defaults
+- Implement configurable output strategy
+- Handle JSON deep-merge for settings files
+- Emit clear warnings when overwriting user content
+
+**Estimated Scope**: ~6-10 hours (research + implementation)
+
+---
+
 ## Future: Ecosystem + Tooling
 
 **Goal**: Enable community growth and developer workflows.
@@ -121,6 +240,8 @@ gantt
 | Phase 1 | Project owner (you) | — |
 | Phase 2 | Project owner or delegate | Project owner if delegated |
 | Phase 3 | Project owner or delegate | Project owner if delegated |
+| Phase 4 | Project owner or delegate | Project owner if delegated |
+| Phase 5 | Project owner or delegate | Project owner if delegated |
 | Future | Based on contributor interest | Project owner |
 
 For AI-assisted development: specs can be drafted by an AI agent and reviewed/approved by the project owner before implementation begins.
@@ -176,7 +297,9 @@ Before implementation begins, verify:
 | `0.1.0` | GlobalPrompt conversion, Cursor ↔ Claude | Phase 1 |
 | `0.2.0` | AgentSkill + FileRule support | Phase 2 |
 | `0.3.0` | AgentIgnore, polish, improved warnings | Phase 3 |
-| `0.4.0` | Plugin auto-discovery, config file | Future |
+| `0.4.0` | AgentCommand (Cursor → Claude) | Phase 4 |
+| `0.5.0` | Git ignore output management (`--gitignore-output-with`) | Phase 5 |
+| `0.6.0` | Output file strategy, plugin auto-discovery, config file | Future |
 | `1.0.0` | Stable API, production-ready | Future |
 
 ---
@@ -196,7 +319,10 @@ Decisions made during planning that affect future phases:
 Future decisions to make:
 - How to handle Claude skills outside Claude environment (Phase 2)
 - Plugin API stability guarantee timing (Future)
+- Output file strategy defaults (overwrite vs merge) — see "Output File Strategy" roadmap item
 
 Decisions made:
 - `.cursorrules` (legacy) is NOT supported by the core Cursor plugin. A community `a16n-plugin-cursor-legacy` could add this if needed.
 - **Claude skills with hooks are skipped** (Phase 2): Skills containing `hooks:` in frontmatter are not convertible to Cursor. Stripping hooks would produce broken skills. Reported as unsupported with warning.
+- **AgentCommand is Cursor → Claude only**: Claude has no dedicated command concept; skills serve double duty. Claude plugin will never discover AgentCommand entries. Commands with special features ($ARGUMENTS, bash execution, etc.) are skipped with warning.
+- **Git ignore management only for created files**: When using `--gitignore-output-with`, only files created by the conversion run are managed. Files that are edited/appended are left with their existing git status. Boundary crossings (ignored source → tracked output) emit warnings.

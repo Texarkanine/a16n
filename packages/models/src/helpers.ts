@@ -4,6 +4,7 @@ import {
   type AgentSkill,
   type FileRule,
   type AgentIgnore,
+  type AgentCommand,
   CustomizationType,
 } from './types.js';
 
@@ -33,6 +34,35 @@ export function isFileRule(item: AgentCustomization): item is FileRule {
  */
 export function isAgentIgnore(item: AgentCustomization): item is AgentIgnore {
   return item.type === CustomizationType.AgentIgnore;
+}
+
+/**
+ * Type guard to check if an item is an AgentCommand.
+ */
+export function isAgentCommand(item: AgentCustomization): item is AgentCommand {
+  return item.type === CustomizationType.AgentCommand;
+}
+
+/**
+ * Get a unique filename by appending a counter if the name already exists.
+ * @param baseName - The base name to start with
+ * @param usedNames - Set of already used names (will be mutated to add the result)
+ * @param extension - Optional extension to append (e.g., '.txt')
+ * @returns A unique name not in usedNames
+ */
+export function getUniqueFilename(
+  baseName: string,
+  usedNames: Set<string>,
+  extension = ''
+): string {
+  let name = baseName + extension;
+  let counter = 1;
+  while (usedNames.has(name)) {
+    name = `${baseName}-${counter}${extension}`;
+    counter++;
+  }
+  usedNames.add(name);
+  return name;
 }
 
 /**

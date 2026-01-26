@@ -12,7 +12,7 @@ npm install @a16njs/plugin-claude
 
 ## Supported Types
 
-This plugin supports four customization types:
+This plugin supports five customization types:
 
 | Type | Claude Format | Description |
 |------|---------------|-------------|
@@ -20,6 +20,9 @@ This plugin supports four customization types:
 | **FileRule** | `.claude/settings.local.json` + `.a16n/rules/` | Glob-triggered via hooks |
 | **AgentSkill** | `.claude/skills/*/SKILL.md` | Description-triggered skills |
 | **AgentIgnore** | `.claude/settings.json` `permissions.deny` | Files to exclude |
+| **AgentCommand** | *Emitted only* | Cursor commands become skills |
+
+> **Note:** Claude has no dedicated command concept. AgentCommands from Cursor are emitted as skills with a description enabling `/command-name` invocation. The Claude plugin never *discovers* AgentCommands—conversion is one-way (Cursor → Claude only).
 
 ## Supported Files
 
@@ -39,6 +42,7 @@ This plugin supports four customization types:
 - **FileRule** → `.a16n/rules/<name>.txt` + `.claude/settings.local.json` with hooks
 - **AgentSkill** → `.claude/skills/<name>/SKILL.md` with description frontmatter
 - **AgentIgnore** → `.claude/settings.json` with `permissions.deny` Read rules
+- **AgentCommand** → `.claude/skills/<commandName>/SKILL.md` with `Invoke with /command` description
 
 ## File Formats
 
@@ -105,6 +109,24 @@ Pattern conversion rules:
 - `**/*.tmp` → `Read(./**/*.tmp)`
 
 > **Note:** AgentIgnore conversion emits an "Approximated" warning because Claude's permission system may behave slightly differently than `.cursorignore`.
+
+### SKILL.md from AgentCommand
+
+When Cursor commands are converted to Claude, they become skills:
+
+```markdown
+---
+name: "review"
+description: "Invoke with /review"
+---
+
+Review this code for:
+- Security vulnerabilities
+- Performance issues
+- Code style violations
+```
+
+The `description: "Invoke with /review"` enables slash command invocation in Claude, mirroring Cursor's `/review` behavior.
 
 ## Usage
 

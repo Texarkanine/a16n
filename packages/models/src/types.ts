@@ -11,6 +11,8 @@ export enum CustomizationType {
   FileRule = 'file-rule',
   /** Files/patterns to exclude from agent context */
   AgentIgnore = 'agent-ignore',
+  /** Explicitly invoked slash commands */
+  AgentCommand = 'agent-command',
 }
 
 /**
@@ -66,4 +68,17 @@ export interface AgentIgnore extends AgentCustomization {
   type: CustomizationType.AgentIgnore;
   /** Gitignore-style patterns */
   patterns: string[];
+}
+
+/**
+ * An explicitly invoked slash command.
+ * Examples: Cursor commands in .cursor/commands/
+ *
+ * Note: Cursor → Claude only. Claude has no dedicated command concept.
+ * Commands with special features ($ARGUMENTS, !, @, allowed-tools) are skipped.
+ */
+export interface AgentCommand extends AgentCustomization {
+  type: CustomizationType.AgentCommand;
+  /** Command name derived from filename (e.g., "review" from "review.md") */
+  commandName: string;
 }

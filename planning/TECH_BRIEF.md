@@ -83,6 +83,7 @@ enum CustomizationType {
   AgentSkill = 'agent-skill',       // Context-triggered by description matching
   FileRule = 'file-rule',           // Triggered by file glob patterns
   AgentIgnore = 'agent-ignore',     // Files/patterns to exclude from agent context
+  AgentCommand = 'agent-command',   // Explicitly invoked slash commands (Future)
 }
 
 // Specific model types extend the base
@@ -103,6 +104,14 @@ interface FileRule extends AgentCustomization {
 interface AgentIgnore extends AgentCustomization {
   type: CustomizationType.AgentIgnore;
   patterns: string[];               // Gitignore-style patterns
+}
+
+// Future: Explicitly invoked slash commands
+interface AgentCommand extends AgentCustomization {
+  type: CustomizationType.AgentCommand;
+  commandName: string;             // Slash command name (e.g., "review" for /review)
+  // Note: Cursor → Claude only. Claude plugin never discovers AgentCommand.
+  // Commands with special features ($ARGUMENTS, !, @, allowed-tools) are skipped.
 }
 ```
 
@@ -251,13 +260,44 @@ a16n convert --help
 
 Output is human-friendly by default, with `--json` for scripting.
 
+### Future CLI Flags
+
+**Git Ignore Output Management** (planned):
+```bash
+# Add output files to .gitignore
+a16n convert --from cursor --to claude --gitignore-output-with ignore ./project
+
+# Add to .git/info/exclude (local only)
+a16n convert --from cursor --to claude --gitignore-output-with exclude ./project
+
+# Generate pre-commit hook to unstage outputs
+a16n convert --from cursor --to claude --gitignore-output-with hook ./project
+
+# Mirror each source file's git-ignore status to its output
+a16n convert --from cursor --to claude --gitignore-output-with match ./project
+```
+
+**Constraints**:
+- Only manages files CREATED by the run (not edited/appended files)
+- `match` checks each source's ignore status individually
+- Warns when source → output crosses git-ignore boundaries
+
 ## Cursor Plugin Implementation Notes
 
 **Discovery locations**:
 - `.cursor/rules/*.mdc` (current format)
 - `.cursorignore` (Phase 3)
+- `.cursor/commands/**/*.md` (Future: AgentCommand)
 
 > **Note:** Legacy `.cursorrules` is not supported. A community plugin could add this.
+
+### Future: AgentCommand Discovery
+
+Commands in `.cursor/commands/` are slash-invoked prompts. Discovery will:
+1. Find all `.md` files recursively in `.cursor/commands/`
+2. Parse for special features: `$ARGUMENTS`, `$1`-`$9`, `!` (bash), `@` (file refs), `allowed-tools` frontmatter
+3. **Simple commands** (no special features) → `AgentCommand` type, translatable to Claude
+4. **Complex commands** (has special features) → Skip with warning, not translatable
 
 **MDC frontmatter parsing**:
 ```yaml
@@ -282,6 +322,8 @@ Note that this is also now INVALID YAML, because a string value starts with a `*
 | Has `description`, no `globs` | AgentSkill |
 | Has `globs` | FileRule |
 | `.cursorignore` | AgentIgnore |
+| `.cursor/commands/*.md` (simple) | AgentCommand (Future) |
+| `.cursor/commands/*.md` (complex) | Skipped with warning |
 
 ## Claude Plugin Implementation Notes
 
@@ -296,6 +338,9 @@ Note that this is also now INVALID YAML, because a string value starts with a `*
 | `.claude/skills/` directories | AgentSkill |
 | (no native equivalent) | FileRule — not discovered from Claude |
 | (no direct equivalent) | AgentIgnore → warning, skip |
+| (no dedicated concept) | AgentCommand — **never discovered** |
+
+> **Note on AgentCommand**: Claude does not have a dedicated command concept. Skills serve double duty (auto-triggered AND slash-invocable via `/skill-name`). Claude plugin will never discover or report AgentCommand entries. Cursor → Claude command conversion emits commands as skills.
 
 **Note**: FileRules can be *emitted* to Claude as hooks (see below), but Claude has no native FileRule concept to discover. This is a lossy transformation—the standard a16n warning system handles it.
 
