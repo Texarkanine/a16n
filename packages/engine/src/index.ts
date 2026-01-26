@@ -22,6 +22,16 @@ export interface ConversionOptions {
 }
 
 /**
+ * Git-ignore change information.
+ */
+export interface GitIgnoreResult {
+  /** The file that was modified */
+  file: string;
+  /** Entries that were added */
+  added: string[];
+}
+
+/**
  * Result of a conversion operation.
  */
 export interface ConversionResult {
@@ -33,6 +43,8 @@ export interface ConversionResult {
   warnings: Warning[];
   /** Items that couldn't be represented by target */
   unsupported: AgentCustomization[];
+  /** Git-ignore changes made (if --gitignore-output-with was used) */
+  gitIgnoreChanges?: GitIgnoreResult[];
 }
 
 /**

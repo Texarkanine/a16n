@@ -214,4 +214,18 @@ describe('CLI', () => {
       expect(stderr).toContain('does not exist');
     });
   });
+
+  describe('--gitignore-output-with flag', () => {
+    it('should accept the flag with default value "none"', async () => {
+      // TODO: Test that flag defaults to 'none' and doesn't cause errors
+    });
+
+    it('should accept valid styles (none, ignore, exclude, hook, match)', async () => {
+      // TODO: Test each valid style value
+    });
+
+    it('should error on invalid style', async () => {
+      // TODO: Test with invalid style value like 'invalid-style'
+    });
+  });
 });

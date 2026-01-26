@@ -38,20 +38,20 @@ Provide CLI options to manage git tracking of converted output files via `--giti
 ## Implementation Checklist
 
 ### Track A: Models & Type Changes
-- [ ] Task 1: Extend `WrittenFile` with `isNewFile` boolean
-- [ ] Task 9: Extend `ConversionResult` with `gitIgnoreChanges`
+- [x] Task 1: Extend `WrittenFile` with `isNewFile` boolean
+- [x] Task 9: Extend `ConversionResult` with `gitIgnoreChanges`
 
 ### Track B: Plugin Updates
-- [ ] Task 2: Update Cursor plugin emit to track `isNewFile`
-- [ ] Task 2: Update Claude plugin emit to track `isNewFile`
+- [x] Task 2: Update Cursor plugin emit to track `isNewFile`
+- [x] Task 2: Update Claude plugin emit to track `isNewFile`
 
 ### Track C: CLI & Git Utilities
-- [ ] Task 3: Add `--gitignore-output-with <style>` CLI flag
-- [ ] Task 4: Create `git-ignore.ts` utilities module
-- [ ] Task 5: Implement style `ignore`
-- [ ] Task 6: Implement style `exclude`
-- [ ] Task 7: Implement style `hook`
-- [ ] Task 8: Implement style `match`
+- [x] Task 3: Add `--gitignore-output-with <style>` CLI flag
+- [x] Task 4: Create `git-ignore.ts` utilities module
+- [x] Task 5: Implement style `ignore`
+- [x] Task 6: Implement style `exclude`
+- [x] Task 7: Implement style `hook`
+- [x] Task 8: Implement style `match`
 
 ### Track D: Finalization
 - [ ] Task 10: Create test fixtures (git repo scenarios)

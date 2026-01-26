@@ -21,6 +21,8 @@ export interface WrittenFile {
   type: CustomizationType;
   /** How many models went into this file (1 for 1:1, more if merged) */
   itemCount: number;
+  /** True if this file was created fresh; false if merged/edited existing */
+  isNewFile: boolean;
 }
 
 /**

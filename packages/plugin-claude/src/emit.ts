@@ -182,12 +182,22 @@ export async function emit(
     const content = sections.join('\n\n---\n\n');
     const claudePath = path.join(root, 'CLAUDE.md');
 
+    // Check if file exists before writing
+    let isNewFile = true;
+    try {
+      await fs.access(claudePath);
+      isNewFile = false; // File exists
+    } catch {
+      isNewFile = true; // File does not exist
+    }
+
     await fs.writeFile(claudePath, content, 'utf-8');
 
     written.push({
       path: claudePath,
       type: CustomizationType.GlobalPrompt,
       itemCount: globalPrompts.length,
+      isNewFile,
     });
 
     if (globalPrompts.length > 1) {
@@ -220,6 +230,15 @@ export async function emit(
       const rulePath = `.a16n/rules/${filename}`;
       const fullPath = path.join(root, rulePath);
 
+      // Check if file exists before writing
+      let isNewFile = true;
+      try {
+        await fs.access(fullPath);
+        isNewFile = false; // File exists
+      } catch {
+        isNewFile = true; // File does not exist
+      }
+
       // Write rule content
       await fs.writeFile(fullPath, rule.content, 'utf-8');
 
@@ -227,6 +246,7 @@ export async function emit(
         path: fullPath,
         type: CustomizationType.FileRule,
         itemCount: 1,
+        isNewFile,
       });
 
       // Build hook for this rule
@@ -236,9 +256,11 @@ export async function emit(
     // Write settings.local.json, merging with existing content if present
     const settingsPath = path.join(claudeDir, 'settings.local.json');
     let settings: Record<string, unknown> = { hooks: { PreToolUse: hooks } };
+    let isNewFile = true;
     
     try {
       const existingContent = await fs.readFile(settingsPath, 'utf-8');
+      isNewFile = false; // File exists
       const existing = JSON.parse(existingContent) as Record<string, unknown>;
       const existingHooks = existing.hooks as Record<string, unknown[]> | undefined;
       const existingPreToolUse = Array.isArray(existingHooks?.PreToolUse)
@@ -263,6 +285,7 @@ export async function emit(
           sources: [settingsPath],
         });
       }
+      // If ENOENT, isNewFile remains true
     }
     
     await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
@@ -271,6 +294,7 @@ export async function emit(
       path: settingsPath,
       type: CustomizationType.FileRule,
       itemCount: fileRules.length,
+      isNewFile,
     });
 
     // Emit approximation warning
@@ -296,12 +320,23 @@ export async function emit(
 
       const skillPath = path.join(skillDir, 'SKILL.md');
       const content = formatSkill(skill);
+      
+      // Check if file exists before writing
+      let isNewFile = true;
+      try {
+        await fs.access(skillPath);
+        isNewFile = false; // File exists
+      } catch {
+        isNewFile = true; // File does not exist
+      }
+      
       await fs.writeFile(skillPath, content, 'utf-8');
 
       written.push({
         path: skillPath,
         type: CustomizationType.AgentSkill,
         itemCount: 1,
+        isNewFile,
       });
     }
   }
@@ -346,6 +381,15 @@ export async function emit(
       // File doesn't exist or is malformed - use empty settings
     }
 
+    // Check if settings.json existed (track if new file)
+    let isNewFile = true;
+    try {
+      await fs.access(settingsPath);
+      isNewFile = false; // File exists
+    } catch {
+      isNewFile = true; // File does not exist
+    }
+
     // Merge deny rules (deduplicate)
     const existingPermissions = settings.permissions as Record<string, unknown> | undefined;
     const existingDeny = Array.isArray(existingPermissions?.deny)
@@ -363,6 +407,7 @@ export async function emit(
       path: settingsPath,
       type: CustomizationType.AgentIgnore,
       itemCount: agentIgnores.length,
+      isNewFile,
     });
 
     warnings.push({
@@ -385,12 +430,23 @@ export async function emit(
 
       const skillPath = path.join(skillDir, 'SKILL.md');
       const content = formatCommandAsSkill(command);
+      
+      // Check if file exists before writing
+      let isNewFile = true;
+      try {
+        await fs.access(skillPath);
+        isNewFile = false; // File exists
+      } catch {
+        isNewFile = true; // File does not exist
+      }
+      
       await fs.writeFile(skillPath, content, 'utf-8');
 
       written.push({
         path: skillPath,
         type: CustomizationType.AgentCommand,
         itemCount: 1,
+        isNewFile,
       });
     }
   }

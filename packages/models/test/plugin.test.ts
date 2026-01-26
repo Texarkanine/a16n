@@ -71,10 +71,34 @@ describe('WrittenFile', () => {
       path: '.cursor/rules/generated.mdc',
       type: CustomizationType.GlobalPrompt,
       itemCount: 3,
+      isNewFile: true,
     };
 
     expect(written.path).toBe('.cursor/rules/generated.mdc');
     expect(written.type).toBe(CustomizationType.GlobalPrompt);
     expect(written.itemCount).toBe(3);
+    expect(written.isNewFile).toBe(true);
+  });
+
+  it('should track isNewFile as true for new files', () => {
+    const written: WrittenFile = {
+      path: 'CLAUDE.md',
+      type: CustomizationType.GlobalPrompt,
+      itemCount: 1,
+      isNewFile: true,
+    };
+
+    expect(written.isNewFile).toBe(true);
+  });
+
+  it('should track isNewFile as false for edited files', () => {
+    const written: WrittenFile = {
+      path: 'CLAUDE.md',
+      type: CustomizationType.GlobalPrompt,
+      itemCount: 2,
+      isNewFile: false,
+    };
+
+    expect(written.isNewFile).toBe(false);
   });
 });

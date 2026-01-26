@@ -173,12 +173,22 @@ export async function emit(
     const filepath = path.join(rulesDir, filename);
     const content = formatGlobalPromptMdc(gp.content);
 
+    // Check if file exists before writing
+    let isNewFile = true;
+    try {
+      await fs.access(filepath);
+      isNewFile = false; // File exists
+    } catch {
+      isNewFile = true; // File does not exist
+    }
+
     await fs.writeFile(filepath, content, 'utf-8');
 
     written.push({
       path: filepath,
       type: CustomizationType.GlobalPrompt,
       itemCount: 1,
+      isNewFile,
     });
   }
 
@@ -194,12 +204,22 @@ export async function emit(
     const filepath = path.join(rulesDir, filename);
     const content = formatFileRuleMdc(fr.content, fr.globs);
 
+    // Check if file exists before writing
+    let isNewFile = true;
+    try {
+      await fs.access(filepath);
+      isNewFile = false; // File exists
+    } catch {
+      isNewFile = true; // File does not exist
+    }
+
     await fs.writeFile(filepath, content, 'utf-8');
 
     written.push({
       path: filepath,
       type: CustomizationType.FileRule,
       itemCount: 1,
+      isNewFile,
     });
   }
 
@@ -215,12 +235,22 @@ export async function emit(
     const filepath = path.join(rulesDir, filename);
     const content = formatAgentSkillMdc(skill.content, skill.description);
 
+    // Check if file exists before writing
+    let isNewFile = true;
+    try {
+      await fs.access(filepath);
+      isNewFile = false; // File exists
+    } catch {
+      isNewFile = true; // File does not exist
+    }
+
     await fs.writeFile(filepath, content, 'utf-8');
 
     written.push({
       path: filepath,
       type: CustomizationType.AgentSkill,
       itemCount: 1,
+      isNewFile,
     });
   }
 
@@ -239,12 +269,22 @@ export async function emit(
     const uniquePatterns = [...new Set(allPatterns)];
     const filepath = path.join(root, '.cursorignore');
     
+    // Check if file exists before writing
+    let isNewFile = true;
+    try {
+      await fs.access(filepath);
+      isNewFile = false; // File exists
+    } catch {
+      isNewFile = true; // File does not exist
+    }
+    
     await fs.writeFile(filepath, uniquePatterns.join('\n') + '\n', 'utf-8');
 
     written.push({
       path: filepath,
       type: CustomizationType.AgentIgnore,
       itemCount: agentIgnores.length,
+      isNewFile,
     });
 
     if (agentIgnores.length > 1) {
@@ -281,12 +321,23 @@ export async function emit(
       usedCommandNames.add(filename);
 
       const commandPath = path.join(commandsDir, filename);
+      
+      // Check if file exists before writing
+      let isNewFile = true;
+      try {
+        await fs.access(commandPath);
+        isNewFile = false; // File exists
+      } catch {
+        isNewFile = true; // File does not exist
+      }
+      
       await fs.writeFile(commandPath, command.content, 'utf-8');
 
       written.push({
         path: commandPath,
         type: CustomizationType.AgentCommand,
         itemCount: 1,
+        isNewFile,
       });
     }
 
