@@ -29,5 +29,6 @@ export {
   isFileRule,
   isAgentIgnore,
   isAgentCommand,
+  getUniqueFilename,
   createId,
 } from './helpers.js';

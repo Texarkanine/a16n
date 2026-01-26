@@ -15,6 +15,7 @@ import {
   isAgentSkill,
   isAgentIgnore,
   isAgentCommand,
+  getUniqueFilename,
 } from '@a16njs/models';
 
 /**
@@ -213,14 +214,8 @@ export async function emit(
 
     for (const rule of fileRules) {
       // Get unique filename to avoid collisions
-      let baseName = sanitizeFilename(rule.sourcePath);
-      let filename = baseName + '.txt';
-      let counter = 1;
-      while (usedFilenames.has(filename)) {
-        filename = `${baseName}-${counter}.txt`;
-        counter++;
-      }
-      usedFilenames.add(filename);
+      const baseName = sanitizeFilename(rule.sourcePath);
+      const filename = getUniqueFilename(baseName, usedFilenames, '.txt');
 
       const rulePath = `.a16n/rules/${filename}`;
       const fullPath = path.join(root, rulePath);
@@ -292,14 +287,8 @@ export async function emit(
 
     for (const skill of agentSkills) {
       // Get unique skill name to avoid directory collisions
-      let baseName = sanitizeFilename(skill.sourcePath);
-      let skillName = baseName;
-      let counter = 1;
-      while (usedSkillNames.has(skillName)) {
-        skillName = `${baseName}-${counter}`;
-        counter++;
-      }
-      usedSkillNames.add(skillName);
+      const baseName = sanitizeFilename(skill.sourcePath);
+      const skillName = getUniqueFilename(baseName, usedSkillNames);
 
       const skillDir = path.join(root, '.claude', 'skills', skillName);
       await fs.mkdir(skillDir, { recursive: true });
@@ -389,15 +378,8 @@ export async function emit(
     for (const command of agentCommands) {
       // Sanitize command name to prevent path traversal
       const baseName = sanitizeCommandName(command.commandName);
-      
       // Get unique skill name to avoid directory collisions
-      let skillName = baseName;
-      let counter = 1;
-      while (usedSkillNames.has(skillName)) {
-        skillName = `${baseName}-${counter}`;
-        counter++;
-      }
-      usedSkillNames.add(skillName);
+      const skillName = getUniqueFilename(baseName, usedSkillNames);
 
       const skillDir = path.join(root, '.claude', 'skills', skillName);
       await fs.mkdir(skillDir, { recursive: true });

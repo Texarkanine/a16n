@@ -44,6 +44,28 @@ export function isAgentCommand(item: AgentCustomization): item is AgentCommand {
 }
 
 /**
+ * Get a unique filename by appending a counter if the name already exists.
+ * @param baseName - The base name to start with
+ * @param usedNames - Set of already used names (will be mutated to add the result)
+ * @param extension - Optional extension to append (e.g., '.txt')
+ * @returns A unique name not in usedNames
+ */
+export function getUniqueFilename(
+  baseName: string,
+  usedNames: Set<string>,
+  extension = ''
+): string {
+  let name = baseName + extension;
+  let counter = 1;
+  while (usedNames.has(name)) {
+    name = `${baseName}-${counter}${extension}`;
+    counter++;
+  }
+  usedNames.add(name);
+  return name;
+}
+
+/**
  * Create a unique ID from a customization type and source path.
  * @param type - The customization type
  * @param sourcePath - The path where the item was found
