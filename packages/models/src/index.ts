@@ -8,6 +8,7 @@ export {
   type AgentSkill,
   type FileRule,
   type AgentIgnore,
+  type AgentCommand,
 } from './types.js';
 
 // Plugin interface
@@ -27,5 +28,6 @@ export {
   isAgentSkill,
   isFileRule,
   isAgentIgnore,
+  isAgentCommand,
   createId,
 } from './helpers.js';

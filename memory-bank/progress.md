@@ -7,7 +7,7 @@
 | **Phase 1** | ✅ Complete | PR #1 merged (GlobalPrompt MVP) |
 | **Phase 2** | ✅ Complete | PR #3 merged (FileRule + AgentSkill) |
 | **Phase 3** | ✅ Complete | PR #4 merged (AgentIgnore + CLI polish) |
-| **Phase 4** | 📋 Planning Complete | AgentCommand (Cursor → Claude) |
+| **Phase 4** | ✅ Complete | AgentCommand (Cursor → Claude) |
 
 ## Current Session
 
@@ -15,7 +15,33 @@
 
 **Task**: Phase 4 Implementation - AgentCommand Support
 
-**Status**: Ready for Build
+**Status**: ✅ Implementation Complete, Reflection Complete
+
+## Implementation Summary
+
+All 8 tasks completed:
+- Task 1: Test fixtures for command scenarios ✅
+- Task 2: AgentCommand type in models package ✅
+- Task 3: Cursor plugin command discovery ✅
+- Task 4: Cursor plugin command emission ✅
+- Task 5: Claude plugin command-to-skill emission ✅
+- Task 6: Claude plugin no-discovery verification ✅
+- Task 7: Integration tests ✅
+- Task 8: Documentation updates ✅
+
+All 230 tests pass. Build successful. Documentation updated.
+
+## Reflection Summary
+
+Reflection document created: `memory-bank/reflection/reflection-PHASE4-IMPL.md`
+
+**Key Learnings**:
+- One-way conversions (Cursor → Claude only) simplified implementation
+- Explicit complex feature detection with warnings is better UX than lossy conversion
+- TDD with fixture-first development continues to be effective
+- Skill description `"Invoke with /command-name"` enables slash invocation in Claude
+
+**Next Steps**: Archive task, create PR
 
 ## Phase 4 Implementation Plan Summary
 

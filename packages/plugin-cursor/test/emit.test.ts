@@ -9,6 +9,7 @@ import {
   type FileRule,
   type AgentSkill,
   type AgentIgnore,
+  type AgentCommand,
   createId,
 } from '@a16njs/models';
 
@@ -620,6 +621,132 @@ describe('Cursor AgentIgnore Emission (Phase 3)', () => {
       
       expect(rulesExist).not.toBeNull();
       expect(ignoreExists).not.toBeNull();
+    });
+  });
+});
+
+describe('Cursor AgentCommand Emission (Phase 4)', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('single AgentCommand', () => {
+    it('should emit AgentCommand as .cursor/commands/*.md file', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'Review this code for security vulnerabilities.',
+          commandName: 'review',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      expect(result.written[0]?.type).toBe(CustomizationType.AgentCommand);
+
+      // Verify file was created
+      const commandPath = path.join(tempDir, '.cursor', 'commands', 'review.md');
+      const content = await fs.readFile(commandPath, 'utf-8');
+      expect(content).toBe('Review this code for security vulnerabilities.');
+    });
+
+    it('should create .cursor/commands directory if it does not exist', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/test.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/test.md',
+          content: 'Test content',
+          commandName: 'test',
+          metadata: {},
+        },
+      ];
+
+      await cursorPlugin.emit(models, tempDir);
+
+      const commandsDir = path.join(tempDir, '.cursor', 'commands');
+      const stat = await fs.stat(commandsDir);
+      expect(stat.isDirectory()).toBe(true);
+    });
+  });
+
+  describe('multiple AgentCommands', () => {
+    it('should emit multiple commands as separate files', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'Review content',
+          commandName: 'review',
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/explain.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/explain.md',
+          content: 'Explain content',
+          commandName: 'explain',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+
+      const reviewContent = await fs.readFile(
+        path.join(tempDir, '.cursor', 'commands', 'review.md'),
+        'utf-8'
+      );
+      const explainContent = await fs.readFile(
+        path.join(tempDir, '.cursor', 'commands', 'explain.md'),
+        'utf-8'
+      );
+
+      expect(reviewContent).toBe('Review content');
+      expect(explainContent).toBe('Explain content');
+    });
+  });
+
+  describe('mixed with other types', () => {
+    it('should emit AgentCommand alongside GlobalPrompt', async () => {
+      const models = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'global.md'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: 'global.md',
+          content: 'Use TypeScript.',
+          metadata: {},
+        } as GlobalPrompt,
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'Review code.',
+          commandName: 'review',
+          metadata: {},
+        } as AgentCommand,
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+
+      // Verify both exist
+      const rulesExist = await fs.stat(path.join(tempDir, '.cursor', 'rules')).catch(() => null);
+      const commandExists = await fs.stat(path.join(tempDir, '.cursor', 'commands', 'review.md')).catch(() => null);
+
+      expect(rulesExist).not.toBeNull();
+      expect(commandExists).not.toBeNull();
     });
   });
 });

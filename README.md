@@ -97,6 +97,7 @@ Different tools have different capabilities. a16n handles this transparently.
 | File-specific rules | `globs: [...]` rules | Tool hooks |
 | Context-triggered | `description: ...` rules | Skills |
 | Ignore patterns | `.cursorignore` | `permissions.deny` Read rules |
+| Commands/Skills | `.cursor/commands/*.md` | `.claude/skills/*/SKILL.md` |
 
 ### What Gets Approximated
 
@@ -104,6 +105,14 @@ Different tools have different capabilities. a16n handles this transparently.
 |---------|------|-----|----------|
 | Multiple `alwaysApply` rules | Cursor | Claude | ⚠️ Merged into one file |
 | Ignore patterns | Cursor | Claude | ≈ Converted to Read permission denials |
+| Commands | Cursor | Claude | ➡️ Simple commands become skills (one-way) |
+
+### What Gets Skipped
+
+| Feature | From | Reason |
+|---------|------|--------|
+| Complex commands | Cursor | Commands with `$ARGUMENTS`, `!`, `@`, or `allowed-tools` cannot be converted |
+| Skills with hooks | Claude | Skills with `hooks:` frontmatter are not convertible to Cursor |
 
 a16n always warns you when conversions are lossy or irreversible.
 

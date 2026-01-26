@@ -12,7 +12,7 @@ npm install @a16njs/plugin-cursor
 
 ## Supported Types
 
-This plugin supports four customization types:
+This plugin supports five customization types:
 
 | Type | Format | Description |
 |------|--------|-------------|
@@ -20,15 +20,33 @@ This plugin supports four customization types:
 | **FileRule** | `globs: **/*.ts` frontmatter | Triggered by file patterns |
 | **AgentSkill** | `description: "..."` frontmatter | Triggered by context matching |
 | **AgentIgnore** | `.cursorignore` file | Files/patterns to exclude |
+| **AgentCommand** | `.cursor/commands/*.md` files | Explicitly invoked slash commands |
 
 ## Supported Files
 
 ### Discovery
 
 - `.cursor/rules/**/*.mdc` - MDC format rules with frontmatter (recursive)
+- `.cursor/commands/**/*.md` - Command files (recursive)
 - `.cursorignore` - Gitignore-style patterns for files to exclude
 
 > **Note:** Legacy `.cursorrules` files are not supported. Use `.cursor/rules/*.mdc` instead.
+
+### Commands
+
+Commands in `.cursor/commands/*.md` are prepackaged prompts invoked via `/command-name`.
+
+**Simple commands** (just prompt text) are discovered and can be converted to Claude skills.
+
+**Complex commands** are skipped with a warning. Complex commands contain features that cannot be converted:
+
+| Feature | Example | Reason |
+|---------|---------|--------|
+| `$ARGUMENTS` | `Fix issue #$ARGUMENTS` | Runtime argument injection |
+| Positional params | `Review PR #$1` | Runtime argument injection |
+| Bash execution | `!git branch --show-current` | Shell execution |
+| File references | `@src/utils.js` | Context injection |
+| `allowed-tools` | Frontmatter key | Tool permissions |
 
 ### Classification Priority
 
@@ -42,6 +60,7 @@ Rules are classified based on frontmatter (first match wins):
 ### Emission
 
 - Creates `.cursor/rules/<name>.mdc` files with appropriate frontmatter
+- Creates `.cursor/commands/<name>.md` files for AgentCommand items
 - Creates `.cursorignore` from AgentIgnore patterns
 
 ## .cursorignore Format

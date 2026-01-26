@@ -13,6 +13,7 @@ import {
   isFileRule,
   isAgentSkill,
   isAgentIgnore,
+  isAgentCommand,
 } from '@a16njs/models';
 
 /**
@@ -121,18 +122,19 @@ export async function emit(
   const fileRules = models.filter(isFileRule);
   const agentSkills = models.filter(isAgentSkill);
   const agentIgnores = models.filter(isAgentIgnore);
+  const agentCommands = models.filter(isAgentCommand);
   
   // Track unsupported types (future types)
   for (const model of models) {
-    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model)) {
+    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model) && !isAgentCommand(model)) {
       unsupported.push(model);
     }
   }
 
   const allItems = [...globalPrompts, ...fileRules, ...agentSkills];
   
-  // Early return only if no items at all (including agentIgnores)
-  if (allItems.length === 0 && agentIgnores.length === 0) {
+  // Early return only if no items at all (including agentIgnores and agentCommands)
+  if (allItems.length === 0 && agentIgnores.length === 0 && agentCommands.length === 0) {
     return { written, warnings, unsupported };
   }
 
@@ -236,6 +238,23 @@ export async function emit(
         code: WarningCode.Merged,
         message: `Merged ${agentIgnores.length} ignore sources into .cursorignore`,
         sources: agentIgnores.map(ai => ai.sourcePath),
+      });
+    }
+  }
+
+  // === Emit AgentCommands as .cursor/commands/*.md ===
+  if (agentCommands.length > 0) {
+    const commandsDir = path.join(root, '.cursor', 'commands');
+    await fs.mkdir(commandsDir, { recursive: true });
+
+    for (const command of agentCommands) {
+      const commandPath = path.join(commandsDir, `${command.commandName}.md`);
+      await fs.writeFile(commandPath, command.content, 'utf-8');
+
+      written.push({
+        path: commandPath,
+        type: CustomizationType.AgentCommand,
+        itemCount: 1,
       });
     }
   }

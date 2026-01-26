@@ -10,6 +10,7 @@ import {
   type FileRule,
   type AgentSkill,
   type AgentIgnore,
+  type AgentCommand,
   createId,
 } from '@a16njs/models';
 
@@ -829,6 +830,189 @@ describe('Claude AgentIgnore Emission (Phase 3)', () => {
       const settingsPath = path.join(tempDir, '.claude', 'settings.json');
       const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
       expect(settings.permissions.deny).toContain('Read(./dist/**)');
+    });
+  });
+});
+
+describe('Claude AgentCommand Emission (Phase 4)', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('single AgentCommand', () => {
+    it('should emit AgentCommand as .claude/skills/*/SKILL.md', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'Review this code for security vulnerabilities.',
+          commandName: 'review',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      expect(result.written[0]?.type).toBe(CustomizationType.AgentCommand);
+
+      // Verify skill file was created
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'review', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Review this code for security vulnerabilities.');
+    });
+
+    it('should include name in skill frontmatter', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'Review content',
+          commandName: 'review',
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'review', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('name: "review"');
+    });
+
+    it('should include description for slash invocation', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'Review content',
+          commandName: 'review',
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'review', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('description:');
+      expect(content).toContain('/review');
+    });
+  });
+
+  describe('multiple AgentCommands', () => {
+    it('should create separate skill directories for each command', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'Review content',
+          commandName: 'review',
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/explain.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/explain.md',
+          content: 'Explain content',
+          commandName: 'explain',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+
+      // Verify both skill directories exist
+      const reviewContent = await fs.readFile(
+        path.join(tempDir, '.claude', 'skills', 'review', 'SKILL.md'),
+        'utf-8'
+      );
+      const explainContent = await fs.readFile(
+        path.join(tempDir, '.claude', 'skills', 'explain', 'SKILL.md'),
+        'utf-8'
+      );
+
+      expect(reviewContent).toContain('Review content');
+      expect(explainContent).toContain('Explain content');
+    });
+
+    it('should handle command name collisions', async () => {
+      const models: AgentCommand[] = [
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'First review',
+          commandName: 'review',
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/shared/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/shared/review.md',
+          content: 'Second review',
+          commandName: 'review',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+
+      // First should be 'review', second should be 'review-1'
+      const reviewPath = path.join(tempDir, '.claude', 'skills', 'review', 'SKILL.md');
+      const review1Path = path.join(tempDir, '.claude', 'skills', 'review-1', 'SKILL.md');
+
+      const reviewContent = await fs.readFile(reviewPath, 'utf-8');
+      const review1Content = await fs.readFile(review1Path, 'utf-8');
+
+      expect(reviewContent).toContain('First review');
+      expect(review1Content).toContain('Second review');
+    });
+  });
+
+  describe('mixed with other types', () => {
+    it('should emit AgentCommand alongside GlobalPrompt', async () => {
+      const models = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'global.md'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: 'global.md',
+          content: 'Use TypeScript.',
+          metadata: {},
+        } as GlobalPrompt,
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'Review code.',
+          commandName: 'review',
+          metadata: {},
+        } as AgentCommand,
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+
+      // Verify both exist
+      const claudeMd = await fs.readFile(path.join(tempDir, 'CLAUDE.md'), 'utf-8');
+      expect(claudeMd).toContain('Use TypeScript.');
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'review', 'SKILL.md');
+      const skillContent = await fs.readFile(skillPath, 'utf-8');
+      expect(skillContent).toContain('Review code.');
     });
   });
 });

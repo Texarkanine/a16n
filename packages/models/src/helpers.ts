@@ -4,6 +4,7 @@ import {
   type AgentSkill,
   type FileRule,
   type AgentIgnore,
+  type AgentCommand,
   CustomizationType,
 } from './types.js';
 
@@ -33,6 +34,13 @@ export function isFileRule(item: AgentCustomization): item is FileRule {
  */
 export function isAgentIgnore(item: AgentCustomization): item is AgentIgnore {
   return item.type === CustomizationType.AgentIgnore;
+}
+
+/**
+ * Type guard to check if an item is an AgentCommand.
+ */
+export function isAgentCommand(item: AgentCustomization): item is AgentCommand {
+  return item.type === CustomizationType.AgentCommand;
 }
 
 /**

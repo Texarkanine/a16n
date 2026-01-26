@@ -2,6 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
   type AgentCustomization,
+  type AgentCommand,
   type EmitResult,
   type WrittenFile,
   type Warning,
@@ -13,6 +14,7 @@ import {
   isFileRule,
   isAgentSkill,
   isAgentIgnore,
+  isAgentCommand,
 } from '@a16njs/models';
 
 /**
@@ -110,6 +112,24 @@ ${skill.content}
 }
 
 /**
+ * Format an AgentCommand as a Claude skill.
+ * The description enables /command-name invocation.
+ */
+function formatCommandAsSkill(command: AgentCommand): string {
+  const safeName = JSON.stringify(command.commandName);
+  const description = `Invoke with /${command.commandName}`;
+  const safeDescription = JSON.stringify(description);
+
+  return `---
+name: ${safeName}
+description: ${safeDescription}
+---
+
+${command.content}
+`;
+}
+
+/**
  * Emit agent customizations to Claude format.
  * - GlobalPrompts → CLAUDE.md
  * - FileRules → .a16n/rules/ + .claude/settings.local.json
@@ -128,10 +148,11 @@ export async function emit(
   const fileRules = models.filter(isFileRule);
   const agentSkills = models.filter(isAgentSkill);
   const agentIgnores = models.filter(isAgentIgnore);
+  const agentCommands = models.filter(isAgentCommand);
 
   // Track unsupported types (future types)
   for (const model of models) {
-    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model)) {
+    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model) && !isAgentCommand(model)) {
       unsupported.push(model);
     }
   }
@@ -345,6 +366,35 @@ export async function emit(
       message: `AgentIgnore approximated as permissions.deny (behavior may differ slightly)`,
       sources: agentIgnores.map(ai => ai.sourcePath),
     });
+  }
+
+  // === Emit AgentCommands as .claude/skills/*/SKILL.md ===
+  if (agentCommands.length > 0) {
+    const usedSkillNames = new Set<string>();
+
+    for (const command of agentCommands) {
+      // Get unique skill name to avoid directory collisions
+      let skillName = command.commandName;
+      let counter = 1;
+      while (usedSkillNames.has(skillName)) {
+        skillName = `${command.commandName}-${counter}`;
+        counter++;
+      }
+      usedSkillNames.add(skillName);
+
+      const skillDir = path.join(root, '.claude', 'skills', skillName);
+      await fs.mkdir(skillDir, { recursive: true });
+
+      const skillPath = path.join(skillDir, 'SKILL.md');
+      const content = formatCommandAsSkill(command);
+      await fs.writeFile(skillPath, content, 'utf-8');
+
+      written.push({
+        path: skillPath,
+        type: CustomizationType.AgentCommand,
+        itemCount: 1,
+      });
+    }
   }
 
   return { written, warnings, unsupported };

@@ -3,12 +3,14 @@ import * as path from 'path';
 import {
   type AgentCustomization,
   type AgentIgnore,
+  type AgentCommand,
   type DiscoveryResult,
   type Warning,
   type FileRule,
   type AgentSkill,
   type GlobalPrompt,
   CustomizationType,
+  WarningCode,
   createId,
 } from '@a16njs/models';
 import { parseMdc, type MdcFrontmatter } from './mdc.js';
@@ -116,6 +118,119 @@ function classifyRule(
 }
 
 /**
+ * Patterns for detecting complex command features that cannot be converted to Claude.
+ */
+const COMPLEX_COMMAND_PATTERNS = {
+  /** $ARGUMENTS or positional parameters like $1, $2, etc. */
+  arguments: /\$ARGUMENTS|\$[1-9]/,
+  /** Bash execution syntax: !`command` */
+  bashExecution: /!\s*`[^`]+`/,
+  /** File references like @src/utils.js */
+  fileRefs: /@\S+/,
+  /** allowed-tools in YAML frontmatter */
+  allowedTools: /^---[\s\S]*?allowed-tools:/m,
+};
+
+/**
+ * Check if a command contains complex features that cannot be converted.
+ * Returns an object with isComplex flag and list of reasons.
+ */
+function isComplexCommand(content: string): { isComplex: boolean; reasons: string[] } {
+  const reasons: string[] = [];
+
+  if (COMPLEX_COMMAND_PATTERNS.arguments.test(content)) {
+    reasons.push('$ARGUMENTS or positional parameters');
+  }
+  if (COMPLEX_COMMAND_PATTERNS.bashExecution.test(content)) {
+    reasons.push('bash execution (!)');
+  }
+  if (COMPLEX_COMMAND_PATTERNS.fileRefs.test(content)) {
+    reasons.push('file references (@)');
+  }
+  if (COMPLEX_COMMAND_PATTERNS.allowedTools.test(content)) {
+    reasons.push('allowed-tools frontmatter');
+  }
+
+  return { isComplex: reasons.length > 0, reasons };
+}
+
+/**
+ * Recursively find all .md files in .cursor/commands/ directory.
+ * Returns paths relative to commandsDir (e.g., "frontend/component.md").
+ */
+async function findCommandFiles(commandsDir: string, relativePath: string = ''): Promise<string[]> {
+  const results: string[] = [];
+
+  try {
+    const entries = await fs.readdir(path.join(commandsDir, relativePath), { withFileTypes: true });
+
+    for (const entry of entries) {
+      const entryRelativePath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
+
+      if (entry.isFile() && entry.name.endsWith('.md')) {
+        results.push(entryRelativePath);
+      } else if (entry.isDirectory()) {
+        const subFiles = await findCommandFiles(commandsDir, entryRelativePath);
+        results.push(...subFiles);
+      }
+    }
+  } catch {
+    // Directory doesn't exist or can't be read
+  }
+
+  return results;
+}
+
+/**
+ * Discover commands from .cursor/commands/**\/*.md
+ * - Simple commands → AgentCommand
+ * - Complex commands → Skip with warning
+ */
+async function discoverCommands(root: string): Promise<{
+  items: AgentCommand[];
+  warnings: Warning[];
+}> {
+  const items: AgentCommand[] = [];
+  const warnings: Warning[] = [];
+
+  const commandsDir = path.join(root, '.cursor', 'commands');
+  const commandFiles = await findCommandFiles(commandsDir);
+
+  for (const file of commandFiles) {
+    const filePath = path.join(commandsDir, file);
+    const content = await fs.readFile(filePath, 'utf-8');
+    const sourcePath = `.cursor/commands/${file}`;
+
+    // Check for complex features
+    const { isComplex, reasons } = isComplexCommand(content);
+
+    if (isComplex) {
+      // Extract command name for warning message
+      const commandName = path.basename(file, '.md');
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Skipped command '${commandName}': Contains ${reasons.join(', ')} (not convertible to Claude)`,
+        sources: [sourcePath],
+      });
+      continue;
+    }
+
+    // Simple command - create AgentCommand
+    const commandName = path.basename(file, '.md');
+    items.push({
+      id: createId(CustomizationType.AgentCommand, sourcePath),
+      type: CustomizationType.AgentCommand,
+      sourcePath,
+      content,
+      commandName,
+      metadata: {},
+    });
+  }
+
+  return { items, warnings };
+}
+
+/**
  * Discover .cursorignore file and parse its patterns.
  * Returns null if file doesn't exist or has no valid patterns.
  */
@@ -175,6 +290,11 @@ export async function discover(root: string): Promise<DiscoveryResult> {
     const item = classifyRule(frontmatter, body, sourcePath);
     items.push(item);
   }
+
+  // Discover commands from .cursor/commands/ (Phase 4)
+  const commandResult = await discoverCommands(root);
+  items.push(...commandResult.items);
+  warnings.push(...commandResult.warnings);
 
   // Discover .cursorignore (Phase 3)
   const agentIgnore = await discoverCursorIgnore(root);
