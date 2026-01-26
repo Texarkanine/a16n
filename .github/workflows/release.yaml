@@ -97,6 +97,11 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # npm OIDC trusted publishing requires npm v11.5.1+
+      # Node.js 24 ships with npm v11, but we upgrade to latest to ensure compatibility
+      - name: Upgrade npm for OIDC trusted publishing
+        run: npm install -g npm@latest
+
       - name: Publish to npm
         run: pnpm release
         env:
