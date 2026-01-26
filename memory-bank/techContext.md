@@ -30,6 +30,7 @@ enum CustomizationType {
   AgentSkill = 'agent-skill',      // Description-triggered skills
   FileRule = 'file-rule',          // Glob-triggered rules
   AgentIgnore = 'agent-ignore',    // Exclusion patterns (Phase 3)
+  AgentCommand = 'agent-command',  // Slash commands (Phase 4)
 }
 ```
 
@@ -55,12 +56,61 @@ interface A16nPlugin {
 | FileRule | `.cursor/rules/*.mdc` with `globs:` | Comma-separated patterns |
 | AgentSkill | `.cursor/rules/*.mdc` with `description:` | No globs |
 | AgentIgnore | `.cursorignore` | Phase 3: gitignore-style patterns |
+| AgentCommand | `.cursor/commands/**/*.md` | Phase 4: simple commands only |
 
 **Cursor MDC Classification Priority**:
 1. `alwaysApply: true` → GlobalPrompt
 2. `globs:` present → FileRule
 3. `description:` present (no globs) → AgentSkill
 4. None of above → GlobalPrompt (fallback)
+
+## Phase 4: AgentCommand Implementation
+
+### Direction: Cursor → Claude Only
+
+| Direction | From | To | Status |
+|-----------|------|-----|--------|
+| Cursor → Claude | `.cursor/commands/*.md` | `.claude/skills/*/SKILL.md` | ✅ Supported |
+| Claude → Cursor | (none) | (none) | ❌ Unsupported |
+
+**Why one-way**: Claude has no dedicated command concept. Skills serve double duty (auto-triggered AND slash-invocable via `/skill-name`). Claude plugin will never discover AgentCommand entries.
+
+### Simple vs Complex Commands
+
+Commands with special features are NOT translatable:
+
+| Feature | Detection | Example | Behavior |
+|---------|-----------|---------|----------|
+| `$ARGUMENTS` | `/\$ARGUMENTS/` | `Fix #$ARGUMENTS` | Skip |
+| Positional | `/\$[1-9]/` | `PR #$1 by $2` | Skip |
+| Bash | `/!\s*`[^`]+`/` | `!`git status`` | Skip |
+| File refs | `/@\S+/` | `@src/utils.js` | Skip |
+| allowed-tools | Frontmatter | `allowed-tools: Bash(*)` | Skip |
+
+Only simple commands (no special features) can be converted.
+
+### Command → Skill Emission
+
+Cursor command:
+```markdown
+Review this code for:
+- Security vulnerabilities
+- Performance issues
+```
+
+Becomes Claude skill (`.claude/skills/review/SKILL.md`):
+```markdown
+---
+name: "review"
+description: "Invoke with /review"
+---
+
+Review this code for:
+- Security vulnerabilities
+- Performance issues
+```
+
+---
 
 ## Phase 3: AgentIgnore Implementation
 
@@ -124,6 +174,7 @@ Non-Read rules (e.g., `Bash(rm:*)`, `Edit(*)`) are ignored during AgentIgnore di
 | AgentSkill | `.claude/skills/<name>/SKILL.md` | With description frontmatter |
 | AgentSkill (with hooks) | **Unsupported** | Skipped - see below |
 | AgentIgnore | `.claude/settings.json` `permissions.deny` | Phase 3: Read() rules |
+| AgentCommand | `.claude/skills/<name>/SKILL.md` | Phase 4: emitted as skills, never discovered |
 
 #### Claude Skills with Hooks (Unsupported)
 

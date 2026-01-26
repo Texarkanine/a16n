@@ -2,102 +2,108 @@
 
 ## Current Focus
 
-**Task ID**: PHASE3-IMPL  
-**Phase**: Phase 3 Implementation  
-**Status**: 🔄 Planning Complete - Ready for Build
+**Task ID**: PHASE4-AGENTCOMMAND  
+**Phase**: Phase 4 Implementation  
+**Status**: 📋 Planning Complete - Ready for Build
 
 ## Session State
 
-Phase 3 implementation plan has been created. The plan covers bidirectional AgentIgnore conversion and CLI polish features.
+Phase 4 implementation plan has been created. The plan covers Cursor → Claude AgentCommand conversion (one-way only).
 
 ### Planning Documents
-- `planning/PHASE_3_SPEC.md` - Complete specification
+- `planning/ROADMAP.md` - Phase 4 roadmap entry
 - `memory-bank/tasks.md` - Detailed implementation plan with code snippets
 
 ### Scope Summary
 
-**AgentIgnore Bidirectional Support**:
+**AgentCommand Support (Cursor → Claude only)**:
 
-| Direction | From | To |
-|-----------|------|-----|
-| Cursor → Claude | `.cursorignore` | `permissions.deny` Read rules |
-| Claude → Cursor | `permissions.deny` Read rules | `.cursorignore` |
+| Direction | From | To | Status |
+|-----------|------|-----|--------|
+| Cursor → Claude | `.cursor/commands/*.md` | `.claude/skills/*/SKILL.md` | ✅ Supported |
+| Claude → Cursor | (none) | (none) | ❌ Unsupported |
 
-**CLI Polish**:
-- `--verbose` flag for debugging output
-- Colored warnings with icons and hints (using chalk)
-- Improved error messages with suggestions
+**Key Constraint**: Claude has no dedicated command concept. Skills serve double duty (auto-triggered AND slash-invocable). Claude plugin will never discover AgentCommand entries.
 
-### Pattern Translation Reference
+### Simple vs Complex Commands
 
-| `.cursorignore` | Claude `permissions.deny` |
-|-----------------|---------------------------|
-| `.env` | `Read(./.env)` |
-| `dist/` | `Read(./dist/**)` |
-| `*.log` | `Read(./**/*.log)` |
-| `**/*.tmp` | `Read(./**/*.tmp)` |
-| `secrets/` | `Read(./secrets/**)` |
+| Type | Features | Behavior |
+|------|----------|----------|
+| Simple | Plain markdown prompt | Converted to Claude skill |
+| Complex | `$ARGUMENTS`, `$1`-`$9`, `!`bash`, `@refs`, `allowed-tools` | Skipped with warning |
+
+### Command Classification Reference
+
+| Feature | Detection Pattern | Example |
+|---------|-------------------|---------|
+| Arguments | `$ARGUMENTS` | `Fix issue #$ARGUMENTS` |
+| Positional | `$1`, `$2`, etc. | `Review PR #$1` |
+| Bash | `!`command`` | `Branch: !`git branch`` |
+| File refs | `@path` | `Analyze @src/utils.js` |
+| allowed-tools | Frontmatter key | `allowed-tools: Bash(*)` |
 
 ## Implementation Tracks
 
-### Track A: Cursor Plugin (Tasks 1, 2)
-- Discover `.cursorignore` files
-- Emit `.cursorignore` from AgentIgnore items
+### Track A: Models Package (Task 2)
+- Add `AgentCommand` to `CustomizationType` enum
+- Add `AgentCommand` interface with `commandName` field
+- Add `isAgentCommand()` type guard
 
-### Track B: Claude Plugin (Tasks 3, 3b)
-- Emit `permissions.deny` from AgentIgnore items
-- Discover `permissions.deny` Read rules as AgentIgnore
+### Track B: Cursor Plugin (Tasks 3, 4)
+- Discover `.cursor/commands/**/*.md` files
+- Classify as simple (convert) vs complex (skip)
+- Emit AgentCommand as `.cursor/commands/*.md` (pass-through)
 
-### Track C: CLI Polish (Tasks 4, 5, 6)
-- Add `--verbose` flag
-- Improve warning formatting
-- Improve error messages
+### Track C: Claude Plugin (Tasks 5, 6)
+- Emit AgentCommand as `.claude/skills/*/SKILL.md`
+- Confirm no AgentCommand discovery (test)
 
-### Prerequisites (Task 7)
+### Prerequisites (Task 1)
 - Create test fixtures for all scenarios
 
-### Finalization (Tasks 8, 9)
+### Finalization (Tasks 7, 8)
 - Integration tests
 - Documentation updates
 
 ## Files to Modify
 
 ### Models Package
-- No changes needed (all types and helpers already exist)
+- `packages/models/src/types.ts` - Add AgentCommand type
+- `packages/models/src/helpers.ts` - Add isAgentCommand()
+- `packages/models/src/index.ts` - Export new items
 
 ### Cursor Plugin
-- `packages/plugin-cursor/src/discover.ts` - Add `discoverCursorIgnore()`
-- `packages/plugin-cursor/src/emit.ts` - Handle AgentIgnore items
+- `packages/plugin-cursor/src/discover.ts` - Add command discovery
+- `packages/plugin-cursor/src/emit.ts` - Add command emission
 
 ### Claude Plugin
-- `packages/plugin-claude/src/discover.ts` - Add `discoverAgentIgnore()`
-- `packages/plugin-claude/src/emit.ts` - Handle AgentIgnore → permissions.deny
+- `packages/plugin-claude/src/emit.ts` - Emit commands as skills
 
-### CLI
-- `packages/cli/src/index.ts` - Add `--verbose`, improve errors
-- `packages/cli/src/output.ts` - New file for formatted output
-- `packages/cli/package.json` - Add chalk dependency
+### Test Fixtures (New)
+- `packages/plugin-cursor/test/fixtures/cursor-command-*`
+- `packages/cli/test/integration/fixtures/cursor-command-to-claude`
 
 ## Estimated Effort
 
 | Track | Tasks | Estimate |
 |-------|-------|----------|
-| Fixtures | Task 7 | 1 hour |
-| Cursor Plugin | Tasks 1, 2 | 2-3 hours |
-| Claude Plugin | Tasks 3, 3b | 2-4 hours |
-| CLI Polish | Tasks 4, 5, 6 | 3-5 hours |
-| Integration | Task 8 | 2-3 hours |
-| Documentation | Task 9 | 1 hour |
-| **Total** | | **12-18 hours** |
+| Fixtures | Task 1 | 30 min |
+| Models | Task 2 | 30 min |
+| Cursor Plugin | Tasks 3, 4 | 2-3 hours |
+| Claude Plugin | Tasks 5, 6 | 1-2 hours |
+| Integration | Task 7 | 1-2 hours |
+| Documentation | Task 8 | 30 min |
+| **Total** | | **5-8 hours** |
 
 ## Next Command
 
-Run `/niko/build` to begin implementation starting with Task 7 (test fixtures).
+Run `/build` to begin implementation starting with Task 1 (test fixtures).
 
 ## Reference Documents
 
 | Document | Purpose |
 |----------|---------|
-| `planning/PHASE_3_SPEC.md` | Full specification |
+| `planning/ROADMAP.md` | Phase 4 specification |
+| `planning/TECH_BRIEF.md` | AgentCommand architecture notes |
 | `memory-bank/tasks.md` | Detailed implementation plan |
-| `memory-bank/archive/features/` | Past implementation patterns |
+| `memory-bank/techContext.md` | Technical context |

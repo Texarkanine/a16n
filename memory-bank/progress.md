@@ -6,77 +6,71 @@
 |-------|--------|-------|
 | **Phase 1** | ✅ Complete | PR #1 merged (GlobalPrompt MVP) |
 | **Phase 2** | ✅ Complete | PR #3 merged (FileRule + AgentSkill) |
-| **Phase 3** | ✅ Complete | AgentIgnore + CLI polish implemented |
+| **Phase 3** | ✅ Complete | PR #4 merged (AgentIgnore + CLI polish) |
+| **Phase 4** | 📋 Planning Complete | AgentCommand (Cursor → Claude) |
 
 ## Current Session
 
-**Date**: 2026-01-24/25
+**Date**: 2026-01-26
 
-**Task**: Phase 3 Implementation
+**Task**: Phase 4 Implementation - AgentCommand Support
 
-**Accomplishments**:
-1. Implemented AgentIgnore discovery in Cursor plugin (.cursorignore)
-2. Implemented AgentIgnore emission in Cursor plugin (.cursorignore)
-3. Implemented AgentIgnore emission in Claude plugin (permissions.deny)
-4. Implemented AgentIgnore discovery in Claude plugin (permissions.deny)
-5. Added --verbose flag to CLI (convert and discover commands)
-6. Added chalk for colored warning output with icons and hints
-7. Added directory existence validation and improved error messages
-8. Created test fixtures for all AgentIgnore scenarios
-9. Added integration tests including round-trip conversion
-10. Updated README and plugin documentation
-11. Created changeset for version bump
-12. Opened draft PR #4
+**Status**: Ready for Build
 
-## Phase 3 Implementation Plan Summary
+## Phase 4 Implementation Plan Summary
 
-### 10 Tasks Identified
+### 8 Tasks Identified
 
 | # | Task | Package | Dependencies |
 |---|------|---------|--------------|
-| 7 | Test Fixtures | All | None (first) |
-| 1 | Cursor Discover AgentIgnore | plugin-cursor | Task 7 |
-| 2 | Cursor Emit AgentIgnore | plugin-cursor | Task 7 |
-| 3 | Claude Emit AgentIgnore | plugin-claude | Task 7 |
-| 3b | Claude Discover AgentIgnore | plugin-claude | Task 7 |
-| 4 | CLI --verbose Flag | cli | None |
-| 5 | Warning Improvements | cli | None |
-| 6 | Error Improvements | cli, engine | None |
-| 8 | Integration Tests | cli | Tasks 1-6 |
-| 9 | Documentation | all READMEs | Task 8 |
+| 1 | Test Fixtures | All | None (first) |
+| 2 | Models: AgentCommand Type | models | Task 1 |
+| 3 | Cursor: Command Discovery | plugin-cursor | Task 2 |
+| 4 | Cursor: Command Emission | plugin-cursor | Task 2 |
+| 5 | Claude: Command Emission | plugin-claude | Task 2 |
+| 6 | Claude: No Discovery (verify) | plugin-claude | Task 2 |
+| 7 | Integration Tests | cli | Tasks 3-6 |
+| 8 | Documentation | all READMEs | Task 7 |
 
-### Implementation Tracks (Can Run in Parallel)
+### Implementation Tracks (Can Run in Parallel after Task 2)
 
 ```text
-Track A: Cursor Plugin
-  └── Tasks 1, 2 (discover + emit .cursorignore)
+Track A: Models Package
+  └── Task 2 (AgentCommand type + helpers)
 
-Track B: Claude Plugin  
-  └── Tasks 3, 3b (emit + discover permissions.deny)
+Track B: Cursor Plugin (after Task 2)
+  └── Tasks 3, 4 (discover + emit commands)
 
-Track C: CLI Polish
-  └── Tasks 4, 5, 6 (verbose, warnings, errors)
+Track C: Claude Plugin (after Task 2)
+  └── Tasks 5, 6 (emit commands as skills, verify no discovery)
 
-All tracks start after Task 7 (fixtures)
+Track D: Finalization (after Tracks B & C)
+  └── Tasks 7, 8 (integration + docs)
 ```
 
 ### Key Technical Details
 
-**Pattern Conversion Functions**:
-- `convertPatternToReadRule()` - Cursor → Claude
-- `convertReadRuleToPattern()` - Claude → Cursor
+**New Type**:
+- `AgentCommand` interface with `commandName: string` field
 
-**New Dependency**:
-- `chalk` package for CLI colored output
+**New Type Guard**:
+- `isAgentCommand()` helper
 
-**Type Guards Available**:
-- `isAgentIgnore()` already exists in models/helpers.ts
+**Special Feature Detection**:
+- `$ARGUMENTS`, `$1`-`$9` → Skip
+- Bash execution (`!`) → Skip
+- File refs (`@`) → Skip
+- `allowed-tools` frontmatter → Skip
 
-## Phase 3 Readiness Checklist
+**Direction**: Cursor → Claude **only**
+- Claude plugin never discovers AgentCommand
+- Commands emitted as Claude skills with description for `/invocation`
+
+## Phase 4 Readiness Checklist
 
 | Item | Status |
 |------|--------|
-| Spec document reviewed | ✅ |
+| Roadmap entry created | ✅ |
 | Implementation plan created | ✅ |
 | Code snippets drafted | ✅ |
 | File modifications mapped | ✅ |
@@ -85,18 +79,33 @@ All tracks start after Task 7 (fixtures)
 | Parallel tracks identified | ✅ |
 | Memory bank updated | ✅ |
 
+## Estimated Effort
+
+| Track | Tasks | Estimate |
+|-------|-------|----------|
+| Fixtures | Task 1 | 30 min |
+| Models | Task 2 | 30 min |
+| Cursor Plugin | Tasks 3, 4 | 2-3 hours |
+| Claude Plugin | Tasks 5, 6 | 1-2 hours |
+| Integration | Task 7 | 1-2 hours |
+| Documentation | Task 8 | 30 min |
+| **Total** | | **5-8 hours** |
+
 ## Next Steps
 
-1. **Begin /niko/build** - Start with Task 7 (test fixtures)
-2. **Parallel implementation** - Work tracks A, B, C simultaneously
-3. **Integration testing** - After all tracks complete
-4. **PR creation** - With changeset for version bump
+1. **Run /build** - Start with Task 1 (test fixtures)
+2. **Task 2** - Add AgentCommand to models (unlocks other tracks)
+3. **Parallel implementation** - Tasks 3-6 after Task 2
+4. **Integration testing** - Task 7 validates everything
+5. **Documentation** - Task 8 finalizes
+6. **PR creation** - With changeset for version bump
 
 ## Reference Documents
 
 | Document | Purpose |
 |----------|---------|
-| `planning/PHASE_3_SPEC.md` | Full Phase 3 specification |
+| `planning/ROADMAP.md` | Phase 4 roadmap entry |
+| `planning/TECH_BRIEF.md` | AgentCommand architecture notes |
 | `memory-bank/tasks.md` | Detailed implementation plan |
 | `memory-bank/activeContext.md` | Current session context |
-| `memory-bank/archive/features/` | Past implementation patterns |
+| `memory-bank/techContext.md` | Technical context |
