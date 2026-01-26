@@ -281,10 +281,11 @@ export async function emit(
     });
   }
 
+  // Track .claude/skills directory names across skills + commands to prevent collisions
+  const usedSkillNames = new Set<string>();
+
   // === Emit AgentSkills as .claude/skills/*/SKILL.md ===
   if (agentSkills.length > 0) {
-    const usedSkillNames = new Set<string>();
-
     for (const skill of agentSkills) {
       // Get unique skill name to avoid directory collisions
       const baseName = sanitizeFilename(skill.sourcePath);
@@ -373,8 +374,6 @@ export async function emit(
 
   // === Emit AgentCommands as .claude/skills/*/SKILL.md ===
   if (agentCommands.length > 0) {
-    const usedSkillNames = new Set<string>();
-
     for (const command of agentCommands) {
       // Sanitize command name to prevent path traversal
       const baseName = sanitizeCommandName(command.commandName);

@@ -1016,6 +1016,53 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
     });
   });
 
+  describe('collision prevention with AgentSkills', () => {
+    it('should prevent collisions when AgentSkill and AgentCommand have same name', async () => {
+      const models = [
+        {
+          id: createId(CustomizationType.AgentSkill, '.cursor/rules/review.mdc'),
+          type: CustomizationType.AgentSkill,
+          sourcePath: '.cursor/rules/review.mdc',
+          content: 'Skill content for review',
+          description: 'Review skill',
+          metadata: {},
+        } as AgentSkill,
+        {
+          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
+          type: CustomizationType.AgentCommand,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'Command content for review',
+          commandName: 'review',
+          metadata: {},
+        } as AgentCommand,
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+
+      // Both should exist with unique names
+      const skillsDir = path.join(tempDir, '.claude', 'skills');
+      const entries = await fs.readdir(skillsDir);
+      expect(entries).toHaveLength(2);
+      expect(entries.sort()).toEqual(['review', 'review-1']);
+
+      // Verify contents are different
+      const reviewContent = await fs.readFile(
+        path.join(skillsDir, 'review', 'SKILL.md'),
+        'utf-8'
+      );
+      const review1Content = await fs.readFile(
+        path.join(skillsDir, 'review-1', 'SKILL.md'),
+        'utf-8'
+      );
+
+      // First should be skill (processed first), second should be command
+      expect(reviewContent).toContain('Skill content for review');
+      expect(review1Content).toContain('Command content for review');
+    });
+  });
+
   describe('command name sanitization (security)', () => {
     it('should sanitize command names with path traversal attempts', async () => {
       const models: AgentCommand[] = [
