@@ -261,6 +261,7 @@ export async function emit(
     const commandsDir = path.join(root, '.cursor', 'commands');
     await fs.mkdir(commandsDir, { recursive: true });
     const usedCommandNames = new Set<string>();
+    const commandCollisionSources: string[] = [];
 
     for (const command of agentCommands) {
       // Sanitize command name to prevent path traversal
@@ -268,10 +269,14 @@ export async function emit(
       
       // Get unique filename to avoid collisions
       let filename = `${baseName}.md`;
-      let counter = 2;
-      while (usedCommandNames.has(filename)) {
+      if (usedCommandNames.has(filename)) {
+        // Collision detected - track for warning
+        commandCollisionSources.push(command.sourcePath);
+        let counter = 2;
+        while (usedCommandNames.has(`${baseName}-${counter}.md`)) {
+          counter++;
+        }
         filename = `${baseName}-${counter}.md`;
-        counter++;
       }
       usedCommandNames.add(filename);
 
@@ -282,6 +287,15 @@ export async function emit(
         path: commandPath,
         type: CustomizationType.AgentCommand,
         itemCount: 1,
+      });
+    }
+
+    // Emit warning if any command collisions occurred
+    if (commandCollisionSources.length > 0) {
+      warnings.push({
+        code: WarningCode.FileRenamed,
+        message: `Command filename collision: ${commandCollisionSources.length} file(s) renamed to avoid overwrite`,
+        sources: commandCollisionSources,
       });
     }
   }

@@ -198,6 +198,43 @@ Example: `Skipped command 'fix-issue': Contains $ARGUMENTS or positional paramet
 
 ---
 
+## PR #8 CodeRabbit Iteration
+
+**Date**: 2026-01-26 (Iteration 2)
+
+After initial PR submission, CodeRabbit identified several issues. This section documents the fixes.
+
+### Issues Addressed in Iteration 1 (commit 24b43b1)
+
+1. **tasks.md**: Definition of Done checkboxes marked complete
+2. **techContext.md**: Fixed Bash row nested backticks
+3. **plugin-claude/src/emit.ts**: Added path traversal sanitization for AgentCommand
+
+### Issues Addressed in Iteration 2
+
+1. **activeContext.md**: Fixed nested backticks in Command Classification table (Bash row)
+   - Changed `!`command`` to ``!`command` `` using double-backtick escaping
+   
+2. **plugin-cursor/src/emit.ts**: Added collision warning for AgentCommand emission
+   - Tracks `commandCollisionSources` array during emission
+   - Emits `WarningCode.FileRenamed` warning when collisions occur
+   - Consistent with existing collision handling for .mdc files
+
+### Items Verified as Already Complete
+
+1. **cursor-command-mixed/complex.md**: Fixture already contains all complex patterns (!, @, allowed-tools, $ARGUMENTS)
+2. **planning/TECH_BRIEF.md**: Already documents `commandName` field at line 112
+3. **Test coverage**: All complex command patterns (bash, file refs, allowed-tools) have dedicated tests
+
+### Lessons Learned from CodeRabbit Review
+
+1. **Path traversal is a common security concern** - Both emit.ts files (cursor and claude) now have sanitization
+2. **Collision handling should include warnings** - Silent renaming isn't user-friendly
+3. **Nested backticks in markdown require double-backtick escaping** - Use `` `code` `` for literal backticks
+4. **Test coverage validation** - CodeRabbit's analysis of test coverage can be inaccurate; manual verification is needed
+
+---
+
 ## Next Steps
 
 1. **PR Creation**: Create PR with changeset for version bump

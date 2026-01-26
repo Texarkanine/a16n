@@ -43,7 +43,7 @@ Phase 4 implementation and reflection are complete. All AgentCommand functionali
 |---------|-------------------|---------|
 | Arguments | `$ARGUMENTS` | `Fix issue #$ARGUMENTS` |
 | Positional | `$1`, `$2`, etc. | `Review PR #$1` |
-| Bash | `!`command`` | `Branch: !`git branch`` |
+| Bash | ``!`command` `` | ``!`git branch` `` |
 | File refs | `@path` | `Analyze @src/utils.js` |
 | allowed-tools | Frontmatter key | `allowed-tools: Bash(*)` |
 
