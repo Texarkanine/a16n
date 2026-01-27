@@ -183,11 +183,29 @@ describe('Git Utilities', () => {
       expect(content).toContain('CLAUDE.md');
     });
 
-    it('should replace semaphore section on subsequent runs', async () => {
+    it('should accumulate entries across multiple runs', async () => {
       // First run
       await addToGitIgnore(testDir, ['CLAUDE.md']);
       
       // Second run with different entries
+      await addToGitIgnore(testDir, ['.claude/']);
+      
+      const content = await fs.readFile(path.join(testDir, '.gitignore'), 'utf-8');
+      
+      // Should have only one semaphore section
+      const beginCount = (content.match(/# BEGIN a16n managed/g) || []).length;
+      expect(beginCount).toBe(1);
+      
+      // Should contain BOTH old and new entries (accumulation, not replacement)
+      expect(content).toContain('CLAUDE.md');
+      expect(content).toContain('.claude/');
+    });
+
+    it('should deduplicate entries when same entry is added multiple times', async () => {
+      // First run
+      await addToGitIgnore(testDir, ['CLAUDE.md', '.a16n/']);
+      
+      // Second run with some duplicate entries
       await addToGitIgnore(testDir, ['CLAUDE.md', '.claude/']);
       
       const content = await fs.readFile(path.join(testDir, '.gitignore'), 'utf-8');
@@ -196,8 +214,34 @@ describe('Git Utilities', () => {
       const beginCount = (content.match(/# BEGIN a16n managed/g) || []).length;
       expect(beginCount).toBe(1);
       
-      // Should contain new entry
+      // Should contain all unique entries
+      expect(content).toContain('CLAUDE.md');
+      expect(content).toContain('.a16n/');
       expect(content).toContain('.claude/');
+      
+      // CLAUDE.md should appear only once (deduplicated)
+      const claudeCount = (content.match(/CLAUDE\.md/g) || []).length;
+      expect(claudeCount).toBe(1);
+    });
+
+    it('should sort entries alphabetically for deterministic output', async () => {
+      // Add entries in random order
+      await addToGitIgnore(testDir, ['zebra.txt']);
+      await addToGitIgnore(testDir, ['apple.txt']);
+      await addToGitIgnore(testDir, ['mango.txt']);
+      
+      const content = await fs.readFile(path.join(testDir, '.gitignore'), 'utf-8');
+      
+      // Extract entries from semaphore section
+      const beginMarker = '# BEGIN a16n managed';
+      const endMarker = '# END a16n managed';
+      const beginIdx = content.indexOf(beginMarker);
+      const endIdx = content.indexOf(endMarker);
+      const section = content.substring(beginIdx + beginMarker.length, endIdx).trim();
+      const entries = section.split('\n').filter(line => line.trim().length > 0);
+      
+      // Should be sorted alphabetically
+      expect(entries).toEqual(['apple.txt', 'mango.txt', 'zebra.txt']);
     });
 
     it('should handle multiple entries', async () => {
@@ -260,6 +304,30 @@ describe('Git Utilities', () => {
       await expect(addToGitExclude(testDir, ['file.txt'])).rejects.toThrow(
         'Not a git repository'
       );
+    });
+
+    it('should accumulate entries across multiple runs', async () => {
+      // Create .git/info directory
+      await fs.mkdir(path.join(testDir, '.git', 'info'), { recursive: true });
+      
+      // First run
+      await addToGitExclude(testDir, ['CLAUDE.md']);
+      
+      // Second run with different entries
+      await addToGitExclude(testDir, ['.claude/']);
+      
+      const content = await fs.readFile(
+        path.join(testDir, '.git', 'info', 'exclude'),
+        'utf-8'
+      );
+      
+      // Should have only one semaphore section
+      const beginCount = (content.match(/# BEGIN a16n managed/g) || []).length;
+      expect(beginCount).toBe(1);
+      
+      // Should contain BOTH old and new entries (accumulation, not replacement)
+      expect(content).toContain('CLAUDE.md');
+      expect(content).toContain('.claude/');
     });
   });
 

@@ -13,12 +13,12 @@
 | **Type** | Bug Fix |
 | **Parent** | PHASE5-BUGFIXES |
 | **Estimated Effort** | 1-2 hours |
-| **Build Status** | 🔨 In Progress |
+| **Build Status** | ✅ Complete |
 | **Reflection Status** | ⏳ Pending |
 
 ## Summary
 
-Fix 4 bugs discovered after reflection on Phase 5 bug fixes (3 complete, 1 in progress).
+Fixed all 8 bugs discovered during Phase 5 implementation and testing (all complete).
 
 ## New Bug Report (Round 3)
 
@@ -267,15 +267,18 @@ Would gitignore:
 - [x] Add integration test for match mode routing to `.git/info/exclude`
 - [x] Update dry-run output to show correct destination per file
 
-### Bug 8 Fix: Semaphore section accumulation
-- [ ] Add test for semaphore section preserving existing entries on subsequent runs
-- [ ] Add test for deduplication (same entry added twice should appear once)
-- [ ] Modify `updateSemaphoreSection()` to:
-  - [ ] Extract existing entries from between semaphore markers
-  - [ ] Merge with new entries (union)
-  - [ ] Deduplicate entries
-  - [ ] Write merged list
-- [ ] Verify all existing tests still pass
+### Bug 8 Fix: Semaphore section accumulation ✅
+- [x] Add test for semaphore section preserving existing entries on subsequent runs
+- [x] Add test for deduplication (same entry added twice should appear once)
+- [x] Add test for sorted entries (deterministic output)
+- [x] Add test for addToGitExclude accumulation
+- [x] Modify `updateSemaphoreSection()` to:
+  - [x] Extract existing entries from between semaphore markers
+  - [x] Merge with new entries (union)
+  - [x] Deduplicate entries (using Set)
+  - [x] Sort entries alphabetically
+  - [x] Write merged list
+- [x] Verify all existing tests still pass (289 tests)
 
 ---
 

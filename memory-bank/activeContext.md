@@ -5,15 +5,16 @@
 
 ## Current Focus
 
-**Phase 5 Bug Fixes - Round 3** — Bug 8 in progress (semaphore accumulation).
+**Phase 5 Bug Fixes - Complete** — All bugs fixed (Rounds 1-3).
 
 ## Session State
 
 - Phase 5 core implementation: ✅ Complete (Tasks 1-9)
 - Phase 5 reflection: ✅ Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md`
-- Bug fix task Round 1: ✅ Complete (Level 2)
+- Bug fix task Round 1: ✅ Complete (B1-B4, E1)
 - Bug fix reflection: ✅ Created `memory-bank/reflection/reflection-PHASE5-BUGFIXES.md`
-- Bug fix task Round 2: 🔨 In Progress (Bug 7)
+- Bug fix task Round 2: ✅ Complete (B5-B7)
+- Bug fix task Round 3: ✅ Complete (B8)
 
 ## Bug Summary
 
@@ -35,11 +36,11 @@
 | B6 | Low | ✅ Fixed - Match mode shows per-file details |
 | B7 | High | ✅ Fixed - Match mode routes to correct gitignore destination |
 
-### Round 3 (In Progress)
+### Round 3 (Complete)
 
 | Item | Severity | Status |
 |------|----------|--------|
-| B8 | High | 🔨 Semaphore section replaces instead of accumulates |
+| B8 | High | ✅ Fixed - Semaphore section now accumulates entries |
 
 ## Recent Decisions
 
@@ -95,23 +96,29 @@
 - 5 unit tests for `getIgnoreSource()` in `git-ignore.test.ts`
 - 2 integration tests for match mode routing in `cli.test.ts`
 
-## In Progress
+## Completed This Session
 
-### Bug 8 (Semaphore section accumulation)
+### Bug 8 (Semaphore section accumulation) ✅
 
-**Problem:** When running conversion multiple times, the semaphore section REPLACES content instead of MERGING. Previously added entries are lost.
+**Problem:** When running conversion multiple times, the semaphore section REPLACED content instead of MERGING. Previously added entries were lost.
 
-**Root Cause:** `updateSemaphoreSection()` in `git-ignore.ts` replaces the entire semaphore section with new entries instead of merging with existing ones.
+**Root Cause:** `updateSemaphoreSection()` in `git-ignore.ts` replaced the entire semaphore section with new entries instead of merging with existing ones.
 
-**Implementation Plan:**
-1. Modify `updateSemaphoreSection()` to:
+**Fix Implemented:**
+1. Modified `updateSemaphoreSection()` to:
    - Extract existing entries from between semaphore markers
-   - Merge with new entries (union)
-   - Deduplicate entries (prevent duplicates)
-   - Sort entries for deterministic output
-   - Write merged list
-2. Add tests for accumulation behavior
-3. Add tests for deduplication
+   - Merge with new entries using Set (union)
+   - Deduplicate entries automatically via Set
+   - Sort entries alphabetically for deterministic output
+   - Write merged list back to semaphore section
+
+**Tests Added:**
+- `should accumulate entries across multiple runs` (addToGitIgnore)
+- `should deduplicate entries when same entry is added multiple times`
+- `should sort entries alphabetically for deterministic output`
+- `should accumulate entries across multiple runs` (addToGitExclude)
+
+**Verification:** All 289 tests pass across all 6 packages
 
 ## Context from Prior Phases
 

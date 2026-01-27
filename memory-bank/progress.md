@@ -125,6 +125,20 @@
 - 5 new unit tests for `getIgnoreSource()`
 - 2 new integration tests for match mode routing
 
+### Bug Fix Session Round 3 (2026-01-27)
+
+| Bug | Status | Fix Summary |
+|-----|--------|-------------|
+| B8 | ✅ Complete | Fixed semaphore section to accumulate entries instead of replacing |
+
+**B8 Implementation Details:**
+- Modified `updateSemaphoreSection()` in `git-ignore.ts` to:
+  - Extract existing entries from between semaphore markers
+  - Merge with new entries using Set (deduplication)
+  - Sort entries alphabetically for deterministic output
+  - Write merged list back to file
+- 4 new tests: accumulation (gitignore + exclude), deduplication, sorting
+
 ### Reflection Complete
 - Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md` (Phase 5 core)
 - Created `memory-bank/reflection/reflection-PHASE5-BUGFIXES.md` (Bug fixes)
@@ -154,7 +168,7 @@
 | QA Validation | ✅ PASSED (2026-01-26) |
 | Build | ✅ All 6 packages built successfully |
 | Lint | ✅ Passed |
-| Tests | ✅ All 286 tests passed |
+| Tests | ✅ All 289 tests passed (2026-01-27) |
 
 ## Next Actions
 

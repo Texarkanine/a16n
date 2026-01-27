@@ -295,11 +295,12 @@ export async function updatePreCommitHook(
 
 /**
  * Update content with semaphore-wrapped section.
- * Preserves content outside semaphores, replaces content within.
+ * Preserves content outside semaphores.
+ * Accumulates and deduplicates entries within semaphore section.
  * 
  * @param content - Existing file content
- * @param entries - Entries to include (for gitignore) or lines (for hooks)
- * @returns Updated content with semaphore section
+ * @param entries - New entries to add (for gitignore) or lines (for hooks)
+ * @returns Updated content with semaphore section containing merged entries
  */
 function updateSemaphoreSection(
   content: string,
@@ -312,24 +313,38 @@ function updateSemaphoreSection(
   const endIndex = lines.findIndex(l => l.trim() === SEMAPHORE_END);
 
   let result: string[];
+  let mergedEntries: string[];
   
   if (beginIndex !== -1 && endIndex !== -1 && endIndex > beginIndex) {
-    // Replace existing semaphore section
+    // Extract existing entries from semaphore section
+    const existingEntries = lines
+      .slice(beginIndex + 1, endIndex)
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    
+    // Merge existing with new entries, deduplicate, and sort
+    const allEntries = new Set([...existingEntries, ...entries]);
+    mergedEntries = [...allEntries].sort();
+    
+    // Replace existing semaphore section with merged entries
     result = [
       ...lines.slice(0, beginIndex),
       SEMAPHORE_BEGIN,
-      ...entries,
+      ...mergedEntries,
       SEMAPHORE_END,
       ...lines.slice(endIndex + 1),
     ];
   } else {
+    // No existing section - deduplicate and sort new entries
+    mergedEntries = [...new Set(entries)].sort();
+    
     // Append new semaphore section
     const hasTrailingNewline = content.endsWith('\n') || content === '';
     result = [
       ...lines.filter(l => l.length > 0 || lines.length === 1),
       ...(content && !hasTrailingNewline ? [''] : []),
       SEMAPHORE_BEGIN,
-      ...entries,
+      ...mergedEntries,
       SEMAPHORE_END,
       '', // Trailing newline
     ];
