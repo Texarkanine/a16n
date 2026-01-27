@@ -285,9 +285,8 @@ describe('CLI', () => {
       expect(exitCode).toBe(0);
       // Should show per-file details in match mode
       // Format: "  <filename> → <destination>"
-      if (stdout.includes('Would update .gitignore')) {
-        expect(stdout).toMatch(/CLAUDE\.md.*→.*\.gitignore/);
-      }
+      expect(stdout).toContain('Would update .gitignore');
+      expect(stdout).toMatch(/CLAUDE\.md.*→.*\.gitignore/);
     });
 
     it('should route outputs to .git/info/exclude when source is ignored via exclude', async () => {
@@ -313,9 +312,8 @@ describe('CLI', () => {
       expect(exitCode).toBe(0);
       // Should show the correct destination (.git/info/exclude) for files ignored via exclude
       // Format: "Would update .git/info/exclude (X entries)"
-      if (stdout.includes('Would update')) {
-        expect(stdout).toContain('.git/info/exclude');
-      }
+      expect(stdout).toContain('Would update');
+      expect(stdout).toContain('.git/info/exclude');
     });
 
     it('should actually write to .git/info/exclude in match mode (non-dry-run)', async () => {

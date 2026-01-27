@@ -47,6 +47,10 @@ async function execGit(
       stderr += data.toString();
     });
 
+    proc.on('error', (err) => {
+      resolve({ stdout: '', stderr: err.message, exitCode: 1 });
+    });
+
     proc.on('close', (code) => {
       resolve({ stdout, stderr, exitCode: code ?? 0 });
     });
@@ -278,7 +282,8 @@ export async function updatePreCommitHook(
   }
 
   // Generate hook command (just the command, not the whole section)
-  const quotedEntries = entries.map(e => `"${e}"`).join(' ');
+  // Escape single quotes and wrap in single quotes for shell safety
+  const quotedEntries = entries.map(e => `'${e.replace(/'/g, "'\\''")}'`).join(' ');
   const command = `git reset HEAD -- ${quotedEntries} 2>/dev/null || true`;
 
   const newContent = updateSemaphoreSection(content, [command]);

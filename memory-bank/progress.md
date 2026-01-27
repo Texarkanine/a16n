@@ -173,12 +173,8 @@
 
 ## Next Actions
 
-1. Start Batch 1 tasks (parallel):
-   - Task 1: `WrittenFile.isNewFile`
-   - Task 3: CLI flag
-   - Task 4: `git-ignore.ts`
-   - Task 10: Test fixtures
-
-2. After Batch 1, start Batch 2 tasks (parallel):
-   - Task 2: Plugin updates
-   - Tasks 5-8: Style implementations
+1. Complete Task 10: Test fixtures
+2. Complete Task 11: Integration tests
+3. Complete Task 12: Documentation
+4. Run acceptance criteria verification
+5. Create PR for merge

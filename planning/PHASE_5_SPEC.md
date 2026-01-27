@@ -198,7 +198,7 @@ a16n convert --from cursor --to claude --gitignore-output-with match .
 
 **Then**:
 - Warning is emitted:
-  ```
+  ```text
   ⚠ Cannot match git-ignore status: source '.cursor/rules/local/dev.mdc' is ignored,
     but output 'CLAUDE.md' already exists and is tracked.
     Output file's git status will not be changed.

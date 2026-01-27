@@ -72,10 +72,10 @@
 
 ### Bug 6 (Dry-run match details) ✅
 1. Added test in `cli.test.ts` for match mode per-file output
-2. Updated CLI to show per-file details: `  <filename> → <destination>`
+2. Updated CLI to show per-file details: `<filename> → <destination>`
 3. All 56 CLI tests pass
 
-## Completed Implementation
+## Completed Implementation (Round 2)
 
 ### Bug 7 (Match mode destination attribution) ✅
 
