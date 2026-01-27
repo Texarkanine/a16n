@@ -5,7 +5,7 @@
 
 ## Current Focus
 
-**Phase 5 Bug Fixes - Round 2** — All bugs complete!
+**Phase 5 Bug Fixes - Round 3** — Bug 8 in progress (semaphore accumulation).
 
 ## Session State
 
@@ -34,6 +34,12 @@
 | B5 | Medium | ✅ Fixed - Empty globs fall through to AgentSkill |
 | B6 | Low | ✅ Fixed - Match mode shows per-file details |
 | B7 | High | ✅ Fixed - Match mode routes to correct gitignore destination |
+
+### Round 3 (In Progress)
+
+| Item | Severity | Status |
+|------|----------|--------|
+| B8 | High | 🔨 Semaphore section replaces instead of accumulates |
 
 ## Recent Decisions
 
@@ -88,6 +94,24 @@
 **Tests Added:**
 - 5 unit tests for `getIgnoreSource()` in `git-ignore.test.ts`
 - 2 integration tests for match mode routing in `cli.test.ts`
+
+## In Progress
+
+### Bug 8 (Semaphore section accumulation)
+
+**Problem:** When running conversion multiple times, the semaphore section REPLACES content instead of MERGING. Previously added entries are lost.
+
+**Root Cause:** `updateSemaphoreSection()` in `git-ignore.ts` replaces the entire semaphore section with new entries instead of merging with existing ones.
+
+**Implementation Plan:**
+1. Modify `updateSemaphoreSection()` to:
+   - Extract existing entries from between semaphore markers
+   - Merge with new entries (union)
+   - Deduplicate entries (prevent duplicates)
+   - Sort entries for deterministic output
+   - Write merged list
+2. Add tests for accumulation behavior
+3. Add tests for deduplication
 
 ## Context from Prior Phases
 

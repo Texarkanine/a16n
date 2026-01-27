@@ -13,12 +13,54 @@
 | **Type** | Bug Fix |
 | **Parent** | PHASE5-BUGFIXES |
 | **Estimated Effort** | 1-2 hours |
-| **Build Status** | ✅ Complete |
+| **Build Status** | 🔨 In Progress |
 | **Reflection Status** | ⏳ Pending |
 
 ## Summary
 
-Fix 3 bugs discovered after reflection on Phase 5 bug fixes (all 3 complete).
+Fix 4 bugs discovered after reflection on Phase 5 bug fixes (3 complete, 1 in progress).
+
+## New Bug Report (Round 3)
+
+### Bug 8: Semaphore section replaces instead of accumulates (High)
+
+**Symptom:** When running conversion multiple times with `--gitignore-output-with match`, the semaphore section loses previously added entries. Only the newest files are kept.
+
+**Execution trace:**
+```
+# First run - creates CLAUDE.md, skills, etc. All added to .git/info/exclude
+# Second run - user added a FileRule (helm-templates.mdc)
+$ a16n convert --from cursor --to claude --gitignore-output-with match --verbose
+
+[verbose] No new files to manage (all outputs are edits to existing files)
+# But .git/info/exclude only has:
+# .a16n/rules/helm-templates.md
+# .claude/settings.local.json
+# Missing: CLAUDE.md, .claude/skills/*, etc.
+```
+
+**Expected:** Semaphore section should accumulate entries across runs. Previously added files should remain.
+
+**Root Cause:** In `git-ignore.ts`, `updateSemaphoreSection()` at lines 316-324:
+```typescript
+if (beginIndex !== -1 && endIndex !== -1 && endIndex > beginIndex) {
+  // Replace existing semaphore section  <-- BUG: REPLACES instead of MERGES
+  result = [
+    ...lines.slice(0, beginIndex),
+    SEMAPHORE_BEGIN,
+    ...entries,  // <-- Only new entries, loses existing ones
+    SEMAPHORE_END,
+    ...lines.slice(endIndex + 1),
+  ];
+}
+```
+
+**Fix:** Modify `updateSemaphoreSection()` to:
+1. Extract existing entries from the semaphore section
+2. Merge them with new entries (union, deduplicated)
+3. Write the merged list
+
+---
 
 ## New Bug Reports (Round 2)
 
@@ -225,6 +267,16 @@ Would gitignore:
 - [x] Add integration test for match mode routing to `.git/info/exclude`
 - [x] Update dry-run output to show correct destination per file
 
+### Bug 8 Fix: Semaphore section accumulation
+- [ ] Add test for semaphore section preserving existing entries on subsequent runs
+- [ ] Add test for deduplication (same entry added twice should appear once)
+- [ ] Modify `updateSemaphoreSection()` to:
+  - [ ] Extract existing entries from between semaphore markers
+  - [ ] Merge with new entries (union)
+  - [ ] Deduplicate entries
+  - [ ] Write merged list
+- [ ] Verify all existing tests still pass
+
 ---
 
 ## Previous Implementation Checklist (Round 1 - All Complete)
@@ -261,16 +313,16 @@ Would gitignore:
 
 ---
 
-## Files to Modify (Round 2)
+## Files to Modify (Round 2 + Round 3)
 
 | File | Bug(s) | Changes |
 |------|--------|---------|
 | `packages/plugin-cursor/src/discover.ts` | B5 ✅ | Check parsed globs length before classifying as FileRule |
 | `packages/plugin-cursor/test/discover.test.ts` | B5 ✅ | Add tests for empty/whitespace globs with description |
-| `packages/cli/src/index.ts` | B6 ✅, B7 | Show per-file details; route to correct destination |
-| `packages/cli/test/cli.test.ts` | B6 ✅ | Add test for match mode per-file output |
-| `packages/cli/src/git-ignore.ts` | B7 | Add `getIgnoreSource()` function |
-| `packages/cli/test/git-ignore.test.ts` | B7 | Add tests for `getIgnoreSource()` |
+| `packages/cli/src/index.ts` | B6 ✅, B7 ✅ | Show per-file details; route to correct destination |
+| `packages/cli/test/cli.test.ts` | B6 ✅, B7 ✅ | Add tests for match mode per-file output and routing |
+| `packages/cli/src/git-ignore.ts` | B7 ✅, B8 | Add `getIgnoreSource()`; fix semaphore accumulation |
+| `packages/cli/test/git-ignore.test.ts` | B7 ✅, B8 | Add tests for `getIgnoreSource()` and accumulation |
 
 ## Files Modified (Round 1 - Complete)
 
@@ -298,7 +350,7 @@ Would gitignore:
 - Only match mode shows per-file details (other modes show summary)
 ```
 
-### Bug 7 Tests
+### Bug 7 Tests ✅
 ```
 Unit tests for getIgnoreSource():
 - Returns '.gitignore' when file is ignored via .gitignore
@@ -311,6 +363,16 @@ Integration tests for match mode:
 - Source in .gitignore → output goes to .gitignore
 - Mixed sources → outputs grouped by destination
 - Dry-run shows correct destination per file
+```
+
+### Bug 8 Tests
+```
+Unit tests for updateSemaphoreSection accumulation:
+- addToGitIgnore preserves existing entries when adding new ones
+- addToGitExclude preserves existing entries when adding new ones
+- Duplicate entries are deduplicated (same file added twice → appears once)
+- Order of entries is deterministic (sorted alphabetically)
+- Entries from outside semaphore section are not affected
 ```
 
 ---
