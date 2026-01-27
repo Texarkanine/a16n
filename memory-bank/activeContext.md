@@ -5,7 +5,7 @@
 
 ## Current Focus
 
-**Phase 5 Bug Fixes - Round 2** — Both bugs fixed and tested.
+**Phase 5 Bug Fixes - Round 2** — Bug 7 in progress (match mode destination attribution).
 
 ## Session State
 
@@ -13,7 +13,7 @@
 - Phase 5 reflection: ✅ Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md`
 - Bug fix task Round 1: ✅ Complete (Level 2)
 - Bug fix reflection: ✅ Created `memory-bank/reflection/reflection-PHASE5-BUGFIXES.md`
-- Bug fix task Round 2: ✅ Complete
+- Bug fix task Round 2: 🔨 In Progress (Bug 7)
 
 ## Bug Summary
 
@@ -27,12 +27,13 @@
 | B4 | Medium | ✅ Fixed - Empty globs validated and skipped |
 | E1 | Low | ✅ Fixed - FileRule files now use `.md` |
 
-### Round 2 (Complete)
+### Round 2 (In Progress)
 
 | Item | Severity | Status |
 |------|----------|--------|
 | B5 | Medium | ✅ Fixed - Empty globs fall through to AgentSkill |
 | B6 | Low | ✅ Fixed - Match mode shows per-file details |
+| B7 | High | 🔨 Match mode routes to wrong gitignore destination |
 
 ## Recent Decisions
 
@@ -66,6 +67,23 @@
 1. Added test in `cli.test.ts` for match mode per-file output
 2. Updated CLI to show per-file details: `  <filename> → <destination>`
 3. All 56 CLI tests pass
+
+## In Progress
+
+### Bug 7 (Match mode destination attribution)
+
+**Problem:** `isGitIgnored()` only returns boolean, not WHERE file is ignored from.
+
+**Implementation Plan:**
+1. Add `getIgnoreSource(root, filepath)` function to `git-ignore.ts`
+   - Uses `git check-ignore --verbose <filepath>`
+   - Parses output: `<source>:<linenum>:<pattern><TAB><pathname>`
+   - Returns source file path (e.g., `.gitignore`, `.git/info/exclude`) or null
+2. Update match mode in `index.ts`:
+   - Get ignore source for each source file
+   - Group outputs by destination
+   - Add outputs to `.gitignore` OR `.git/info/exclude` accordingly
+3. Update dry-run output to show correct destination
 
 ## Context from Prior Phases
 

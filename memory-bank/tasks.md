@@ -13,12 +13,12 @@
 | **Type** | Bug Fix |
 | **Parent** | PHASE5-BUGFIXES |
 | **Estimated Effort** | 1-2 hours |
-| **Build Status** | ✅ Complete |
+| **Build Status** | 🔨 In Progress |
 | **Reflection Status** | ⏳ Pending |
 
 ## Summary
 
-Fix 2 additional bugs discovered after reflection on Phase 5 bug fixes.
+Fix 3 bugs discovered after reflection on Phase 5 bug fixes (2 complete, 1 in progress).
 
 ## New Bug Reports (Round 2)
 
@@ -57,7 +57,44 @@ if (frontmatter.globs) {  // truthy even for whitespace-only string
 
 ---
 
-### Bug 6: Dry-run match mode missing per-file details (Low)
+### Bug 6: Dry-run match mode missing per-file details (Low) ✅ Fixed
+
+---
+
+### Bug 7: Match mode uses wrong gitignore destination (High)
+
+**Symptom:** When source files are ignored via `.git/info/exclude`, the `match` mode incorrectly adds output files to `.gitignore` instead of `.git/info/exclude`.
+
+**Execution trace:**
+```
+$ cat .git/info/exclude
+.cursor/rules/local/
+
+$ a16n convert --from cursor --to claude --dry-run --gitignore-output-with match
+Would update .gitignore (6 entries)        # WRONG! Should be .git/info/exclude
+  CLAUDE.md → .gitignore                   # WRONG!
+```
+
+**Expected:** Output files should go to the SAME ignore file as their source. If source is ignored via `.git/info/exclude`, output should also go to `.git/info/exclude`.
+
+**Root Cause:** In `packages/cli/src/index.ts` match mode:
+1. `isGitIgnored()` only returns boolean - doesn't tell us WHERE the source is ignored
+2. Always calls `addToGitIgnore()` regardless of where source was ignored
+
+**Fix:**
+1. Add `getIgnoreSource()` function using `git check-ignore --verbose`
+2. Update match mode to route outputs to the same destination as source
+3. May need to track multiple destinations if sources come from different ignore files
+
+**git check-ignore --verbose output format:**
+```
+<source>:<linenum>:<pattern><TAB><pathname>
+```
+Example: `.git/info/exclude:5:.cursor/rules/local/    .cursor/rules/local/foo.mdc`
+
+---
+
+### Bug 6 (Original): Dry-run match mode missing per-file details (Low)
 
 **Symptom:** When using `--gitignore-output-with match` in dry-run, output shows:
 ```
@@ -166,17 +203,27 @@ Would gitignore:
 
 ## Implementation Checklist (Round 2)
 
-### Bug 5 Fix: FileRule vs AgentSkill classification
+### Bug 5 Fix: FileRule vs AgentSkill classification ✅
 - [x] Add test for rule with empty `globs:` and `description:` → should be AgentSkill
 - [x] Add test for rule with valid globs to verify no regression
 - [x] Fix `classifyRule()` in `packages/plugin-cursor/src/discover.ts` to check parsed globs length
 - [x] Update classification comment/docstring for clarity
 - [x] Verify no regression for rules with valid globs
 
-### Bug 6 Fix: Dry-run match mode per-file details
+### Bug 6 Fix: Dry-run match mode per-file details ✅
 - [x] Add test for dry-run match mode showing per-file details
 - [x] Update CLI output to show per-file gitignore destinations in match mode
 - [x] Only show detailed output for match mode (other modes are straightforward)
+
+### Bug 7 Fix: Match mode gitignore destination attribution
+- [ ] Add `getIgnoreSource()` function to `git-ignore.ts` using `git check-ignore --verbose`
+- [ ] Add tests for `getIgnoreSource()` returning correct source file
+- [ ] Update match mode in CLI to:
+  - [ ] Get ignore source for each source file
+  - [ ] Group output files by destination (`.gitignore` vs `.git/info/exclude`)
+  - [ ] Add outputs to correct destination(s)
+- [ ] Add integration test for match mode routing to `.git/info/exclude`
+- [ ] Update dry-run output to show correct destination per file
 
 ---
 
@@ -218,10 +265,12 @@ Would gitignore:
 
 | File | Bug(s) | Changes |
 |------|--------|---------|
-| `packages/plugin-cursor/src/discover.ts` | B5 | Check parsed globs length before classifying as FileRule |
-| `packages/plugin-cursor/test/discover.test.ts` | B5 | Add tests for empty/whitespace globs with description |
-| `packages/cli/src/index.ts` | B6 | Show per-file gitignore details in match mode dry-run |
-| `packages/cli/test/git-ignore.test.ts` | B6 | Add test for match mode per-file output |
+| `packages/plugin-cursor/src/discover.ts` | B5 ✅ | Check parsed globs length before classifying as FileRule |
+| `packages/plugin-cursor/test/discover.test.ts` | B5 ✅ | Add tests for empty/whitespace globs with description |
+| `packages/cli/src/index.ts` | B6 ✅, B7 | Show per-file details; route to correct destination |
+| `packages/cli/test/cli.test.ts` | B6 ✅ | Add test for match mode per-file output |
+| `packages/cli/src/git-ignore.ts` | B7 | Add `getIgnoreSource()` function |
+| `packages/cli/test/git-ignore.test.ts` | B7 | Add tests for `getIgnoreSource()` |
 
 ## Files Modified (Round 1 - Complete)
 
@@ -234,7 +283,7 @@ Would gitignore:
 
 ## Test Plan (Round 2)
 
-### Bug 5 Tests
+### Bug 5 Tests ✅
 ```
 - Rule with `globs:` (empty string) + `description:` → AgentSkill (not FileRule)
 - Rule with `globs: ` (whitespace) + `description:` → AgentSkill (not FileRule)
@@ -242,11 +291,26 @@ Would gitignore:
 - Rule with valid `globs: **/*.ts` + `description:` → FileRule (globs takes precedence)
 ```
 
-### Bug 6 Tests
+### Bug 6 Tests ✅
 ```
 - Dry-run with --gitignore-output-with match shows per-file details
 - Output format: "  <filename> → <destination>"
 - Only match mode shows per-file details (other modes show summary)
+```
+
+### Bug 7 Tests
+```
+Unit tests for getIgnoreSource():
+- Returns '.gitignore' when file is ignored via .gitignore
+- Returns '.git/info/exclude' when file is ignored via .git/info/exclude
+- Returns null when file is not ignored
+- Works with glob patterns (e.g., 'local/' matches 'local/foo.txt')
+
+Integration tests for match mode:
+- Source in .git/info/exclude → output goes to .git/info/exclude
+- Source in .gitignore → output goes to .gitignore
+- Mixed sources → outputs grouped by destination
+- Dry-run shows correct destination per file
 ```
 
 ---
