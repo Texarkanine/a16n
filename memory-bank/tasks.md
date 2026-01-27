@@ -7,22 +7,81 @@
 
 | Field | Value |
 |-------|-------|
-| **Task ID** | PHASE5-BUGFIXES |
-| **Title** | Phase 5 Bug Fixes |
+| **Task ID** | PHASE5-BUGFIXES-2 |
+| **Title** | Phase 5 Bug Fixes - Round 2 |
 | **Complexity** | Level 2 (Simple Enhancement) |
 | **Type** | Bug Fix |
-| **Parent** | PHASE5-GITIGNORE |
-| **Estimated Effort** | 2-4 hours |
-| **Build Status** | ✅ Complete |
-| **Reflection Status** | ✅ Complete |
+| **Parent** | PHASE5-BUGFIXES |
+| **Estimated Effort** | 1-2 hours |
+| **Build Status** | 🔨 In Progress |
+| **Reflection Status** | ⏳ Pending |
 
 ## Summary
 
-Fix 4 bugs discovered during manual testing of Phase 5 git-ignore output management feature, plus 1 enhancement for better UX.
+Fix 2 additional bugs discovered after reflection on Phase 5 bug fixes.
 
-## Bug Reports
+## New Bug Reports (Round 2)
 
-### Bug 1: Dry-run doesn't show planned git changes (Medium)
+### Bug 5: FileRule vs AgentSkill Classification (Medium)
+
+**Symptom:** When a Cursor rule has empty `globs:` but has `description:`, it's classified as FileRule instead of AgentSkill. The Claude emit then skips it with "FileRule skipped due to empty globs".
+
+**Example input:**
+```yaml
+---
+description: when to do a thing properly
+globs: 
+alwaysApply: false
+---
+
+rule content...
+```
+
+**Expected:** Should be classified as AgentSkill (has description, no valid globs).
+
+**Root Cause:** In `packages/plugin-cursor/src/discover.ts` line 86:
+```typescript
+if (frontmatter.globs) {  // truthy even for whitespace-only string
+  const globs = parseGlobs(frontmatter.globs);
+  return { ... } as FileRule;  // BUG: doesn't check if globs array is non-empty
+}
+```
+
+**Correct precedence (per Cursor docs):**
+1. `alwaysApply: true` → GlobalPrompt
+2. `globs` (non-empty after parsing) → FileRule
+3. `description` → AgentSkill
+4. None of above → manual rule (fallback to GlobalPrompt)
+
+**Fix:** Check if `parseGlobs()` returns a non-empty array before classifying as FileRule.
+
+---
+
+### Bug 6: Dry-run match mode missing per-file details (Low)
+
+**Symptom:** When using `--gitignore-output-with match` in dry-run, output shows:
+```
+Would update .gitignore (X entries)
+```
+
+But doesn't show WHICH files would be gitignored and to WHICH destination.
+
+**Expected:** Dry-run with match mode should show per-file details:
+```
+Would gitignore:
+  CLAUDE.md → .gitignore
+  .a16n/rules/local.md → .gitignore
+```
+
+**Root Cause:** In `packages/cli/src/index.ts` lines 231-236, the output only shows summary, not per-file breakdown.
+
+**Fix:** When `--gitignore-output-with match` and `--dry-run`, show which files would be added to which gitignore destination.
+
+---
+
+## Previous Bug Reports (Round 1 - All Fixed)
+
+### Bug 1: Dry-run doesn't show planned git changes (Medium) ✅
 
 **Symptom:** When using `--dry-run` with any `--gitignore-output-with` style other than `none`, no information about planned git changes is shown.
 
@@ -105,9 +164,25 @@ Fix 4 bugs discovered during manual testing of Phase 5 git-ignore output managem
 
 ---
 
-## Implementation Checklist
+## Implementation Checklist (Round 2)
 
-### Bug 1 Fix: Dry-run git preview
+### Bug 5 Fix: FileRule vs AgentSkill classification
+- [ ] Add test for rule with empty `globs:` and `description:` → should be AgentSkill
+- [ ] Add test for rule with whitespace-only `globs:` and `description:` → should be AgentSkill
+- [ ] Fix `classifyRule()` in `packages/plugin-cursor/src/discover.ts` to check parsed globs length
+- [ ] Update classification comment/docstring for clarity
+- [ ] Verify no regression for rules with valid globs
+
+### Bug 6 Fix: Dry-run match mode per-file details
+- [ ] Add test for dry-run match mode showing per-file details
+- [ ] Update CLI output to show per-file gitignore destinations in match mode
+- [ ] Only show detailed output for match mode (other modes are straightforward)
+
+---
+
+## Previous Implementation Checklist (Round 1 - All Complete)
+
+### Bug 1 Fix: Dry-run git preview ✅
 - [x] Refactor git management to separate "plan" from "execute"
 - [x] In dry-run mode, run planning phase and output planned changes
 - [x] Add test for dry-run showing git changes
@@ -139,7 +214,16 @@ Fix 4 bugs discovered during manual testing of Phase 5 git-ignore output managem
 
 ---
 
-## Files to Modify
+## Files to Modify (Round 2)
+
+| File | Bug(s) | Changes |
+|------|--------|---------|
+| `packages/plugin-cursor/src/discover.ts` | B5 | Check parsed globs length before classifying as FileRule |
+| `packages/plugin-cursor/test/discover.test.ts` | B5 | Add tests for empty/whitespace globs with description |
+| `packages/cli/src/index.ts` | B6 | Show per-file gitignore details in match mode dry-run |
+| `packages/cli/test/git-ignore.test.ts` | B6 | Add test for match mode per-file output |
+
+## Files Modified (Round 1 - Complete)
 
 | File | Bug(s) / Enhancement | Changes |
 |------|---------------------|---------|
@@ -148,7 +232,26 @@ Fix 4 bugs discovered during manual testing of Phase 5 git-ignore output managem
 | `packages/cli/test/git-ignore.test.ts` | B1, B2 | Add dry-run and glob tests |
 | `packages/plugin-claude/test/emit.test.ts` | B4, E1 | Add empty globs test, update `.md` expectations |
 
-## Test Plan
+## Test Plan (Round 2)
+
+### Bug 5 Tests
+```
+- Rule with `globs:` (empty string) + `description:` → AgentSkill (not FileRule)
+- Rule with `globs: ` (whitespace) + `description:` → AgentSkill (not FileRule)
+- Rule with valid `globs: **/*.ts` → FileRule (no regression)
+- Rule with valid `globs: **/*.ts` + `description:` → FileRule (globs takes precedence)
+```
+
+### Bug 6 Tests
+```
+- Dry-run with --gitignore-output-with match shows per-file details
+- Output format: "  <filename> → <destination>"
+- Only match mode shows per-file details (other modes show summary)
+```
+
+---
+
+## Test Plan (Round 1 - Complete)
 
 ### Bug 1 Tests
 ```

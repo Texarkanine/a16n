@@ -5,17 +5,19 @@
 
 ## Current Focus
 
-**Phase 5 Bug Fixes** — All bugs fixed and verified.
+**Phase 5 Bug Fixes - Round 2** — Fixing 2 additional bugs discovered after reflection.
 
 ## Session State
 
 - Phase 5 core implementation: ✅ Complete (Tasks 1-9)
 - Phase 5 reflection: ✅ Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md`
-- Bug fix task: ✅ Complete (Level 2)
+- Bug fix task Round 1: ✅ Complete (Level 2)
 - Bug fix reflection: ✅ Created `memory-bank/reflection/reflection-PHASE5-BUGFIXES.md`
-- All 4 bugs + 1 enhancement fixed and tested
+- Bug fix task Round 2: 🔨 In Progress
 
-## Bug & Enhancement Summary
+## Bug Summary
+
+### Round 1 (Complete)
 
 | Item | Severity | Status |
 |------|----------|--------|
@@ -25,35 +27,44 @@
 | B4 | Medium | ✅ Fixed - Empty globs validated and skipped |
 | E1 | Low | ✅ Fixed - FileRule files now use `.md` |
 
+### Round 2 (In Progress)
+
+| Item | Severity | Status |
+|------|----------|--------|
+| B5 | Medium | 🔨 FileRule vs AgentSkill classification |
+| B6 | Low | ⏳ Dry-run match mode per-file details |
+
 ## Recent Decisions
 
 | Decision | Context |
 |----------|---------|
-| Fix bugs before docs | Bugs B2/B3 are High severity, need fixing first |
-| Separate plan/execute | Bug 1 fix requires refactoring git logic |
-| Validate globs | Bug 4 fix: skip FileRules with empty globs |
-| Use `.md` not `.txt` | E1: FileRules come from markdown, IDE highlighting benefit |
-| Keep `.a16n/` at root | Not `.claude/.a16n/` - maintain tool-agnostic design |
+| Fix at source | B5: Fix classification in Cursor discover, not just emit |
+| Check parsed globs | B5: Only classify as FileRule if parseGlobs() returns non-empty array |
+| Match mode details | B6: Only show per-file details for match mode (other modes are simple) |
 
 ## Key Insights from Investigation
 
-1. **Bug 1**: `!options.dryRun` condition skips ALL git logic, needs refactor to separate planning from execution
-2. **Bug 2**: `git check-ignore` works, but need to verify path resolution (relative to repo root)
-3. **Bug 3**: `isNewFile` uses absolute paths, but CLI may be checking different paths - need to debug
-4. **Bug 4**: `buildHookConfig()` doesn't validate `globs` array - simple validation fix
+1. **Bug 5 Root Cause**: `if (frontmatter.globs)` is truthy even for empty/whitespace strings. The fix must check `parseGlobs().length > 0` before classifying as FileRule.
 
-## Completed Steps
+2. **Bug 6 Root Cause**: Dry-run output only shows summary `Would update .gitignore (X entries)` but doesn't show which specific files would be added.
 
-1. ✅ **Fixed E1** - Changed `.txt` → `.md` for FileRule files
-2. ✅ **Fixed Bug 4** - Added globs validation in Claude plugin  
-3. ✅ **Fixed Bug 3** - Fixed absolute→relative path conversion
-4. ✅ **Fixed Bug 1** - Refactored git logic for dry-run preview
-5. ✅ **Verified Bug 2** - Added tests for glob patterns
+3. **Classification Precedence** (from Cursor docs):
+   - `alwaysApply: true` → GlobalPrompt
+   - `globs` (non-empty) → FileRule
+   - `description` → AgentSkill
+   - None → manual rule (fallback GlobalPrompt)
 
-## Remaining Work
+## Implementation Steps
 
-- Review and commit changes
-- Update documentation if needed
+### Bug 5 (FileRule vs AgentSkill)
+1. Add test in `discover.test.ts` for empty globs + description → AgentSkill
+2. Fix `classifyRule()` to check parsed globs length
+3. Verify no regression for rules with valid globs
+
+### Bug 6 (Dry-run match details)
+1. Add test in `git-ignore.test.ts` for match mode per-file output
+2. Update CLI to show per-file details when match + dry-run
+3. Format: `  <filename> → <destination>`
 
 ## Context from Prior Phases
 
@@ -63,17 +74,12 @@
 | Phase 2 | ✅ Complete | FileRule + AgentSkill |
 | Phase 3 | ✅ Complete | AgentIgnore + CLI polish |
 | Phase 4 | ✅ Complete | AgentCommand (Cursor → Claude) |
-| **Phase 5** | 🔧 Bug Fixes | Git ignore output management |
+| **Phase 5** | 🔧 Bug Fixes R2 | Git ignore output management |
 
 ## Branch
 
 Current branch: `pahse-5` (note: typo in branch name)
 
-## Open Questions
-
-1. For Bug 3: Are absolute paths in `WrittenFile.path` matching what CLI uses?
-2. For Bug 2: Is `git check-ignore` receiving correct relative paths?
-
 ## Blockers
 
-None - clear path forward for all bugs.
+None - clear path forward for both bugs.
