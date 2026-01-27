@@ -112,8 +112,9 @@
 - Updated 3 existing tests for new dry-run behavior (returns what WOULD be written)
 
 ### Reflection Complete
-- Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md`
-- Key lessons: Manual testing essential, git semantics more complex than anticipated
+- Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md` (Phase 5 core)
+- Created `memory-bank/reflection/reflection-PHASE5-BUGFIXES.md` (Bug fixes)
+- Key lessons: Manual testing essential, path handling requires consistency, dry-run should be first-class
 
 ### Acceptance Criteria Progress
 
