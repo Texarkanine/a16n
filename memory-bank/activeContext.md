@@ -5,16 +5,14 @@
 
 ## Current Focus
 
-**Phase 5 Bug Fixes - Complete** — All bugs fixed, reflection complete.
+**CR-10: Source Tracking for WrittenFile** — Planning complete, ready for build.
 
 ## Session State
 
 - Phase 5 core implementation: ✅ Complete (Tasks 1-9)
-- Phase 5 reflection: ✅ Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md`
-- Bug fix task Round 1: ✅ Complete (B1-B4, E1)
-- Bug fix reflection: ✅ Created `memory-bank/reflection/reflection-PHASE5-BUGFIXES.md`
-- Bug fix task Round 2: ✅ Complete (B5-B7)
-- Bug fix task Round 3: ✅ Complete (B8)
+- Phase 5 bug fixes: ✅ Complete (B1-B8, E1)
+- CodeRabbit PR #11 feedback: ✅ 9/10 fixed
+- CR-10 (source tracking): 📋 Planning complete
 
 ## Bug Summary
 
@@ -134,6 +132,28 @@
 
 Current branch: `pahse-5` (note: typo in branch name)
 
+## CR-10: Source Tracking Decision
+
+### Problem
+Match mode uses lossy heuristic `discovered.filter(d => d.type === written.type)` to guess which sources contributed to an output. This fails when multiple sources of same type have different git status.
+
+### Solution: Option A - Enrich Plugin Output
+Add `sourceItems: AgentCustomization[]` to `WrittenFile` interface. Plugins populate this field, CLI uses it for accurate conflict detection.
+
+### Key Design Decision
+**When sources conflict:**
+- If output **exists**: output's current git status is authority
+- If output **new + unanimous**: use sources' status
+- If output **new + conflicting**: skip gitignore management, emit warning
+
+### Files to Modify
+| Package | Files |
+|---------|-------|
+| models | `plugin.ts`, `warnings.ts` |
+| plugin-claude | `emit.ts` |
+| plugin-cursor | `emit.ts` |
+| cli | `index.ts` |
+
 ## Blockers
 
-None - clear path forward for both bugs.
+None - planning complete, ready for `/build`.
