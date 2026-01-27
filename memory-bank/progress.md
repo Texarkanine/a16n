@@ -111,6 +111,20 @@
 - 3 tests for dry-run git preview
 - Updated 3 existing tests for new dry-run behavior (returns what WOULD be written)
 
+### Bug Fix Session Round 2 (2026-01-27)
+
+| Bug | Status | Fix Summary |
+|-----|--------|-------------|
+| B5 | ✅ Complete | Fixed FileRule classification to check parsed globs length |
+| B6 | ✅ Complete | Added per-file details to dry-run match mode output |
+| B7 | ✅ Complete | Added `getIgnoreSource()` to route outputs to correct destination |
+
+**B7 Implementation Details:**
+- Added `getIgnoreSource()` function to `git-ignore.ts` using `git check-ignore --verbose`
+- Updated match mode to group outputs by destination (`.gitignore` vs `.git/info/exclude`)
+- 5 new unit tests for `getIgnoreSource()`
+- 2 new integration tests for match mode routing
+
 ### Reflection Complete
 - Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md` (Phase 5 core)
 - Created `memory-bank/reflection/reflection-PHASE5-BUGFIXES.md` (Bug fixes)
@@ -139,8 +153,8 @@
 |-------|--------|
 | QA Validation | ✅ PASSED (2026-01-26) |
 | Build | ✅ All 6 packages built successfully |
-| Lint | ⬜ Not yet run for Phase 5 |
-| Tests | ✅ All 244 tests passed |
+| Lint | ✅ Passed |
+| Tests | ✅ All 286 tests passed |
 
 ## Next Actions
 

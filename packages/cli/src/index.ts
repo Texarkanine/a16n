@@ -13,7 +13,9 @@ import {
   addToGitIgnore,
   addToGitExclude,
   updatePreCommitHook,
+  getIgnoreSource,
   type GitIgnoreResult,
+  type IgnoreSource,
 } from './git-ignore.js';
 
 const program = new Command();
@@ -146,9 +148,12 @@ program
               result.gitIgnoreChanges!.push(plannedResult);
               
             } else if (gitignoreStyle === 'match') {
-              // Style: match - mirror source git status to output
+              // Style: match - mirror source git status to output, routing to same destination
               verbose('Checking git status for source files...');
-              const filesToIgnore: string[] = [];
+              
+              // Group files by destination (.gitignore vs .git/info/exclude)
+              const filesToGitignore: string[] = [];
+              const filesToExclude: string[] = [];
               
               for (const written of result.written) {
                 if (!written.isNewFile) continue; // Only manage new files
@@ -165,17 +170,19 @@ program
                 
                 if (sources.length === 0) continue;
                 
-                // Check if ANY source is git-ignored (conservative approach)
-                let anySourceIgnored = false;
+                // Check WHERE the source is ignored (not just IF it's ignored)
+                // Use the first ignored source's location as the destination
+                let ignoreDestination: IgnoreSource = null;
                 for (const source of sources) {
-                  if (await isGitIgnored(resolvedPath, source.sourcePath)) {
-                    anySourceIgnored = true;
-                    verbose(`  ${source.sourcePath} is ignored → ${relativePath} should be ignored`);
+                  const sourceIgnoreLocation = await getIgnoreSource(resolvedPath, source.sourcePath);
+                  if (sourceIgnoreLocation) {
+                    ignoreDestination = sourceIgnoreLocation;
+                    verbose(`  ${source.sourcePath} is ignored via ${sourceIgnoreLocation} → ${relativePath}`);
                     break;
                   }
                 }
                 
-                if (anySourceIgnored) {
+                if (ignoreDestination) {
                   // Check if output already exists and is tracked (boundary crossing)
                   const outputTracked = await isGitTracked(resolvedPath, relativePath);
                   if (outputTracked) {
@@ -187,24 +194,45 @@ program
                     });
                     verbose(`  ⚠ Boundary crossing detected for ${relativePath}`);
                   } else {
-                    // Safe to ignore
-                    filesToIgnore.push(relativePath);
+                    // Route to the correct destination based on where source is ignored
+                    if (ignoreDestination === '.git/info/exclude') {
+                      filesToExclude.push(relativePath);
+                    } else {
+                      filesToGitignore.push(relativePath);
+                    }
                   }
                 }
               }
               
-              if (filesToIgnore.length > 0) {
-                const plannedResult: GitIgnoreResult = { file: '.gitignore', added: filesToIgnore };
+              // Add files to .gitignore if any
+              if (filesToGitignore.length > 0) {
+                const plannedResult: GitIgnoreResult = { file: '.gitignore', added: filesToGitignore };
                 
                 if (options.dryRun) {
-                  verbose(`Would ignore ${filesToIgnore.length} output file(s) to match source status`);
+                  verbose(`Would add ${filesToGitignore.length} file(s) to .gitignore to match source status`);
                 } else {
-                  verbose(`Ignoring ${filesToIgnore.length} output file(s) to match source status`);
-                  await addToGitIgnore(resolvedPath, filesToIgnore);
+                  verbose(`Adding ${filesToGitignore.length} file(s) to .gitignore to match source status`);
+                  await addToGitIgnore(resolvedPath, filesToGitignore);
                   verbose(`✓ Updated ${plannedResult.file}`);
                 }
                 result.gitIgnoreChanges!.push(plannedResult);
-              } else {
+              }
+              
+              // Add files to .git/info/exclude if any
+              if (filesToExclude.length > 0) {
+                const plannedResult: GitIgnoreResult = { file: '.git/info/exclude', added: filesToExclude };
+                
+                if (options.dryRun) {
+                  verbose(`Would add ${filesToExclude.length} file(s) to .git/info/exclude to match source status`);
+                } else {
+                  verbose(`Adding ${filesToExclude.length} file(s) to .git/info/exclude to match source status`);
+                  await addToGitExclude(resolvedPath, filesToExclude);
+                  verbose(`✓ Updated ${plannedResult.file}`);
+                }
+                result.gitIgnoreChanges!.push(plannedResult);
+              }
+              
+              if (filesToGitignore.length === 0 && filesToExclude.length === 0) {
                 verbose('No files need to be ignored (sources are tracked)');
               }
             }

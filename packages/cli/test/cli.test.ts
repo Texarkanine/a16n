@@ -289,5 +289,61 @@ describe('CLI', () => {
         expect(stdout).toMatch(/CLAUDE\.md.*→.*\.gitignore/);
       }
     });
+
+    it('should route outputs to .git/info/exclude when source is ignored via exclude', async () => {
+      // Initialize git repo
+      spawnSync('git', ['init'], { cwd: tempDir });
+      spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
+      spawnSync('git', ['config', 'user.name', 'Test'], { cwd: tempDir });
+      
+      // Create .git/info/exclude that ignores the cursor rules directory
+      await fs.mkdir(path.join(tempDir, '.git', 'info'), { recursive: true });
+      await fs.writeFile(path.join(tempDir, '.git', 'info', 'exclude'), '.cursor/rules/local/\n');
+      
+      // Create source Cursor rules in ignored directory
+      const cursorDir = path.join(tempDir, '.cursor', 'rules', 'local');
+      await fs.mkdir(cursorDir, { recursive: true });
+      await fs.writeFile(
+        path.join(cursorDir, 'secret.mdc'),
+        '---\nalwaysApply: true\n---\nSecret rule that should go to exclude.'
+      );
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run --gitignore-output-with match');
+      
+      expect(exitCode).toBe(0);
+      // Should show the correct destination (.git/info/exclude) for files ignored via exclude
+      // Format: "Would update .git/info/exclude (X entries)"
+      if (stdout.includes('Would update')) {
+        expect(stdout).toContain('.git/info/exclude');
+      }
+    });
+
+    it('should actually write to .git/info/exclude in match mode (non-dry-run)', async () => {
+      // Initialize git repo
+      spawnSync('git', ['init'], { cwd: tempDir });
+      spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
+      spawnSync('git', ['config', 'user.name', 'Test'], { cwd: tempDir });
+      
+      // Create .git/info/exclude that ignores the cursor rules directory
+      await fs.mkdir(path.join(tempDir, '.git', 'info'), { recursive: true });
+      await fs.writeFile(path.join(tempDir, '.git', 'info', 'exclude'), '.cursor/rules/local/\n');
+      
+      // Create source Cursor rules in ignored directory
+      const cursorDir = path.join(tempDir, '.cursor', 'rules', 'local');
+      await fs.mkdir(cursorDir, { recursive: true });
+      await fs.writeFile(
+        path.join(cursorDir, 'secret.mdc'),
+        '---\nalwaysApply: true\n---\nSecret rule that should go to exclude.'
+      );
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude --gitignore-output-with match');
+      
+      expect(exitCode).toBe(0);
+      
+      // Check that .git/info/exclude was updated with the output file
+      const excludeContent = await fs.readFile(path.join(tempDir, '.git', 'info', 'exclude'), 'utf-8');
+      expect(excludeContent).toContain('CLAUDE.md');
+      expect(excludeContent).toContain('# BEGIN a16n managed');
+    });
   });
 });

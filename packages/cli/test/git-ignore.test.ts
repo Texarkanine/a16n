@@ -9,7 +9,9 @@ import {
   addToGitIgnore,
   addToGitExclude,
   updatePreCommitHook,
+  getIgnoreSource,
   type GitIgnoreResult,
+  type IgnoreSource,
 } from '../src/git-ignore.js';
 
 describe('Git Utilities', () => {
@@ -341,6 +343,82 @@ describe('Git Utilities', () => {
       await expect(updatePreCommitHook(testDir, ['file.txt'])).rejects.toThrow(
         'Not a git repository'
       );
+    });
+  });
+
+  describe('getIgnoreSource', () => {
+    it('should return .gitignore when file is ignored via .gitignore', async () => {
+      // Initialize git repo
+      const { spawn } = await import('child_process');
+      await new Promise<void>((resolve) => {
+        const proc = spawn('git', ['init'], { cwd: testDir });
+        proc.on('close', () => resolve());
+      });
+      
+      // Create .gitignore with entry
+      await fs.writeFile(path.join(testDir, '.gitignore'), 'ignored.txt\n');
+      
+      // Create the file to check
+      await fs.writeFile(path.join(testDir, 'ignored.txt'), 'content');
+      
+      const result = await getIgnoreSource(testDir, 'ignored.txt');
+      expect(result).toBe('.gitignore');
+    });
+
+    it('should return .git/info/exclude when file is ignored via .git/info/exclude', async () => {
+      // Initialize git repo
+      const { spawn } = await import('child_process');
+      await new Promise<void>((resolve) => {
+        const proc = spawn('git', ['init'], { cwd: testDir });
+        proc.on('close', () => resolve());
+      });
+      
+      // Create .git/info/exclude with entry
+      await fs.mkdir(path.join(testDir, '.git', 'info'), { recursive: true });
+      await fs.writeFile(path.join(testDir, '.git', 'info', 'exclude'), 'excluded.txt\n');
+      
+      // Create the file to check
+      await fs.writeFile(path.join(testDir, 'excluded.txt'), 'content');
+      
+      const result = await getIgnoreSource(testDir, 'excluded.txt');
+      expect(result).toBe('.git/info/exclude');
+    });
+
+    it('should return null when file is not ignored', async () => {
+      // Initialize git repo
+      const { spawn } = await import('child_process');
+      await new Promise<void>((resolve) => {
+        const proc = spawn('git', ['init'], { cwd: testDir });
+        proc.on('close', () => resolve());
+      });
+      
+      const result = await getIgnoreSource(testDir, 'not-ignored.txt');
+      expect(result).toBeNull();
+    });
+
+    it('should return correct source for directory glob patterns', async () => {
+      // Initialize git repo
+      const { spawn } = await import('child_process');
+      await new Promise<void>((resolve) => {
+        const proc = spawn('git', ['init'], { cwd: testDir });
+        proc.on('close', () => resolve());
+      });
+      
+      // Create .git/info/exclude with directory pattern
+      await fs.mkdir(path.join(testDir, '.git', 'info'), { recursive: true });
+      await fs.writeFile(path.join(testDir, '.git', 'info', 'exclude'), 'local/\n');
+      
+      // Create the directory and file
+      await fs.mkdir(path.join(testDir, 'local'), { recursive: true });
+      await fs.writeFile(path.join(testDir, 'local', 'dev.txt'), 'content');
+      
+      const result = await getIgnoreSource(testDir, 'local/dev.txt');
+      expect(result).toBe('.git/info/exclude');
+    });
+
+    it('should return null for non-git directory', async () => {
+      const result = await getIgnoreSource(testDir, 'any.txt');
+      expect(result).toBeNull();
     });
   });
 });

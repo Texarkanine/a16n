@@ -5,7 +5,7 @@
 
 ## Current Focus
 
-**Phase 5 Bug Fixes - Round 2** — Bug 7 in progress (match mode destination attribution).
+**Phase 5 Bug Fixes - Round 2** — All bugs complete!
 
 ## Session State
 
@@ -27,13 +27,13 @@
 | B4 | Medium | ✅ Fixed - Empty globs validated and skipped |
 | E1 | Low | ✅ Fixed - FileRule files now use `.md` |
 
-### Round 2 (In Progress)
+### Round 2 (Complete)
 
 | Item | Severity | Status |
 |------|----------|--------|
 | B5 | Medium | ✅ Fixed - Empty globs fall through to AgentSkill |
 | B6 | Low | ✅ Fixed - Match mode shows per-file details |
-| B7 | High | 🔨 Match mode routes to wrong gitignore destination |
+| B7 | High | ✅ Fixed - Match mode routes to correct gitignore destination |
 
 ## Recent Decisions
 
@@ -68,22 +68,26 @@
 2. Updated CLI to show per-file details: `  <filename> → <destination>`
 3. All 56 CLI tests pass
 
-## In Progress
+## Completed Implementation
 
-### Bug 7 (Match mode destination attribution)
+### Bug 7 (Match mode destination attribution) ✅
 
-**Problem:** `isGitIgnored()` only returns boolean, not WHERE file is ignored from.
+**Problem:** `isGitIgnored()` only returned boolean, not WHERE file was ignored from.
 
-**Implementation Plan:**
-1. Add `getIgnoreSource(root, filepath)` function to `git-ignore.ts`
+**Solution Implemented:**
+1. Added `getIgnoreSource(root, filepath)` function to `git-ignore.ts`
    - Uses `git check-ignore --verbose <filepath>`
    - Parses output: `<source>:<linenum>:<pattern><TAB><pathname>`
-   - Returns source file path (e.g., `.gitignore`, `.git/info/exclude`) or null
-2. Update match mode in `index.ts`:
-   - Get ignore source for each source file
-   - Group outputs by destination
-   - Add outputs to `.gitignore` OR `.git/info/exclude` accordingly
-3. Update dry-run output to show correct destination
+   - Returns source file path (`.gitignore`, `.git/info/exclude`) or null
+2. Updated match mode in `index.ts`:
+   - Gets ignore source for each source file using `getIgnoreSource()`
+   - Groups outputs by destination (`filesToGitignore`, `filesToExclude`)
+   - Adds outputs to `.gitignore` OR `.git/info/exclude` accordingly
+3. Dry-run output shows correct destination per file
+
+**Tests Added:**
+- 5 unit tests for `getIgnoreSource()` in `git-ignore.test.ts`
+- 2 integration tests for match mode routing in `cli.test.ts`
 
 ## Context from Prior Phases
 

@@ -71,6 +71,72 @@ export async function isGitIgnored(root: string, filepath: string): Promise<bool
 }
 
 /**
+ * Possible sources where a file can be git-ignored from.
+ */
+export type IgnoreSource = '.gitignore' | '.git/info/exclude' | null;
+
+/**
+ * Get the source file that causes a path to be git-ignored.
+ * Uses `git check-ignore --verbose` to determine which gitignore file
+ * contains the rule that ignores the path.
+ * 
+ * @param root - The root directory of the git repository
+ * @param filepath - The file path to check (relative to root)
+ * @returns The ignore source ('.gitignore', '.git/info/exclude') or null if not ignored
+ * 
+ * @example
+ * // If .git/info/exclude contains 'local/'
+ * await getIgnoreSource(root, 'local/foo.txt'); // Returns '.git/info/exclude'
+ * 
+ * // If .gitignore contains '*.log'
+ * await getIgnoreSource(root, 'debug.log'); // Returns '.gitignore'
+ * 
+ * // If file is not ignored
+ * await getIgnoreSource(root, 'src/index.ts'); // Returns null
+ */
+export async function getIgnoreSource(root: string, filepath: string): Promise<IgnoreSource> {
+  try {
+    const { stdout, exitCode } = await execGit(root, ['check-ignore', '--verbose', filepath]);
+    
+    // Exit code 0 means the file is ignored, stdout contains the source info
+    // Format: <source>:<linenum>:<pattern><TAB><pathname>
+    if (exitCode !== 0 || !stdout.trim()) {
+      return null;
+    }
+    
+    // Parse the verbose output to extract the source file
+    // Example: ".git/info/exclude:1:local/\tlocal/foo.txt"
+    const colonIndex = stdout.indexOf(':');
+    if (colonIndex === -1) {
+      return null;
+    }
+    
+    const source = stdout.substring(0, colonIndex);
+    
+    // Normalize source paths to our standard format
+    if (source === '.gitignore') {
+      return '.gitignore';
+    } else if (source === '.git/info/exclude') {
+      return '.git/info/exclude';
+    }
+    
+    // Handle relative paths that might not start with './'
+    // e.g., 'git/info/exclude' without the leading '.'
+    if (source.endsWith('.gitignore') || source === '.gitignore') {
+      return '.gitignore';
+    } else if (source.includes('.git/info/exclude') || source.includes('info/exclude')) {
+      return '.git/info/exclude';
+    }
+    
+    // Unknown source (could be a nested .gitignore in subdirectory)
+    // For now, treat as .gitignore for simplicity
+    return '.gitignore';
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Check if a file is tracked by git.
  * Uses `git ls-files` to determine if the file is in the index.
  * 

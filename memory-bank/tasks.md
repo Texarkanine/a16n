@@ -13,12 +13,12 @@
 | **Type** | Bug Fix |
 | **Parent** | PHASE5-BUGFIXES |
 | **Estimated Effort** | 1-2 hours |
-| **Build Status** | 🔨 In Progress |
+| **Build Status** | ✅ Complete |
 | **Reflection Status** | ⏳ Pending |
 
 ## Summary
 
-Fix 3 bugs discovered after reflection on Phase 5 bug fixes (2 complete, 1 in progress).
+Fix 3 bugs discovered after reflection on Phase 5 bug fixes (all 3 complete).
 
 ## New Bug Reports (Round 2)
 
@@ -215,15 +215,15 @@ Would gitignore:
 - [x] Update CLI output to show per-file gitignore destinations in match mode
 - [x] Only show detailed output for match mode (other modes are straightforward)
 
-### Bug 7 Fix: Match mode gitignore destination attribution
-- [ ] Add `getIgnoreSource()` function to `git-ignore.ts` using `git check-ignore --verbose`
-- [ ] Add tests for `getIgnoreSource()` returning correct source file
-- [ ] Update match mode in CLI to:
-  - [ ] Get ignore source for each source file
-  - [ ] Group output files by destination (`.gitignore` vs `.git/info/exclude`)
-  - [ ] Add outputs to correct destination(s)
-- [ ] Add integration test for match mode routing to `.git/info/exclude`
-- [ ] Update dry-run output to show correct destination per file
+### Bug 7 Fix: Match mode gitignore destination attribution ✅
+- [x] Add `getIgnoreSource()` function to `git-ignore.ts` using `git check-ignore --verbose`
+- [x] Add tests for `getIgnoreSource()` returning correct source file
+- [x] Update match mode in CLI to:
+  - [x] Get ignore source for each source file
+  - [x] Group output files by destination (`.gitignore` vs `.git/info/exclude`)
+  - [x] Add outputs to correct destination(s)
+- [x] Add integration test for match mode routing to `.git/info/exclude`
+- [x] Update dry-run output to show correct destination per file
 
 ---
 
