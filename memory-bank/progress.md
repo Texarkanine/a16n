@@ -141,8 +141,9 @@
 
 ### Reflection Complete
 - Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md` (Phase 5 core)
-- Created `memory-bank/reflection/reflection-PHASE5-BUGFIXES.md` (Bug fixes)
-- Key lessons: Manual testing essential, path handling requires consistency, dry-run should be first-class
+- Created `memory-bank/reflection/reflection-PHASE5-BUGFIXES.md` (Bug fixes Round 1)
+- Created `memory-bank/reflection/reflection-PHASE5-BUGFIXES-R2R3.md` (Bug fixes Rounds 2-3)
+- Key lessons: Manual testing essential, path handling requires consistency, dry-run should be first-class, accumulation over replacement for idempotency
 
 ### Acceptance Criteria Progress
 
