@@ -3,6 +3,7 @@ import * as path from 'path';
 import {
   type AgentCustomization,
   type EmitResult,
+  type EmitOptions,
   type WrittenFile,
   type Warning,
   type FileRule,
@@ -124,8 +125,10 @@ ${content}
  */
 export async function emit(
   models: AgentCustomization[],
-  root: string
+  root: string,
+  options?: EmitOptions
 ): Promise<EmitResult> {
+  const dryRun = options?.dryRun ?? false;
   const written: WrittenFile[] = [];
   const warnings: Warning[] = [];
   const unsupported: AgentCustomization[] = [];
@@ -155,9 +158,9 @@ export async function emit(
   // Track sources that had collisions for warning
   const collisionSources: string[] = [];
   
-  // Ensure .cursor/rules directory exists (only if we have mdc items)
+  // Ensure .cursor/rules directory exists (only if we have mdc items, skip in dry-run)
   const rulesDir = path.join(root, '.cursor', 'rules');
-  if (allItems.length > 0) {
+  if (allItems.length > 0 && !dryRun) {
     await fs.mkdir(rulesDir, { recursive: true });
   }
 
@@ -182,7 +185,9 @@ export async function emit(
       isNewFile = true; // File does not exist
     }
 
-    await fs.writeFile(filepath, content, 'utf-8');
+    if (!dryRun) {
+      await fs.writeFile(filepath, content, 'utf-8');
+    }
 
     written.push({
       path: filepath,
@@ -213,7 +218,9 @@ export async function emit(
       isNewFile = true; // File does not exist
     }
 
-    await fs.writeFile(filepath, content, 'utf-8');
+    if (!dryRun) {
+      await fs.writeFile(filepath, content, 'utf-8');
+    }
 
     written.push({
       path: filepath,
@@ -244,7 +251,9 @@ export async function emit(
       isNewFile = true; // File does not exist
     }
 
-    await fs.writeFile(filepath, content, 'utf-8');
+    if (!dryRun) {
+      await fs.writeFile(filepath, content, 'utf-8');
+    }
 
     written.push({
       path: filepath,
@@ -278,7 +287,9 @@ export async function emit(
       isNewFile = true; // File does not exist
     }
     
-    await fs.writeFile(filepath, uniquePatterns.join('\n') + '\n', 'utf-8');
+    if (!dryRun) {
+      await fs.writeFile(filepath, uniquePatterns.join('\n') + '\n', 'utf-8');
+    }
 
     written.push({
       path: filepath,
@@ -299,7 +310,9 @@ export async function emit(
   // === Emit AgentCommands as .cursor/commands/*.md ===
   if (agentCommands.length > 0) {
     const commandsDir = path.join(root, '.cursor', 'commands');
-    await fs.mkdir(commandsDir, { recursive: true });
+    if (!dryRun) {
+      await fs.mkdir(commandsDir, { recursive: true });
+    }
     const usedCommandNames = new Set<string>();
     const commandCollisionSources: string[] = [];
 
@@ -331,7 +344,9 @@ export async function emit(
         isNewFile = true; // File does not exist
       }
       
-      await fs.writeFile(commandPath, command.content, 'utf-8');
+      if (!dryRun) {
+        await fs.writeFile(commandPath, command.content, 'utf-8');
+      }
 
       written.push({
         path: commandPath,

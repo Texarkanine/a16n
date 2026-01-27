@@ -172,7 +172,7 @@ describe('Claude FileRule Emission (Phase 2)', () => {
 
       await claudePlugin.emit(models, tempDir);
 
-      const rulePath = path.join(tempDir, '.a16n', 'rules', 'react.txt');
+      const rulePath = path.join(tempDir, '.a16n', 'rules', 'react.md');
       const content = await fs.readFile(rulePath, 'utf-8');
       expect(content).toBe('Use React best practices.');
     });
@@ -223,7 +223,7 @@ describe('Claude FileRule Emission (Phase 2)', () => {
       expect(command).toContain('@a16njs/glob-hook');
       expect(command).toContain('**/*.tsx');
       expect(command).toContain('**/*.jsx');
-      expect(command).toContain('.a16n/rules/react.txt');
+      expect(command).toContain('.a16n/rules/react.md');
     });
 
     it('should emit approximation warning for FileRule', async () => {
@@ -270,8 +270,8 @@ describe('Claude FileRule Emission (Phase 2)', () => {
       await claudePlugin.emit(models, tempDir);
 
       // Check both rule files exist
-      const reactRule = await fs.readFile(path.join(tempDir, '.a16n', 'rules', 'react.txt'), 'utf-8');
-      const tsRule = await fs.readFile(path.join(tempDir, '.a16n', 'rules', 'typescript.txt'), 'utf-8');
+      const reactRule = await fs.readFile(path.join(tempDir, '.a16n', 'rules', 'react.md'), 'utf-8');
+      const tsRule = await fs.readFile(path.join(tempDir, '.a16n', 'rules', 'typescript.md'), 'utf-8');
       expect(reactRule).toBe('React rules');
       expect(tsRule).toBe('TypeScript rules');
 
@@ -408,6 +408,126 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
       expect(content).not.toContain('name:');
       expect(content).toContain('description: "Authentication patterns"');
     });
+  });
+});
+
+describe('Claude FileRule Empty Globs Validation', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it('should skip FileRule with empty globs array', async () => {
+    const models: FileRule[] = [
+      {
+        id: createId(CustomizationType.FileRule, '.cursor/rules/empty.mdc'),
+        type: CustomizationType.FileRule,
+        sourcePath: '.cursor/rules/empty.mdc',
+        content: 'This should be skipped.',
+        globs: [],
+        metadata: {},
+      },
+    ];
+
+    const result = await claudePlugin.emit(models, tempDir);
+
+    // Should not write any files (no valid FileRules)
+    expect(result.written).toHaveLength(0);
+    
+    // .a16n/rules directory should not exist
+    await expect(fs.access(path.join(tempDir, '.a16n', 'rules'))).rejects.toThrow();
+  });
+
+  it('should skip FileRule with globs containing only empty strings', async () => {
+    const models: FileRule[] = [
+      {
+        id: createId(CustomizationType.FileRule, '.cursor/rules/empty.mdc'),
+        type: CustomizationType.FileRule,
+        sourcePath: '.cursor/rules/empty.mdc',
+        content: 'This should be skipped.',
+        globs: ['', '  ', ''],
+        metadata: {},
+      },
+    ];
+
+    const result = await claudePlugin.emit(models, tempDir);
+
+    // Should not write any files
+    expect(result.written).toHaveLength(0);
+  });
+
+  it('should emit warning when skipping FileRule with empty globs', async () => {
+    const models: FileRule[] = [
+      {
+        id: createId(CustomizationType.FileRule, '.cursor/rules/empty.mdc'),
+        type: CustomizationType.FileRule,
+        sourcePath: '.cursor/rules/empty.mdc',
+        content: 'This should be skipped.',
+        globs: [],
+        metadata: {},
+      },
+    ];
+
+    const result = await claudePlugin.emit(models, tempDir);
+
+    const skipWarning = result.warnings.find(w => w.code === WarningCode.Skipped);
+    expect(skipWarning).toBeDefined();
+    expect(skipWarning?.message).toContain('empty globs');
+  });
+
+  it('should process FileRule with valid globs normally', async () => {
+    const models: FileRule[] = [
+      {
+        id: createId(CustomizationType.FileRule, '.cursor/rules/valid.mdc'),
+        type: CustomizationType.FileRule,
+        sourcePath: '.cursor/rules/valid.mdc',
+        content: 'Valid content.',
+        globs: ['**/*.ts'],
+        metadata: {},
+      },
+    ];
+
+    const result = await claudePlugin.emit(models, tempDir);
+
+    // Should write rule file and settings
+    expect(result.written).toHaveLength(2);
+    
+    // Verify file was created
+    const rulePath = path.join(tempDir, '.a16n', 'rules', 'valid.md');
+    const content = await fs.readFile(rulePath, 'utf-8');
+    expect(content).toBe('Valid content.');
+  });
+
+  it('should filter empty globs but keep valid ones in mixed array', async () => {
+    const models: FileRule[] = [
+      {
+        id: createId(CustomizationType.FileRule, '.cursor/rules/mixed.mdc'),
+        type: CustomizationType.FileRule,
+        sourcePath: '.cursor/rules/mixed.mdc',
+        content: 'Mixed globs content.',
+        globs: ['', '**/*.ts', '  ', '**/*.tsx'],
+        metadata: {},
+      },
+    ];
+
+    const result = await claudePlugin.emit(models, tempDir);
+
+    // Should write files (has valid globs)
+    expect(result.written).toHaveLength(2);
+    
+    // Check hook command contains only valid globs
+    const settingsPath = path.join(tempDir, '.claude', 'settings.local.json');
+    const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
+    const command = settings.hooks.PreToolUse[0].hooks[0].command;
+    
+    expect(command).toContain('**/*.ts');
+    expect(command).toContain('**/*.tsx');
+    // Should not contain empty globs in the command
+    expect(command).not.toContain('--globs ""');
+    expect(command).not.toContain('--globs ","');
   });
 });
 
@@ -565,7 +685,7 @@ describe('Mixed Model Emission (Phase 2)', () => {
     expect(claudeMd).toContain('Global content');
 
     // Check FileRule → .a16n/rules/ + .claude/settings.local.json
-    const reactRule = await fs.readFile(path.join(tempDir, '.a16n', 'rules', 'react.txt'), 'utf-8');
+    const reactRule = await fs.readFile(path.join(tempDir, '.a16n', 'rules', 'react.md'), 'utf-8');
     expect(reactRule).toBe('React content');
     const settings = JSON.parse(await fs.readFile(path.join(tempDir, '.claude', 'settings.local.json'), 'utf-8'));
     expect(settings.hooks).toBeDefined();

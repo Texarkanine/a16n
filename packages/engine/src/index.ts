@@ -137,17 +137,10 @@ export class A16nEngine {
     // Discover from source
     const discovery = await sourcePlugin.discover(options.root);
 
-    if (options.dryRun) {
-      return {
-        discovered: discovery.items,
-        written: [],
-        warnings: discovery.warnings,
-        unsupported: [],
-      };
-    }
-
-    // Emit to target
-    const emission = await targetPlugin.emit(discovery.items, options.root);
+    // Emit to target (pass dryRun to calculate what would be written)
+    const emission = await targetPlugin.emit(discovery.items, options.root, {
+      dryRun: options.dryRun,
+    });
 
     return {
       discovered: discovery.items,

@@ -213,11 +213,11 @@ describe('Integration Tests - Fixture Based', () => {
         dryRun: true,
       });
       
-      // Should discover items but not write
+      // Should discover items and show what would be written (without actually writing)
       expect(result.discovered.length).toBeGreaterThan(0);
-      expect(result.written.length).toBe(0);
+      expect(result.written.length).toBeGreaterThan(0); // Now returns what WOULD be written
       
-      // CLAUDE.md should NOT exist
+      // But CLAUDE.md should NOT actually exist (files not written in dry-run)
       await expect(
         fs.access(path.join(tempDir, 'CLAUDE.md'))
       ).rejects.toThrow();
@@ -271,7 +271,7 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
       
       // Verify rule content file was created
       const ruleContent = await fs.readFile(
-        path.join(tempDir, '.a16n', 'rules', 'react.txt'),
+        path.join(tempDir, '.a16n', 'rules', 'react.md'),
         'utf-8'
       );
       expect(ruleContent).toContain('Use React best practices');

@@ -4,6 +4,7 @@ import {
   type AgentCustomization,
   type AgentCommand,
   type EmitResult,
+  type EmitOptions,
   type WrittenFile,
   type Warning,
   type FileRule,
@@ -149,11 +150,17 @@ ${command.content}
  * - GlobalPrompts → CLAUDE.md
  * - FileRules → .a16n/rules/ + .claude/settings.local.json
  * - AgentSkills → .claude/skills/ subdirectories
+ * 
+ * @param models - The customizations to emit
+ * @param root - The root directory to write to
+ * @param options - Optional emit options (e.g., dryRun)
  */
 export async function emit(
   models: AgentCustomization[],
-  root: string
+  root: string,
+  options?: EmitOptions
 ): Promise<EmitResult> {
+  const dryRun = options?.dryRun ?? false;
   const written: WrittenFile[] = [];
   const warnings: Warning[] = [];
   const unsupported: AgentCustomization[] = [];
@@ -191,7 +198,9 @@ export async function emit(
       isNewFile = true; // File does not exist
     }
 
-    await fs.writeFile(claudePath, content, 'utf-8');
+    if (!dryRun) {
+      await fs.writeFile(claudePath, content, 'utf-8');
+    }
 
     written.push({
       path: claudePath,
@@ -209,23 +218,38 @@ export async function emit(
     }
   }
 
-  // === Emit FileRules as .a16n/rules/*.txt + .claude/settings.local.json ===
+  // === Emit FileRules as .a16n/rules/*.md + .claude/settings.local.json ===
   if (fileRules.length > 0) {
-    // Create .a16n/rules directory
-    const rulesDir = path.join(root, '.a16n', 'rules');
-    await fs.mkdir(rulesDir, { recursive: true });
-
-    // Create .claude directory for settings
-    const claudeDir = path.join(root, '.claude');
-    await fs.mkdir(claudeDir, { recursive: true });
-
     const hooks: object[] = [];
     const usedFilenames = new Set<string>();
+    let validFileRulesExist = false;
 
     for (const rule of fileRules) {
+      // Filter valid globs (non-empty after trim)
+      const validGlobs = rule.globs.filter(g => g.trim().length > 0);
+      
+      // Skip FileRules with no valid glob patterns
+      if (validGlobs.length === 0) {
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `FileRule skipped due to empty globs: ${rule.sourcePath}`,
+          sources: [rule.sourcePath],
+        });
+        continue;
+      }
+      
+      // Create directories only when we have valid rules (skip in dry-run)
+      if (!validFileRulesExist && !dryRun) {
+        const rulesDir = path.join(root, '.a16n', 'rules');
+        await fs.mkdir(rulesDir, { recursive: true });
+        const claudeDir = path.join(root, '.claude');
+        await fs.mkdir(claudeDir, { recursive: true });
+      }
+      validFileRulesExist = true;
+
       // Get unique filename to avoid collisions
       const baseName = sanitizeFilename(rule.sourcePath);
-      const filename = getUniqueFilename(baseName, usedFilenames, '.txt');
+      const filename = getUniqueFilename(baseName, usedFilenames, '.md');
 
       const rulePath = `.a16n/rules/${filename}`;
       const fullPath = path.join(root, rulePath);
@@ -239,8 +263,10 @@ export async function emit(
         isNewFile = true; // File does not exist
       }
 
-      // Write rule content
-      await fs.writeFile(fullPath, rule.content, 'utf-8');
+      // Write rule content (skip in dry-run)
+      if (!dryRun) {
+        await fs.writeFile(fullPath, rule.content, 'utf-8');
+      }
 
       written.push({
         path: fullPath,
@@ -249,60 +275,72 @@ export async function emit(
         isNewFile,
       });
 
-      // Build hook for this rule
-      hooks.push(buildHookConfig(rule, rulePath));
+      // Build hook for this rule with filtered valid globs
+      const filteredRule = { ...rule, globs: validGlobs };
+      hooks.push(buildHookConfig(filteredRule, rulePath));
     }
 
-    // Write settings.local.json, merging with existing content if present
-    const settingsPath = path.join(claudeDir, 'settings.local.json');
-    let settings: Record<string, unknown> = { hooks: { PreToolUse: hooks } };
-    let isNewFile = true;
-    
-    try {
-      const existingContent = await fs.readFile(settingsPath, 'utf-8');
-      isNewFile = false; // File exists
-      const existing = JSON.parse(existingContent) as Record<string, unknown>;
-      const existingHooks = existing.hooks as Record<string, unknown[]> | undefined;
-      const existingPreToolUse = Array.isArray(existingHooks?.PreToolUse)
-        ? existingHooks.PreToolUse
-        : [];
-      
-      // Merge: preserve existing settings, append new PreToolUse hooks
-      settings = {
-        ...existing,
-        hooks: {
-          ...existingHooks,
-          PreToolUse: [...existingPreToolUse, ...hooks],
-        },
-      };
-    } catch (err: unknown) {
-      // File doesn't exist or isn't valid JSON - use fresh settings
-      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
-        // Only warn if it's not a "file not found" error
-        warnings.push({
-          code: WarningCode.Skipped,
-          message: `Could not parse existing settings.local.json, overwriting: ${(err as Error).message}`,
-          sources: [settingsPath],
-        });
+    // Only write settings.local.json if there are valid hooks
+    if (hooks.length > 0) {
+      const claudeDir = path.join(root, '.claude');
+      if (!dryRun) {
+        await fs.mkdir(claudeDir, { recursive: true });
       }
-      // If ENOENT, isNewFile remains true
+      
+      // Write settings.local.json, merging with existing content if present
+      const settingsPath = path.join(claudeDir, 'settings.local.json');
+      let settings: Record<string, unknown> = { hooks: { PreToolUse: hooks } };
+      let isNewFile = true;
+      
+      try {
+        const existingContent = await fs.readFile(settingsPath, 'utf-8');
+        isNewFile = false; // File exists
+        const existing = JSON.parse(existingContent) as Record<string, unknown>;
+        const existingHooks = existing.hooks as Record<string, unknown[]> | undefined;
+        const existingPreToolUse = Array.isArray(existingHooks?.PreToolUse)
+          ? existingHooks.PreToolUse
+          : [];
+        
+        // Merge: preserve existing settings, append new PreToolUse hooks
+        settings = {
+          ...existing,
+          hooks: {
+            ...existingHooks,
+            PreToolUse: [...existingPreToolUse, ...hooks],
+          },
+        };
+      } catch (err: unknown) {
+        // File doesn't exist or isn't valid JSON - use fresh settings
+        if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
+          // Only warn if it's not a "file not found" error
+          warnings.push({
+            code: WarningCode.Skipped,
+            message: `Could not parse existing settings.local.json, overwriting: ${(err as Error).message}`,
+            sources: [settingsPath],
+          });
+        }
+        // If ENOENT, isNewFile remains true
+      }
+      
+      if (!dryRun) {
+        await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
+      }
+
+      written.push({
+        path: settingsPath,
+        type: CustomizationType.FileRule,
+        itemCount: hooks.length,
+        isNewFile,
+      });
+
+      // Emit approximation warning for successfully processed FileRules
+      const processedRules = fileRules.filter(r => r.globs.some(g => g.trim().length > 0));
+      warnings.push({
+        code: WarningCode.Approximated,
+        message: `FileRule approximated via @a16njs/glob-hook (behavior may differ slightly)`,
+        sources: processedRules.map((r) => r.sourcePath),
+      });
     }
-    
-    await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
-
-    written.push({
-      path: settingsPath,
-      type: CustomizationType.FileRule,
-      itemCount: fileRules.length,
-      isNewFile,
-    });
-
-    // Emit approximation warning
-    warnings.push({
-      code: WarningCode.Approximated,
-      message: `FileRule approximated via @a16njs/glob-hook (behavior may differ slightly)`,
-      sources: fileRules.map((r) => r.sourcePath),
-    });
   }
 
   // Track .claude/skills directory names across skills + commands to prevent collisions
@@ -316,7 +354,9 @@ export async function emit(
       const skillName = getUniqueFilename(baseName, usedSkillNames);
 
       const skillDir = path.join(root, '.claude', 'skills', skillName);
-      await fs.mkdir(skillDir, { recursive: true });
+      if (!dryRun) {
+        await fs.mkdir(skillDir, { recursive: true });
+      }
 
       const skillPath = path.join(skillDir, 'SKILL.md');
       const content = formatSkill(skill);
@@ -330,7 +370,9 @@ export async function emit(
         isNewFile = true; // File does not exist
       }
       
-      await fs.writeFile(skillPath, content, 'utf-8');
+      if (!dryRun) {
+        await fs.writeFile(skillPath, content, 'utf-8');
+      }
 
       written.push({
         path: skillPath,
@@ -361,7 +403,9 @@ export async function emit(
     }
 
     const claudeDir = path.join(root, '.claude');
-    await fs.mkdir(claudeDir, { recursive: true });
+    if (!dryRun) {
+      await fs.mkdir(claudeDir, { recursive: true });
+    }
 
     const settingsPath = path.join(claudeDir, 'settings.json');
     let settings: Record<string, unknown> = {};
@@ -401,7 +445,9 @@ export async function emit(
       deny: [...new Set([...existingDeny, ...denyRules])],
     };
 
-    await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
+    if (!dryRun) {
+      await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
+    }
 
     written.push({
       path: settingsPath,
@@ -426,7 +472,9 @@ export async function emit(
       const skillName = getUniqueFilename(baseName, usedSkillNames);
 
       const skillDir = path.join(root, '.claude', 'skills', skillName);
-      await fs.mkdir(skillDir, { recursive: true });
+      if (!dryRun) {
+        await fs.mkdir(skillDir, { recursive: true });
+      }
 
       const skillPath = path.join(skillDir, 'SKILL.md');
       const content = formatCommandAsSkill(command);
@@ -440,7 +488,9 @@ export async function emit(
         isNewFile = true; // File does not exist
       }
       
-      await fs.writeFile(skillPath, content, 'utf-8');
+      if (!dryRun) {
+        await fs.writeFile(skillPath, content, 'utf-8');
+      }
 
       written.push({
         path: skillPath,

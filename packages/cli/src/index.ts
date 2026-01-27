@@ -85,44 +85,65 @@ program
       const gitignoreStyle = options.gitignoreOutputWith as string;
       result.gitIgnoreChanges = [];
       
-      if (gitignoreStyle !== 'none' && !options.dryRun && result.written.length > 0) {
-        verbose(`Applying git-ignore style: ${gitignoreStyle}`);
+      // Calculate planned git changes (for both dry-run and normal mode)
+      if (gitignoreStyle !== 'none' && result.written.length > 0) {
+        verbose(`Planning git-ignore style: ${gitignoreStyle}${options.dryRun ? ' (dry-run)' : ''}`);
         
-        // Filter for new files only
-        const newFiles = result.written.filter(w => w.isNewFile).map(w => w.path);
+        // Filter for new files only and convert absolute paths to relative paths
+        const newFiles = result.written
+          .filter(w => w.isNewFile)
+          .map(w => path.relative(resolvedPath, w.path));
         
         if (newFiles.length === 0) {
           verbose('No new files to manage (all outputs are edits to existing files)');
         } else {
-          verbose(`Managing ${newFiles.length} new file(s)`);
+          verbose(`${options.dryRun ? 'Would manage' : 'Managing'} ${newFiles.length} new file(s)`);
           
           try {
             if (gitignoreStyle === 'ignore') {
               // Style: ignore - append to .gitignore
-              verbose('Adding to .gitignore with semaphore pattern');
-              const gitResult = await addToGitIgnore(resolvedPath, newFiles);
-              result.gitIgnoreChanges!.push(gitResult);
-              verbose(`✓ Updated ${gitResult.file}`);
+              const plannedResult: GitIgnoreResult = { file: '.gitignore', added: newFiles };
+              
+              if (options.dryRun) {
+                verbose(`Would add to .gitignore with semaphore pattern`);
+              } else {
+                verbose('Adding to .gitignore with semaphore pattern');
+                await addToGitIgnore(resolvedPath, newFiles);
+                verbose(`✓ Updated ${plannedResult.file}`);
+              }
+              result.gitIgnoreChanges!.push(plannedResult);
               
             } else if (gitignoreStyle === 'exclude') {
               // Style: exclude - append to .git/info/exclude
               if (!(await isGitRepo(resolvedPath))) {
                 throw new Error('Cannot use --gitignore-output-with \'exclude\': not a git repository');
               }
-              verbose('Adding to .git/info/exclude with semaphore pattern');
-              const gitResult = await addToGitExclude(resolvedPath, newFiles);
-              result.gitIgnoreChanges!.push(gitResult);
-              verbose(`✓ Updated ${gitResult.file}`);
+              const plannedResult: GitIgnoreResult = { file: '.git/info/exclude', added: newFiles };
+              
+              if (options.dryRun) {
+                verbose(`Would add to .git/info/exclude with semaphore pattern`);
+              } else {
+                verbose('Adding to .git/info/exclude with semaphore pattern');
+                await addToGitExclude(resolvedPath, newFiles);
+                verbose(`✓ Updated ${plannedResult.file}`);
+              }
+              result.gitIgnoreChanges!.push(plannedResult);
               
             } else if (gitignoreStyle === 'hook') {
               // Style: hook - create/update pre-commit hook
               if (!(await isGitRepo(resolvedPath))) {
                 throw new Error('Cannot use --gitignore-output-with \'hook\': not a git repository');
               }
-              verbose('Creating/updating pre-commit hook with semaphore pattern');
-              const gitResult = await updatePreCommitHook(resolvedPath, newFiles);
-              result.gitIgnoreChanges!.push(gitResult);
-              verbose(`✓ Updated ${gitResult.file} (executable)`);
+              const plannedResult: GitIgnoreResult = { file: '.git/hooks/pre-commit', added: newFiles };
+              
+              if (options.dryRun) {
+                verbose(`Would create/update pre-commit hook with semaphore pattern`);
+              } else {
+                verbose('Creating/updating pre-commit hook with semaphore pattern');
+                await updatePreCommitHook(resolvedPath, newFiles);
+                verbose(`✓ Updated ${plannedResult.file} (executable)`);
+              }
+              result.gitIgnoreChanges!.push(plannedResult);
               
             } else if (gitignoreStyle === 'match') {
               // Style: match - mirror source git status to output
@@ -131,6 +152,9 @@ program
               
               for (const written of result.written) {
                 if (!written.isNewFile) continue; // Only manage new files
+                
+                // Convert absolute path to relative path for git operations
+                const relativePath = path.relative(resolvedPath, written.path);
                 
                 // Find source files that contributed to this output
                 const sources = result.discovered.filter(d => {
@@ -146,34 +170,40 @@ program
                 for (const source of sources) {
                   if (await isGitIgnored(resolvedPath, source.sourcePath)) {
                     anySourceIgnored = true;
-                    verbose(`  ${source.sourcePath} is ignored → ${written.path} should be ignored`);
+                    verbose(`  ${source.sourcePath} is ignored → ${relativePath} should be ignored`);
                     break;
                   }
                 }
                 
                 if (anySourceIgnored) {
                   // Check if output already exists and is tracked (boundary crossing)
-                  const outputTracked = await isGitTracked(resolvedPath, written.path);
+                  const outputTracked = await isGitTracked(resolvedPath, relativePath);
                   if (outputTracked) {
                     // Boundary crossing: source ignored but output tracked
                     result.warnings.push({
                       code: 'boundary-crossing' as any,
-                      message: `Cannot match git-ignore status: source is ignored, but output '${written.path}' already exists and is tracked`,
+                      message: `Cannot match git-ignore status: source is ignored, but output '${relativePath}' already exists and is tracked`,
                       sources: sources.map(s => s.sourcePath),
                     });
-                    verbose(`  ⚠ Boundary crossing detected for ${written.path}`);
+                    verbose(`  ⚠ Boundary crossing detected for ${relativePath}`);
                   } else {
                     // Safe to ignore
-                    filesToIgnore.push(written.path);
+                    filesToIgnore.push(relativePath);
                   }
                 }
               }
               
               if (filesToIgnore.length > 0) {
-                verbose(`Ignoring ${filesToIgnore.length} output file(s) to match source status`);
-                const gitResult = await addToGitIgnore(resolvedPath, filesToIgnore);
-                result.gitIgnoreChanges!.push(gitResult);
-                verbose(`✓ Updated ${gitResult.file}`);
+                const plannedResult: GitIgnoreResult = { file: '.gitignore', added: filesToIgnore };
+                
+                if (options.dryRun) {
+                  verbose(`Would ignore ${filesToIgnore.length} output file(s) to match source status`);
+                } else {
+                  verbose(`Ignoring ${filesToIgnore.length} output file(s) to match source status`);
+                  await addToGitIgnore(resolvedPath, filesToIgnore);
+                  verbose(`✓ Updated ${plannedResult.file}`);
+                }
+                result.gitIgnoreChanges!.push(plannedResult);
               } else {
                 verbose('No files need to be ignored (sources are tracked)');
               }
@@ -200,7 +230,8 @@ program
         
         if (result.gitIgnoreChanges && result.gitIgnoreChanges.length > 0) {
           for (const change of result.gitIgnoreChanges) {
-            console.log(`Git: Updated ${change.file} (${change.added.length} entries)`);
+            const prefix = options.dryRun ? 'Would update' : 'Git: Updated';
+            console.log(`${prefix} ${change.file} (${change.added.length} entries)`);
           }
         }
         

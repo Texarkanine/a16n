@@ -217,15 +217,50 @@ describe('CLI', () => {
 
   describe('--gitignore-output-with flag', () => {
     it('should accept the flag with default value "none"', async () => {
-      // TODO: Test that flag defaults to 'none' and doesn't cause errors
+      // Create source Cursor rules
+      const cursorDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorDir, { recursive: true });
+      await fs.writeFile(
+        path.join(cursorDir, 'test.mdc'),
+        '---\nalwaysApply: true\n---\nTest rule.'
+      );
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude');
+      
+      expect(exitCode).toBe(0);
+      expect(stdout).toContain('Discovered: 1');
     });
 
-    it('should accept valid styles (none, ignore, exclude, hook, match)', async () => {
-      // TODO: Test each valid style value
+    it('should show planned git changes in dry-run mode with --gitignore-output-with ignore', async () => {
+      // Create source Cursor rules
+      const cursorDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorDir, { recursive: true });
+      await fs.writeFile(
+        path.join(cursorDir, 'test.mdc'),
+        '---\nalwaysApply: true\n---\nTest rule.'
+      );
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run --gitignore-output-with ignore');
+      
+      expect(exitCode).toBe(0);
+      // In dry-run mode, should show what git changes WOULD be made
+      expect(stdout).toContain('Would update');
+      expect(stdout).toContain('.gitignore');
     });
 
-    it('should error on invalid style', async () => {
-      // TODO: Test with invalid style value like 'invalid-style'
+    it('should NOT actually write to .gitignore in dry-run mode', async () => {
+      // Create source Cursor rules
+      const cursorDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorDir, { recursive: true });
+      await fs.writeFile(
+        path.join(cursorDir, 'test.mdc'),
+        '---\nalwaysApply: true\n---\nTest rule.'
+      );
+
+      runCli('convert --from cursor --to claude --dry-run --gitignore-output-with ignore');
+      
+      // .gitignore should NOT exist (dry-run)
+      await expect(fs.access(path.join(tempDir, '.gitignore'))).rejects.toThrow();
     });
   });
 });

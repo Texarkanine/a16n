@@ -29,12 +29,20 @@ export interface WrittenFile {
  * Result of emitting customizations to a project.
  */
 export interface EmitResult {
-  /** Files that were written */
+  /** Files that were written (or would be written in dry-run) */
   written: WrittenFile[];
   /** Any warnings encountered during emission */
   warnings: Warning[];
   /** Items that could not be represented by this plugin */
   unsupported: AgentCustomization[];
+}
+
+/**
+ * Options for emitting customizations.
+ */
+export interface EmitOptions {
+  /** If true, calculate what would be written without actually writing */
+  dryRun?: boolean;
 }
 
 /**
@@ -60,7 +68,8 @@ export interface A16nPlugin {
    * Emit customization models to disk in this plugin's format.
    * @param models - The customizations to emit
    * @param root - The root directory to write to
-   * @returns Info about what was written and any issues
+   * @param options - Optional emit options (e.g., dryRun)
+   * @returns Info about what was written (or would be written) and any issues
    */
-  emit(models: AgentCustomization[], root: string): Promise<EmitResult>;
+  emit(models: AgentCustomization[], root: string, options?: EmitOptions): Promise<EmitResult>;
 }
