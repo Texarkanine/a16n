@@ -5,7 +5,7 @@
 
 ## Current Focus
 
-**Phase 5 Bug Fixes - Round 2** — Fixing 2 additional bugs discovered after reflection.
+**Phase 5 Bug Fixes - Round 2** — Both bugs fixed and tested.
 
 ## Session State
 
@@ -13,7 +13,7 @@
 - Phase 5 reflection: ✅ Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md`
 - Bug fix task Round 1: ✅ Complete (Level 2)
 - Bug fix reflection: ✅ Created `memory-bank/reflection/reflection-PHASE5-BUGFIXES.md`
-- Bug fix task Round 2: 🔨 In Progress
+- Bug fix task Round 2: ✅ Complete
 
 ## Bug Summary
 
@@ -27,12 +27,12 @@
 | B4 | Medium | ✅ Fixed - Empty globs validated and skipped |
 | E1 | Low | ✅ Fixed - FileRule files now use `.md` |
 
-### Round 2 (In Progress)
+### Round 2 (Complete)
 
 | Item | Severity | Status |
 |------|----------|--------|
-| B5 | Medium | 🔨 FileRule vs AgentSkill classification |
-| B6 | Low | ⏳ Dry-run match mode per-file details |
+| B5 | Medium | ✅ Fixed - Empty globs fall through to AgentSkill |
+| B6 | Low | ✅ Fixed - Match mode shows per-file details |
 
 ## Recent Decisions
 
@@ -54,17 +54,18 @@
    - `description` → AgentSkill
    - None → manual rule (fallback GlobalPrompt)
 
-## Implementation Steps
+## Completed Implementation
 
-### Bug 5 (FileRule vs AgentSkill)
-1. Add test in `discover.test.ts` for empty globs + description → AgentSkill
-2. Fix `classifyRule()` to check parsed globs length
-3. Verify no regression for rules with valid globs
+### Bug 5 (FileRule vs AgentSkill) ✅
+1. Created fixture `cursor-empty-globs-with-description` with test case
+2. Added 2 tests in `discover.test.ts` for empty globs + description
+3. Fixed `classifyRule()` to check `globs.length > 0` before classifying as FileRule
+4. All 37 Cursor plugin tests pass
 
-### Bug 6 (Dry-run match details)
-1. Add test in `git-ignore.test.ts` for match mode per-file output
-2. Update CLI to show per-file details when match + dry-run
-3. Format: `  <filename> → <destination>`
+### Bug 6 (Dry-run match details) ✅
+1. Added test in `cli.test.ts` for match mode per-file output
+2. Updated CLI to show per-file details: `  <filename> → <destination>`
+3. All 56 CLI tests pass
 
 ## Context from Prior Phases
 

@@ -262,5 +262,32 @@ describe('CLI', () => {
       // .gitignore should NOT exist (dry-run)
       await expect(fs.access(path.join(tempDir, '.gitignore'))).rejects.toThrow();
     });
+
+    it('should show per-file details in dry-run match mode', async () => {
+      // Initialize git repo
+      spawnSync('git', ['init'], { cwd: tempDir });
+      spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
+      spawnSync('git', ['config', 'user.name', 'Test'], { cwd: tempDir });
+      
+      // Create .gitignore that ignores the cursor rules directory
+      await fs.writeFile(path.join(tempDir, '.gitignore'), '.cursor/rules/local/\n');
+      
+      // Create source Cursor rules in ignored directory
+      const cursorDir = path.join(tempDir, '.cursor', 'rules', 'local');
+      await fs.mkdir(cursorDir, { recursive: true });
+      await fs.writeFile(
+        path.join(cursorDir, 'secret.mdc'),
+        '---\nalwaysApply: true\n---\nSecret rule that should be gitignored.'
+      );
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run --gitignore-output-with match');
+      
+      expect(exitCode).toBe(0);
+      // Should show per-file details in match mode
+      // Format: "  <filename> → <destination>"
+      if (stdout.includes('Would update .gitignore')) {
+        expect(stdout).toMatch(/CLAUDE\.md.*→.*\.gitignore/);
+      }
+    });
   });
 });

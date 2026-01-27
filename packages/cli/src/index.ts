@@ -232,6 +232,13 @@ program
           for (const change of result.gitIgnoreChanges) {
             const prefix = options.dryRun ? 'Would update' : 'Git: Updated';
             console.log(`${prefix} ${change.file} (${change.added.length} entries)`);
+            
+            // Show per-file details in dry-run match mode
+            if (options.dryRun && gitignoreStyle === 'match' && change.added.length > 0) {
+              for (const file of change.added) {
+                console.log(`  ${file} → ${change.file}`);
+              }
+            }
           }
         }
         

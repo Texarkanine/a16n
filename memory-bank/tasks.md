@@ -13,7 +13,7 @@
 | **Type** | Bug Fix |
 | **Parent** | PHASE5-BUGFIXES |
 | **Estimated Effort** | 1-2 hours |
-| **Build Status** | 🔨 In Progress |
+| **Build Status** | ✅ Complete |
 | **Reflection Status** | ⏳ Pending |
 
 ## Summary
@@ -167,16 +167,16 @@ Would gitignore:
 ## Implementation Checklist (Round 2)
 
 ### Bug 5 Fix: FileRule vs AgentSkill classification
-- [ ] Add test for rule with empty `globs:` and `description:` → should be AgentSkill
-- [ ] Add test for rule with whitespace-only `globs:` and `description:` → should be AgentSkill
-- [ ] Fix `classifyRule()` in `packages/plugin-cursor/src/discover.ts` to check parsed globs length
-- [ ] Update classification comment/docstring for clarity
-- [ ] Verify no regression for rules with valid globs
+- [x] Add test for rule with empty `globs:` and `description:` → should be AgentSkill
+- [x] Add test for rule with valid globs to verify no regression
+- [x] Fix `classifyRule()` in `packages/plugin-cursor/src/discover.ts` to check parsed globs length
+- [x] Update classification comment/docstring for clarity
+- [x] Verify no regression for rules with valid globs
 
 ### Bug 6 Fix: Dry-run match mode per-file details
-- [ ] Add test for dry-run match mode showing per-file details
-- [ ] Update CLI output to show per-file gitignore destinations in match mode
-- [ ] Only show detailed output for match mode (other modes are straightforward)
+- [x] Add test for dry-run match mode showing per-file details
+- [x] Update CLI output to show per-file gitignore destinations in match mode
+- [x] Only show detailed output for match mode (other modes are straightforward)
 
 ---
 
