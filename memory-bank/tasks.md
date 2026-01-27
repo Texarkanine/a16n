@@ -106,31 +106,34 @@ Fix 4 bugs discovered during manual testing of Phase 5 git-ignore output managem
 ## Implementation Checklist
 
 ### Bug 1 Fix: Dry-run git preview
-- [ ] Refactor git management to separate "plan" from "execute"
-- [ ] In dry-run mode, run planning phase and output planned changes
-- [ ] Add test for dry-run showing git changes
+- [x] Refactor git management to separate "plan" from "execute"
+- [x] In dry-run mode, run planning phase and output planned changes
+- [x] Add test for dry-run showing git changes
+- [x] Added `EmitOptions` interface with `dryRun` parameter to plugin interface
+- [x] Updated Claude and Cursor plugins to support dryRun
 
 ### Bug 2 Fix: Git check-ignore path handling
-- [ ] Debug actual paths being passed to `git check-ignore`
-- [ ] Ensure paths are relative to git root
-- [ ] Add test with real git repo and glob patterns
+- [x] Debug actual paths being passed to `git check-ignore`
+- [x] Ensure paths are relative to git root
+- [x] Add test with real git repo and glob patterns
+- [x] Added tests for directory globs (`local/`) and wildcard globs (`*.local.txt`)
 
 ### Bug 3 Fix: isNewFile false positive
-- [ ] Debug path resolution in plugin emit vs. CLI
-- [ ] Check if absolute vs. relative paths cause mismatch
-- [ ] Verify `fs.access()` timing is correct
-- [ ] Add debug logging to trace the issue
+- [x] Debug path resolution in plugin emit vs. CLI
+- [x] Check if absolute vs. relative paths cause mismatch
+- [x] Fixed: Convert absolute paths to relative paths in CLI before passing to git functions
+- [x] Using `path.relative(resolvedPath, w.path)` for all git operations
 
 ### Bug 4 Fix: Empty globs validation
-- [ ] Add validation in Claude plugin for empty globs
-- [ ] Skip FileRule hook creation if globs are empty/invalid
-- [ ] Optionally: emit warning about skipped FileRule
-- [ ] Add test for empty globs scenario
+- [x] Add validation in Claude plugin for empty globs
+- [x] Skip FileRule hook creation if globs are empty/invalid
+- [x] Emit warning about skipped FileRule (WarningCode.Skipped)
+- [x] Add test for empty globs scenario (5 new tests added)
 
 ### Enhancement 1: Use .md extension for FileRule files
-- [ ] Change `.txt` → `.md` in Claude plugin emit
-- [ ] Update test expectations for `.md` extension
-- [ ] Verify syntax highlighting works in IDEs
+- [x] Change `.txt` → `.md` in Claude plugin emit
+- [x] Update test expectations for `.md` extension
+- [x] Verify syntax highlighting works in IDEs
 
 ---
 

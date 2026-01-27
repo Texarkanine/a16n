@@ -72,6 +72,45 @@ describe('Git Utilities', () => {
       const result = await isGitIgnored(testDir, 'any.txt');
       expect(result).toBe(false);
     });
+
+    it('should return true for files matching glob pattern in .gitignore', async () => {
+      // Initialize git repo
+      const { spawn } = await import('child_process');
+      await new Promise<void>((resolve) => {
+        const proc = spawn('git', ['init'], { cwd: testDir });
+        proc.on('close', () => resolve());
+      });
+      
+      // Create .gitignore with glob pattern for a directory
+      await fs.writeFile(path.join(testDir, '.gitignore'), 'local/\n');
+      
+      // Create the directory and a file inside
+      await fs.mkdir(path.join(testDir, 'local'), { recursive: true });
+      await fs.writeFile(path.join(testDir, 'local', 'dev.txt'), 'content');
+      
+      // The file inside the ignored directory should be ignored
+      const result = await isGitIgnored(testDir, 'local/dev.txt');
+      expect(result).toBe(true);
+    });
+
+    it('should return true for files matching wildcard glob pattern', async () => {
+      // Initialize git repo
+      const { spawn } = await import('child_process');
+      await new Promise<void>((resolve) => {
+        const proc = spawn('git', ['init'], { cwd: testDir });
+        proc.on('close', () => resolve());
+      });
+      
+      // Create .gitignore with wildcard glob pattern
+      await fs.writeFile(path.join(testDir, '.gitignore'), '*.local.txt\n');
+      
+      // Create a file matching the pattern
+      await fs.writeFile(path.join(testDir, 'dev.local.txt'), 'content');
+      
+      // The file matching the glob should be ignored
+      const result = await isGitIgnored(testDir, 'dev.local.txt');
+      expect(result).toBe(true);
+    });
   });
 
   describe('isGitTracked', () => {

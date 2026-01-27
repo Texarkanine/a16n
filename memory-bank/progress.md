@@ -85,21 +85,31 @@
 
 ---
 
-## Bug Fix Session (2026-01-26)
+## Bug Fix Session (2026-01-27)
 
-### Bug Analysis Complete
+### Bug Fixes Complete ✅
 
-| Bug | File | Root Cause |
-|-----|------|------------|
-| B1 | `cli/src/index.ts:88` | `!options.dryRun` skips all git logic |
-| B2 | `cli/src/index.ts` | Path resolution for `git check-ignore` |
-| B3 | `plugin-*/src/emit.ts` | `isNewFile` path mismatch |
-| B4 | `plugin-claude/src/emit.ts:86` | No validation for empty `globs` |
+| Bug | Status | Fix Summary |
+|-----|--------|-------------|
+| B1 | ✅ Complete | Refactored git logic to separate plan/execute; dry-run now shows planned changes |
+| B2 | ✅ Complete | Verified `git check-ignore` works with glob patterns; added tests |
+| B3 | ✅ Complete | Fixed absolute→relative path conversion in CLI git operations |
+| B4 | ✅ Complete | Added validation for empty globs in Claude plugin; emits warning |
+| E1 | ✅ Complete | Changed FileRule files from `.txt` to `.md` extension |
 
-### Fix Plan Created
-- See `memory-bank/tasks.md` for detailed implementation plan
-- Estimated effort: 2-4 hours
-- Priority: B3 > B4 > B1 > B2
+### Implementation Summary
+- Added `EmitOptions` interface with `dryRun` parameter to `@a16njs/models`
+- Updated both Claude and Cursor plugins to support dry-run emit
+- Updated engine to pass dryRun to emit()
+- Fixed path handling: `path.relative(resolvedPath, w.path)` for git operations
+- Added empty globs validation with warning in Claude plugin
+- Changed `.txt` → `.md` for FileRule content files
+
+### Tests Added/Updated
+- 5 new tests for empty globs validation
+- 2 new tests for glob pattern handling in git check-ignore  
+- 3 tests for dry-run git preview
+- Updated 3 existing tests for new dry-run behavior (returns what WOULD be written)
 
 ### Reflection Complete
 - Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md`

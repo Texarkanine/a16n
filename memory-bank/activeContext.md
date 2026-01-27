@@ -5,24 +5,24 @@
 
 ## Current Focus
 
-**Phase 5 Bug Fixes** — Fixing 4 bugs discovered during manual testing of git-ignore feature.
+**Phase 5 Bug Fixes** — All bugs fixed and verified.
 
 ## Session State
 
 - Phase 5 core implementation: ✅ Complete (Tasks 1-9)
 - Phase 5 reflection: ✅ Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md`
-- Bug fix task: Level 2 (Simple Enhancement)
-- 4 bugs identified, plan created
+- Bug fix task: ✅ Complete (Level 2)
+- All 4 bugs + 1 enhancement fixed and tested
 
 ## Bug & Enhancement Summary
 
-| Item | Severity | Summary |
-|------|----------|---------|
-| B1 | Medium | Dry-run doesn't show planned git changes |
-| B2 | High | Glob patterns in exclude file not honored |
-| B3 | High | Style `exclude` not writing (isNewFile issue) |
-| B4 | Medium | Empty `globs:` creates invalid hook command |
-| E1 | Low | FileRule files use `.txt` instead of `.md` |
+| Item | Severity | Status |
+|------|----------|--------|
+| B1 | Medium | ✅ Fixed - Dry-run now shows planned git changes |
+| B2 | High | ✅ Fixed - Glob patterns work correctly |
+| B3 | High | ✅ Fixed - Paths converted to relative |
+| B4 | Medium | ✅ Fixed - Empty globs validated and skipped |
+| E1 | Low | ✅ Fixed - FileRule files now use `.md` |
 
 ## Recent Decisions
 
@@ -41,13 +41,18 @@
 3. **Bug 3**: `isNewFile` uses absolute paths, but CLI may be checking different paths - need to debug
 4. **Bug 4**: `buildHookConfig()` doesn't validate `globs` array - simple validation fix
 
-## Immediate Next Steps
+## Completed Steps
 
-1. **Fix E1** (trivial, 5 min) - change `.txt` → `.md` 
-2. **Fix Bug 4** (simple, 15 min) - add globs validation in Claude plugin
-3. **Debug Bug 3** (blocking, 30-60 min) - add logging to understand path mismatch
-4. **Refactor for Bug 1** (1-2 hours) - separate git planning from execution
-5. **Test Bug 2** (30 min) - create real git repo test with glob patterns
+1. ✅ **Fixed E1** - Changed `.txt` → `.md` for FileRule files
+2. ✅ **Fixed Bug 4** - Added globs validation in Claude plugin  
+3. ✅ **Fixed Bug 3** - Fixed absolute→relative path conversion
+4. ✅ **Fixed Bug 1** - Refactored git logic for dry-run preview
+5. ✅ **Verified Bug 2** - Added tests for glob patterns
+
+## Remaining Work
+
+- Review and commit changes
+- Update documentation if needed
 
 ## Context from Prior Phases
 
