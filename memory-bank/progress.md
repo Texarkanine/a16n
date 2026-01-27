@@ -11,7 +11,7 @@
 | **Phase 2** | ✅ Complete | PR #3 merged (FileRule + AgentSkill) |
 | **Phase 3** | ✅ Complete | PR #4 merged (AgentIgnore + CLI polish) |
 | **Phase 4** | ✅ Complete | PR #8 merged (AgentCommand, Cursor → Claude) |
-| **Phase 5** | 📋 Planning Complete | Git ignore output management |
+| **Phase 5** | 🔧 Bug Fixes | Core impl done, fixing 4 bugs |
 
 ## Current Session
 
@@ -81,6 +81,29 @@
 - ✅ All unit tests passing (232 tests)
 - 🔄 Integration tests needed (Tasks 10-11)
 - ⬜ Documentation needed (Task 12)
+- 🔧 4 bugs discovered during manual testing
+
+---
+
+## Bug Fix Session (2026-01-26)
+
+### Bug Analysis Complete
+
+| Bug | File | Root Cause |
+|-----|------|------------|
+| B1 | `cli/src/index.ts:88` | `!options.dryRun` skips all git logic |
+| B2 | `cli/src/index.ts` | Path resolution for `git check-ignore` |
+| B3 | `plugin-*/src/emit.ts` | `isNewFile` path mismatch |
+| B4 | `plugin-claude/src/emit.ts:86` | No validation for empty `globs` |
+
+### Fix Plan Created
+- See `memory-bank/tasks.md` for detailed implementation plan
+- Estimated effort: 2-4 hours
+- Priority: B3 > B4 > B1 > B2
+
+### Reflection Complete
+- Created `memory-bank/reflection/reflection-PHASE5-GITIGNORE.md`
+- Key lessons: Manual testing essential, git semantics more complex than anticipated
 
 ### Acceptance Criteria Progress
 

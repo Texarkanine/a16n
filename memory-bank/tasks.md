@@ -7,112 +7,190 @@
 
 | Field | Value |
 |-------|-------|
-| **Task ID** | PHASE5-GITIGNORE |
-| **Title** | Phase 5: Git Ignore Output Management |
-| **Complexity** | Level 3 (Intermediate) |
-| **Type** | Feature |
-| **Spec** | `planning/PHASE_5_SPEC.md` |
-| **Estimated Effort** | 14-20 hours |
+| **Task ID** | PHASE5-BUGFIXES |
+| **Title** | Phase 5 Bug Fixes |
+| **Complexity** | Level 2 (Simple Enhancement) |
+| **Type** | Bug Fix |
+| **Parent** | PHASE5-GITIGNORE |
+| **Estimated Effort** | 2-4 hours |
 
 ## Summary
 
-Provide CLI options to manage git tracking of converted output files via `--gitignore-output-with <style>` flag with 5 styles: `none`, `ignore`, `exclude`, `hook`, `match`.
+Fix 4 bugs discovered during manual testing of Phase 5 git-ignore output management feature, plus 1 enhancement for better UX.
 
-## Acceptance Criteria
+## Bug Reports
 
-| AC | Description | Status |
-|----|-------------|--------|
-| AC1 | Style `none` (default) makes no git changes | ⬜ |
-| AC2 | Style `ignore` appends to `.gitignore` with semaphores | ⬜ |
-| AC3 | Style `exclude` appends to `.git/info/exclude` | ⬜ |
-| AC4 | Style `hook` creates/updates pre-commit hook | ⬜ |
-| AC5 | Style `match` ignores output when source is ignored | ⬜ |
-| AC6 | Style `match` tracks output when source is tracked | ⬜ |
-| AC7 | Boundary crossing emits warning | ⬜ |
-| AC8 | Only new files are managed (not edited existing) | ⬜ |
-| AC9 | Dry run shows planned git changes | ⬜ |
-| AC10 | Verbose mode shows git operations | ⬜ |
-| AC11 | JSON output includes `gitIgnoreChanges` | ⬜ |
-| AC12 | Error handling for non-git-repos | ⬜ |
+### Bug 1: Dry-run doesn't show planned git changes (Medium)
+
+**Symptom:** When using `--dry-run` with any `--gitignore-output-with` style other than `none`, no information about planned git changes is shown.
+
+**Root Cause:** Line 88 in `packages/cli/src/index.ts` has condition `!options.dryRun` which completely skips git management logic in dry-run mode.
+
+**Expected:** Dry-run should show what git changes WOULD be made, similar to how it shows files that WOULD be written.
+
+**Fix:** Calculate planned git changes but don't write them. Add dry-run output for git operations.
+
+---
+
+### Bug 2: Glob patterns in exclude file not honored (High)
+
+**Symptom:** User had `.cursor/rules/local/` in `.git/info/exclude`, converted rules from that directory, but output was not ignored.
+
+**Root Cause Analysis:**
+1. `isGitIgnored()` uses `git check-ignore` which DOES honor glob patterns ✓
+2. Issue is the `match` style only ignores output files whose SOURCE files are ignored
+3. The current logic checks if source `.cursor/rules/local/dev.mdc` is ignored
+4. `git check-ignore` works on existing paths - if source was never committed, it may not show as "ignored" properly
+5. **Deeper issue:** We check `isGitIgnored(source)` but should be checking the actual file on disk
+
+**Expected:** If `.cursor/rules/local/` is in any gitignore file and a source rule lives under that path, its output should be ignored.
+
+**Fix:** Ensure `git check-ignore` is called with the actual source path (relative to repo root). Test with actual git repo scenarios.
+
+---
+
+### Bug 3: Style `exclude` not writing anything (High)
+
+**Symptom:** After reset and re-run with `--gitignore-output-with exclude`, nothing was written to `.git/info/exclude`.
+
+**Root Cause Analysis:**
+1. Line 92 filters: `result.written.filter(w => w.isNewFile)`
+2. `isNewFile` is determined by `fs.access()` BEFORE writing (checks if file exists)
+3. If output files already existed from a previous run, `isNewFile = false`
+4. With `newFiles.length === 0`, the code logs "No new files to manage" and exits early
+
+**Expected:** On a clean conversion (after `git checkout .`), new output files should have `isNewFile: true`.
+
+**Investigation needed:** 
+- Are paths absolute vs. relative causing issues?
+- Is the `fs.access()` check happening at the wrong time?
+- The plugin checks existence, writes, then reports `isNewFile` - but maybe the timing is off
+
+**Fix:** Debug the exact file paths being checked. Ensure relative paths match.
+
+---
+
+### Bug 4: Empty `globs:` frontmatter creates invalid hook (Medium)
+
+**Symptom:** Cursor rules with `globs: ` (empty value) in frontmatter are converted to Claude `settings.local.json` with `--globs ""` which is invalid.
+
+**Root Cause:** `buildHookConfig()` in `packages/plugin-claude/src/emit.ts` doesn't check if `fileRule.globs` is empty or contains only empty strings.
+
+**Expected:** FileRules with no valid glob patterns should either:
+1. Be skipped entirely (not emitted as a hook), or
+2. Be converted to GlobalPrompt type instead
+
+**Fix:** Add validation in Claude plugin emit to skip/convert FileRules with empty globs.
+
+---
+
+### Enhancement 1: FileRule files use .txt instead of .md (Low)
+
+**Symptom:** When Claude plugin emits FileRules to `.a16n/rules/`, it uses `.txt` extension instead of `.md`.
+
+**Root Cause:** Line 218 in `packages/plugin-claude/src/emit.ts` calls `getUniqueFilename(baseName, usedFilenames, '.txt')`.
+
+**Expected:** FileRule content comes from Cursor `.mdc` files (markdown), so `.md` extension provides:
+- Proper syntax highlighting in IDEs
+- Consistent with source format
+- Better UX for developers editing rules
+
+**Fix:** Change `.txt` → `.md` in `getUniqueFilename()` call.
+
+**Why not detect markdown?** Heuristics are complex and fragile. Assuming markdown is safe - even non-markdown content won't break with `.md` extension.
+
+**Why not `.claude/.a16n/`?** Keep `.a16n/` at project root for tool-agnostic design. Enables round-tripping and future tool support.
+
+---
 
 ## Implementation Checklist
 
-### Track A: Models & Type Changes
-- [x] Task 1: Extend `WrittenFile` with `isNewFile` boolean
-- [x] Task 9: Extend `ConversionResult` with `gitIgnoreChanges`
+### Bug 1 Fix: Dry-run git preview
+- [ ] Refactor git management to separate "plan" from "execute"
+- [ ] In dry-run mode, run planning phase and output planned changes
+- [ ] Add test for dry-run showing git changes
 
-### Track B: Plugin Updates
-- [x] Task 2: Update Cursor plugin emit to track `isNewFile`
-- [x] Task 2: Update Claude plugin emit to track `isNewFile`
+### Bug 2 Fix: Git check-ignore path handling
+- [ ] Debug actual paths being passed to `git check-ignore`
+- [ ] Ensure paths are relative to git root
+- [ ] Add test with real git repo and glob patterns
 
-### Track C: CLI & Git Utilities
-- [x] Task 3: Add `--gitignore-output-with <style>` CLI flag
-- [x] Task 4: Create `git-ignore.ts` utilities module
-- [x] Task 5: Implement style `ignore`
-- [x] Task 6: Implement style `exclude`
-- [x] Task 7: Implement style `hook`
-- [x] Task 8: Implement style `match`
+### Bug 3 Fix: isNewFile false positive
+- [ ] Debug path resolution in plugin emit vs. CLI
+- [ ] Check if absolute vs. relative paths cause mismatch
+- [ ] Verify `fs.access()` timing is correct
+- [ ] Add debug logging to trace the issue
 
-### Track D: Finalization
-- [ ] Task 10: Create test fixtures (git repo scenarios)
-- [ ] Task 11: Integration tests for all 5 styles
-- [ ] Task 12: Documentation updates (README, CLI README)
+### Bug 4 Fix: Empty globs validation
+- [ ] Add validation in Claude plugin for empty globs
+- [ ] Skip FileRule hook creation if globs are empty/invalid
+- [ ] Optionally: emit warning about skipped FileRule
+- [ ] Add test for empty globs scenario
 
-## Task Dependencies
+### Enhancement 1: Use .md extension for FileRule files
+- [ ] Change `.txt` → `.md` in Claude plugin emit
+- [ ] Update test expectations for `.md` extension
+- [ ] Verify syntax highlighting works in IDEs
 
-```
-T1 (WrittenFile) → T2 (Plugins) → T5-T8 (Styles)
-T3 (CLI Flag) → T5-T8 (Styles)
-T4 (Git Utils) → T5-T8 (Styles)
-T5-T8 → T9 (ConversionResult)
-T10 (Fixtures) → T11 (Integration Tests)
-T9 → T11
-T11 → T12 (Docs)
-```
-
-## Parallel Work Opportunities
-
-- **Batch 1** (parallel): Tasks 1, 3, 4, 10
-- **Batch 2** (parallel, after Batch 1): Tasks 2, 5, 6, 7, 8
-- **Batch 3** (sequential): Task 9
-- **Batch 4** (sequential): Task 11
-- **Batch 5** (sequential): Task 12
-
-## Key Technical Decisions
-
-| Decision | Rationale |
-|----------|-----------|
-| Only manage new files | Prevents accidentally untracking user's manually managed files |
-| Semaphore pattern | Allows regeneration without losing user content |
-| Directory entries where possible | Efficiency (`.a16n/` instead of many individual files) |
-| Conservative `match` heuristic | If ANY source ignored → output ignored |
-| `BoundaryCrossing` warning code | New warning type for git status conflicts |
-
-## Files to Create
-
-- `packages/cli/src/git-ignore.ts` — Git utilities module
+---
 
 ## Files to Modify
 
-- `packages/models/src/plugin.ts` — `WrittenFile.isNewFile`
-- `packages/models/src/warnings.ts` — `BoundaryCrossing` warning code
-- `packages/plugin-cursor/src/emit.ts` — Track `isNewFile`
-- `packages/plugin-claude/src/emit.ts` — Track `isNewFile`
-- `packages/engine/src/index.ts` — `gitIgnoreChanges` in `ConversionResult`
-- `packages/cli/src/index.ts` — New flag and style implementations
-- `README.md` — Feature documentation
-- `packages/cli/README.md` — Flag documentation
+| File | Bug(s) / Enhancement | Changes |
+|------|---------------------|---------|
+| `packages/cli/src/index.ts` | B1, B3 | Refactor git logic, debug paths |
+| `packages/plugin-claude/src/emit.ts` | B4, E1 | Validate globs, change `.txt` → `.md` |
+| `packages/cli/test/git-ignore.test.ts` | B1, B2 | Add dry-run and glob tests |
+| `packages/plugin-claude/test/emit.test.ts` | B4, E1 | Add empty globs test, update `.md` expectations |
 
-## Test Locations
+## Test Plan
 
-- `packages/models/test/plugin.test.ts` — `isNewFile` tests
-- `packages/plugin-cursor/test/emit.test.ts` — Plugin tests
-- `packages/plugin-claude/test/emit.test.ts` — Plugin tests
-- `packages/cli/test/git-ignore.test.ts` — New test file for utilities
-- `packages/cli/test/integration/integration.test.ts` — E2E scenarios
+### Bug 1 Tests
+```
+✓ dry-run with --gitignore-output-with ignore shows planned .gitignore changes
+✓ dry-run with --gitignore-output-with exclude shows planned exclude changes
+✓ dry-run does NOT write to gitignore files
+```
+
+### Bug 2 Tests
+```
+✓ source under `.cursor/rules/local/` with `local/` in .git/info/exclude → output ignored
+✓ glob pattern `*.local.mdc` matches and ignores correctly
+```
+
+### Bug 3 Tests
+```
+✓ fresh conversion creates new files with isNewFile: true
+✓ re-conversion after reset still has isNewFile: true (files were deleted)
+✓ re-conversion without reset has isNewFile: false (files exist)
+```
+
+### Bug 4 Tests
+```
+✓ FileRule with `globs: ` (empty) is NOT converted to hook
+✓ FileRule with `globs: []` (empty array) is NOT converted to hook
+✓ FileRule with valid globs is converted correctly
+```
+
+### Enhancement 1 Tests
+```
+✓ FileRule emitted to `.a16n/rules/foo.md` (not .txt)
+✓ Multiple FileRules get unique .md names (foo.md, foo-2.md, etc.)
+✓ Existing tests updated for .md extension
+```
 
 ## Verification Command
 
 ```bash
 pnpm format && pnpm lint -- --fix && pnpm build && pnpm test -- --silent
 ```
+
+## Debugging Notes
+
+### To Debug Bug 3:
+1. Add `console.error()` to `packages/plugin-claude/src/emit.ts` before `fs.access()` calls
+2. Run conversion and check:
+   - What path is being checked?
+   - Is it absolute or relative?
+   - Does `fs.access()` succeed or fail?
+3. Compare with the path in `result.written[].path`
