@@ -12,6 +12,10 @@ export enum WarningCode {
   Overwritten = 'overwritten',
   /** File was renamed to avoid collision */
   FileRenamed = 'file-renamed',
+  /** Git-ignored source with tracked output (or vice versa) */
+  BoundaryCrossing = 'boundary-crossing',
+  /** Sources have conflicting git status (some ignored, some tracked) */
+  GitStatusConflict = 'git-status-conflict',
 }
 
 /**

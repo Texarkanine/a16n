@@ -9,6 +9,26 @@ No active task. Use `/niko` to start a new task.
 
 ## Session State
 
-Memory Bank cleared after archiving Phase 4 (PHASE4-AGENTCOMMAND).
+Memory Bank cleared and ready for new task.
 
-Ready for next task.
+## Context from Prior Work
+
+| Phase | Status |
+|-------|--------|
+| Phase 1 | ✅ GlobalPrompt MVP |
+| Phase 2 | ✅ FileRule + AgentSkill |
+| Phase 3 | ✅ AgentIgnore + CLI polish |
+| Phase 4 | ✅ AgentCommand |
+| Phase 5 | ✅ Git ignore output management |
+
+## Branch
+
+Current branch: `phase-5`
+
+## Blockers
+
+None
+
+## Next Steps
+
+Use `/niko` to initialize the next task.

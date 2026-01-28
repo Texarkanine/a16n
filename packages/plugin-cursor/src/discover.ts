@@ -82,17 +82,21 @@ function classifyRule(
     } as GlobalPrompt;
   }
 
-  // Priority 2: globs present → FileRule
+  // Priority 2: globs present AND non-empty → FileRule
+  // Note: frontmatter.globs may be truthy (e.g., whitespace) but parse to empty array
   if (frontmatter.globs) {
     const globs = parseGlobs(frontmatter.globs);
-    return {
-      id: createId(CustomizationType.FileRule, sourcePath),
-      type: CustomizationType.FileRule,
-      sourcePath,
-      content: body,
-      globs,
-      metadata: { ...frontmatter },
-    } as FileRule;
+    if (globs.length > 0) {
+      return {
+        id: createId(CustomizationType.FileRule, sourcePath),
+        type: CustomizationType.FileRule,
+        sourcePath,
+        content: body,
+        globs,
+        metadata: { ...frontmatter },
+      } as FileRule;
+    }
+    // Fall through to next priority if globs is empty after parsing
   }
 
   // Priority 3: description present → AgentSkill

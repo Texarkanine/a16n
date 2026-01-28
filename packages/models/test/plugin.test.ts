@@ -71,10 +71,126 @@ describe('WrittenFile', () => {
       path: '.cursor/rules/generated.mdc',
       type: CustomizationType.GlobalPrompt,
       itemCount: 3,
+      isNewFile: true,
     };
 
     expect(written.path).toBe('.cursor/rules/generated.mdc');
     expect(written.type).toBe(CustomizationType.GlobalPrompt);
     expect(written.itemCount).toBe(3);
+    expect(written.isNewFile).toBe(true);
+  });
+
+  it('should track isNewFile as true for new files', () => {
+    const written: WrittenFile = {
+      path: 'CLAUDE.md',
+      type: CustomizationType.GlobalPrompt,
+      itemCount: 1,
+      isNewFile: true,
+    };
+
+    expect(written.isNewFile).toBe(true);
+  });
+
+  it('should track isNewFile as false for edited files', () => {
+    const written: WrittenFile = {
+      path: 'CLAUDE.md',
+      type: CustomizationType.GlobalPrompt,
+      itemCount: 2,
+      isNewFile: false,
+    };
+
+    expect(written.isNewFile).toBe(false);
+  });
+
+  it('should allow optional sourceItems field for tracking source customizations', () => {
+    // Test that WrittenFile can include sourceItems field to track which
+    // AgentCustomizations contributed to this output file
+    const sourceItem = {
+      id: 'source-1',
+      type: CustomizationType.GlobalPrompt,
+      sourcePath: '.cursor/rules/test.mdc',
+      content: 'Test rule',
+      metadata: {},
+    };
+
+    const written: WrittenFile = {
+      path: 'CLAUDE.md',
+      type: CustomizationType.GlobalPrompt,
+      itemCount: 1,
+      isNewFile: true,
+      sourceItems: [sourceItem],
+    };
+
+    expect(written.sourceItems).toBeDefined();
+    expect(written.sourceItems).toHaveLength(1);
+    expect(written.sourceItems?.[0]).toBe(sourceItem);
+  });
+
+  it('should support WrittenFile with single source item (1:1 mapping)', () => {
+    // Test that WrittenFile with itemCount=1 has single-element sourceItems array
+    const sourceItem = {
+      id: 'skill-1',
+      type: CustomizationType.AgentSkill,
+      sourcePath: '.cursor/rules/database.mdc',
+      content: 'Database operations',
+      metadata: {},
+    };
+
+    const written: WrittenFile = {
+      path: '.claude/skills/database/SKILL.md',
+      type: CustomizationType.AgentSkill,
+      itemCount: 1,
+      isNewFile: true,
+      sourceItems: [sourceItem],
+    };
+
+    expect(written.itemCount).toBe(1);
+    expect(written.sourceItems).toHaveLength(1);
+    expect(written.sourceItems?.[0].id).toBe('skill-1');
+  });
+
+  it('should support WrittenFile with multiple source items (merged output)', () => {
+    // Test that WrittenFile with itemCount>1 has multi-element sourceItems array
+    const source1 = {
+      id: 'ignore-1',
+      type: CustomizationType.AgentIgnore,
+      sourcePath: '.cursor/rules/build.mdc',
+      content: '*.log',
+      metadata: {},
+    };
+    const source2 = {
+      id: 'ignore-2',
+      type: CustomizationType.AgentIgnore,
+      sourcePath: '.cursor/rules/temp.mdc',
+      content: 'tmp/',
+      metadata: {},
+    };
+
+    const written: WrittenFile = {
+      path: '.cursorignore',
+      type: CustomizationType.AgentIgnore,
+      itemCount: 2,
+      isNewFile: false,
+      sourceItems: [source1, source2],
+    };
+
+    expect(written.itemCount).toBe(2);
+    expect(written.sourceItems).toHaveLength(2);
+    expect(written.sourceItems?.map(s => s.id)).toEqual(['ignore-1', 'ignore-2']);
+  });
+
+  it('should support WrittenFile without sourceItems for backwards compatibility', () => {
+    // Test that WrittenFile can be created without sourceItems field
+    // (optional field for backwards compatibility)
+    const written: WrittenFile = {
+      path: 'CLAUDE.md',
+      type: CustomizationType.GlobalPrompt,
+      itemCount: 1,
+      isNewFile: true,
+      // sourceItems intentionally omitted
+    };
+
+    expect(written.path).toBe('CLAUDE.md');
+    expect(written.sourceItems).toBeUndefined();
   });
 });

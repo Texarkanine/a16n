@@ -22,6 +22,16 @@ export interface ConversionOptions {
 }
 
 /**
+ * Git-ignore change information.
+ */
+export interface GitIgnoreResult {
+  /** The file that was modified */
+  file: string;
+  /** Entries that were added */
+  added: string[];
+}
+
+/**
  * Result of a conversion operation.
  */
 export interface ConversionResult {
@@ -33,6 +43,8 @@ export interface ConversionResult {
   warnings: Warning[];
   /** Items that couldn't be represented by target */
   unsupported: AgentCustomization[];
+  /** Git-ignore changes made (if --gitignore-output-with was used) */
+  gitIgnoreChanges?: GitIgnoreResult[];
 }
 
 /**
@@ -125,17 +137,10 @@ export class A16nEngine {
     // Discover from source
     const discovery = await sourcePlugin.discover(options.root);
 
-    if (options.dryRun) {
-      return {
-        discovered: discovery.items,
-        written: [],
-        warnings: discovery.warnings,
-        unsupported: [],
-      };
-    }
-
-    // Emit to target
-    const emission = await targetPlugin.emit(discovery.items, options.root);
+    // Emit to target (pass dryRun to calculate what would be written)
+    const emission = await targetPlugin.emit(discovery.items, options.root, {
+      dryRun: options.dryRun,
+    });
 
     return {
       discovered: discovery.items,

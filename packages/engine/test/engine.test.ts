@@ -153,9 +153,9 @@ describe('A16nEngine', () => {
       });
 
       expect(result.discovered).toHaveLength(1);
-      expect(result.written).toHaveLength(0); // Nothing written in dry-run
+      expect(result.written).toHaveLength(1); // Now returns what WOULD be written (without actually writing)
 
-      // Verify CLAUDE.md was NOT created
+      // Verify CLAUDE.md was NOT actually created (dry-run doesn't write files)
       await expect(
         fs.access(path.join(tempDir, 'CLAUDE.md'))
       ).rejects.toThrow();

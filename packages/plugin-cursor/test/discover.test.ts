@@ -204,6 +204,26 @@ describe('Classification Priority (Phase 2)', () => {
       expect(item.type).toBe(CustomizationType.AgentSkill);
     }
   });
+
+  it('should classify rules with empty globs: and description as AgentSkill (not FileRule)', async () => {
+    const root = path.join(fixturesDir, 'cursor-empty-globs-with-description/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.type).toBe(CustomizationType.AgentSkill);
+    expect((result.items[0] as import('@a16njs/models').AgentSkill).description).toBe('when to do a thing properly');
+  });
+
+  it('should classify rules with valid globs over description (globs takes precedence)', async () => {
+    // This test verifies no regression - rules with both globs and description should be FileRule
+    const root = path.join(fixturesDir, 'cursor-filerule/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    // FileRules in this fixture have globs, should NOT become AgentSkill
+    for (const item of result.items) {
+      expect(item.type).toBe(CustomizationType.FileRule);
+    }
+  });
 });
 
 describe('AgentIgnore Discovery (Phase 3)', () => {

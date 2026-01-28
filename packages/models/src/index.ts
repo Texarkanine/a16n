@@ -16,6 +16,7 @@ export {
   type A16nPlugin,
   type DiscoveryResult,
   type EmitResult,
+  type EmitOptions,
   type WrittenFile,
 } from './plugin.js';
 

@@ -1,0 +1,10 @@
+---
+description: when to do a thing properly
+globs: 
+alwaysApply: false
+---
+
+This rule should be classified as AgentSkill because:
+1. alwaysApply is false (not GlobalPrompt)
+2. globs is empty (not FileRule)
+3. description is present (AgentSkill)
