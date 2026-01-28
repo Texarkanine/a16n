@@ -176,5 +176,13 @@ const prefix = options.dryRun ? 'Would update' : 'Git: Updated';
 - [x] `--delete-source` preserves sources involved in skips
 - [x] JSON output includes `deletedSources` when applicable
 - [x] No TODO comments in shipped code
+- [x] Reflection complete
 
 **✅ ALL TASKS COMPLETE** - CI will handle versioning
+
+## Reflection Highlights
+
+- **What Went Well**: TDD process, QA validation, zero regressions, conservative design
+- **Challenges**: Skip scenario test design, understanding warning system
+- **Key Lessons**: Conservative deletion is correct, TDD reveals design issues early
+- **Time Variance**: 40% faster than estimated due to clear specs
