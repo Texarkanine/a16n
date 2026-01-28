@@ -5,7 +5,7 @@
 
 ## Current Task: CodeRabbit PR #11 Fixes
 
-**Status:** In Progress
+**Status:** Implementation Complete, Reflection Done
 **PR URL:** https://github.com/Texarkanine/a16n/pull/11
 **Rate Limit Until:** 
 
@@ -21,7 +21,7 @@
 - [x] ID: CR-9 - Add language specifier to code block in PHASE_5_SPEC.md - FIXED
 
 ### Requires Human Decision
-- ID: CR-10 - Match mode can mis-route outputs when multiple sources share a type - **PLANNED** (see below)
+- [x] ID: CR-10 - Match mode can mis-route outputs when multiple sources share a type - **COMPLETE** (see below)
 
 ### Ignored
 (none)
@@ -181,4 +181,12 @@ For `--gitignore-output-with match`:
 - [x] Planning complete
 - [x] Implementation complete
 - [x] All tests passing (309/309)
-- [x] Ready for commit
+- [x] Smoke-tested
+- [x] Reflection complete
+
+### Reflection Highlights
+
+- **What Went Well**: TDD discipline, phased implementation, user review caught design flaw
+- **Key Decision**: No backwards compat fallback - skip + warn when sourceItems missing
+- **Lessons**: Interface changes propagate cleanly; skip rather than guess; plugins as data providers
+- **Next**: Commit to branch, create changeset, push for re-review
