@@ -1,0 +1,84 @@
+name: Release PR Lockfile Sync
+
+# Syncs pnpm-lock.yaml when release-please bumps package.json versions.
+#
+# Flow:
+# 1. Any push to RP branch → check if lockfile in sync via --frozen-lockfile
+# 2. If out of sync → update and push
+# 3. If in sync (e.g., after our own push) → exit immediately
+#
+# Uses --frozen-lockfile check for bulletproof state verification.
+# This handles all cases: release-please pushes, manual pushes, our own pushes.
+
+on:
+  push:
+    branches:
+      - "release-please--branches--main"
+      - "release-please--branches--main--*"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-release-pr
+  # Never cancel - lockfile syncs must complete to unblock CI on release PRs
+  cancel-in-progress: false
+
+jobs:
+  sync-lockfile:
+    name: Sync Lockfile
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Generate GitHub App Token
+        id: generate-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.DOGGO_BOT_APP_ID }}
+          private-key: ${{ secrets.DOGGO_BOT_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Check if lockfile is in sync
+        id: check-sync
+        run: |
+          if pnpm install --frozen-lockfile; then
+            echo "in_sync=true" >> $GITHUB_OUTPUT
+            echo "✅ Lockfile is already in sync"
+          else
+            echo "in_sync=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Lockfile needs updating"
+          fi
+
+      - name: Configure git
+        if: steps.check-sync.outputs.in_sync == 'false'
+        run: |
+          git config user.name "texarkanine-s-little-helper[bot]"
+          git config user.email "${{ vars.DOGGO_BOT_APP_ID }}+texarkanine-s-little-helper[bot]@users.noreply.github.com"
+
+      - name: Update lockfile, commit and push
+        if: steps.check-sync.outputs.in_sync == 'false'
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: |
+            git pull --rebase
+            pnpm install --no-frozen-lockfile
+            git add pnpm-lock.yaml
+            # Only commit if there are changes (might already be in sync after pull)
+            git diff --cached --quiet || git commit -m "chore: sync pnpm-lock.yaml with version bumps"
+            git push
