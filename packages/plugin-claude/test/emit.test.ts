@@ -1320,8 +1320,9 @@ describe('Claude Plugin - sourceItems tracking (CR-10)', () => {
     // Should have 2 written files: .a16n/rules/react.md and settings.local.json
     expect(result.written).toHaveLength(2);
     
-    // Find the .a16n/rules/*.md file
-    const ruleFile = result.written.find(w => w.path.includes('.a16n/rules/'));
+    // Find the .a16n/rules/*.md file (use path.join for cross-platform compatibility)
+    const rulesDirFragment = path.join('.a16n', 'rules');
+    const ruleFile = result.written.find(w => w.path.includes(rulesDirFragment));
     expect(ruleFile).toBeDefined();
     expect(ruleFile?.type).toBe(CustomizationType.FileRule);
     expect(ruleFile?.itemCount).toBe(1);
