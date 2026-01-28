@@ -646,5 +646,64 @@ This skill has hooks`
       expect(Array.isArray(result.deletedSources)).toBe(true);
       expect(result.deletedSources.length).toBeGreaterThan(0);
     });
+
+    it('should use relative paths in deletedSources output and JSON (CR-12)', async () => {
+      // CodeRabbit feedback: deletedSources should use relative paths for readability
+      const cursorDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorDir, { recursive: true });
+      await fs.writeFile(
+        path.join(cursorDir, 'test.mdc'),
+        '---\nalwaysApply: true\n---\nRelative path test'
+      );
+
+      // Test human-readable output
+      const { stdout: humanOutput, exitCode: humanExitCode } = runCli('convert --from cursor --to claude --delete-source');
+      expect(humanExitCode).toBe(0);
+      // Deleted line should show relative path like ".cursor/rules/test.mdc"
+      expect(humanOutput).toMatch(/Deleted:.*\.cursor\/rules\/test\.mdc/);
+      // Deleted line should NOT contain absolute path
+      const deletedLines = humanOutput.split('\n').filter((l: string) => l.includes('Deleted:'));
+      for (const line of deletedLines) {
+        expect(line).not.toContain(tempDir);
+      }
+
+      // Test JSON output - recreate source for fresh test
+      await fs.writeFile(
+        path.join(cursorDir, 'test.mdc'),
+        '---\nalwaysApply: true\n---\nRelative path test'
+      );
+      const { stdout: jsonOutput, exitCode: jsonExitCode } = runCli('convert --from cursor --to claude --delete-source --json');
+      expect(jsonExitCode).toBe(0);
+      
+      const result = JSON.parse(jsonOutput);
+      expect(result.deletedSources).toBeDefined();
+      // JSON deletedSources should use relative paths
+      for (const deletedPath of result.deletedSources) {
+        expect(deletedPath).not.toMatch(/^[A-Za-z]:/); // No Windows absolute path
+        expect(deletedPath).not.toMatch(/^\//); // No Unix absolute path
+        expect(deletedPath).toContain('.cursor/rules/');
+      }
+    });
+
+    it('should use relative paths in dry-run delete verbose output (CR-12)', async () => {
+      // CodeRabbit feedback: verbose "Would delete" messages should use relative paths
+      const cursorDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorDir, { recursive: true });
+      await fs.writeFile(
+        path.join(cursorDir, 'test.mdc'),
+        '---\nalwaysApply: true\n---\nDry run relative path test'
+      );
+
+      const { stderr, exitCode } = runCli('convert --from cursor --to claude --dry-run --delete-source --verbose');
+
+      expect(exitCode).toBe(0);
+      // "Would delete source" line should use relative path
+      expect(stderr).toMatch(/Would delete source:.*\.cursor\/rules\/test\.mdc/);
+      // That specific line should NOT contain absolute path
+      const deleteLines = stderr.split('\n').filter((l: string) => l.includes('Would delete source:'));
+      for (const line of deleteLines) {
+        expect(line).not.toContain(tempDir);
+      }
+    });
   });
 });

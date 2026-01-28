@@ -476,23 +476,27 @@ program
         );
         
         // Delete sources (or show what would be deleted in dry-run)
-        for (const sourcePath of sourcesToDelete) {
+        for (const absolutePath of sourcesToDelete) {
+          const relativePath = path.relative(resolvedPath, absolutePath);
           if (options.dryRun) {
-            verbose(`Would delete source: ${sourcePath}`);
+            verbose(`Would delete source: ${relativePath}`);
           } else {
             try {
-              await fs.unlink(sourcePath);
-              verbose(`Deleted source: ${sourcePath}`);
-              deletedSources.push(sourcePath);
+              await fs.unlink(absolutePath);
+              verbose(`Deleted source: ${relativePath}`);
+              deletedSources.push(relativePath);
             } catch (error) {
-              verbose(`Failed to delete ${sourcePath}: ${(error as Error).message}`);
+              // Show deletion failures even without --verbose (CR-12 feedback)
+              console.error(formatError(`Warning: Failed to delete ${relativePath}: ${(error as Error).message}`));
             }
           }
         }
         
-        // Add deletedSources to result for JSON output
+        // Add deletedSources to result for JSON output (relative paths)
         if (deletedSources.length > 0 || (options.dryRun && sourcesToDelete.length > 0)) {
-          result.deletedSources = options.dryRun ? sourcesToDelete : deletedSources;
+          result.deletedSources = options.dryRun 
+            ? sourcesToDelete.map(s => path.relative(resolvedPath, s)) 
+            : deletedSources;
         }
       }
 
