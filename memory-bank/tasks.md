@@ -126,7 +126,8 @@ For `--gitignore-output-with match`:
 - [x] Update match mode in `packages/cli/src/index.ts`:
   - Replace type-based heuristic with `written.sourceItems`
   - Add conflict detection logic per the cases above
-  - Handle case where sourceItems is undefined (backwards compat)
+  - **IMPORTANT:** Skip gitignore management + emit warning when sourceItems is missing
+  - Rationale: Without sourceItems, we cannot safely detect conflicts; better to skip than use inaccurate heuristic
 - [x] Add GitStatusConflict warning display in `packages/cli/src/output.ts`
 - [x] Update tests in `packages/cli/test/cli.test.ts`
 - **Tests:** All 70 CLI tests pass (4 stub tests added for future detailed conflict scenarios)

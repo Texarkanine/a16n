@@ -140,11 +140,18 @@ Match mode uses lossy heuristic `discovered.filter(d => d.type === written.type)
 ### Solution: Option A - Enrich Plugin Output
 Add `sourceItems: AgentCustomization[]` to `WrittenFile` interface. Plugins populate this field, CLI uses it for accurate conflict detection.
 
-### Key Design Decision
-**When sources conflict:**
+### Key Design Decisions
+
+**Conflict Detection Logic:**
 - If output **exists**: output's current git status is authority
 - If output **new + unanimous**: use sources' status
 - If output **new + conflicting**: skip gitignore management, emit warning
+
+**Missing sourceItems Handling:**
+- **NO backwards compatibility fallback** to type-based heuristic
+- Instead: skip gitignore management + emit warning
+- Rationale: Without accurate source tracking, we cannot safely detect conflicts
+- Better to be explicit about limitation than silently use inaccurate heuristic
 
 ### Files to Modify
 | Package | Files |

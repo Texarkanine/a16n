@@ -159,12 +159,18 @@ program
                 // Convert absolute path to relative path for git operations
                 const relativePath = path.relative(resolvedPath, written.path);
                 
-                // Get source files that contributed to this output
-                // Use sourceItems if available (accurate), fallback to type-based heuristic (backwards compat)
-                const sources = written.sourceItems 
-                  ? written.sourceItems
-                  : result.discovered.filter(d => d.type === written.type);
+                // Check if plugin provides sourceItems (required for accurate conflict detection)
+                if (!written.sourceItems) {
+                  // Plugin doesn't provide source tracking - can't safely detect conflicts
+                  result.warnings.push({
+                    code: 'approximated' as any,
+                    message: `Skipping gitignore management for '${relativePath}': plugin does not provide source tracking (update plugin for accurate conflict detection)`,
+                  });
+                  verbose(`  ⚠ Skipping ${relativePath} (no sourceItems, can't detect conflicts)`);
+                  continue;
+                }
                 
+                const sources = written.sourceItems;
                 if (sources.length === 0) continue;
                 
                 // Check git status for each source
