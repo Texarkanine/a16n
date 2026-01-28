@@ -97,7 +97,8 @@ Different tools have different capabilities. a16n handles this transparently.
 | File-specific rules | `globs: [...]` rules | Tool hooks |
 | Context-triggered | `description: ...` rules | Skills |
 | Ignore patterns | `.cursorignore` | `permissions.deny` Read rules |
-| Commands/Skills | `.cursor/commands/*.md` | `.claude/skills/*/SKILL.md` |
+| Skills | `.cursor/skills/*/SKILL.md` | `.claude/skills/*/SKILL.md` |
+| Manual prompts | Skills with `disable-model-invocation: true` | Skills with `disable-model-invocation: true` |
 
 ### What Gets Approximated
 
@@ -105,7 +106,7 @@ Different tools have different capabilities. a16n handles this transparently.
 |---------|------|-----|----------|
 | Multiple `alwaysApply` rules | Cursor | Claude | ⚠️ Merged into one file |
 | Ignore patterns | Cursor | Claude | ≈ Converted to Read permission denials |
-| Commands | Cursor | Claude | ➡️ Simple commands become skills (one-way) |
+| Manual prompts | Cursor | Claude | ↔️ Bidirectional via `disable-model-invocation: true` |
 
 ### What Gets Skipped
 

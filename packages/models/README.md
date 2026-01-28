@@ -25,12 +25,13 @@ import {
 
 ### Types
 
-- `CustomizationType` - Enum of customization types (GlobalPrompt, AgentSkill, FileRule, AgentIgnore)
+- `CustomizationType` - Enum of customization types (GlobalPrompt, AgentSkill, FileRule, AgentIgnore, ManualPrompt)
 - `AgentCustomization` - Base interface for all customizations
 - `GlobalPrompt` - Always-applied prompts
-- `AgentSkill` - Context-triggered by description (Phase 2)
-- `FileRule` - Triggered by file patterns (Phase 2)
-- `AgentIgnore` - Ignore patterns (Phase 3)
+- `AgentSkill` - Context-triggered by description
+- `FileRule` - Triggered by file patterns
+- `AgentIgnore` - Ignore patterns
+- `ManualPrompt` - User-invoked prompts (e.g., `/command`), stored in `.cursor/skills/` or `.claude/skills/` with `disable-model-invocation: true`
 
 ### Plugin Interface
 
@@ -50,4 +51,5 @@ import {
 - `isAgentSkill(item)` - Type guard for AgentSkill
 - `isFileRule(item)` - Type guard for FileRule
 - `isAgentIgnore(item)` - Type guard for AgentIgnore
+- `isManualPrompt(item)` - Type guard for ManualPrompt
 - `createId(type, sourcePath)` - Create unique ID
