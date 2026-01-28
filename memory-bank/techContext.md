@@ -30,9 +30,11 @@ enum CustomizationType {
   AgentSkill = 'agent-skill',      // Description-triggered skills
   FileRule = 'file-rule',          // Glob-triggered rules
   AgentIgnore = 'agent-ignore',    // Exclusion patterns (Phase 3)
-  AgentCommand = 'agent-command',  // Slash commands (Phase 4)
+  ManualPrompt = 'manual-prompt',  // User-requested prompts (Phase 7, renamed from AgentCommand)
 }
 ```
+
+**Phase 7 Note:** `AgentCommand` was renamed to `ManualPrompt` to align with the AgentSkills standard. Backward compatibility aliases exist but are deprecated.
 
 ### Plugin Interface
 
