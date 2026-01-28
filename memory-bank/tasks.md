@@ -3,190 +3,182 @@
 <!-- This file tracks current task details, checklists, and implementation plans. -->
 <!-- It is ephemeral and cleared by /archive when a task is completed. -->
 
-## Current Task: CodeRabbit PR #11 Fixes
+## Current Task: Phase 5 Enhancement - `--if-gitignore-conflict` Flag
 
-**Status:** Implementation Complete, Reflection Done
-**PR URL:** https://github.com/Texarkanine/a16n/pull/11
-**Rate Limit Until:** 
-
-### Actionable Items
-- [x] ID: CR-1 - Add `error` event handler to `execGit` in git-ignore.ts (Major) - FIXED
-- [x] ID: CR-2 - Fix shell injection in `quotedEntries` in git-ignore.ts (Major) - FIXED
-- [x] ID: CR-3 - Fix duplicate heading MD024 in activeContext.md - FIXED
-- [x] ID: CR-4 - Fix spaces inside code span MD038 in activeContext.md line 75 - FIXED
-- [x] ID: CR-5 - Update stale "Next Actions" section in progress.md - FIXED
-- [x] ID: CR-6 - Add language identifiers to code blocks in tasks.md (MD040) - N/A (file rewritten)
-- [x] ID: CR-7 - Fix trailing space in code span MD038 in tasks.md - N/A (file rewritten)
-- [x] ID: CR-8 - Fix conditional assertions in cli.test.ts - FIXED
-- [x] ID: CR-9 - Add language specifier to code block in PHASE_5_SPEC.md - FIXED
-
-### Requires Human Decision
-- [x] ID: CR-10 - Match mode can mis-route outputs when multiple sources share a type - **COMPLETE** (see below)
-
-### Ignored
-(none)
-
----
-
-## CR-10 Implementation Plan: Source Tracking for WrittenFile
+**Status:** Planning Complete
+**Branch:** phase-5
 
 ### Overview
 
-Add `sourceItems` field to `WrittenFile` interface so CLI can accurately determine which sources contributed to each output file. This enables proper git-ignore conflict detection for merged outputs.
+Add `--if-gitignore-conflict [skip|ignore|exclude|hook|commit]` flag to resolve git-ignore conflicts when using `--gitignore-output-with match`.
+
+### Problem Statement
+
+Two conflict scenarios currently result in skipping gitignore management:
+
+1. **Source Conflict:** Multiple sources with different git-ignore statuses merge into a single destination file
+   - Example: `local/dev.mdc` (ignored) + `shared/core.mdc` (tracked) → `CLAUDE.md`
+   - Cannot determine correct default behavior
+
+2. **Destination Conflict:** Sources with identical git-ignore status merge into an extant destination file with different status
+   - Example: ignored sources → existing tracked `CLAUDE.md`
+   - Cannot change existing file's status without user intent
+
+### Proposed Solution
+
+The `--if-gitignore-conflict` flag provides explicit user intent for conflict resolution:
+
+| Value | Behavior |
+|-------|----------|
+| `skip` | Default. Skip gitignore management for conflicting files (current behavior) |
+| `ignore` | Add conflicting outputs to `.gitignore` |
+| `exclude` | Add conflicting outputs to `.git/info/exclude` |
+| `hook` | Add conflicting outputs to pre-commit hook |
+| `commit` | Ensure output is tracked: remove from .gitignore, .git/info/exclude, or a16n hooks |
 
 ### Complexity: Level 3 (Intermediate Feature)
 
 **Justification:**
-- Touches 5-6 files across 4 packages
-- Interface change affects all plugins
-- Logic change in CLI for conflict detection
-- Multiple test updates needed
-
-### Problem Statement
-
-Current code uses lossy heuristic to guess source→output mapping:
-```typescript
-const sources = result.discovered.filter(d => d.type === written.type);
-```
-
-This fails when multiple sources of the same type have different git status (some ignored, some tracked) and merge into one output.
-
-### Proposed Solution
-
-Add accurate source tracking to `WrittenFile`:
-```typescript
-interface WrittenFile {
-  path: string;
-  type: CustomizationType;
-  itemCount: number;
-  isNewFile: boolean;
-  sourceItems: AgentCustomization[];  // NEW: which inputs made this output
-}
-```
-
-### Merge Points Requiring sourceItems
-
-| Plugin | Output File | Sources |
-|--------|-------------|---------|
-| Claude | CLAUDE.md | All GlobalPrompts |
-| Claude | settings.local.json | All valid FileRules |
-| Claude | settings.json | All AgentIgnores |
-| Cursor | .cursorignore | All AgentIgnores |
-
-### Git Conflict Detection Logic (CLI)
-
-For `--gitignore-output-with match`:
-
-**Case 1: Output file already exists**
-- Output's current git status is the **authority**
-- Check git status of all `sourceItems`
-- Sources that don't match output's status → emit `GitStatusConflict` warning
-- Note: Content still merged, but warning tells user about mismatch
-
-**Case 2: Output file is new + sources unanimous**
-- All sources have same git status → proceed normally
-- Apply that status to output
-
-**Case 3: Output file is new + sources conflict**
-- Some ignored, some tracked → can't determine correct status
-- Skip gitignore management for this file
-- Emit `GitStatusConflict` warning
+- New CLI flag with validation
+- Modification to conflict handling logic in match mode
+- New utility function to remove entries from gitignore (for `commit`)
+- Test updates for each option value
 
 ### Implementation Checklist
 
-#### Phase 1: Interface Change ✅
-- [x] Update `WrittenFile` in `packages/models/src/plugin.ts`
-  - Add `sourceItems?: AgentCustomization[]` (optional for backwards compat)
-- [x] Add `GitStatusConflict` to `WarningCode` enum in `warnings.ts`
-- [x] Update plugin tests in `packages/models/test/plugin.test.ts`
-- **Tests:** All 42 tests pass (5 new tests added)
+#### Phase 1: CLI Flag Addition
+- [ ] Add `--if-gitignore-conflict` option to `convert` command
+- [ ] Validate flag values: `skip`, `ignore`, `exclude`, `hook`, `commit`
+- [ ] Only applicable when `--gitignore-output-with match` is used
+- [ ] Default value: `skip`
 
-#### Phase 2: Claude Plugin ✅
-- [x] Update `emit()` in `packages/plugin-claude/src/emit.ts`:
-  - GlobalPrompts → CLAUDE.md: `sourceItems: globalPrompts`
-  - FileRules → settings.local.json: `sourceItems: validFileRules`
-  - FileRules → .a16n/rules/*.md: `sourceItems: [rule]` (1:1)
-  - AgentSkills → .claude/skills/*/SKILL.md: `sourceItems: [skill]`
-  - AgentIgnores → settings.json: `sourceItems: agentIgnores`
-  - AgentCommands → .claude/skills/*/SKILL.md: `sourceItems: [command]`
-- [x] Update tests in `packages/plugin-claude/test/emit.test.ts`
-- **Tests:** All 67 tests pass (6 new tests added)
+#### Phase 2: New Utility Function for `commit` Option
+- [ ] Add `removeFromGitIgnore(root, entries)` to `git-ignore.ts`
+  - Remove entries from `# BEGIN a16n managed` section in `.gitignore`
+  - Only removes entries WE added (within semaphore), not user entries
+- [ ] Add `removeFromGitExclude(root, entries)` to `git-ignore.ts`
+  - Remove entries from semaphore section in `.git/info/exclude`
+- [ ] Add `removeFromPreCommitHook(root, entries)` to `git-ignore.ts`
+  - Remove entries from semaphore section in pre-commit hook
+  - Update the `git reset HEAD --` command to exclude removed entries
+- [ ] Add unit tests for all removal functions
 
-#### Phase 3: Cursor Plugin ✅
-- [x] Update `emit()` in `packages/plugin-cursor/src/emit.ts`:
-  - GlobalPrompts → *.mdc: `sourceItems: [gp]` (1:1)
-  - FileRules → *.mdc: `sourceItems: [fr]` (1:1)
-  - AgentSkills → *.mdc: `sourceItems: [skill]` (1:1)
-  - AgentIgnores → .cursorignore: `sourceItems: agentIgnores`
-  - AgentCommands → *.md: `sourceItems: [command]` (1:1)
-- [x] Update tests in `packages/plugin-cursor/test/emit.test.ts`
-- **Tests:** All 81 tests pass (5 new tests added)
+#### Phase 3: Conflict Resolution Logic
+- [ ] Update match mode in `packages/cli/src/index.ts`:
+  - When conflict detected, check `--if-gitignore-conflict` value
+  - `skip`: Current behavior - emit warning, skip gitignore management
+  - `ignore`: Add to `.gitignore` via `addToGitIgnore()`
+  - `exclude`: Add to `.git/info/exclude` via `addToGitExclude()`
+  - `hook`: Add to pre-commit hook via `updatePreCommitHook()`
+  - `commit`: Remove from all a16n-managed locations
+- [ ] Handle both conflict scenarios:
+  - Source conflict (mixed source statuses)
+  - Destination conflict (existing file with different status)
 
-#### Phase 4: CLI Update ✅
-- [x] Update match mode in `packages/cli/src/index.ts`:
-  - Replace type-based heuristic with `written.sourceItems`
-  - Add conflict detection logic per the cases above
-  - **IMPORTANT:** Skip gitignore management + emit warning when sourceItems is missing
-  - Rationale: Without sourceItems, we cannot safely detect conflicts; better to skip than use inaccurate heuristic
-- [x] Add GitStatusConflict warning display in `packages/cli/src/output.ts`
-- [x] Update tests in `packages/cli/test/cli.test.ts`
-- **Tests:** All 70 CLI tests pass (4 stub tests added for future detailed conflict scenarios)
+#### Phase 4: Tests
+- [ ] Unit tests for removal functions in `git-ignore.test.ts`
+- [ ] CLI tests for `--if-gitignore-conflict` flag validation
+- [ ] Integration tests for each option value:
+  - `skip`: Emits warning, no gitignore changes
+  - `ignore`: Conflicting file added to `.gitignore`
+  - `exclude`: Conflicting file added to `.git/info/exclude`
+  - `hook`: Conflicting file added to pre-commit hook
+  - `commit`: Conflicting file removed from a16n-managed sections
 
-#### Phase 5: Verification ✅
-- [x] All existing tests pass (309 total across 6 packages)
-- [x] New tests cover base scenarios (stub tests added for future detailed conflict scenarios)
+#### Phase 5: Verification
+- [ ] All tests pass
+- [ ] Build succeeds
+- [ ] Lint passes
 
 ### Files to Modify
 
-| Package | File | Changes |
-|---------|------|---------|
-| models | `src/plugin.ts` | Add `sourceItems` to WrittenFile |
-| models | `src/warnings.ts` | Add `GitStatusConflict` code |
-| models | `test/plugin.test.ts` | Update tests |
-| plugin-claude | `src/emit.ts` | Populate sourceItems for all written files |
-| plugin-claude | `test/emit.test.ts` | Verify sourceItems in tests |
-| plugin-cursor | `src/emit.ts` | Populate sourceItems for all written files |
-| plugin-cursor | `test/emit.test.ts` | Verify sourceItems in tests |
-| cli | `src/index.ts` | Use sourceItems for accurate mapping |
-| cli | `test/cli.test.ts` | Test conflict detection |
+| File | Changes |
+|------|---------|
+| `packages/cli/src/index.ts` | Add flag, update conflict handling |
+| `packages/cli/src/git-ignore.ts` | Add removal functions |
+| `packages/cli/test/git-ignore.test.ts` | Tests for removal functions |
+| `packages/cli/test/cli.test.ts` | Tests for flag and integration |
+
+### API Design
+
+```typescript
+// New CLI flag
+.option(
+  '--if-gitignore-conflict <resolution>',
+  'How to resolve git-ignore conflicts in match mode (skip, ignore, exclude, hook, commit)',
+  'skip'
+)
+
+// New functions in git-ignore.ts
+export async function removeFromGitIgnore(
+  root: string,
+  entries: string[]
+): Promise<GitIgnoreResult>;
+
+export async function removeFromGitExclude(
+  root: string,
+  entries: string[]
+): Promise<GitIgnoreResult>;
+
+export async function removeFromPreCommitHook(
+  root: string,
+  entries: string[]
+): Promise<GitIgnoreResult>;
+```
+
+### Conflict Resolution Matrix
+
+| Scenario | Current Behavior | With `--if-gitignore-conflict ignore` |
+|----------|------------------|--------------------------------------|
+| Source conflict (mixed) | Skip + warning | Add to `.gitignore` |
+| Destination conflict (tracked output, ignored sources) | Skip + warning | Add to `.gitignore` |
+| Destination conflict (ignored output, tracked sources) | Skip + warning | Add to `.gitignore` |
+
+| Scenario | With `--if-gitignore-conflict commit` |
+|----------|---------------------------------------|
+| Source conflict (mixed) | Remove from all a16n sections (ensure tracked) |
+| Destination conflict | Remove from all a16n sections (ensure tracked) |
+
+### Edge Cases
+
+1. **No existing a16n section:** `commit` option has nothing to remove - no-op
+2. **Non-git repo with `hook`/`exclude`:** Error (already handled)
+3. **Flag used without `--gitignore-output-with match`:** Warning or ignore flag (TBD)
 
 ### Test Plan
 
-**Unit Tests (per plugin):**
-```
-- WrittenFile for merged output has sourceItems array with all inputs
-- WrittenFile for 1:1 output has sourceItems array with single input
-```
+```text
+Unit Tests (git-ignore.ts):
+- removeFromGitIgnore removes entries from semaphore section
+- removeFromGitIgnore preserves entries outside semaphore
+- removeFromGitIgnore handles missing entry gracefully
+- removeFromGitExclude works similarly
+- removeFromPreCommitHook updates git reset command correctly
 
-**CLI Integration Tests:**
-```
-- Match mode with existing tracked output + mixed sources → warning
-- Match mode with new output + unanimous sources → proceeds normally  
-- Match mode with new output + conflicting sources → warning, skip gitignore
+CLI Tests:
+- --if-gitignore-conflict validates values
+- --if-gitignore-conflict skip emits warning
+- --if-gitignore-conflict ignore adds to .gitignore
+- --if-gitignore-conflict exclude adds to .git/info/exclude
+- --if-gitignore-conflict hook adds to pre-commit
+- --if-gitignore-conflict commit removes from a16n sections
 ```
 
 ### Estimated Effort
 
-| Phase | Effort |
-|-------|--------|
-| Interface change | 30 min |
-| Claude plugin | 45 min |
-| Cursor plugin | 30 min |
-| CLI update | 1 hour |
-| Tests | 1 hour |
-| **Total** | ~3.5 hours |
+| Phase | Estimate |
+|-------|----------|
+| CLI flag addition | 30 min |
+| Removal functions | 1.5 hours |
+| Conflict resolution logic | 1.5 hours |
+| Tests | 2 hours |
+| Verification | 30 min |
+| **Total** | ~6 hours |
 
-### Build Status
+---
 
-- [x] Planning complete
-- [x] Implementation complete
-- [x] All tests passing (309/309)
-- [x] Smoke-tested
-- [x] Reflection complete
+## Previous Task: CR-10 Source Tracking (Complete)
 
-### Reflection Highlights
+**Status:** ✅ Implementation Complete, Reflection Done
 
-- **What Went Well**: TDD discipline, phased implementation, user review caught design flaw
-- **Key Decision**: No backwards compat fallback - skip + warn when sourceItems missing
-- **Lessons**: Interface changes propagate cleanly; skip rather than guess; plugins as data providers
-- **Next**: Commit to branch, create changeset, push for re-review
+See `memory-bank/archive/` for archived details.
