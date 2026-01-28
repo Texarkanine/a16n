@@ -12,14 +12,8 @@
 | **Phase 3** | ✅ Complete | PR #4 merged (AgentIgnore + CLI polish) |
 | **Phase 4** | ✅ Complete | PR #8 merged (AgentCommand, Cursor → Claude) |
 | **Phase 5** | ✅ Complete | Git ignore output management + conflict flag |
+| **Phase 6** | ✅ Complete | CLI Polish (dry-run wording + --delete-source) |
 
 ## Current Session
 
 No active task. Use `/niko` to start a new task.
-
-## Verification Status
-
-| Check | Status |
-|-------|--------|
-| Build | ✅ All 6 packages built successfully |
-| Tests | ✅ All 289 tests passed |

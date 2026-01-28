@@ -45,6 +45,8 @@ export interface ConversionResult {
   unsupported: AgentCustomization[];
   /** Git-ignore changes made (if --gitignore-output-with was used) */
   gitIgnoreChanges?: GitIgnoreResult[];
+  /** Source files that were deleted (if --delete-source was used) */
+  deletedSources?: string[];
 }
 
 /**

@@ -7,28 +7,9 @@
 
 No active task. Use `/niko` to start a new task.
 
-## Session State
+## Recent Completed Work
 
-Memory Bank cleared and ready for new task.
-
-## Context from Prior Work
-
-| Phase | Status |
-|-------|--------|
-| Phase 1 | ✅ GlobalPrompt MVP |
-| Phase 2 | ✅ FileRule + AgentSkill |
-| Phase 3 | ✅ AgentIgnore + CLI polish |
-| Phase 4 | ✅ AgentCommand |
-| Phase 5 | ✅ Git ignore output management |
-
-## Branch
-
-Current branch: `phase-5`
-
-## Blockers
-
-None
-
-## Next Steps
-
-Use `/niko` to initialize the next task.
+| Phase | Completion Date | Archive |
+|-------|-----------------|---------|
+| Phase 6 | 2026-01-28 | [CLI Polish](archive/enhancements/20260128-PHASE6-CLI-POLISH.md) |
+| Phase 5 | 2026-01-28 | [Git Ignore + Conflict Flag](archive/features/20260128-PHASE5-CONFLICT-FLAG.md) |

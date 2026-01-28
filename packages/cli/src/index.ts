@@ -60,6 +60,10 @@ program
     'How to resolve git-ignore conflicts in match mode (skip, ignore, exclude, hook, commit)',
     'skip'
   )
+  .option(
+    '--delete-source',
+    'Delete source files after successful conversion (skipped sources are preserved)'
+  )
   .argument('[path]', 'Project path', '.')
   .action(async (projectPath, options) => {
     try {
@@ -440,6 +444,67 @@ program
         }
       }
 
+      // Handle --delete-source flag
+      if (options.deleteSource) {
+        const deletedSources: string[] = [];
+        
+        // Collect all sources that contributed to successful outputs
+        const usedSources = new Set<string>();
+        for (const written of result.written) {
+          if (written.sourceItems) {
+            for (const item of written.sourceItems) {
+              if (item.sourcePath) {
+                usedSources.add(path.resolve(resolvedPath, item.sourcePath));
+              }
+            }
+          }
+        }
+        
+        // Collect sources involved in skips (these should be preserved)
+        const skippedSources = new Set<string>();
+        for (const warning of result.warnings) {
+          if (warning.code === WarningCode.Skipped && warning.sources) {
+            for (const source of warning.sources) {
+              skippedSources.add(path.resolve(resolvedPath, source));
+            }
+          }
+        }
+        
+        // Calculate sources to delete: used sources minus skipped sources
+        const sourcesToDelete = Array.from(usedSources).filter(
+          source => !skippedSources.has(source)
+        );
+        
+        // Delete sources (or show what would be deleted in dry-run)
+        for (const absolutePath of sourcesToDelete) {
+          const relativePath = path.relative(resolvedPath, absolutePath);
+          // Guard: prevent deletion outside project root (CR-12 security feedback)
+          if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+            console.error(formatError(`Warning: Refusing to delete source outside project: ${relativePath}`));
+            continue;
+          }
+          if (options.dryRun) {
+            verbose(`Would delete source: ${relativePath}`);
+          } else {
+            try {
+              await fs.unlink(absolutePath);
+              verbose(`Deleted source: ${relativePath}`);
+              deletedSources.push(relativePath);
+            } catch (error) {
+              // Show deletion failures even without --verbose (CR-12 feedback)
+              console.error(formatError(`Warning: Failed to delete ${relativePath}: ${(error as Error).message}`));
+            }
+          }
+        }
+        
+        // Add deletedSources to result for JSON output (relative paths)
+        if (deletedSources.length > 0 || (options.dryRun && sourcesToDelete.length > 0)) {
+          result.deletedSources = options.dryRun 
+            ? sourcesToDelete.map(s => path.relative(resolvedPath, s)) 
+            : deletedSources;
+        }
+      }
+
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));
       } else if (!options.quiet) {
@@ -448,7 +513,8 @@ program
         
         if (result.written.length > 0) {
           for (const file of result.written) {
-            console.log(`Wrote: ${file.path}`);
+            const writePrefix = options.dryRun ? 'Would write' : 'Wrote';
+            console.log(`${writePrefix}: ${file.path}`);
           }
         }
         
@@ -463,6 +529,13 @@ program
                 console.log(`  ${file} → ${change.file}`);
               }
             }
+          }
+        }
+        
+        if (result.deletedSources && result.deletedSources.length > 0) {
+          const deletePrefix = options.dryRun ? 'Would delete' : 'Deleted';
+          for (const source of result.deletedSources) {
+            console.log(`${deletePrefix}: ${source}`);
           }
         }
         
