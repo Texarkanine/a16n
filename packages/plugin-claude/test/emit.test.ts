@@ -1255,3 +1255,192 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
     });
   });
 });
+
+describe('Claude Plugin - sourceItems tracking (CR-10)', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it('should populate sourceItems for GlobalPrompts merged into CLAUDE.md', async () => {
+    // Test that WrittenFile for CLAUDE.md includes sourceItems array
+    // containing all GlobalPrompts that were merged
+    const gp1: GlobalPrompt = {
+      id: createId(CustomizationType.GlobalPrompt, 'rule1.mdc'),
+      type: CustomizationType.GlobalPrompt,
+      sourcePath: 'rule1.mdc',
+      content: 'Rule 1',
+      metadata: {},
+    };
+    const gp2: GlobalPrompt = {
+      id: createId(CustomizationType.GlobalPrompt, 'rule2.mdc'),
+      type: CustomizationType.GlobalPrompt,
+      sourcePath: 'rule2.mdc',
+      content: 'Rule 2',
+      metadata: {},
+    };
+    const gp3: GlobalPrompt = {
+      id: createId(CustomizationType.GlobalPrompt, 'rule3.mdc'),
+      type: CustomizationType.GlobalPrompt,
+      sourcePath: 'rule3.mdc',
+      content: 'Rule 3',
+      metadata: {},
+    };
+
+    const result = await claudePlugin.emit([gp1, gp2, gp3], tempDir);
+
+    expect(result.written).toHaveLength(1);
+    const written = result.written[0];
+    expect(written?.type).toBe(CustomizationType.GlobalPrompt);
+    expect(written?.itemCount).toBe(3);
+    expect(written?.sourceItems).toBeDefined();
+    expect(written?.sourceItems).toHaveLength(3);
+    expect(written?.sourceItems).toContain(gp1);
+    expect(written?.sourceItems).toContain(gp2);
+    expect(written?.sourceItems).toContain(gp3);
+  });
+
+  it('should populate sourceItems for FileRule → .a16n/rules/*.md (1:1)', async () => {
+    // Test that WrittenFile for each .a16n/rules/*.md includes
+    // sourceItems array with single FileRule
+    const rule: FileRule = {
+      id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
+      type: CustomizationType.FileRule,
+      sourcePath: '.cursor/rules/react.mdc',
+      content: 'React rules',
+      globs: ['**/*.tsx'],
+      metadata: {},
+    };
+
+    const result = await claudePlugin.emit([rule], tempDir);
+
+    // Should have 2 written files: .a16n/rules/react.md and settings.local.json
+    expect(result.written).toHaveLength(2);
+    
+    // Find the .a16n/rules/*.md file
+    const ruleFile = result.written.find(w => w.path.includes('.a16n/rules/'));
+    expect(ruleFile).toBeDefined();
+    expect(ruleFile?.type).toBe(CustomizationType.FileRule);
+    expect(ruleFile?.itemCount).toBe(1);
+    expect(ruleFile?.sourceItems).toBeDefined();
+    expect(ruleFile?.sourceItems).toHaveLength(1);
+    expect(ruleFile?.sourceItems?.[0]).toBe(rule);
+  });
+
+  it('should populate sourceItems for FileRules → settings.local.json (merged)', async () => {
+    // Test that WrittenFile for settings.local.json includes sourceItems
+    // array containing all FileRules that were processed
+    const rule1: FileRule = {
+      id: createId(CustomizationType.FileRule, 'rule1.mdc'),
+      type: CustomizationType.FileRule,
+      sourcePath: 'rule1.mdc',
+      content: 'Rule 1',
+      globs: ['**/*.ts'],
+      metadata: {},
+    };
+    const rule2: FileRule = {
+      id: createId(CustomizationType.FileRule, 'rule2.mdc'),
+      type: CustomizationType.FileRule,
+      sourcePath: 'rule2.mdc',
+      content: 'Rule 2',
+      globs: ['**/*.tsx'],
+      metadata: {},
+    };
+
+    const result = await claudePlugin.emit([rule1, rule2], tempDir);
+
+    // Should have 3 written files: 2 .a16n/rules/*.md + 1 settings.local.json
+    expect(result.written).toHaveLength(3);
+    
+    // Find the settings.local.json file
+    const settingsFile = result.written.find(w => w.path.includes('settings.local.json'));
+    expect(settingsFile).toBeDefined();
+    expect(settingsFile?.type).toBe(CustomizationType.FileRule);
+    expect(settingsFile?.itemCount).toBe(2);
+    expect(settingsFile?.sourceItems).toBeDefined();
+    expect(settingsFile?.sourceItems).toHaveLength(2);
+    expect(settingsFile?.sourceItems).toContain(rule1);
+    expect(settingsFile?.sourceItems).toContain(rule2);
+  });
+
+  it('should populate sourceItems for AgentSkill → .claude/skills/*/SKILL.md (1:1)', async () => {
+    // Test that WrittenFile for each skill SKILL.md includes
+    // sourceItems array with single AgentSkill
+    const skill: AgentSkill = {
+      id: createId(CustomizationType.AgentSkill, '.cursor/rules/database.mdc'),
+      type: CustomizationType.AgentSkill,
+      sourcePath: '.cursor/rules/database.mdc',
+      content: 'Database operations',
+      description: 'Database helper',
+      metadata: {},
+    };
+
+    const result = await claudePlugin.emit([skill], tempDir);
+
+    expect(result.written).toHaveLength(1);
+    const written = result.written[0];
+    expect(written?.type).toBe(CustomizationType.AgentSkill);
+    expect(written?.itemCount).toBe(1);
+    expect(written?.sourceItems).toBeDefined();
+    expect(written?.sourceItems).toHaveLength(1);
+    expect(written?.sourceItems?.[0]).toBe(skill);
+  });
+
+  it('should populate sourceItems for AgentIgnores → settings.json (merged)', async () => {
+    // Test that WrittenFile for settings.json includes sourceItems
+    // array containing all AgentIgnores that were processed
+    const ignore1: AgentIgnore = {
+      id: createId(CustomizationType.AgentIgnore, 'ignore1.mdc'),
+      type: CustomizationType.AgentIgnore,
+      sourcePath: 'ignore1.mdc',
+      content: '',
+      patterns: ['*.log'],
+      metadata: {},
+    };
+    const ignore2: AgentIgnore = {
+      id: createId(CustomizationType.AgentIgnore, 'ignore2.mdc'),
+      type: CustomizationType.AgentIgnore,
+      sourcePath: 'ignore2.mdc',
+      content: '',
+      patterns: ['tmp/'],
+      metadata: {},
+    };
+
+    const result = await claudePlugin.emit([ignore1, ignore2], tempDir);
+
+    expect(result.written).toHaveLength(1);
+    const written = result.written[0];
+    expect(written?.type).toBe(CustomizationType.AgentIgnore);
+    expect(written?.itemCount).toBe(2);
+    expect(written?.sourceItems).toBeDefined();
+    expect(written?.sourceItems).toHaveLength(2);
+    expect(written?.sourceItems).toContain(ignore1);
+    expect(written?.sourceItems).toContain(ignore2);
+  });
+
+  it('should populate sourceItems for AgentCommand → .claude/skills/*/SKILL.md (1:1)', async () => {
+    // Test that WrittenFile for each command SKILL.md includes
+    // sourceItems array with single AgentCommand
+    const command: AgentCommand = {
+      id: createId(CustomizationType.AgentCommand, '.cursor/commands/build.md'),
+      type: CustomizationType.AgentCommand,
+      sourcePath: '.cursor/commands/build.md',
+      content: 'Build command content',
+      commandName: 'build',
+      metadata: {},
+    };
+
+    const result = await claudePlugin.emit([command], tempDir);
+
+    expect(result.written).toHaveLength(1);
+    const written = result.written[0];
+    expect(written?.type).toBe(CustomizationType.AgentCommand);
+    expect(written?.itemCount).toBe(1);
+    expect(written?.sourceItems).toBeDefined();
+    expect(written?.sourceItems).toHaveLength(1);
+    expect(written?.sourceItems?.[0]).toBe(command);
+  });
+});

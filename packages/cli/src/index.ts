@@ -156,51 +156,75 @@ program
               const filesToExclude: string[] = [];
               
               for (const written of result.written) {
-                if (!written.isNewFile) continue; // Only manage new files
-                
                 // Convert absolute path to relative path for git operations
                 const relativePath = path.relative(resolvedPath, written.path);
                 
-                // Find source files that contributed to this output
-                const sources = result.discovered.filter(d => {
-                  // Simple heuristic: assume sources contribute to outputs of same type
-                  // This is a simplification - a more robust approach would track this in the engine
-                  return d.type === written.type;
-                });
+                // Get source files that contributed to this output
+                // Use sourceItems if available (accurate), fallback to type-based heuristic (backwards compat)
+                const sources = written.sourceItems 
+                  ? written.sourceItems
+                  : result.discovered.filter(d => d.type === written.type);
                 
                 if (sources.length === 0) continue;
                 
-                // Check WHERE the source is ignored (not just IF it's ignored)
-                // Use the first ignored source's location as the destination
-                let ignoreDestination: IgnoreSource = null;
-                for (const source of sources) {
-                  const sourceIgnoreLocation = await getIgnoreSource(resolvedPath, source.sourcePath);
-                  if (sourceIgnoreLocation) {
-                    ignoreDestination = sourceIgnoreLocation;
-                    verbose(`  ${source.sourcePath} is ignored via ${sourceIgnoreLocation} → ${relativePath}`);
-                    break;
+                // Check git status for each source
+                const sourceStatuses = await Promise.all(
+                  sources.map(async (source) => ({
+                    source,
+                    ignoreSource: await getIgnoreSource(resolvedPath, source.sourcePath),
+                  }))
+                );
+                
+                const ignoredSources = sourceStatuses.filter(s => s.ignoreSource !== null);
+                const trackedSources = sourceStatuses.filter(s => s.ignoreSource === null);
+                
+                // Case 1: Output file already exists
+                if (!written.isNewFile) {
+                  const outputTracked = await isGitTracked(resolvedPath, relativePath);
+                  const outputIgnored = !outputTracked && await isGitIgnored(resolvedPath, relativePath);
+                  
+                  // If sources don't match output's status, emit conflict warning
+                  if (outputTracked && ignoredSources.length > 0) {
+                    result.warnings.push({
+                      code: 'git-status-conflict' as any,
+                      message: `Git status conflict: output '${relativePath}' is tracked, but ${ignoredSources.length} source(s) are ignored`,
+                      sources: ignoredSources.map(s => s.source.sourcePath),
+                    });
+                    verbose(`  ⚠ Git status conflict for ${relativePath} (output tracked, sources ignored)`);
+                  } else if (outputIgnored && trackedSources.length > 0) {
+                    result.warnings.push({
+                      code: 'git-status-conflict' as any,
+                      message: `Git status conflict: output '${relativePath}' is ignored, but ${trackedSources.length} source(s) are tracked`,
+                      sources: trackedSources.map(s => s.source.sourcePath),
+                    });
+                    verbose(`  ⚠ Git status conflict for ${relativePath} (output ignored, sources tracked)`);
                   }
+                  continue; // Skip gitignore management for existing files
                 }
                 
-                if (ignoreDestination) {
-                  // Check if output already exists and is tracked (boundary crossing)
-                  const outputTracked = await isGitTracked(resolvedPath, relativePath);
-                  if (outputTracked) {
-                    // Boundary crossing: source ignored but output tracked
-                    result.warnings.push({
-                      code: 'boundary-crossing' as any,
-                      message: `Cannot match git-ignore status: source is ignored, but output '${relativePath}' already exists and is tracked`,
-                      sources: sources.map(s => s.sourcePath),
-                    });
-                    verbose(`  ⚠ Boundary crossing detected for ${relativePath}`);
+                // Case 2: Output is new + sources unanimous
+                if (ignoredSources.length === sources.length) {
+                  // All sources ignored - proceed normally
+                  const ignoreDestination = ignoredSources[0]?.ignoreSource;
+                  if (ignoreDestination === '.git/info/exclude') {
+                    filesToExclude.push(relativePath);
                   } else {
-                    // Route to the correct destination based on where source is ignored
-                    if (ignoreDestination === '.git/info/exclude') {
-                      filesToExclude.push(relativePath);
-                    } else {
-                      filesToGitignore.push(relativePath);
-                    }
+                    filesToGitignore.push(relativePath);
                   }
+                  verbose(`  ${relativePath} → ${ignoreDestination} (all sources ignored)`);
+                } else if (trackedSources.length === sources.length) {
+                  // All sources tracked - don't add to gitignore
+                  verbose(`  ${relativePath} not ignored (all sources tracked)`);
+                } 
+                // Case 3: Output is new + sources conflict
+                else if (ignoredSources.length > 0 && trackedSources.length > 0) {
+                  // Sources have conflicting status - skip gitignore management
+                  result.warnings.push({
+                    code: 'git-status-conflict' as any,
+                    message: `Git status conflict: cannot determine status for '${relativePath}' (${ignoredSources.length} source(s) ignored, ${trackedSources.length} tracked)`,
+                    sources: sources.map(s => s.sourcePath),
+                  });
+                  verbose(`  ⚠ Git status conflict for ${relativePath} (sources have mixed status)`);
                 }
               }
               

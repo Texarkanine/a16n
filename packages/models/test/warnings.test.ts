@@ -17,6 +17,12 @@ describe('WarningCode', () => {
   it('should have Overwritten code', () => {
     expect(WarningCode.Overwritten).toBe('overwritten');
   });
+
+  it('should have GitStatusConflict code', () => {
+    // Test that GitStatusConflict warning code exists for when
+    // source files have conflicting git status (some ignored, some tracked)
+    expect(WarningCode.GitStatusConflict).toBe('git-status-conflict');
+  });
 });
 
 describe('Warning', () => {

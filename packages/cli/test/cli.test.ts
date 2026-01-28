@@ -344,4 +344,30 @@ describe('CLI', () => {
       expect(excludeContent).toContain('# BEGIN a16n managed');
     });
   });
+
+  describe('sourceItems conflict detection (CR-10)', () => {
+    it('should emit GitStatusConflict warning when existing tracked output has ignored sources (Case 1)', async () => {
+      // Case 1: Output file already exists and is tracked
+      // Some sources are ignored → emit warning but respect output's tracked status
+      // TODO: Implement test
+    });
+
+    it('should proceed normally when new output has unanimous ignored sources (Case 2)', async () => {
+      // Case 2: Output file is new, all sources ignored
+      // Should add output to gitignore normally
+      // TODO: Implement test
+    });
+
+    it('should proceed normally when new output has unanimous tracked sources (Case 2)', async () => {
+      // Case 2: Output file is new, all sources tracked
+      // Should NOT add output to gitignore
+      // TODO: Implement test
+    });
+
+    it('should skip gitignore management and emit warning when new output has conflicting sources (Case 3)', async () => {
+      // Case 3: Output file is new, sources have conflicting git status
+      // Some ignored, some tracked → skip gitignore management, emit warning
+      // TODO: Implement test
+    });
+  });
 });

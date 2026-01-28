@@ -207,6 +207,7 @@ export async function emit(
       type: CustomizationType.GlobalPrompt,
       itemCount: globalPrompts.length,
       isNewFile,
+      sourceItems: globalPrompts,
     });
 
     if (globalPrompts.length > 1) {
@@ -273,6 +274,7 @@ export async function emit(
         type: CustomizationType.FileRule,
         itemCount: 1,
         isNewFile,
+        sourceItems: [rule],
       });
 
       // Build hook for this rule with filtered valid globs
@@ -326,11 +328,15 @@ export async function emit(
         await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
       }
 
+      // Collect all FileRules that were successfully processed (have valid globs)
+      const validFileRules = fileRules.filter(r => r.globs.some(g => g.trim().length > 0));
+      
       written.push({
         path: settingsPath,
         type: CustomizationType.FileRule,
         itemCount: hooks.length,
         isNewFile,
+        sourceItems: validFileRules,
       });
 
       // Emit approximation warning for successfully processed FileRules
@@ -379,6 +385,7 @@ export async function emit(
         type: CustomizationType.AgentSkill,
         itemCount: 1,
         isNewFile,
+        sourceItems: [skill],
       });
     }
   }
@@ -454,6 +461,7 @@ export async function emit(
       type: CustomizationType.AgentIgnore,
       itemCount: agentIgnores.length,
       isNewFile,
+      sourceItems: agentIgnores,
     });
 
     warnings.push({
@@ -497,6 +505,7 @@ export async function emit(
         type: CustomizationType.AgentCommand,
         itemCount: 1,
         isNewFile,
+        sourceItems: [command],
       });
     }
   }

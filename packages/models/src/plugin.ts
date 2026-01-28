@@ -23,6 +23,12 @@ export interface WrittenFile {
   itemCount: number;
   /** True if this file was created fresh; false if merged/edited existing */
   isNewFile: boolean;
+  /**
+   * Which source AgentCustomizations contributed to this output file.
+   * Optional for backwards compatibility.
+   * Enables accurate git-ignore conflict detection in match mode.
+   */
+  sourceItems?: AgentCustomization[];
 }
 
 /**

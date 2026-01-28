@@ -194,6 +194,7 @@ export async function emit(
       type: CustomizationType.GlobalPrompt,
       itemCount: 1,
       isNewFile,
+      sourceItems: [gp],
     });
   }
 
@@ -227,6 +228,7 @@ export async function emit(
       type: CustomizationType.FileRule,
       itemCount: 1,
       isNewFile,
+      sourceItems: [fr],
     });
   }
 
@@ -260,6 +262,7 @@ export async function emit(
       type: CustomizationType.AgentSkill,
       itemCount: 1,
       isNewFile,
+      sourceItems: [skill],
     });
   }
 
@@ -296,6 +299,7 @@ export async function emit(
       type: CustomizationType.AgentIgnore,
       itemCount: agentIgnores.length,
       isNewFile,
+      sourceItems: agentIgnores,
     });
 
     if (agentIgnores.length > 1) {
@@ -353,6 +357,7 @@ export async function emit(
         type: CustomizationType.AgentCommand,
         itemCount: 1,
         isNewFile,
+        sourceItems: [command],
       });
     }
 

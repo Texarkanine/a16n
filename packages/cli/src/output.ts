@@ -8,12 +8,14 @@ const ICONS: Record<WarningCode, string> = {
   overwritten: '↺',
   'file-renamed': '→',
   'boundary-crossing': '⚡',
+  'git-status-conflict': '⚠',
 };
 
 const HINTS: Partial<Record<WarningCode, string>> = {
   merged: 'Converting back will produce 1 file, not the original count',
   approximated: 'Behavior may differ slightly between tools',
   'boundary-crossing': 'Output file cannot be git-ignored because it is already tracked',
+  'git-status-conflict': 'Source files have inconsistent git-ignore status; review manually',
 };
 
 /**
