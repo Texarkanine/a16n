@@ -1,5 +1,12 @@
 # @a16njs/models
 
+## [0.3.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.2.0...@a16njs/models@0.3.0) (2026-01-28)
+
+
+### Features
+
+* Phase 7 - AgentSkills open standard alignment, AgentCommand-&gt;ManualPrompt ([#15](https://github.com/Texarkanine/a16n/issues/15)) ([3f367c2](https://github.com/Texarkanine/a16n/commit/3f367c2b7f945e65742fe526e35af75169125fa1))
+
 ## [0.2.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.1.0...@a16njs/models@0.2.0) (2026-01-28)
 
 
