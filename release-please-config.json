@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": false,
+  "include-component-in-tag": true,
+  "include-v-in-tag": false,
+  "tag-separator": "@",
+  "packages": {
+    "packages/cli": {
+      "component": "a16n",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/engine": {
+      "component": "@a16njs/engine",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/models": {
+      "component": "@a16njs/models",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/plugin-cursor": {
+      "component": "@a16njs/plugin-cursor",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/plugin-claude": {
+      "component": "@a16njs/plugin-claude",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/glob-hook": {
+      "component": "@a16njs/glob-hook",
+      "changelog-path": "CHANGELOG.md"
+    }
+  },
+  "pull-request-header": ":service_dog: I have created a release \\*bark\\* \\*woof\\*"
+}

@@ -7,13 +7,9 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "clean": "turbo run clean && rimraf node_modules",
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "clean": "turbo run clean && rimraf node_modules"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.0",
     "rimraf": "^5.0.0",
     "turbo": "^2.0.0",
     "typescript": "^5.4.0",

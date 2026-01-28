@@ -7,7 +7,7 @@
 
 **Task:** Migrate from Changesets to Release-Please
 
-**Phase:** QA Validation PASSED → Ready for Build
+**Phase:** BUILD COMPLETE → Ready for PR/Merge
 
 ## Key Decisions Made
 
@@ -51,8 +51,10 @@ Use release-please `paths_released` output (JSON array) to iterate and publish o
 ## Immediate Next Steps
 
 1. ~~**Create branch:**~~ Already on `release-please` branch
-2. **Implement Phase 1:** Remove changesets infrastructure
-3. **Implement Phase 2:** Create release-please config files
-4. **Implement Phase 3:** Update GitHub workflow
-5. **Implement Phase 4:** Handle monorepo publishing
-6. **Test:** Push to branch, create PR, verify workflow runs correctly
+2. ~~**Implement Phase 1:**~~ Changesets infrastructure removed
+3. ~~**Implement Phase 2:**~~ Release-please config files created
+4. ~~**Implement Phase 3:**~~ GitHub workflow updated
+5. ~~**Implement Phase 4:**~~ package.json updated, lockfile refreshed
+6. **Commit changes:** Stage and commit all migration changes
+7. **Push and create PR:** Push to branch, create PR for review
+8. **Test:** Merge to main, verify Release-Please creates first release PR

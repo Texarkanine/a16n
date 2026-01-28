@@ -9,14 +9,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Job 1: Version - Creates/updates "Version Packages" PR
-  # No environment approval needed for this
-  version:
-    name: Version
+  # Job 1: Release Please - Creates/updates Release PR
+  release-please:
+    name: Release Please
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     outputs:
-      hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      paths_released: ${{ steps.release.outputs.paths_released }}
 
     permissions:
       contents: write
@@ -30,46 +30,21 @@ jobs:
           app-id: ${{ vars.DOGGO_BOT_APP_ID }}
           private-key: ${{ secrets.DOGGO_BOT_PRIVATE_KEY }}
 
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Release Please
+        id: release
+        uses: googleapis/release-please-action@v4
         with:
-          node-version-file: ".nvmrc"
-          cache: "pnpm"
+          token: ${{ steps.generate-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm build
-
-      - name: Test
-        run: pnpm test
-
-      - name: Create Release PR (if changesets exist)
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          version: pnpm version-packages
-          title: "chore: version packages"
-          commit: "chore: version packages"
-          # Note: no publish here - that's handled by the publish job
-        env:
-          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-
-  # Job 2: Publish - Only runs when version PR was merged (no changesets left)
+  # Job 2: Publish - Only runs when Release PR was merged
   # Requires npmjs.org environment approval
   publish:
     name: Publish to npm
     runs-on: ubuntu-latest
-    needs: version
-    # Only publish when there are NO changesets (version PR was just merged)
-    if: needs.version.outputs.hasChangesets == 'false'
+    needs: release-please
+    if: needs.release-please.outputs.releases_created == 'true'
     environment: npmjs.org
 
     permissions:
@@ -102,8 +77,14 @@ jobs:
       - name: Upgrade npm for OIDC trusted publishing
         run: npm install -g npm@latest
 
-      - name: Publish to npm
-        run: pnpm release
+      - name: Publish released packages
         env:
           # Use npm provenance (trusted publishing via OIDC)
           NPM_CONFIG_PROVENANCE: true
+        run: |
+          PATHS='${{ needs.release-please.outputs.paths_released }}'
+          echo "Packages to publish: $PATHS"
+          for path in $(echo "$PATHS" | jq -r '.[]'); do
+            echo "Publishing $path..."
+            pnpm --filter "./$path" publish --no-git-checks
+          done
