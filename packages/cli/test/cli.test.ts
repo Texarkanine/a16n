@@ -658,13 +658,16 @@ This skill has hooks`
 
       // Test human-readable output
       const { stdout: humanOutput, exitCode: humanExitCode } = runCli('convert --from cursor --to claude --delete-source');
+      // Normalize paths for OS-agnostic assertions (CR-12 test feedback)
+      const normalizedHumanOutput = humanOutput.replaceAll('\\', '/');
+      const normalizedTempDir = tempDir.replaceAll('\\', '/');
       expect(humanExitCode).toBe(0);
       // Deleted line should show relative path like ".cursor/rules/test.mdc"
-      expect(humanOutput).toMatch(/Deleted:.*\.cursor\/rules\/test\.mdc/);
+      expect(normalizedHumanOutput).toMatch(/Deleted:.*\.cursor\/rules\/test\.mdc/);
       // Deleted line should NOT contain absolute path
-      const deletedLines = humanOutput.split('\n').filter((l: string) => l.includes('Deleted:'));
+      const deletedLines = normalizedHumanOutput.split('\n').filter((l: string) => l.includes('Deleted:'));
       for (const line of deletedLines) {
-        expect(line).not.toContain(tempDir);
+        expect(line).not.toContain(normalizedTempDir);
       }
 
       // Test JSON output - recreate source for fresh test
@@ -677,11 +680,12 @@ This skill has hooks`
       
       const result = JSON.parse(jsonOutput);
       expect(result.deletedSources).toBeDefined();
-      // JSON deletedSources should use relative paths
+      // JSON deletedSources should use relative paths (normalize for OS-agnostic check)
       for (const deletedPath of result.deletedSources) {
+        const normalized = deletedPath.replaceAll('\\', '/');
         expect(deletedPath).not.toMatch(/^[A-Za-z]:/); // No Windows absolute path
         expect(deletedPath).not.toMatch(/^\//); // No Unix absolute path
-        expect(deletedPath).toContain('.cursor/rules/');
+        expect(normalized).toContain('.cursor/rules/');
       }
     });
 
@@ -696,13 +700,17 @@ This skill has hooks`
 
       const { stderr, exitCode } = runCli('convert --from cursor --to claude --dry-run --delete-source --verbose');
 
+      // Normalize paths for OS-agnostic assertions (CR-12 test feedback)
+      const normalizedStderr = stderr.replaceAll('\\', '/');
+      const normalizedTempDir = tempDir.replaceAll('\\', '/');
+
       expect(exitCode).toBe(0);
       // "Would delete source" line should use relative path
-      expect(stderr).toMatch(/Would delete source:.*\.cursor\/rules\/test\.mdc/);
+      expect(normalizedStderr).toMatch(/Would delete source:.*\.cursor\/rules\/test\.mdc/);
       // That specific line should NOT contain absolute path
-      const deleteLines = stderr.split('\n').filter((l: string) => l.includes('Would delete source:'));
+      const deleteLines = normalizedStderr.split('\n').filter((l: string) => l.includes('Would delete source:'));
       for (const line of deleteLines) {
-        expect(line).not.toContain(tempDir);
+        expect(line).not.toContain(normalizedTempDir);
       }
     });
   });

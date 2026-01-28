@@ -180,6 +180,36 @@ const prefix = options.dryRun ? 'Would update' : 'Git: Updated';
 
 **✅ ALL TASKS COMPLETE** - CI will handle versioning
 
+---
+
+## CodeRabbit PR #12 Fixes
+
+**Status:** FIXED - Awaiting CR re-review
+**PR URL:** https://github.com/Texarkanine/a16n/pull/12
+
+### Actionable Items
+- [x] ID: CR-12-deletedSources-paths - Use relative paths in deletedSources output and JSON - FIXED
+- [x] ID: CR-12-outside-project - Prevent deletions outside project root (security guard) - FIXED
+- [x] ID: CR-12-test-os-paths - Make test path assertions OS-agnostic for Windows - FIXED
+
+### Fix Details (2026-01-28)
+**Issue:** CodeRabbit reported two issues in `packages/cli/src/index.ts`:
+1. `deletedSources` stored absolute paths but users expect relative paths
+2. Deletion failures only logged via `verbose()`, hidden without `--verbose`
+
+**Fix Applied:**
+- Changed deletion loop to compute `relativePath = path.relative(resolvedPath, absolutePath)`
+- Use relative paths for all user-facing output and `result.deletedSources`
+- Deletion errors now emit visible warning via `console.error(formatError(...))`
+
+**Tests Added:**
+- `should use relative paths in deletedSources output and JSON (CR-12)`
+- `should use relative paths in dry-run delete verbose output (CR-12)`
+
+**Verification:** All 100 tests pass, build succeeds.
+
+---
+
 ## Reflection Highlights
 
 - **What Went Well**: TDD process, QA validation, zero regressions, conservative design

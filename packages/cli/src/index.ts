@@ -478,6 +478,11 @@ program
         // Delete sources (or show what would be deleted in dry-run)
         for (const absolutePath of sourcesToDelete) {
           const relativePath = path.relative(resolvedPath, absolutePath);
+          // Guard: prevent deletion outside project root (CR-12 security feedback)
+          if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+            console.error(formatError(`Warning: Refusing to delete source outside project: ${relativePath}`));
+            continue;
+          }
           if (options.dryRun) {
             verbose(`Would delete source: ${relativePath}`);
           } else {
