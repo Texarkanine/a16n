@@ -5,7 +5,7 @@ import {
   isAgentSkill,
   isFileRule,
   isAgentIgnore,
-  isAgentCommand,
+  isManualPrompt,
   getUniqueFilename,
   createId,
   type AgentCustomization,
@@ -13,7 +13,7 @@ import {
   type AgentSkill,
   type FileRule,
   type AgentIgnore,
-  type AgentCommand,
+  type ManualPrompt,
 } from '../src/index.js';
 
 describe('isGlobalPrompt', () => {
@@ -123,18 +123,18 @@ describe('isAgentIgnore', () => {
   });
 });
 
-describe('isAgentCommand', () => {
-  it('should return true for AgentCommand', () => {
-    const item: AgentCommand = {
+describe('isManualPrompt', () => {
+  it('should return true for ManualPrompt', () => {
+    const item: ManualPrompt = {
       id: 'test',
-      type: CustomizationType.AgentCommand,
-      sourcePath: '.cursor/commands/review.md',
+      type: CustomizationType.ManualPrompt,
+      sourcePath: '.cursor/skills/review/SKILL.md',
       content: 'Review code',
-      commandName: 'review',
+      promptName: 'review',
       metadata: {},
     };
 
-    expect(isAgentCommand(item)).toBe(true);
+    expect(isManualPrompt(item)).toBe(true);
   });
 
   it('should return false for other types', () => {
@@ -146,7 +146,7 @@ describe('isAgentCommand', () => {
       metadata: {},
     };
 
-    expect(isAgentCommand(item)).toBe(false);
+    expect(isManualPrompt(item)).toBe(false);
   });
 });
 
@@ -212,6 +212,6 @@ describe('createId', () => {
     expect(createId(CustomizationType.AgentSkill, 'skill.md')).toBe('agent-skill:skill.md');
     expect(createId(CustomizationType.FileRule, 'rule.mdc')).toBe('file-rule:rule.mdc');
     expect(createId(CustomizationType.AgentIgnore, '.ignore')).toBe('agent-ignore:.ignore');
-    expect(createId(CustomizationType.AgentCommand, 'command.md')).toBe('agent-command:command.md');
+    expect(createId(CustomizationType.ManualPrompt, 'prompt.md')).toBe('manual-prompt:prompt.md');
   });
 });

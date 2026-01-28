@@ -4,6 +4,7 @@ import {
   type AgentCustomization,
   type AgentIgnore,
   type AgentSkill,
+  type ManualPrompt,
   type DiscoveryResult,
   type Warning,
   CustomizationType,
@@ -41,6 +42,7 @@ interface SkillFrontmatter {
   description?: string;
   name?: string;
   hasHooks: boolean;
+  disableModelInvocation?: boolean;
 }
 
 interface ParsedSkill {
@@ -98,6 +100,13 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
     const nameMatch = line.match(/^name:\s*["']?(.+?)["']?\s*$/);
     if (nameMatch) {
       frontmatter.name = nameMatch[1];
+      continue;
+    }
+
+    // Parse disable-model-invocation: true
+    const disableMatch = line.match(/^disable-model-invocation:\s*(true|false)\s*$/);
+    if (disableMatch) {
+      frontmatter.disableModelInvocation = disableMatch[1] === 'true';
       continue;
     }
   }
@@ -277,8 +286,22 @@ export async function discover(root: string): Promise<DiscoveryResult> {
         continue;
       }
       
-      // Only include skills that have a description
-      if (frontmatter.description) {
+      // Classification priority:
+      // 1. disable-model-invocation: true -> ManualPrompt
+      // 2. description present -> AgentSkill
+      if (frontmatter.disableModelInvocation === true) {
+        const prompt: ManualPrompt = {
+          id: createId(CustomizationType.ManualPrompt, skillPath),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: skillPath,
+          content: body,
+          promptName: frontmatter.name || skillName,
+          metadata: {
+            name: frontmatter.name || skillName,
+          },
+        };
+        items.push(prompt);
+      } else if (frontmatter.description) {
         const skill: AgentSkill = {
           id: createId(CustomizationType.AgentSkill, skillPath),
           type: CustomizationType.AgentSkill,

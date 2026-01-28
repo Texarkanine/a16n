@@ -5,10 +5,4 @@
 
 ## Current Task
 
-_None._
-
-## Status
-
-- [ ] Initialization complete
-- [ ] Planning complete
-- [ ] Implementation complete
+No active task. Use `/niko` to start a new task.

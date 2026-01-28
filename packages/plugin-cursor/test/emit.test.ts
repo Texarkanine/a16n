@@ -9,7 +9,7 @@ import {
   type FileRule,
   type AgentSkill,
   type AgentIgnore,
-  type AgentCommand,
+  type ManualPrompt,
   createId,
 } from '@a16njs/models';
 
@@ -393,7 +393,7 @@ describe('Cursor AgentSkill Emission (Phase 2)', () => {
   });
 });
 
-describe('Cursor Mixed Emission (Phase 2)', () => {
+describe('Cursor Mixed Emission (Phase 2 - Updated for Phase 7)', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -402,7 +402,7 @@ describe('Cursor Mixed Emission (Phase 2)', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it('should emit GlobalPrompt, FileRule, and AgentSkill together', async () => {
+  it('should emit GlobalPrompt and FileRule to rules, AgentSkill to skills', async () => {
     const models = [
       {
         id: createId(CustomizationType.GlobalPrompt, 'global.md'),
@@ -425,7 +425,7 @@ describe('Cursor Mixed Emission (Phase 2)', () => {
         sourcePath: 'auth.md',
         content: 'Auth content',
         description: 'Auth patterns',
-        metadata: {},
+        metadata: { name: 'auth' },
       } as AgentSkill,
     ];
 
@@ -433,17 +433,22 @@ describe('Cursor Mixed Emission (Phase 2)', () => {
 
     expect(result.written).toHaveLength(3);
 
-    // Read all emitted files
-    const files = await fs.readdir(path.join(tempDir, '.cursor', 'rules'));
-    expect(files).toHaveLength(3);
+    // Read files from .cursor/rules (GlobalPrompt + FileRule)
+    const rulesFiles = await fs.readdir(path.join(tempDir, '.cursor', 'rules'));
+    expect(rulesFiles).toHaveLength(2);
 
-    // Check we have one with alwaysApply (GlobalPrompt)
-    const contents = await Promise.all(
-      files.map(f => fs.readFile(path.join(tempDir, '.cursor', 'rules', f), 'utf-8'))
+    // Check we have one with alwaysApply (GlobalPrompt) and one with globs (FileRule)
+    const rulesContents = await Promise.all(
+      rulesFiles.map(f => fs.readFile(path.join(tempDir, '.cursor', 'rules', f), 'utf-8'))
     );
-    expect(contents.some(c => c.includes('alwaysApply: true'))).toBe(true);
-    expect(contents.some(c => c.includes('globs:'))).toBe(true);
-    expect(contents.some(c => c.includes('description:'))).toBe(true);
+    expect(rulesContents.some(c => c.includes('alwaysApply: true'))).toBe(true);
+    expect(rulesContents.some(c => c.includes('globs:'))).toBe(true);
+
+    // Check AgentSkill in .cursor/skills
+    const skillPath = path.join(tempDir, '.cursor', 'skills', 'auth', 'SKILL.md');
+    const skillContent = await fs.readFile(skillPath, 'utf-8');
+    expect(skillContent).toContain('description:');
+    expect(skillContent).toContain('Auth patterns');
   });
 });
 
@@ -625,7 +630,7 @@ describe('Cursor AgentIgnore Emission (Phase 3)', () => {
   });
 });
 
-describe('Cursor AgentCommand Emission (Phase 4)', () => {
+describe('Cursor ManualPrompt Emission (Phase 4 - Updated to Skills in Phase 7)', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -634,15 +639,15 @@ describe('Cursor AgentCommand Emission (Phase 4)', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  describe('single AgentCommand', () => {
-    it('should emit AgentCommand as .cursor/commands/*.md file', async () => {
-      const models: AgentCommand[] = [
+  describe('single ManualPrompt', () => {
+    it('should emit ManualPrompt as .cursor/skills/*/SKILL.md file', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/review.md',
           content: 'Review this code for security vulnerabilities.',
-          commandName: 'review',
+          promptName: 'review',
           metadata: {},
         },
       ];
@@ -650,51 +655,51 @@ describe('Cursor AgentCommand Emission (Phase 4)', () => {
       const result = await cursorPlugin.emit(models, tempDir);
 
       expect(result.written).toHaveLength(1);
-      expect(result.written[0]?.type).toBe(CustomizationType.AgentCommand);
+      expect(result.written[0]?.type).toBe(CustomizationType.ManualPrompt);
 
-      // Verify file was created
-      const commandPath = path.join(tempDir, '.cursor', 'commands', 'review.md');
-      const content = await fs.readFile(commandPath, 'utf-8');
-      expect(content).toBe('Review this code for security vulnerabilities.');
+      // Verify file was created in skills directory
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Review this code for security vulnerabilities.');
     });
 
-    it('should create .cursor/commands directory if it does not exist', async () => {
-      const models: AgentCommand[] = [
+    it('should create .cursor/skills directory if it does not exist', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/test.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/test.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/test.md',
           content: 'Test content',
-          commandName: 'test',
+          promptName: 'test',
           metadata: {},
         },
       ];
 
       await cursorPlugin.emit(models, tempDir);
 
-      const commandsDir = path.join(tempDir, '.cursor', 'commands');
-      const stat = await fs.stat(commandsDir);
+      const skillsDir = path.join(tempDir, '.cursor', 'skills');
+      const stat = await fs.stat(skillsDir);
       expect(stat.isDirectory()).toBe(true);
     });
   });
 
-  describe('multiple AgentCommands', () => {
-    it('should emit multiple commands as separate files', async () => {
-      const models: AgentCommand[] = [
+  describe('multiple ManualPrompts', () => {
+    it('should emit multiple commands as separate skill directories', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/review.md',
           content: 'Review content',
-          commandName: 'review',
+          promptName: 'review',
           metadata: {},
         },
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/explain.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/explain.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/explain.md',
           content: 'Explain content',
-          commandName: 'explain',
+          promptName: 'explain',
           metadata: {},
         },
       ];
@@ -704,21 +709,21 @@ describe('Cursor AgentCommand Emission (Phase 4)', () => {
       expect(result.written).toHaveLength(2);
 
       const reviewContent = await fs.readFile(
-        path.join(tempDir, '.cursor', 'commands', 'review.md'),
+        path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md'),
         'utf-8'
       );
       const explainContent = await fs.readFile(
-        path.join(tempDir, '.cursor', 'commands', 'explain.md'),
+        path.join(tempDir, '.cursor', 'skills', 'explain', 'SKILL.md'),
         'utf-8'
       );
 
-      expect(reviewContent).toBe('Review content');
-      expect(explainContent).toBe('Explain content');
+      expect(reviewContent).toContain('Review content');
+      expect(explainContent).toContain('Explain content');
     });
   });
 
   describe('mixed with other types', () => {
-    it('should emit AgentCommand alongside GlobalPrompt', async () => {
+    it('should emit ManualPrompt alongside GlobalPrompt', async () => {
       const models = [
         {
           id: createId(CustomizationType.GlobalPrompt, 'global.md'),
@@ -728,13 +733,13 @@ describe('Cursor AgentCommand Emission (Phase 4)', () => {
           metadata: {},
         } as GlobalPrompt,
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/review.md',
           content: 'Review code.',
-          commandName: 'review',
+          promptName: 'review',
           metadata: {},
-        } as AgentCommand,
+        } as ManualPrompt,
       ];
 
       const result = await cursorPlugin.emit(models, tempDir);
@@ -743,22 +748,22 @@ describe('Cursor AgentCommand Emission (Phase 4)', () => {
 
       // Verify both exist
       const rulesExist = await fs.stat(path.join(tempDir, '.cursor', 'rules')).catch(() => null);
-      const commandExists = await fs.stat(path.join(tempDir, '.cursor', 'commands', 'review.md')).catch(() => null);
+      const skillExists = await fs.stat(path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md')).catch(() => null);
 
       expect(rulesExist).not.toBeNull();
-      expect(commandExists).not.toBeNull();
+      expect(skillExists).not.toBeNull();
     });
   });
 
-  describe('command name sanitization (security)', () => {
-    it('should sanitize command names with path traversal attempts', async () => {
-      const models: AgentCommand[] = [
+  describe('prompt name sanitization (security)', () => {
+    it('should sanitize prompt names with path traversal attempts', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/evil.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/evil.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/evil.md',
           content: 'Malicious content',
-          commandName: '../../../etc/passwd',
+          promptName: '../../../etc/passwd',
           metadata: {},
         },
       ];
@@ -767,23 +772,23 @@ describe('Cursor AgentCommand Emission (Phase 4)', () => {
 
       expect(result.written).toHaveLength(1);
 
-      // Should NOT create file outside .cursor/commands/
-      const commandsDir = path.join(tempDir, '.cursor', 'commands');
-      const entries = await fs.readdir(commandsDir);
+      // Should NOT create file outside .cursor/skills/
+      const skillsDir = path.join(tempDir, '.cursor', 'skills');
+      const entries = await fs.readdir(skillsDir);
       expect(entries).toHaveLength(1);
       // Name should be sanitized to safe characters only
       expect(entries[0]).not.toContain('..');
       expect(entries[0]).not.toContain('/');
     });
 
-    it('should sanitize command names with backslash path separators', async () => {
-      const models: AgentCommand[] = [
+    it('should sanitize prompt names with backslash path separators', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/evil.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/evil.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/evil.md',
           content: 'Malicious content',
-          commandName: '..\\..\\..\\etc\\passwd',
+          promptName: '..\\..\\..\\etc\\passwd',
           metadata: {},
         },
       ];
@@ -792,21 +797,21 @@ describe('Cursor AgentCommand Emission (Phase 4)', () => {
 
       expect(result.written).toHaveLength(1);
 
-      // Should NOT create file outside .cursor/commands/
-      const commandsDir = path.join(tempDir, '.cursor', 'commands');
-      const entries = await fs.readdir(commandsDir);
+      // Should NOT create file outside .cursor/skills/
+      const skillsDir = path.join(tempDir, '.cursor', 'skills');
+      const entries = await fs.readdir(skillsDir);
       expect(entries).toHaveLength(1);
       expect(entries[0]).not.toContain('\\');
     });
 
-    it('should use fallback name for empty sanitized command name', async () => {
-      const models: AgentCommand[] = [
+    it('should use fallback name for empty sanitized prompt name', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/special.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/special.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/special.md',
           content: 'Content',
-          commandName: '!!!',
+          promptName: '!!!',
           metadata: {},
         },
       ];
@@ -816,27 +821,27 @@ describe('Cursor AgentCommand Emission (Phase 4)', () => {
       expect(result.written).toHaveLength(1);
 
       // Should use fallback name 'command'
-      const commandPath = path.join(tempDir, '.cursor', 'commands', 'command.md');
-      const content = await fs.readFile(commandPath, 'utf-8');
-      expect(content).toBe('Content');
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'command', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Content');
     });
 
-    it('should handle command name collisions with sanitization and de-duplication', async () => {
-      const models: AgentCommand[] = [
+    it('should handle prompt name collisions with sanitization and de-duplication', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/review.md',
           content: 'First review',
-          commandName: 'review',
+          promptName: 'review',
           metadata: {},
         },
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/shared/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/shared/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/shared/review.md',
           content: 'Second review',
-          commandName: 'review',
+          promptName: 'review',
           metadata: {},
         },
       ];
@@ -845,10 +850,167 @@ describe('Cursor AgentCommand Emission (Phase 4)', () => {
 
       expect(result.written).toHaveLength(2);
 
-      // First should be 'review.md', second should be 'review-2.md'
-      const commandsDir = path.join(tempDir, '.cursor', 'commands');
-      const entries = await fs.readdir(commandsDir);
-      expect(entries.sort()).toEqual(['review-2.md', 'review.md']);
+      // First should be 'review', second should be 'review-1'
+      const skillsDir = path.join(tempDir, '.cursor', 'skills');
+      const entries = await fs.readdir(skillsDir);
+      expect(entries.sort()).toEqual(['review', 'review-1']);
+    });
+  });
+});
+
+describe('Cursor Skills Emission (Phase 7)', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('AgentSkill emission to .cursor/skills/', () => {
+    it('should emit AgentSkill to .cursor/skills/<name>/SKILL.md', async () => {
+      const models: AgentSkill[] = [
+        {
+          id: createId(CustomizationType.AgentSkill, '.claude/skills/auth/SKILL.md'),
+          type: CustomizationType.AgentSkill,
+          sourcePath: '.claude/skills/auth/SKILL.md',
+          content: 'Use JWT for authentication.',
+          description: 'Authentication patterns',
+          metadata: { name: 'auth-helper' },
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      expect(result.written[0]?.type).toBe(CustomizationType.AgentSkill);
+
+      // Verify skill directory structure
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'auth-helper', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Use JWT for authentication.');
+    });
+
+    it('should include name and description in skill frontmatter', async () => {
+      const models: AgentSkill[] = [
+        {
+          id: createId(CustomizationType.AgentSkill, '.claude/skills/db/SKILL.md'),
+          type: CustomizationType.AgentSkill,
+          sourcePath: '.claude/skills/db/SKILL.md',
+          content: 'Database operations',
+          description: 'Database helper',
+          metadata: { name: 'database' },
+        },
+      ];
+
+      await cursorPlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'database', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('name:');
+      expect(content).toContain('description:');
+      expect(content).toContain('Database helper');
+    });
+
+    it('should sanitize skill names for directory creation', async () => {
+      const models: AgentSkill[] = [
+        {
+          id: createId(CustomizationType.AgentSkill, '.claude/skills/weird/SKILL.md'),
+          type: CustomizationType.AgentSkill,
+          sourcePath: '.claude/skills/weird/SKILL.md',
+          content: 'Content',
+          description: 'Test',
+          metadata: { name: 'My Skill (v2)' },
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      // Name should be sanitized
+      const skillsDir = path.join(tempDir, '.cursor', 'skills');
+      const entries = await fs.readdir(skillsDir);
+      expect(entries).toHaveLength(1);
+      expect(entries[0]).toMatch(/^[\w-]+$/);
+    });
+  });
+
+  describe('ManualPrompt emission to .cursor/skills/', () => {
+    it('should emit ManualPrompt to .cursor/skills/<name>/SKILL.md with disable flag', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.claude/skills/review/SKILL.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.claude/skills/review/SKILL.md',
+          content: 'Review this code.',
+          promptName: 'review',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      expect(result.written[0]?.type).toBe(CustomizationType.ManualPrompt);
+
+      // Verify skill directory structure
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Review this code.');
+      expect(content).toContain('disable-model-invocation: true');
+    });
+
+    it('should include name and description in ManualPrompt skill', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/deploy.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/deploy.md',
+          content: 'Deploy instructions',
+          promptName: 'deploy',
+          metadata: {},
+        },
+      ];
+
+      await cursorPlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'deploy', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('name:');
+      expect(content).toContain('deploy');
+    });
+  });
+
+  describe('collision handling', () => {
+    it('should handle collisions between AgentSkill and ManualPrompt with same name', async () => {
+      const models = [
+        {
+          id: createId(CustomizationType.AgentSkill, '.claude/skills/review/SKILL.md'),
+          type: CustomizationType.AgentSkill,
+          sourcePath: '.claude/skills/review/SKILL.md',
+          content: 'Skill content',
+          description: 'Review skill',
+          metadata: { name: 'review' },
+        } as AgentSkill,
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'Prompt content',
+          promptName: 'review',
+          metadata: {},
+        } as ManualPrompt,
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+
+      // Both should exist with unique names
+      const skillsDir = path.join(tempDir, '.cursor', 'skills');
+      const entries = await fs.readdir(skillsDir);
+      expect(entries).toHaveLength(2);
+      expect(entries.sort()).toEqual(['review', 'review-1']);
     });
   });
 });
@@ -907,8 +1069,8 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
     expect(written?.sourceItems?.[0]).toBe(fr);
   });
 
-  it('should populate sourceItems for AgentSkill → .mdc (1:1)', async () => {
-    // Test that WrittenFile for each AgentSkill .mdc includes
+  it('should populate sourceItems for AgentSkill → SKILL.md (1:1)', async () => {
+    // Test that WrittenFile for each AgentSkill SKILL.md includes
     // sourceItems array with single AgentSkill
     const skill: AgentSkill = {
       id: createId(CustomizationType.AgentSkill, '.cursor/rules/database.mdc'),
@@ -916,7 +1078,7 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
       sourcePath: '.cursor/rules/database.mdc',
       content: 'Database operations',
       description: 'Database helper',
-      metadata: {},
+      metadata: { name: 'database' },
     };
 
     const result = await cursorPlugin.emit([skill], tempDir);
@@ -971,15 +1133,15 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
     expect(written?.sourceItems).toContain(ignore3);
   });
 
-  it('should populate sourceItems for AgentCommand → .md (1:1)', async () => {
-    // Test that WrittenFile for each AgentCommand .md includes
-    // sourceItems array with single AgentCommand
-    const command: AgentCommand = {
-      id: createId(CustomizationType.AgentCommand, '.cursor/commands/build.md'),
-      type: CustomizationType.AgentCommand,
+  it('should populate sourceItems for ManualPrompt → .md (1:1)', async () => {
+    // Test that WrittenFile for each ManualPrompt .md includes
+    // sourceItems array with single ManualPrompt
+    const command: ManualPrompt = {
+      id: createId(CustomizationType.ManualPrompt, '.cursor/commands/build.md'),
+      type: CustomizationType.ManualPrompt,
       sourcePath: '.cursor/commands/build.md',
       content: 'Build command content',
-      commandName: 'build',
+      promptName: 'build',
       metadata: {},
     };
 
@@ -987,7 +1149,7 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
 
     expect(result.written).toHaveLength(1);
     const written = result.written[0];
-    expect(written?.type).toBe(CustomizationType.AgentCommand);
+    expect(written?.type).toBe(CustomizationType.ManualPrompt);
     expect(written?.itemCount).toBe(1);
     expect(written?.sourceItems).toBeDefined();
     expect(written?.sourceItems).toHaveLength(1);

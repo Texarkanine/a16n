@@ -5,8 +5,12 @@
 
 ## Current Focus
 
-_No active task._
+No active task. Use `/niko` to start a new task.
 
-## Immediate Next Steps
+## Recent Completed Work
 
-_None._
+| Phase | Completion Date | Archive |
+|-------|-----------------|---------|
+| Phase 7 | 2026-01-28 | [AgentSkills Standard](archive/features/20260128-PHASE-7-AGENTSKILLS.md) |
+| Phase 6 | 2026-01-28 | [CLI Polish](archive/enhancements/20260128-PHASE6-CLI-POLISH.md) |
+| Phase 5 | 2026-01-28 | [Git Ignore + Conflict Flag](archive/features/20260128-PHASE5-CONFLICT-FLAG.md) |

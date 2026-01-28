@@ -10,7 +10,7 @@ import {
   type FileRule,
   type AgentSkill,
   type AgentIgnore,
-  type AgentCommand,
+  type ManualPrompt,
   createId,
 } from '@a16njs/models';
 
@@ -954,7 +954,7 @@ describe('Claude AgentIgnore Emission (Phase 3)', () => {
   });
 });
 
-describe('Claude AgentCommand Emission (Phase 4)', () => {
+describe('Claude ManualPrompt Emission (Phase 4)', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -963,15 +963,15 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  describe('single AgentCommand', () => {
-    it('should emit AgentCommand as .claude/skills/*/SKILL.md', async () => {
-      const models: AgentCommand[] = [
+  describe('single ManualPrompt', () => {
+    it('should emit ManualPrompt as .claude/skills/*/SKILL.md', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/review.md',
           content: 'Review this code for security vulnerabilities.',
-          commandName: 'review',
+          promptName: 'review',
           metadata: {},
         },
       ];
@@ -979,7 +979,7 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
       const result = await claudePlugin.emit(models, tempDir);
 
       expect(result.written).toHaveLength(1);
-      expect(result.written[0]?.type).toBe(CustomizationType.AgentCommand);
+      expect(result.written[0]?.type).toBe(CustomizationType.ManualPrompt);
 
       // Verify skill file was created
       const skillPath = path.join(tempDir, '.claude', 'skills', 'review', 'SKILL.md');
@@ -988,13 +988,13 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
     });
 
     it('should include name in skill frontmatter', async () => {
-      const models: AgentCommand[] = [
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/review.md',
           content: 'Review content',
-          commandName: 'review',
+          promptName: 'review',
           metadata: {},
         },
       ];
@@ -1007,13 +1007,13 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
     });
 
     it('should include description for slash invocation', async () => {
-      const models: AgentCommand[] = [
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/review.md',
           content: 'Review content',
-          commandName: 'review',
+          promptName: 'review',
           metadata: {},
         },
       ];
@@ -1025,25 +1025,44 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
       expect(content).toContain('description:');
       expect(content).toContain('/review');
     });
+
+    it('should include disable-model-invocation: true in frontmatter', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/deploy.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/deploy.md',
+          content: 'Deploy instructions',
+          promptName: 'deploy',
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'deploy', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('disable-model-invocation: true');
+    });
   });
 
-  describe('multiple AgentCommands', () => {
-    it('should create separate skill directories for each command', async () => {
-      const models: AgentCommand[] = [
+  describe('multiple ManualPrompts', () => {
+    it('should create separate skill directories for each prompt', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/review.md',
           content: 'Review content',
-          commandName: 'review',
+          promptName: 'review',
           metadata: {},
         },
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/explain.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/explain.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/explain.md',
           content: 'Explain content',
-          commandName: 'explain',
+          promptName: 'explain',
           metadata: {},
         },
       ];
@@ -1066,22 +1085,22 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
       expect(explainContent).toContain('Explain content');
     });
 
-    it('should handle command name collisions', async () => {
-      const models: AgentCommand[] = [
+    it('should handle prompt name collisions', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/review.md',
           content: 'First review',
-          commandName: 'review',
+          promptName: 'review',
           metadata: {},
         },
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/shared/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/shared/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/shared/review.md',
           content: 'Second review',
-          commandName: 'review',
+          promptName: 'review',
           metadata: {},
         },
       ];
@@ -1103,7 +1122,7 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
   });
 
   describe('mixed with other types', () => {
-    it('should emit AgentCommand alongside GlobalPrompt', async () => {
+    it('should emit ManualPrompt alongside GlobalPrompt', async () => {
       const models = [
         {
           id: createId(CustomizationType.GlobalPrompt, 'global.md'),
@@ -1113,13 +1132,13 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
           metadata: {},
         } as GlobalPrompt,
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/review.md',
           content: 'Review code.',
-          commandName: 'review',
+          promptName: 'review',
           metadata: {},
-        } as AgentCommand,
+        } as ManualPrompt,
       ];
 
       const result = await claudePlugin.emit(models, tempDir);
@@ -1137,7 +1156,7 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
   });
 
   describe('collision prevention with AgentSkills', () => {
-    it('should prevent collisions when AgentSkill and AgentCommand have same name', async () => {
+    it('should prevent collisions when AgentSkill and ManualPrompt have same name', async () => {
       const models = [
         {
           id: createId(CustomizationType.AgentSkill, '.cursor/rules/review.mdc'),
@@ -1148,13 +1167,13 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
           metadata: {},
         } as AgentSkill,
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/review.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/review.md',
-          content: 'Command content for review',
-          commandName: 'review',
+          content: 'Prompt content for review',
+          promptName: 'review',
           metadata: {},
-        } as AgentCommand,
+        } as ManualPrompt,
       ];
 
       const result = await claudePlugin.emit(models, tempDir);
@@ -1177,21 +1196,21 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
         'utf-8'
       );
 
-      // First should be skill (processed first), second should be command
+      // First should be skill (processed first), second should be prompt
       expect(reviewContent).toContain('Skill content for review');
-      expect(review1Content).toContain('Command content for review');
+      expect(review1Content).toContain('Prompt content for review');
     });
   });
 
-  describe('command name sanitization (security)', () => {
-    it('should sanitize command names with path traversal attempts', async () => {
-      const models: AgentCommand[] = [
+  describe('prompt name sanitization (security)', () => {
+    it('should sanitize prompt names with path traversal attempts', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/evil.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/evil.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/evil.md',
           content: 'Malicious content',
-          commandName: '../../../etc/passwd',
+          promptName: '../../../etc/passwd',
           metadata: {},
         },
       ];
@@ -1209,14 +1228,14 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
       expect(entries[0]).not.toContain('/');
     });
 
-    it('should sanitize command names with backslash path separators', async () => {
-      const models: AgentCommand[] = [
+    it('should sanitize prompt names with backslash path separators', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/evil.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/evil.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/evil.md',
           content: 'Malicious content',
-          commandName: '..\\..\\..\\etc\\passwd',
+          promptName: '..\\..\\..\\etc\\passwd',
           metadata: {},
         },
       ];
@@ -1232,14 +1251,14 @@ describe('Claude AgentCommand Emission (Phase 4)', () => {
       expect(entries[0]).not.toContain('\\');
     });
 
-    it('should use fallback name for empty sanitized command name', async () => {
-      const models: AgentCommand[] = [
+    it('should use fallback name for empty sanitized prompt name', async () => {
+      const models: ManualPrompt[] = [
         {
-          id: createId(CustomizationType.AgentCommand, '.cursor/commands/special.md'),
-          type: CustomizationType.AgentCommand,
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/special.md'),
+          type: CustomizationType.ManualPrompt,
           sourcePath: '.cursor/commands/special.md',
           content: 'Content',
-          commandName: '!!!',
+          promptName: '!!!',
           metadata: {},
         },
       ];
@@ -1422,26 +1441,26 @@ describe('Claude Plugin - sourceItems tracking (CR-10)', () => {
     expect(written?.sourceItems).toContain(ignore2);
   });
 
-  it('should populate sourceItems for AgentCommand → .claude/skills/*/SKILL.md (1:1)', async () => {
-    // Test that WrittenFile for each command SKILL.md includes
-    // sourceItems array with single AgentCommand
-    const command: AgentCommand = {
-      id: createId(CustomizationType.AgentCommand, '.cursor/commands/build.md'),
-      type: CustomizationType.AgentCommand,
+  it('should populate sourceItems for ManualPrompt → .claude/skills/*/SKILL.md (1:1)', async () => {
+    // Test that WrittenFile for each prompt SKILL.md includes
+    // sourceItems array with single ManualPrompt
+    const prompt: ManualPrompt = {
+      id: createId(CustomizationType.ManualPrompt, '.cursor/commands/build.md'),
+      type: CustomizationType.ManualPrompt,
       sourcePath: '.cursor/commands/build.md',
       content: 'Build command content',
-      commandName: 'build',
+      promptName: 'build',
       metadata: {},
     };
 
-    const result = await claudePlugin.emit([command], tempDir);
+    const result = await claudePlugin.emit([prompt], tempDir);
 
     expect(result.written).toHaveLength(1);
     const written = result.written[0];
-    expect(written?.type).toBe(CustomizationType.AgentCommand);
+    expect(written?.type).toBe(CustomizationType.ManualPrompt);
     expect(written?.itemCount).toBe(1);
     expect(written?.sourceItems).toBeDefined();
     expect(written?.sourceItems).toHaveLength(1);
-    expect(written?.sourceItems?.[0]).toBe(command);
+    expect(written?.sourceItems?.[0]).toBe(prompt);
   });
 });

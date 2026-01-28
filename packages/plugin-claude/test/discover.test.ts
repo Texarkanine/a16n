@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import claudePlugin from '../src/index.js';
-import { CustomizationType, WarningCode, type AgentSkill, type AgentIgnore } from '@a16njs/models';
+import { CustomizationType, WarningCode, type AgentSkill, type AgentIgnore, type ManualPrompt } from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
@@ -199,8 +199,48 @@ describe('Claude AgentIgnore Discovery (Phase 3)', () => {
   });
 });
 
-describe('Claude Plugin Never Discovers AgentCommand (Phase 4)', () => {
-  it('should never return AgentCommand items from any discovery', async () => {
+describe('Claude ManualPrompt Discovery (Phase 7)', () => {
+  describe('skills with disable-model-invocation: true', () => {
+    it('should discover ManualPrompt from skill with disable-model-invocation: true', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-manual/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const manualPrompts = result.items.filter(i => i.type === CustomizationType.ManualPrompt);
+      expect(manualPrompts).toHaveLength(1);
+      expect(manualPrompts[0]?.sourcePath).toBe('.claude/skills/manual-task/SKILL.md');
+    });
+
+    it('should derive promptName from skill name in frontmatter', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-manual/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const prompt = result.items.find(i => i.type === CustomizationType.ManualPrompt) as import('@a16njs/models').ManualPrompt;
+      expect(prompt).toBeDefined();
+      expect(prompt.promptName).toBe('manual-task');
+    });
+
+    it('should include skill content in ManualPrompt', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-manual/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const prompt = result.items.find(i => i.type === CustomizationType.ManualPrompt);
+      expect(prompt?.content).toContain('Manual Task Instructions');
+    });
+  });
+
+  describe('regular skills still work as AgentSkill', () => {
+    it('should still discover regular skills without flag as AgentSkill', async () => {
+      const root = path.join(fixturesDir, 'claude-skills/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skills = result.items.filter(i => i.type === CustomizationType.AgentSkill);
+      expect(skills).toHaveLength(1);
+    });
+  });
+});
+
+describe('Claude Plugin Never Discovers ManualPrompt (Phase 4)', () => {
+  it('should never return ManualPrompt items from any discovery', async () => {
     // Test across multiple fixture directories
     const fixtureDirs = [
       'claude-basic/from-claude',
@@ -213,8 +253,8 @@ describe('Claude Plugin Never Discovers AgentCommand (Phase 4)', () => {
       const root = path.join(fixturesDir, dir);
       const result = await claudePlugin.discover(root);
 
-      // No items should be of type AgentCommand
-      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+      // No items should be of type ManualPrompt (Claude emits but never discovers)
+      const commands = result.items.filter(i => i.type === CustomizationType.ManualPrompt);
       expect(commands).toHaveLength(0);
     }
   });
