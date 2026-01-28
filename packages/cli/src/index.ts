@@ -14,6 +14,9 @@ import {
   addToGitExclude,
   updatePreCommitHook,
   getIgnoreSource,
+  removeFromGitIgnore,
+  removeFromGitExclude,
+  removeFromPreCommitHook,
   type GitIgnoreResult,
   type IgnoreSource,
 } from './git-ignore.js';
@@ -42,12 +45,29 @@ program
     'Manage git-ignore status of output files (none, ignore, exclude, hook, match)',
     'none'
   )
+  .option(
+    '--if-gitignore-conflict <resolution>',
+    'How to resolve git-ignore conflicts in match mode (skip, ignore, exclude, hook, commit)',
+    'skip'
+  )
   .argument('[path]', 'Project path', '.')
   .action(async (projectPath, options) => {
     try {
       const verbose = (msg: string) => {
         if (options.verbose) console.error(`[verbose] ${msg}`);
       };
+
+      // Validate --if-gitignore-conflict flag
+      const validConflictResolutions = ['skip', 'ignore', 'exclude', 'hook', 'commit'];
+      const conflictResolution = options.ifGitignoreConflict as string;
+      if (conflictResolution && !validConflictResolutions.includes(conflictResolution)) {
+        console.error(formatError(
+          `Invalid --if-gitignore-conflict value: '${conflictResolution}'`,
+          `Must be one of: ${validConflictResolutions.join(', ')}`
+        ));
+        process.exitCode = 1;
+        return;
+      }
 
       // Validate directory exists and is a directory
       const resolvedPath = path.resolve(projectPath);
@@ -151,9 +171,14 @@ program
               // Style: match - mirror source git status to output, routing to same destination
               verbose('Checking git status for source files...');
               
+              // Get conflict resolution strategy
+              const conflictResolution = (options.ifGitignoreConflict as string) || 'skip';
+              
               // Group files by destination (.gitignore vs .git/info/exclude)
               const filesToGitignore: string[] = [];
               const filesToExclude: string[] = [];
+              const filesToHook: string[] = [];
+              const filesToCommit: string[] = [];
               
               for (const written of result.written) {
                 // Convert absolute path to relative path for git operations
@@ -189,23 +214,51 @@ program
                   const outputTracked = await isGitTracked(resolvedPath, relativePath);
                   const outputIgnored = !outputTracked && await isGitIgnored(resolvedPath, relativePath);
                   
-                  // If sources don't match output's status, emit conflict warning
-                  if (outputTracked && ignoredSources.length > 0) {
-                    result.warnings.push({
-                      code: 'git-status-conflict' as any,
-                      message: `Git status conflict: output '${relativePath}' is tracked, but ${ignoredSources.length} source(s) are ignored`,
-                      sources: ignoredSources.map(s => s.source.sourcePath),
-                    });
-                    verbose(`  ⚠ Git status conflict for ${relativePath} (output tracked, sources ignored)`);
-                  } else if (outputIgnored && trackedSources.length > 0) {
-                    result.warnings.push({
-                      code: 'git-status-conflict' as any,
-                      message: `Git status conflict: output '${relativePath}' is ignored, but ${trackedSources.length} source(s) are tracked`,
-                      sources: trackedSources.map(s => s.source.sourcePath),
-                    });
-                    verbose(`  ⚠ Git status conflict for ${relativePath} (output ignored, sources tracked)`);
+                  // Check for destination conflict (output status doesn't match sources)
+                  const hasDestinationConflict = 
+                    (outputTracked && ignoredSources.length > 0) ||
+                    (outputIgnored && trackedSources.length > 0);
+                  
+                  if (hasDestinationConflict) {
+                    // Handle conflict based on resolution strategy
+                    if (conflictResolution === 'skip') {
+                      // Default: emit warning and skip
+                      if (outputTracked && ignoredSources.length > 0) {
+                        result.warnings.push({
+                          code: 'git-status-conflict' as any,
+                          message: `Git status conflict: output '${relativePath}' is tracked, but ${ignoredSources.length} source(s) are ignored`,
+                          sources: ignoredSources.map(s => s.source.sourcePath),
+                        });
+                        verbose(`  ⚠ Git status conflict for ${relativePath} (output tracked, sources ignored) - skipping`);
+                      } else {
+                        result.warnings.push({
+                          code: 'git-status-conflict' as any,
+                          message: `Git status conflict: output '${relativePath}' is ignored, but ${trackedSources.length} source(s) are tracked`,
+                          sources: trackedSources.map(s => s.source.sourcePath),
+                        });
+                        verbose(`  ⚠ Git status conflict for ${relativePath} (output ignored, sources tracked) - skipping`);
+                      }
+                    } else {
+                      // Apply conflict resolution
+                      verbose(`  ⚠ Git status conflict for ${relativePath} - resolving with --if-gitignore-conflict ${conflictResolution}`);
+                      
+                      switch (conflictResolution) {
+                        case 'ignore':
+                          filesToGitignore.push(relativePath);
+                          break;
+                        case 'exclude':
+                          filesToExclude.push(relativePath);
+                          break;
+                        case 'hook':
+                          filesToHook.push(relativePath);
+                          break;
+                        case 'commit':
+                          filesToCommit.push(relativePath);
+                          break;
+                      }
+                    }
                   }
-                  continue; // Skip gitignore management for existing files
+                  continue; // Skip to next file (existing files don't get normal processing)
                 }
                 
                 // Case 2: Output is new + sources unanimous
@@ -224,13 +277,34 @@ program
                 } 
                 // Case 3: Output is new + sources conflict
                 else if (ignoredSources.length > 0 && trackedSources.length > 0) {
-                  // Sources have conflicting status - skip gitignore management
-                  result.warnings.push({
-                    code: 'git-status-conflict' as any,
-                    message: `Git status conflict: cannot determine status for '${relativePath}' (${ignoredSources.length} source(s) ignored, ${trackedSources.length} tracked)`,
-                    sources: sources.map(s => s.sourcePath),
-                  });
-                  verbose(`  ⚠ Git status conflict for ${relativePath} (sources have mixed status)`);
+                  // Sources have conflicting status - handle based on resolution strategy
+                  if (conflictResolution === 'skip') {
+                    // Default: emit warning and skip
+                    result.warnings.push({
+                      code: 'git-status-conflict' as any,
+                      message: `Git status conflict: cannot determine status for '${relativePath}' (${ignoredSources.length} source(s) ignored, ${trackedSources.length} tracked)`,
+                      sources: sources.map(s => s.sourcePath),
+                    });
+                    verbose(`  ⚠ Git status conflict for ${relativePath} (sources have mixed status) - skipping`);
+                  } else {
+                    // Apply conflict resolution
+                    verbose(`  ⚠ Git status conflict for ${relativePath} - resolving with --if-gitignore-conflict ${conflictResolution}`);
+                    
+                    switch (conflictResolution) {
+                      case 'ignore':
+                        filesToGitignore.push(relativePath);
+                        break;
+                      case 'exclude':
+                        filesToExclude.push(relativePath);
+                        break;
+                      case 'hook':
+                        filesToHook.push(relativePath);
+                        break;
+                      case 'commit':
+                        filesToCommit.push(relativePath);
+                        break;
+                    }
+                  }
                 }
               }
               
@@ -262,7 +336,50 @@ program
                 result.gitIgnoreChanges!.push(plannedResult);
               }
               
-              if (filesToGitignore.length === 0 && filesToExclude.length === 0) {
+              // Add files to pre-commit hook if any
+              if (filesToHook.length > 0) {
+                const plannedResult: GitIgnoreResult = { file: '.git/hooks/pre-commit', added: filesToHook };
+                
+                if (options.dryRun) {
+                  verbose(`Would add ${filesToHook.length} file(s) to pre-commit hook (conflict resolution)`);
+                } else {
+                  verbose(`Adding ${filesToHook.length} file(s) to pre-commit hook (conflict resolution)`);
+                  await updatePreCommitHook(resolvedPath, filesToHook);
+                  verbose(`✓ Updated ${plannedResult.file}`);
+                }
+                result.gitIgnoreChanges!.push(plannedResult);
+              }
+              
+              // Remove files from a16n-managed sections if any (commit resolution)
+              if (filesToCommit.length > 0) {
+                verbose(`Removing ${filesToCommit.length} file(s) from a16n-managed sections (conflict resolution: commit)`);
+                
+                // Remove from .gitignore
+                const gitignoreResult = await removeFromGitIgnore(resolvedPath, filesToCommit);
+                if (gitignoreResult.file) {
+                  verbose(`  Removed from .gitignore`);
+                }
+                
+                // Remove from .git/info/exclude if git repo
+                if (await isGitRepo(resolvedPath)) {
+                  const excludeResult = await removeFromGitExclude(resolvedPath, filesToCommit);
+                  if (excludeResult.file) {
+                    verbose(`  Removed from .git/info/exclude`);
+                  }
+                  
+                  // Remove from pre-commit hook if git repo
+                  const hookResult = await removeFromPreCommitHook(resolvedPath, filesToCommit);
+                  if (hookResult.file) {
+                    verbose(`  Removed from pre-commit hook`);
+                  }
+                }
+                
+                if (!options.dryRun) {
+                  verbose(`✓ Ensured ${filesToCommit.length} file(s) are tracked (removed from a16n sections)`);
+                }
+              }
+              
+              if (filesToGitignore.length === 0 && filesToExclude.length === 0 && filesToHook.length === 0 && filesToCommit.length === 0) {
                 verbose('No files need to be ignored (sources are tracked)');
               }
             }

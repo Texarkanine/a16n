@@ -10,6 +10,9 @@ import {
   addToGitExclude,
   updatePreCommitHook,
   getIgnoreSource,
+  removeFromGitIgnore,
+  removeFromGitExclude,
+  removeFromPreCommitHook,
   type GitIgnoreResult,
   type IgnoreSource,
 } from '../src/git-ignore.js';
@@ -487,6 +490,300 @@ describe('Git Utilities', () => {
     it('should return null for non-git directory', async () => {
       const result = await getIgnoreSource(testDir, 'any.txt');
       expect(result).toBeNull();
+    });
+  });
+
+  describe('removeFromGitIgnore', () => {
+    it('should remove entries from semaphore section in .gitignore', async () => {
+      // Create .gitignore with a16n managed section containing multiple entries
+      const gitignorePath = path.join(testDir, '.gitignore');
+      const initialContent = `# User entry
+*.log
+
+# BEGIN a16n managed
+CLAUDE.md
+.cursor/
+output.txt
+# END a16n managed
+
+# Another user entry
+node_modules/
+`;
+      await fs.writeFile(gitignorePath, initialContent);
+
+      // Remove some entries
+      await removeFromGitIgnore(testDir, ['CLAUDE.md', 'output.txt']);
+
+      // Read the updated content
+      const content = await fs.readFile(gitignorePath, 'utf-8');
+
+      // Should remove specified entries from semaphore section
+      expect(content).not.toContain('CLAUDE.md');
+      expect(content).not.toContain('output.txt');
+      
+      // Should keep entries that were not removed
+      expect(content).toContain('.cursor/');
+      
+      // Should preserve user entries
+      expect(content).toContain('*.log');
+      expect(content).toContain('node_modules/');
+      
+      // Should keep semaphore markers
+      expect(content).toContain('# BEGIN a16n managed');
+      expect(content).toContain('# END a16n managed');
+    });
+
+    it('should preserve entries outside semaphore section', async () => {
+      // Create .gitignore with user entries and a16n section
+      const gitignorePath = path.join(testDir, '.gitignore');
+      const initialContent = `# User entry at start
+*.log
+
+# BEGIN a16n managed
+CLAUDE.md
+# END a16n managed
+
+# User entry at end
+node_modules/
+`;
+      await fs.writeFile(gitignorePath, initialContent);
+
+      // Remove a16n entry
+      await removeFromGitIgnore(testDir, ['CLAUDE.md']);
+
+      // Read the updated content
+      const content = await fs.readFile(gitignorePath, 'utf-8');
+
+      // User entries should be untouched
+      expect(content).toContain('# User entry at start');
+      expect(content).toContain('*.log');
+      expect(content).toContain('# User entry at end');
+      expect(content).toContain('node_modules/');
+    });
+
+    it('should handle missing entry gracefully (no-op)', async () => {
+      // Create .gitignore with a16n section
+      const gitignorePath = path.join(testDir, '.gitignore');
+      const initialContent = `# BEGIN a16n managed
+CLAUDE.md
+# END a16n managed
+`;
+      await fs.writeFile(gitignorePath, initialContent);
+
+      // Try to remove an entry that doesn't exist
+      await removeFromGitIgnore(testDir, ['nonexistent.txt']);
+
+      // Read the updated content
+      const content = await fs.readFile(gitignorePath, 'utf-8');
+
+      // Should not error and content should be unchanged
+      expect(content).toContain('CLAUDE.md');
+      expect(content).toContain('# BEGIN a16n managed');
+    });
+
+    it('should handle missing semaphore section gracefully (no-op)', async () => {
+      // Create .gitignore WITHOUT a16n section
+      const gitignorePath = path.join(testDir, '.gitignore');
+      const initialContent = `*.log
+node_modules/
+`;
+      await fs.writeFile(gitignorePath, initialContent);
+
+      // Try to remove entries when there's no semaphore
+      await removeFromGitIgnore(testDir, ['CLAUDE.md']);
+
+      // Read the updated content
+      const content = await fs.readFile(gitignorePath, 'utf-8');
+
+      // Should not error and content should be unchanged
+      expect(content).toContain('*.log');
+      expect(content).toContain('node_modules/');
+      expect(content).not.toContain('# BEGIN a16n managed');
+    });
+  });
+
+  describe('removeFromGitExclude', () => {
+    it('should remove entries from semaphore section in .git/info/exclude', async () => {
+      // Initialize git repo
+      await fs.mkdir(path.join(testDir, '.git', 'info'), { recursive: true });
+      
+      // Create .git/info/exclude with a16n managed section
+      const excludePath = path.join(testDir, '.git', 'info', 'exclude');
+      const initialContent = `# User exclude entry
+*.tmp
+
+# BEGIN a16n managed
+CLAUDE.md
+output.txt
+# END a16n managed
+
+# Another user entry
+.DS_Store
+`;
+      await fs.writeFile(excludePath, initialContent);
+
+      // Remove entries
+      await removeFromGitExclude(testDir, ['CLAUDE.md', 'output.txt']);
+
+      // Read the updated content
+      const content = await fs.readFile(excludePath, 'utf-8');
+
+      // Should remove specified entries
+      expect(content).not.toContain('CLAUDE.md');
+      expect(content).not.toContain('output.txt');
+      
+      // Should preserve user entries
+      expect(content).toContain('*.tmp');
+      expect(content).toContain('.DS_Store');
+      
+      // Should keep semaphore markers
+      expect(content).toContain('# BEGIN a16n managed');
+      expect(content).toContain('# END a16n managed');
+    });
+
+    it('should preserve entries outside semaphore section', async () => {
+      // Initialize git repo
+      await fs.mkdir(path.join(testDir, '.git', 'info'), { recursive: true });
+      
+      // Create .git/info/exclude with user entries and a16n section
+      const excludePath = path.join(testDir, '.git', 'info', 'exclude');
+      const initialContent = `# User entry
+*.tmp
+
+# BEGIN a16n managed
+CLAUDE.md
+# END a16n managed
+
+# User entry at end
+.DS_Store
+`;
+      await fs.writeFile(excludePath, initialContent);
+
+      // Remove a16n entry
+      await removeFromGitExclude(testDir, ['CLAUDE.md']);
+
+      // Read the updated content
+      const content = await fs.readFile(excludePath, 'utf-8');
+
+      // User entries should be untouched
+      expect(content).toContain('*.tmp');
+      expect(content).toContain('.DS_Store');
+    });
+
+    it('should throw error for non-git directory', async () => {
+      // Try to remove from exclude in a non-git directory
+      await expect(
+        removeFromGitExclude(testDir, ['CLAUDE.md'])
+      ).rejects.toThrow('Not a git repository');
+    });
+  });
+
+  describe('removeFromPreCommitHook', () => {
+    it('should remove entries from pre-commit hook git reset command', async () => {
+      // Initialize git repo
+      await fs.mkdir(path.join(testDir, '.git', 'hooks'), { recursive: true });
+      
+      // Create pre-commit hook with a16n section containing git reset command
+      const hookPath = path.join(testDir, '.git', 'hooks', 'pre-commit');
+      const initialContent = `#!/bin/bash
+
+# User commands
+echo "Running pre-commit hook"
+
+# BEGIN a16n managed
+git reset HEAD -- 'CLAUDE.md' 'output.txt' '.cursor/' 2>/dev/null || true
+# END a16n managed
+
+# More user commands
+npm run lint
+`;
+      await fs.writeFile(hookPath, initialContent);
+      await fs.chmod(hookPath, 0o755);
+
+      // Remove some entries
+      await removeFromPreCommitHook(testDir, ['CLAUDE.md', 'output.txt']);
+
+      // Read the updated content
+      const content = await fs.readFile(hookPath, 'utf-8');
+
+      // Should update git reset command to exclude removed entries
+      expect(content).not.toContain('CLAUDE.md');
+      expect(content).not.toContain('output.txt');
+      
+      // Should keep entry that wasn't removed
+      expect(content).toContain('.cursor/');
+      
+      // Should preserve user commands
+      expect(content).toContain('echo "Running pre-commit hook"');
+      expect(content).toContain('npm run lint');
+      
+      // Should keep semaphore markers
+      expect(content).toContain('# BEGIN a16n managed');
+      expect(content).toContain('# END a16n managed');
+    });
+
+    it('should preserve hook content outside semaphore section', async () => {
+      // Initialize git repo
+      await fs.mkdir(path.join(testDir, '.git', 'hooks'), { recursive: true });
+      
+      // Create pre-commit hook with user content and a16n section
+      const hookPath = path.join(testDir, '.git', 'hooks', 'pre-commit');
+      const initialContent = `#!/bin/bash
+
+# User commands at start
+echo "User command 1"
+
+# BEGIN a16n managed
+git reset HEAD -- 'CLAUDE.md' 2>/dev/null || true
+# END a16n managed
+
+# User commands at end
+echo "User command 2"
+`;
+      await fs.writeFile(hookPath, initialContent);
+
+      // Remove a16n entry
+      await removeFromPreCommitHook(testDir, ['CLAUDE.md']);
+
+      // Read the updated content
+      const content = await fs.readFile(hookPath, 'utf-8');
+
+      // User commands should be untouched
+      expect(content).toContain('User command 1');
+      expect(content).toContain('User command 2');
+      expect(content).toContain('#!/bin/bash');
+    });
+
+    it('should throw error for non-git directory', async () => {
+      // Try to remove from pre-commit hook in a non-git directory
+      await expect(
+        removeFromPreCommitHook(testDir, ['CLAUDE.md'])
+      ).rejects.toThrow('Not a git repository');
+    });
+
+    it('should handle missing semaphore section gracefully (no-op)', async () => {
+      // Initialize git repo
+      await fs.mkdir(path.join(testDir, '.git', 'hooks'), { recursive: true });
+      
+      // Create pre-commit hook WITHOUT a16n section
+      const hookPath = path.join(testDir, '.git', 'hooks', 'pre-commit');
+      const initialContent = `#!/bin/bash
+
+echo "User hook"
+npm run lint
+`;
+      await fs.writeFile(hookPath, initialContent);
+
+      // Try to remove entries when there's no semaphore
+      await removeFromPreCommitHook(testDir, ['CLAUDE.md']);
+
+      // Read the updated content
+      const content = await fs.readFile(hookPath, 'utf-8');
+
+      // Should not error and content should be unchanged
+      expect(content).toContain('User hook');
+      expect(content).toContain('npm run lint');
+      expect(content).not.toContain('# BEGIN a16n managed');
     });
   });
 });

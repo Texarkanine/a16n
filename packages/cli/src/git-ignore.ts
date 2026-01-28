@@ -299,6 +299,187 @@ export async function updatePreCommitHook(
 }
 
 /**
+ * Remove entries from .gitignore semaphore section.
+ * Only removes entries from within the a16n managed section.
+ * Preserves entries outside semaphore section.
+ * 
+ * @param root - The root directory of the project
+ * @param entries - File paths to remove from .gitignore
+ * @returns Information about the changes made (removed entries)
+ */
+export async function removeFromGitIgnore(
+  root: string,
+  entries: string[]
+): Promise<GitIgnoreResult> {
+  const filepath = path.join(root, '.gitignore');
+  let content = '';
+  
+  try {
+    content = await fs.readFile(filepath, 'utf-8');
+  } catch {
+    // File doesn't exist - nothing to remove
+    return {
+      file: '.gitignore',
+      added: [],
+    };
+  }
+
+  const newContent = removeSemaphoreEntries(content, entries);
+  await fs.writeFile(filepath, newContent, 'utf-8');
+
+  return {
+    file: '.gitignore',
+    added: [], // 'added' array is empty for removal operations
+  };
+}
+
+/**
+ * Remove entries from .git/info/exclude semaphore section.
+ * Only removes entries from within the a16n managed section.
+ * Preserves entries outside semaphore section.
+ * 
+ * @param root - The root directory of the git repository
+ * @param entries - File paths to remove from .git/info/exclude
+ * @returns Information about the changes made (removed entries)
+ */
+export async function removeFromGitExclude(
+  root: string,
+  entries: string[]
+): Promise<GitIgnoreResult> {
+  // Verify it's a git repository
+  if (!(await isGitRepo(root))) {
+    throw new Error('Not a git repository');
+  }
+
+  const filepath = path.join(root, '.git', 'info', 'exclude');
+  let content = '';
+  
+  try {
+    content = await fs.readFile(filepath, 'utf-8');
+  } catch {
+    // File doesn't exist - nothing to remove
+    return {
+      file: '.git/info/exclude',
+      added: [],
+    };
+  }
+
+  const newContent = removeSemaphoreEntries(content, entries);
+  await fs.writeFile(filepath, newContent, 'utf-8');
+
+  return {
+    file: '.git/info/exclude',
+    added: [],
+  };
+}
+
+/**
+ * Remove entries from pre-commit hook semaphore section.
+ * Only removes entries from within the a16n managed section.
+ * Updates the git reset command to exclude removed entries.
+ * Preserves hook content outside semaphore section.
+ * 
+ * @param root - The root directory of the git repository
+ * @param entries - File paths to remove from pre-commit hook
+ * @returns Information about the changes made (removed entries)
+ */
+export async function removeFromPreCommitHook(
+  root: string,
+  entries: string[]
+): Promise<GitIgnoreResult> {
+  // Verify it's a git repository
+  if (!(await isGitRepo(root))) {
+    throw new Error('Not a git repository');
+  }
+
+  const filepath = path.join(root, '.git', 'hooks', 'pre-commit');
+  let content = '';
+  
+  try {
+    content = await fs.readFile(filepath, 'utf-8');
+  } catch {
+    // File doesn't exist - nothing to remove
+    return {
+      file: '.git/hooks/pre-commit',
+      added: [],
+    };
+  }
+
+  const lines = content.split('\n');
+  
+  // Find existing semaphore section
+  const beginIndex = lines.findIndex(l => l.trim() === SEMAPHORE_BEGIN);
+  const endIndex = lines.findIndex(l => l.trim() === SEMAPHORE_END);
+
+  // If no semaphore section exists, return unchanged
+  if (beginIndex === -1 || endIndex === -1 || endIndex <= beginIndex) {
+    return {
+      file: '.git/hooks/pre-commit',
+      added: [],
+    };
+  }
+
+  // Extract the git reset command from semaphore section
+  const existingCommands = lines
+    .slice(beginIndex + 1, endIndex)
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+
+  // Parse git reset command to extract file paths
+  // Format: git reset HEAD -- 'file1' 'file2' 'file3' 2>/dev/null || true
+  const gitResetLine = existingCommands.find(cmd => cmd.startsWith('git reset HEAD --'));
+  
+  if (!gitResetLine) {
+    // No git reset command found - return unchanged
+    return {
+      file: '.git/hooks/pre-commit',
+      added: [],
+    };
+  }
+
+  // Extract quoted file paths from the command
+  // Match single-quoted strings, handling escaped quotes
+  const quotedPathsRegex = /'([^'\\]*(?:\\.[^'\\]*)*)'/g;
+  const matches = [...gitResetLine.matchAll(quotedPathsRegex)];
+  const currentFiles = matches
+    .map(m => m[1])
+    .filter((path): path is string => path !== undefined)
+    .map(path => path.replace(/\\'/g, "'"));
+
+  // Remove specified entries
+  const remainingFiles = currentFiles.filter(
+    file => !entries.includes(file)
+  );
+
+  // If no files remain, we can remove the entire command
+  let newCommands: string[];
+  if (remainingFiles.length === 0) {
+    newCommands = [];
+  } else {
+    // Reconstruct git reset command with remaining files
+    const quotedEntries = remainingFiles.map(e => `'${e.replace(/'/g, "'\\''")}'`).join(' ');
+    const newCommand = `git reset HEAD -- ${quotedEntries} 2>/dev/null || true`;
+    newCommands = [newCommand];
+  }
+
+  // Reconstruct content
+  const result = [
+    ...lines.slice(0, beginIndex),
+    SEMAPHORE_BEGIN,
+    ...newCommands,
+    SEMAPHORE_END,
+    ...lines.slice(endIndex + 1),
+  ];
+
+  await fs.writeFile(filepath, result.join('\n'), 'utf-8');
+
+  return {
+    file: '.git/hooks/pre-commit',
+    added: [],
+  };
+}
+
+/**
  * Update content with semaphore-wrapped section.
  * Preserves content outside semaphores.
  * Accumulates and deduplicates entries within semaphore section.
@@ -354,6 +535,53 @@ function updateSemaphoreSection(
       '', // Trailing newline
     ];
   }
+
+  return result.join('\n');
+}
+
+/**
+ * Remove entries from semaphore-wrapped section.
+ * Preserves content outside semaphores.
+ * If no semaphore section exists, returns content unchanged.
+ * 
+ * @param content - Existing file content
+ * @param entriesToRemove - Entries to remove from the semaphore section
+ * @returns Updated content with entries removed from semaphore section
+ */
+function removeSemaphoreEntries(
+  content: string,
+  entriesToRemove: string[]
+): string {
+  const lines = content.split('\n');
+  
+  // Find existing semaphore section
+  const beginIndex = lines.findIndex(l => l.trim() === SEMAPHORE_BEGIN);
+  const endIndex = lines.findIndex(l => l.trim() === SEMAPHORE_END);
+
+  // If no semaphore section exists, return unchanged
+  if (beginIndex === -1 || endIndex === -1 || endIndex <= beginIndex) {
+    return content;
+  }
+
+  // Extract existing entries from semaphore section
+  const existingEntries = lines
+    .slice(beginIndex + 1, endIndex)
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+
+  // Remove specified entries
+  const remainingEntries = existingEntries.filter(
+    entry => !entriesToRemove.includes(entry)
+  );
+
+  // Reconstruct content with remaining entries
+  const result = [
+    ...lines.slice(0, beginIndex),
+    SEMAPHORE_BEGIN,
+    ...remainingEntries,
+    SEMAPHORE_END,
+    ...lines.slice(endIndex + 1),
+  ];
 
   return result.join('\n');
 }

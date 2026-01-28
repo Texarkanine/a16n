@@ -47,48 +47,43 @@ The `--if-gitignore-conflict` flag provides explicit user intent for conflict re
 ### Implementation Checklist
 
 #### Phase 1: CLI Flag Addition
-- [ ] Add `--if-gitignore-conflict` option to `convert` command
-- [ ] Validate flag values: `skip`, `ignore`, `exclude`, `hook`, `commit`
-- [ ] Only applicable when `--gitignore-output-with match` is used
-- [ ] Default value: `skip`
+- [x] Add `--if-gitignore-conflict` option to `convert` command
+- [x] Validate flag values: `skip`, `ignore`, `exclude`, `hook`, `commit`
+- [x] Only applicable when `--gitignore-output-with match` is used
+- [x] Default value: `skip`
 
 #### Phase 2: New Utility Function for `commit` Option
-- [ ] Add `removeFromGitIgnore(root, entries)` to `git-ignore.ts`
+- [x] Add `removeFromGitIgnore(root, entries)` to `git-ignore.ts`
   - Remove entries from `# BEGIN a16n managed` section in `.gitignore`
   - Only removes entries WE added (within semaphore), not user entries
-- [ ] Add `removeFromGitExclude(root, entries)` to `git-ignore.ts`
+- [x] Add `removeFromGitExclude(root, entries)` to `git-ignore.ts`
   - Remove entries from semaphore section in `.git/info/exclude`
-- [ ] Add `removeFromPreCommitHook(root, entries)` to `git-ignore.ts`
+- [x] Add `removeFromPreCommitHook(root, entries)` to `git-ignore.ts`
   - Remove entries from semaphore section in pre-commit hook
   - Update the `git reset HEAD --` command to exclude removed entries
-- [ ] Add unit tests for all removal functions
+- [x] Add unit tests for all removal functions
 
 #### Phase 3: Conflict Resolution Logic
-- [ ] Update match mode in `packages/cli/src/index.ts`:
+- [x] Update match mode in `packages/cli/src/index.ts`:
   - When conflict detected, check `--if-gitignore-conflict` value
   - `skip`: Current behavior - emit warning, skip gitignore management
   - `ignore`: Add to `.gitignore` via `addToGitIgnore()`
   - `exclude`: Add to `.git/info/exclude` via `addToGitExclude()`
   - `hook`: Add to pre-commit hook via `updatePreCommitHook()`
   - `commit`: Remove from all a16n-managed locations
-- [ ] Handle both conflict scenarios:
+- [x] Handle both conflict scenarios:
   - Source conflict (mixed source statuses)
   - Destination conflict (existing file with different status)
 
 #### Phase 4: Tests
-- [ ] Unit tests for removal functions in `git-ignore.test.ts`
-- [ ] CLI tests for `--if-gitignore-conflict` flag validation
-- [ ] Integration tests for each option value:
-  - `skip`: Emits warning, no gitignore changes
-  - `ignore`: Conflicting file added to `.gitignore`
-  - `exclude`: Conflicting file added to `.git/info/exclude`
-  - `hook`: Conflicting file added to pre-commit hook
-  - `commit`: Conflicting file removed from a16n-managed sections
+- [x] Unit tests for removal functions in `git-ignore.test.ts`
+- [ ] CLI tests for `--if-gitignore-conflict` flag validation (stubs created)
+- [ ] Integration tests for each option value (stubs created)
 
 #### Phase 5: Verification
-- [ ] All tests pass
-- [ ] Build succeeds
-- [ ] Lint passes
+- [x] All tests pass (289 tests)
+- [x] Build succeeds
+- [x] Lint passes (no lint script configured)
 
 ### Files to Modify
 

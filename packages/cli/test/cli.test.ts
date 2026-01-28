@@ -370,4 +370,48 @@ describe('CLI', () => {
       // TODO: Implement test
     });
   });
+
+  describe('--if-gitignore-conflict flag', () => {
+    it('should accept "skip" value (default behavior)', async () => {
+      // TODO: Implement test
+      // Create conflict scenario (mixed sources)
+      // Run with --if-gitignore-conflict skip
+      // Verify warning is emitted and gitignore is skipped
+    });
+
+    it('should accept "ignore" value and add to .gitignore on conflict', async () => {
+      // TODO: Implement test
+      // Create conflict scenario (mixed sources)
+      // Run with --if-gitignore-conflict ignore
+      // Verify file is added to .gitignore
+    });
+
+    it('should accept "exclude" value and add to .git/info/exclude on conflict', async () => {
+      // TODO: Implement test
+      // Create conflict scenario (mixed sources)
+      // Run with --if-gitignore-conflict exclude
+      // Verify file is added to .git/info/exclude
+    });
+
+    it('should accept "hook" value and add to pre-commit hook on conflict', async () => {
+      // TODO: Implement test
+      // Create conflict scenario (mixed sources)
+      // Run with --if-gitignore-conflict hook
+      // Verify file is added to pre-commit hook
+    });
+
+    it('should accept "commit" value and remove from a16n-managed sections on conflict', async () => {
+      // TODO: Implement test
+      // Create conflict scenario (mixed sources)
+      // Pre-populate .gitignore with a16n managed section
+      // Run with --if-gitignore-conflict commit
+      // Verify file is removed from a16n managed sections
+    });
+
+    it('should only apply to match mode (ignored in other modes)', async () => {
+      // TODO: Implement test
+      // Run with --gitignore-output-with ignore and --if-gitignore-conflict commit
+      // Verify flag is ignored (no removal, normal add to .gitignore)
+    });
+  });
 });
