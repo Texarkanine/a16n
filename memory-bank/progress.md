@@ -17,4 +17,5 @@
 
 ## Current Session
 
-No active task. Use `/niko` to start a new task.
+**Task:** DOCS-SITE-MVP  
+**QA Validation:** PASS (2026-01-28). Dependencies, config, environment, and minimal build/test verified. Ready for `/build`.
