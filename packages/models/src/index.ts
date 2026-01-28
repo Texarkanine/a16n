@@ -9,8 +9,6 @@ export {
   type FileRule,
   type AgentIgnore,
   type ManualPrompt,
-  /** @deprecated Use ManualPrompt instead */
-  type AgentCommand,
 } from './types.js';
 
 // Plugin interface
@@ -32,8 +30,6 @@ export {
   isFileRule,
   isAgentIgnore,
   isManualPrompt,
-  /** @deprecated Use isManualPrompt instead */
-  isAgentCommand,
   getUniqueFilename,
   createId,
 } from './helpers.js';

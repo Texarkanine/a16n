@@ -44,14 +44,6 @@ export function isManualPrompt(item: AgentCustomization): item is ManualPrompt {
 }
 
 /**
- * Type guard to check if an item is an AgentCommand.
- * @deprecated Use isManualPrompt instead. Will be removed in a future version.
- */
-export function isAgentCommand(item: AgentCustomization): item is ManualPrompt {
-  return isManualPrompt(item);
-}
-
-/**
  * Get a unique filename by appending a counter if the name already exists.
  * @param baseName - The base name to start with
  * @param usedNames - Set of already used names (will be mutated to add the result)

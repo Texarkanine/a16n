@@ -4,7 +4,6 @@ import {
   type AgentCustomization,
   type GlobalPrompt,
   type ManualPrompt,
-  type AgentCommand,
 } from '../src/index.js';
 
 describe('CustomizationType', () => {
@@ -26,11 +25,6 @@ describe('CustomizationType', () => {
 
   it('should have ManualPrompt type', () => {
     expect(CustomizationType.ManualPrompt).toBe('manual-prompt');
-  });
-
-  it('should have deprecated AgentCommand alias pointing to ManualPrompt', () => {
-    // AgentCommand is deprecated but should still work for backward compatibility
-    expect(CustomizationType.AgentCommand).toBe('manual-prompt');
   });
 });
 
@@ -93,23 +87,5 @@ describe('ManualPrompt', () => {
 
     expect(manualPrompt).toHaveProperty('promptName');
     expect(manualPrompt.promptName).toBe('deploy');
-  });
-});
-
-describe('AgentCommand (deprecated alias)', () => {
-  it('should be assignable to ManualPrompt for backward compatibility', () => {
-    // AgentCommand is a deprecated type alias for ManualPrompt
-    const command: AgentCommand = {
-      id: 'ac-1',
-      type: CustomizationType.ManualPrompt,
-      sourcePath: '.cursor/commands/test.md',
-      content: 'Test command',
-      promptName: 'test',
-      metadata: {},
-    };
-
-    // Should be assignable to ManualPrompt
-    const prompt: ManualPrompt = command;
-    expect(prompt.type).toBe(CustomizationType.ManualPrompt);
   });
 });

@@ -239,8 +239,8 @@ describe('Claude ManualPrompt Discovery (Phase 7)', () => {
   });
 });
 
-describe('Claude Plugin Never Discovers AgentCommand (Phase 4)', () => {
-  it('should never return AgentCommand items from any discovery', async () => {
+describe('Claude Plugin Never Discovers ManualPrompt (Phase 4)', () => {
+  it('should never return ManualPrompt items from any discovery', async () => {
     // Test across multiple fixture directories
     const fixtureDirs = [
       'claude-basic/from-claude',
@@ -253,8 +253,8 @@ describe('Claude Plugin Never Discovers AgentCommand (Phase 4)', () => {
       const root = path.join(fixturesDir, dir);
       const result = await claudePlugin.discover(root);
 
-      // No items should be of type AgentCommand
-      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+      // No items should be of type ManualPrompt (Claude emits but never discovers)
+      const commands = result.items.filter(i => i.type === CustomizationType.ManualPrompt);
       expect(commands).toHaveLength(0);
     }
   });

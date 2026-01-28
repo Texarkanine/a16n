@@ -13,10 +13,6 @@ export enum CustomizationType {
   AgentIgnore = 'agent-ignore',
   /** Explicitly invoked prompts (slash commands, skills with disable-model-invocation) */
   ManualPrompt = 'manual-prompt',
-  /**
-   * @deprecated Use ManualPrompt instead. Will be removed in a future version.
-   */
-  AgentCommand = 'manual-prompt',
 }
 
 /**
@@ -85,8 +81,3 @@ export interface ManualPrompt extends AgentCustomization {
   /** Prompt name for invocation (e.g., "review" for /review) */
   promptName: string;
 }
-
-/**
- * @deprecated Use ManualPrompt instead. Will be removed in a future version.
- */
-export type AgentCommand = ManualPrompt;

@@ -19,6 +19,15 @@
 - [x] Documentation complete (Task 10)
 - [ ] Archiving
 
+## Follow-up: Phase 7 Deprecation Removal (2026-01-28)
+
+**Task ID:** PHASE-7-DEPRECATION-REMOVAL  
+**Scope:** Remove AgentCommand / isAgentCommand and all Phase 7 deprecation notices (v0; no deprecation shims).  
+**Status:** Implementation complete, reflection complete.
+
+- [x] Implementation complete (models + plugin-claude tests)
+- [x] Reflection complete → `memory-bank/reflection/reflection-PHASE-7-DEPRECATION-REMOVAL.md`
+
 ## Reflection Highlights
 
 - **What Went Well**: TDD approach, incremental multi-package changes, clean separation of discovery/emission logic

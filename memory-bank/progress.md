@@ -40,7 +40,7 @@
 
 ### Completed Changes
 1. **ManualPrompt Type** - New type with `promptName` field, backward compat aliases
-2. **Type Guards** - `isManualPrompt()` added, `isAgentCommand()` deprecated wrapper
+2. **Type Guards** - `isManualPrompt()` only (Phase 7 deprecation aliases removed in PHASE-7-DEPRECATION-REMOVAL)
 3. **Classification Change** - Rules without activation criteria → ManualPrompt (not GlobalPrompt)
 4. **All Package Updates** - plugin-cursor, plugin-claude, engine, cli tests updated
 5. **Cursor Skills Discovery** - Discover `.cursor/skills/*/SKILL.md` → AgentSkill (with description) or ManualPrompt (with disable-model-invocation)
