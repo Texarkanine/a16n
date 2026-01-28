@@ -185,7 +185,7 @@ const prefix = options.dryRun ? 'Would update' : 'Git: Updated';
 ## CodeRabbit PR #12 Fixes
 
 **Status:** FIXED - Awaiting CR re-review
-**PR URL:** https://github.com/Texarkanine/a16n/pull/12
+**PR URL:** <https://github.com/Texarkanine/a16n/pull/12>
 
 ### Actionable Items
 - [x] ID: CR-12-deletedSources-paths - Use relative paths in deletedSources output and JSON - FIXED
