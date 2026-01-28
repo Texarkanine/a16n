@@ -24,6 +24,15 @@ import {
 
 const program = new Command();
 
+/**
+ * Converts a path to POSIX format (forward slashes) for gitignore compatibility.
+ * On Windows, path.relative() returns backslash-separated paths, but .gitignore
+ * files require forward slashes for proper pattern matching.
+ */
+function toGitIgnorePath(p: string): string {
+  return p.split(path.sep).join('/');
+}
+
 // Create engine with bundled plugins
 const engine = new A16nEngine([cursorPlugin, claudePlugin]);
 
@@ -112,10 +121,10 @@ program
       if (gitignoreStyle !== 'none' && result.written.length > 0) {
         verbose(`Planning git-ignore style: ${gitignoreStyle}${options.dryRun ? ' (dry-run)' : ''}`);
         
-        // Filter for new files only and convert absolute paths to relative paths
+        // Filter for new files only and convert absolute paths to relative paths (POSIX format)
         const newFiles = result.written
           .filter(w => w.isNewFile)
-          .map(w => path.relative(resolvedPath, w.path));
+          .map(w => toGitIgnorePath(path.relative(resolvedPath, w.path)));
         
         if (newFiles.length === 0) {
           verbose('No new files to manage (all outputs are edits to existing files)');
@@ -182,8 +191,8 @@ program
               const filesToCommit: string[] = [];
               
               for (const written of result.written) {
-                // Convert absolute path to relative path for git operations
-                const relativePath = path.relative(resolvedPath, written.path);
+                // Convert absolute path to relative path for git operations (POSIX format)
+                const relativePath = toGitIgnorePath(path.relative(resolvedPath, written.path));
                 
                 // Check if plugin provides sourceItems (required for accurate conflict detection)
                 if (!written.sourceItems) {
