@@ -371,6 +371,42 @@ describe('CLI', () => {
     });
   });
 
+  describe('--gitignore-output-with match mode validation (CR11-11)', () => {
+    it('should error when using match mode on non-git repository', async () => {
+      // Create source Cursor rules (no git init)
+      const cursorDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorDir, { recursive: true });
+      await fs.writeFile(
+        path.join(cursorDir, 'test.mdc'),
+        '---\nalwaysApply: true\n---\nTest rule.'
+      );
+
+      const { stderr, exitCode } = runCli('convert --from cursor --to claude --gitignore-output-with match');
+      
+      expect(exitCode).toBe(1);
+      expect(stderr).toContain('not a git repository');
+    });
+
+    it('should succeed with match mode on valid git repository', async () => {
+      // Initialize git repo
+      spawnSync('git', ['init'], { cwd: tempDir });
+      spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
+      spawnSync('git', ['config', 'user.name', 'Test'], { cwd: tempDir });
+      
+      // Create source Cursor rules
+      const cursorDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorDir, { recursive: true });
+      await fs.writeFile(
+        path.join(cursorDir, 'test.mdc'),
+        '---\nalwaysApply: true\n---\nTest rule.'
+      );
+
+      const { exitCode } = runCli('convert --from cursor --to claude --gitignore-output-with match');
+      
+      expect(exitCode).toBe(0);
+    });
+  });
+
   describe('--if-gitignore-conflict flag', () => {
     it('should accept "skip" value (default behavior)', async () => {
       // TODO: Implement test

@@ -11,15 +11,19 @@
 
 ### Actionable Items
 
-#### Code Issues (Major)
+#### Code Issues (New - 2026-01-28T17:25:20Z)
+- [x] ID: CR11-10 - Pass `resolvedPath` instead of `projectPath` to `engine.convert()` (Critical) - FIXED
+- [x] ID: CR11-11 - Add `isGitRepo` check at start of match mode block (Major) - FIXED
+
+#### Code Issues (Major) - Previously Fixed
 - [x] ID: CR11-1 - Missing `error` event handler in `execGit` - ALREADY FIXED (error handler exists at lines 50-52)
 - [x] ID: CR11-2 - `commit` resolution performs file modifications even in dry-run mode - FIXED in 7d7c25f
 - [x] ID: CR11-3 - Missing ignore source consistency check - FIXED in 7d7c25f (now detects sources ignored by different files)
 
-#### Code Issues (Minor)
+#### Code Issues (Minor) - Previously Fixed
 - [x] ID: CR11-4 - Remove `as any` casts and use proper WarningCode enum values - FIXED in 7d7c25f
 - [x] ID: CR11-5 - Use path-aware matching for `.a16n/rules` detection on Windows - FIXED in 7d7c25f
-- [x] ID: CR11-9 - Normalize paths to POSIX format for gitignore (Windows backslash fix) - FIXED in current commit
+- [x] ID: CR11-9 - Normalize paths to POSIX format for gitignore (Windows backslash fix) - FIXED in ec72037
 
 #### Documentation Issues (Minor)
 - [x] ID: CR11-6 - Duplicate heading "## Completed Implementation" triggers MD024 - NOT FOUND (false positive)
@@ -31,14 +35,9 @@
 - [x] ID: CR11-A2 - Inconsistent "Next Actions" section is stale (`memory-bank/progress.md`) - FIXED in 2b37e6c
 
 ### Latest Commit
-- Commit: pending (CR11-9 fix)
+- Commit: ec72037 (CR11-9 fix)
 - Fixes: CR11-9 (path normalization for Windows)
 - Status: All tests passing (87/87)
-
-### Final Review (2026-01-28T15:36:39Z)
-- CR comment about "commit dry-run" is FALSE POSITIVE - code at lines 389-417 already checks `options.dryRun`
-- Test "should NOT actually write to .gitignore in dry-run mode" validates this behavior
-- Remaining comments are markdown lint issues in memory-bank (not code)
 
 ### Requires Human Decision
 (none)

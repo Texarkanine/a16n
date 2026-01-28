@@ -101,7 +101,7 @@ program
       const result = await engine.convert({
         source: options.from,
         target: options.to,
-        root: projectPath,
+        root: resolvedPath,
         dryRun: options.dryRun,
       });
 
@@ -179,6 +179,9 @@ program
               
             } else if (gitignoreStyle === 'match') {
               // Style: match - mirror source git status to output, routing to same destination
+              if (!(await isGitRepo(resolvedPath))) {
+                throw new Error("Cannot use --gitignore-output-with 'match': not a git repository");
+              }
               verbose('Checking git status for source files...');
               
               // Get conflict resolution strategy
