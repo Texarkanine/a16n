@@ -450,4 +450,201 @@ describe('CLI', () => {
       // Verify flag is ignored (no removal, normal add to .gitignore)
     });
   });
+
+  describe('Phase 6: Dry-run output wording', () => {
+    it('should show "Would write:" in dry-run mode', async () => {
+      // AC1: Dry-run shows "Would write:" prefix
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\nDry run test'
+      );
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run');
+
+      expect(exitCode).toBe(0);
+      expect(stdout).toContain('Would write:');
+      expect(stdout).not.toContain('Wrote:');
+    });
+
+    it('should show "Wrote:" in normal mode', async () => {
+      // AC2: Normal mode shows current "Wrote:" verb
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\nNormal mode test'
+      );
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude');
+
+      expect(exitCode).toBe(0);
+      expect(stdout).toContain('Wrote:');
+      expect(stdout).not.toContain('Would write:');
+    });
+  });
+
+  describe('Phase 6: --delete-source flag', () => {
+    it('should delete source files with --delete-source', async () => {
+      // AC3: Delete used sources after conversion
+      const cursorDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorDir, { recursive: true });
+      const sourcePath = path.join(cursorDir, 'test.mdc');
+      await fs.writeFile(
+        sourcePath,
+        '---\nalwaysApply: true\n---\nTest content'
+      );
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude --delete-source');
+
+      expect(exitCode).toBe(0);
+      expect(stdout).toContain('Wrote:');
+      expect(stdout).toContain('Deleted:');
+      
+      // Verify source file was deleted
+      await expect(fs.access(sourcePath)).rejects.toThrow();
+      
+      // Verify output file exists
+      await expect(fs.access(path.join(tempDir, 'CLAUDE.md'))).resolves.not.toThrow();
+    });
+
+    it('should preserve sources with skips when using --delete-source', async () => {
+      // AC4: Preserve sources involved in skips
+      // Create a skill with hooks (which generates a Skip warning in claude→cursor)
+      const skillDir = path.join(tempDir, '.claude', 'skills', 'test-skill');
+      await fs.mkdir(skillDir, { recursive: true });
+      const skillPath = path.join(skillDir, 'SKILL.md');
+      await fs.writeFile(
+        skillPath,
+        `---
+description: Test skill with hooks
+hooks:
+  - pre: echo "test"
+---
+Skill content`
+      );
+      
+      const { stdout, exitCode } = runCli('convert --from claude --to cursor --delete-source');
+
+      expect(exitCode).toBe(0);
+      // Source should be preserved because it was skipped (skill with hooks not convertible)
+      await expect(fs.access(skillPath)).resolves.not.toThrow();
+      expect(stdout).not.toContain('Deleted:');
+      expect(stdout).toContain('Skipped');
+    });
+
+    it('should preserve sources with partial skips', async () => {
+      // AC5: Preserve sources with partial skips
+      // Create a mix: one normal file that converts, and one skill with hooks that skips
+      await fs.writeFile(path.join(tempDir, 'CLAUDE.md'), '# Test rule');
+      
+      const skillDir = path.join(tempDir, '.claude', 'skills', 'hooked-skill');
+      await fs.mkdir(skillDir, { recursive: true });
+      const skillPath = path.join(skillDir, 'SKILL.md');
+      await fs.writeFile(
+        skillPath,
+        `---
+description: Hooked skill
+hooks:
+  - post: echo "done"
+---
+This skill has hooks`
+      );
+      
+      const { stdout, exitCode } = runCli('convert --from claude --to cursor --delete-source');
+
+      expect(exitCode).toBe(0);
+      // Skill with hooks should be preserved (skipped)
+      await expect(fs.access(skillPath)).resolves.not.toThrow();
+      // CLAUDE.md should be deleted (successfully converted)
+      await expect(fs.access(path.join(tempDir, 'CLAUDE.md'))).rejects.toThrow();
+      expect(stdout).toContain('Deleted');
+      expect(stdout).toContain('Skipped');
+    });
+
+    it('should delete multiple sources that merge into single output', async () => {
+      // AC6: Delete multiple sources when they merge
+      const cursorDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorDir, { recursive: true });
+      
+      const source1 = path.join(cursorDir, 'rule1.mdc');
+      const source2 = path.join(cursorDir, 'rule2.mdc');
+      
+      await fs.writeFile(source1, '---\nalwaysApply: true\n---\nRule 1');
+      await fs.writeFile(source2, '---\nalwaysApply: true\n---\nRule 2');
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude --delete-source');
+
+      expect(exitCode).toBe(0);
+      
+      // Both sources should be deleted
+      await expect(fs.access(source1)).rejects.toThrow();
+      await expect(fs.access(source2)).rejects.toThrow();
+      
+      // Single output should exist
+      await expect(fs.access(path.join(tempDir, 'CLAUDE.md'))).resolves.not.toThrow();
+      
+      // Should report 2 deletions
+      expect(stdout).toContain('Deleted:');
+    });
+
+    it('should show "Would delete:" in dry-run with --delete-source', async () => {
+      // AC7: Dry-run shows planned deletions
+      const cursorDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorDir, { recursive: true });
+      const sourcePath = path.join(cursorDir, 'test.mdc');
+      await fs.writeFile(
+        sourcePath,
+        '---\nalwaysApply: true\n---\nDry run delete test'
+      );
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run --delete-source');
+
+      expect(exitCode).toBe(0);
+      expect(stdout).toContain('Would delete:');
+      expect(stdout).not.toContain('Deleted:');
+      
+      // Source should still exist (dry-run)
+      await expect(fs.access(sourcePath)).resolves.not.toThrow();
+    });
+
+    it('should not delete sources without --delete-source flag', async () => {
+      // AC8: Sources preserved when flag not used
+      const cursorDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorDir, { recursive: true });
+      const sourcePath = path.join(cursorDir, 'test.mdc');
+      await fs.writeFile(
+        sourcePath,
+        '---\nalwaysApply: true\n---\nNo delete test'
+      );
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude');
+
+      expect(exitCode).toBe(0);
+      expect(stdout).not.toContain('Deleted:');
+      expect(stdout).not.toContain('Would delete:');
+      
+      // Source should still exist
+      await expect(fs.access(sourcePath)).resolves.not.toThrow();
+    });
+
+    it('should include deletedSources in JSON output', async () => {
+      // AC9: JSON output includes deletedSources array
+      const cursorDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorDir, { recursive: true });
+      const sourcePath = path.join(cursorDir, 'test.mdc');
+      await fs.writeFile(
+        sourcePath,
+        '---\nalwaysApply: true\n---\nJSON delete test'
+      );
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude --delete-source --json');
+
+      expect(exitCode).toBe(0);
+      
+      const result = JSON.parse(stdout);
+      expect(result).toHaveProperty('deletedSources');
+      expect(Array.isArray(result.deletedSources)).toBe(true);
+      expect(result.deletedSources.length).toBeGreaterThan(0);
+    });
+  });
 });
