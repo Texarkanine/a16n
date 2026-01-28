@@ -9,22 +9,28 @@ gantt
     title a16n Development Phases
     dateFormat  YYYY-MM-DD
     section Phase 1
-        GlobalPrompt MVP           :p1, 2025-01-20, 2w
-        Phase 1 Spec: done, p1spec, 2025-01-19, 1d
+        GlobalPrompt MVP           :done, p1, 2025-01-20, 2w
+        Phase 1 Spec               :done, p1spec, 2025-01-19, 1d
     section Phase 2
-        AgentSkill + FileRule      :p2, after p1, 2w
-        Phase 2 Spec               :p2spec, after p1, 2d
+        AgentSkill + FileRule      :done, p2, after p1, 2w
+        Phase 2 Spec               :done, p2spec, after p1, 2d
     section Phase 3
-        AgentIgnore + Polish       :p3, after p2, 1w
-        Phase 3 Spec               :p3spec, after p2, 1d
+        AgentIgnore + Polish       :done, p3, after p2, 1w
+        Phase 3 Spec               :done, p3spec, after p2, 1d
     section Phase 4
-        AgentCommand               :p4, after p3, 1w
-        Phase 4 Spec               :p4spec, after p3, 1d
+        AgentCommand               :done, p4, after p3, 1w
+        Phase 4 Spec               :done, p4spec, after p3, 1d
     section Phase 5
-        Git Ignore Management      :p5, after p4, 2w
-        Phase 5 Spec               :p5spec, after p4, 1d
+        Git Ignore Management      :done, p5, after p4, 2w
+        Phase 5 Spec               :done, p5spec, after p4, 1d
+    section Phase 6
+        CLI Polish                 :p6, after p5, 1w
+        Phase 6 Spec               :p6spec, after p5, 1d
+    section Phase 7
+        AgentSkills Standard       :p7, after p6, 2w
+        Phase 7 Spec               :p7spec, after p6, 1d
     section Future
-        Ecosystem + Tooling        :p6, after p5, 4w
+        Ecosystem + Tooling        :p8, after p7, 4w
 ```
 
 ---
@@ -130,7 +136,7 @@ gantt
 
 ---
 
-## Phase 5: Git Ignore Output Management
+## Phase 5: Git Ignore Output Management ✅ Complete
 
 **Goal**: Provide CLI options to manage git tracking of output files.
 
@@ -175,6 +181,77 @@ gantt
 **Spec**: To be authored after Phase 4 implementation.
 
 **Estimated Scope**: ~8-12 hours
+
+---
+
+## Phase 6: CLI Polish
+
+**Goal**: Quick UX improvements and source management capabilities.
+
+**Scope**:
+
+### 6A: Dry-Run Output Wording
+- Change output verbs to use "Would" prefix in dry-run mode
+- `Wrote:` → `Would write:`
+- `Git: Updated` → `Would update:`
+- Applies consistently to all action outputs
+
+### 6B: `--delete-source` Flag
+- Add `--delete-source` flag to `convert` command
+- When provided, delete source files that were successfully used in output files
+- **Critical constraint**: If a source was involved in ANY skip (warning code `Skipped`), do NOT delete it
+- Uses existing `WrittenFile.sourceItems` tracking to identify consumed sources
+- Uses existing warning `sources` to identify skipped sources
+- Sources to delete = (used sources) − (skipped sources)
+
+**Use Case**: "I'm migrating to the new toolchain and not coming back."
+
+**Spec**: [PHASE_6_SPEC.md](./PHASE_6_SPEC.md)
+
+**Estimated Scope**: ~4-6 hours
+
+---
+
+## Phase 7: AgentSkills Standard Alignment
+
+**Goal**: Align with the [AgentSkills open standard](https://agentskills.io) for portable AI agent skills.
+
+**Background**: The AgentSkills standard (supported by Cursor, Claude, Codex) defines:
+- Skills in `.<tool>/skills/<name>/SKILL.md` format
+- `disable-model-invocation: true` frontmatter for manual-only invocation
+- Consistent discovery and emission across tools
+
+**Scope**:
+
+### 7A: AgentCommand → ManualPrompt Rename
+- Rename `AgentCommand` type to `ManualPrompt` in `@a16njs/models`
+- Represents "stored prompts that are user-requested, not agent-activated"
+- Examples: Cursor commands, Cursor rules with no activation criteria, Claude skills with `disable-model-invocation: true`
+
+### 7B: Cursor Plugin — ManualPrompt Classification
+- Rules with no activation criteria (no `globs`, no `description`, `alwaysApply: false` or absent) become `ManualPrompt` instead of `GlobalPrompt`
+- Cursor commands (`.cursor/commands/*.md`) remain `ManualPrompt`
+
+### 7C: Cursor Plugin — Skills Discovery
+- Discover `.cursor/skills/*/SKILL.md` files
+- Skills with `description:` → `AgentSkill`
+- Skills with `disable-model-invocation: true` → `ManualPrompt`
+
+### 7D: Cursor Plugin — Skills Emission
+- Emit `AgentSkill` to `.cursor/skills/<name>/SKILL.md` (NOT `.cursor/rules/`)
+- Emit `ManualPrompt` to `.cursor/skills/<name>/SKILL.md` with `disable-model-invocation: true`
+- **Stop emitting AgentSkill as Cursor rules** — reduces conversion loss
+
+### 7E: Claude Plugin — ManualPrompt Support
+- Discover skills with `disable-model-invocation: true` as `ManualPrompt`
+- Emit `ManualPrompt` as skills with `disable-model-invocation: true`
+- Makes the type **bidirectional** (previously AgentCommand was Cursor → Claude only)
+
+**Key Insight**: This alignment means Cursor → Claude → Cursor conversions preserve skills as skills, reducing information loss.
+
+**Spec**: [PHASE_7_SPEC.md](./PHASE_7_SPEC.md)
+
+**Estimated Scope**: ~12-16 hours
 
 ---
 
@@ -299,7 +376,9 @@ Before implementation begins, verify:
 | `0.3.0` | AgentIgnore, polish, improved warnings | Phase 3 |
 | `0.4.0` | AgentCommand (Cursor → Claude) | Phase 4 |
 | `0.5.0` | Git ignore output management (`--gitignore-output-with`) | Phase 5 |
-| `0.6.0` | Output file strategy, plugin auto-discovery, config file | Future |
+| `0.6.0` | CLI polish: dry-run wording, `--delete-source` flag | Phase 6 |
+| `0.7.0` | AgentSkills standard alignment, ManualPrompt type | Phase 7 |
+| `0.8.0` | Output file strategy, plugin auto-discovery, config file | Future |
 | `1.0.0` | Stable API, production-ready | Future |
 
 ---
@@ -324,5 +403,9 @@ Future decisions to make:
 Decisions made:
 - `.cursorrules` (legacy) is NOT supported by the core Cursor plugin. A community `a16n-plugin-cursor-legacy` could add this if needed.
 - **Claude skills with hooks are skipped** (Phase 2): Skills containing `hooks:` in frontmatter are not convertible to Cursor. Stripping hooks would produce broken skills. Reported as unsupported with warning.
-- **AgentCommand is Cursor → Claude only**: Claude has no dedicated command concept; skills serve double duty. Claude plugin will never discover AgentCommand entries. Commands with special features ($ARGUMENTS, bash execution, etc.) are skipped with warning.
+- **AgentCommand is Cursor → Claude only**: Claude has no dedicated command concept; skills serve double duty. Claude plugin will never discover AgentCommand entries. Commands with special features ($ARGUMENTS, bash execution, etc.) are skipped with warning. *(Superseded by Phase 7 — ManualPrompt becomes bidirectional)*
 - **Git ignore management only for created files**: When using `--gitignore-output-with`, only files created by the conversion run are managed. Files that are edited/appended are left with their existing git status. Boundary crossings (ignored source → tracked output) emit warnings.
+- **`--delete-source` conservative deletion** (Phase 6): Only delete source files that were successfully used AND were not involved in any skips. If any part of a source was skipped, preserve the entire source file.
+- **AgentCommand → ManualPrompt rename** (Phase 7): The `AgentCommand` type is renamed to `ManualPrompt` to better reflect its semantics (user-requested, not agent-activated). This aligns with the AgentSkills standard's `disable-model-invocation` concept.
+- **AgentSkills emit to `.cursor/skills/`** (Phase 7): Stop emitting `AgentSkill` as Cursor rules. Emit to `.cursor/skills/<name>/SKILL.md` instead. This reduces conversion loss when round-tripping Cursor → Claude → Cursor.
+- **ManualPrompt is bidirectional** (Phase 7): Unlike the original AgentCommand (Cursor → Claude only), ManualPrompt can be discovered from and emitted to both Cursor and Claude via the `disable-model-invocation` frontmatter field.
