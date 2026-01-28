@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import cursorPlugin from '../src/index.js';
-import { CustomizationType, WarningCode, type AgentCommand } from '@a16njs/models';
+import { CustomizationType, WarningCode, type ManualPrompt } from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
@@ -224,6 +224,46 @@ describe('Classification Priority (Phase 2)', () => {
       expect(item.type).toBe(CustomizationType.FileRule);
     }
   });
+
+  it('should classify rules without activation criteria as ManualPrompt (Phase 7)', async () => {
+    const root = path.join(fixturesDir, 'cursor-rule-no-criteria/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    // Both rules should be ManualPrompt (no alwaysApply, no globs, no description)
+    expect(result.items).toHaveLength(2);
+    for (const item of result.items) {
+      expect(item.type).toBe(CustomizationType.ManualPrompt);
+    }
+  });
+
+  it('should derive promptName from filename for ManualPrompt rules', async () => {
+    const root = path.join(fixturesDir, 'cursor-rule-no-criteria/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    const helperPrompt = result.items.find(
+      i => i.type === CustomizationType.ManualPrompt && (i as ManualPrompt).promptName === 'helper'
+    );
+    expect(helperPrompt).toBeDefined();
+    expect(helperPrompt?.sourcePath).toBe('.cursor/rules/helper.mdc');
+  });
+
+  it('should classify rules with alwaysApply: false and no other criteria as ManualPrompt', async () => {
+    const root = path.join(fixturesDir, 'cursor-rule-no-criteria/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    const helperPrompt = result.items.find(i => i.sourcePath.includes('helper'));
+    expect(helperPrompt).toBeDefined();
+    expect(helperPrompt?.type).toBe(CustomizationType.ManualPrompt);
+  });
+
+  it('should classify rules with no frontmatter as ManualPrompt', async () => {
+    const root = path.join(fixturesDir, 'cursor-rule-no-criteria/from-cursor');
+    const result = await cursorPlugin.discover(root);
+
+    const noFrontmatterPrompt = result.items.find(i => i.sourcePath.includes('no-frontmatter'));
+    expect(noFrontmatterPrompt).toBeDefined();
+    expect(noFrontmatterPrompt?.type).toBe(CustomizationType.ManualPrompt);
+  });
 });
 
 describe('AgentIgnore Discovery (Phase 3)', () => {
@@ -284,22 +324,102 @@ describe('AgentIgnore Discovery (Phase 3)', () => {
   });
 });
 
-describe('AgentCommand Discovery (Phase 4)', () => {
+describe('Cursor Skills Discovery (Phase 7)', () => {
+  describe('skills with description → AgentSkill', () => {
+    it('should discover AgentSkill from .cursor/skills/*/SKILL.md with description', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skills = result.items.filter(i => i.type === CustomizationType.AgentSkill);
+      expect(skills).toHaveLength(1);
+      expect(skills[0]?.sourcePath).toBe('.cursor/skills/deploy/SKILL.md');
+    });
+
+    it('should extract description from skill frontmatter', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skill = result.items.find(i => i.type === CustomizationType.AgentSkill) as import('@a16njs/models').AgentSkill;
+      expect(skill).toBeDefined();
+      expect(skill.description).toBe('Helps with deploying services to production');
+    });
+
+    it('should use name from frontmatter in metadata', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skill = result.items.find(i => i.type === CustomizationType.AgentSkill);
+      expect(skill?.metadata?.name).toBe('deploy-service');
+    });
+  });
+
+  describe('skills with disable-model-invocation → ManualPrompt', () => {
+    it('should discover ManualPrompt from skill with disable-model-invocation: true', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const manualPrompts = result.items.filter(i => i.type === CustomizationType.ManualPrompt);
+      expect(manualPrompts).toHaveLength(1);
+      expect(manualPrompts[0]?.sourcePath).toBe('.cursor/skills/reset-db/SKILL.md');
+    });
+
+    it('should derive promptName from skill name in frontmatter', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const prompt = result.items.find(i => i.type === CustomizationType.ManualPrompt) as ManualPrompt;
+      expect(prompt).toBeDefined();
+      expect(prompt.promptName).toBe('reset-db');
+    });
+  });
+
+  describe('skills without description or disable-model-invocation → skip', () => {
+    it('should skip skill without description or disable-model-invocation and emit warning', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      // Should not be discovered as any type
+      const invalidSkill = result.items.find(i => i.sourcePath.includes('invalid-skill'));
+      expect(invalidSkill).toBeUndefined();
+
+      // Should have warning
+      const warning = result.warnings.find(w => w.message.includes('invalid-skill'));
+      expect(warning).toBeDefined();
+      expect(warning?.code).toBe(WarningCode.Skipped);
+    });
+  });
+
+  describe('missing .cursor/skills/ directory', () => {
+    it('should handle missing skills directory gracefully', async () => {
+      const root = path.join(fixturesDir, 'cursor-basic/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      // Should not crash, just no skills
+      const skills = result.items.filter(
+        i => i.type === CustomizationType.AgentSkill || 
+             (i.type === CustomizationType.ManualPrompt && i.sourcePath.includes('skills'))
+      );
+      expect(skills).toHaveLength(0);
+    });
+  });
+});
+
+describe('ManualPrompt Discovery (Phase 4 - Commands)', () => {
   describe('simple commands', () => {
     it('should discover simple commands from .cursor/commands/', async () => {
       const root = path.join(fixturesDir, 'cursor-command-simple/from-cursor');
       const result = await cursorPlugin.discover(root);
 
-      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+      const commands = result.items.filter(i => i.type === CustomizationType.ManualPrompt);
       expect(commands).toHaveLength(2);
     });
 
-    it('should extract commandName from filename', async () => {
+    it('should extract promptName from filename', async () => {
       const root = path.join(fixturesDir, 'cursor-command-simple/from-cursor');
       const result = await cursorPlugin.discover(root);
 
       const reviewCommand = result.items.find(
-        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'review'
+        i => i.type === CustomizationType.ManualPrompt && (i as ManualPrompt).promptName === 'review'
       );
       expect(reviewCommand).toBeDefined();
       expect(reviewCommand?.sourcePath).toBe('.cursor/commands/review.md');
@@ -310,8 +430,8 @@ describe('AgentCommand Discovery (Phase 4)', () => {
       const result = await cursorPlugin.discover(root);
 
       const reviewCommand = result.items.find(
-        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'review'
-      ) as AgentCommand;
+        i => i.type === CustomizationType.ManualPrompt && (i as ManualPrompt).promptName === 'review'
+      ) as ManualPrompt;
       expect(reviewCommand.content).toContain('Security vulnerabilities');
       expect(reviewCommand.content).toContain('Performance issues');
     });
@@ -321,7 +441,7 @@ describe('AgentCommand Discovery (Phase 4)', () => {
       const result = await cursorPlugin.discover(root);
 
       const globalPrompt = result.items.find(i => i.type === CustomizationType.GlobalPrompt);
-      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+      const commands = result.items.filter(i => i.type === CustomizationType.ManualPrompt);
 
       expect(globalPrompt).toBeDefined();
       expect(commands).toHaveLength(2);
@@ -334,7 +454,7 @@ describe('AgentCommand Discovery (Phase 4)', () => {
       const result = await cursorPlugin.discover(root);
 
       const fixIssueCommand = result.items.find(
-        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'fix-issue'
+        i => i.type === CustomizationType.ManualPrompt && (i as ManualPrompt).promptName === 'fix-issue'
       );
       expect(fixIssueCommand).toBeUndefined();
 
@@ -349,7 +469,7 @@ describe('AgentCommand Discovery (Phase 4)', () => {
       const result = await cursorPlugin.discover(root);
 
       const prReviewCommand = result.items.find(
-        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'pr-review'
+        i => i.type === CustomizationType.ManualPrompt && (i as ManualPrompt).promptName === 'pr-review'
       );
       expect(prReviewCommand).toBeUndefined();
 
@@ -363,7 +483,7 @@ describe('AgentCommand Discovery (Phase 4)', () => {
       const result = await cursorPlugin.discover(root);
 
       const deployCommand = result.items.find(
-        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'deploy'
+        i => i.type === CustomizationType.ManualPrompt && (i as ManualPrompt).promptName === 'deploy'
       );
       expect(deployCommand).toBeUndefined();
 
@@ -377,7 +497,7 @@ describe('AgentCommand Discovery (Phase 4)', () => {
       const result = await cursorPlugin.discover(root);
 
       const analyzeCommand = result.items.find(
-        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'analyze'
+        i => i.type === CustomizationType.ManualPrompt && (i as ManualPrompt).promptName === 'analyze'
       );
       expect(analyzeCommand).toBeUndefined();
 
@@ -391,7 +511,7 @@ describe('AgentCommand Discovery (Phase 4)', () => {
       const result = await cursorPlugin.discover(root);
 
       const secureCommand = result.items.find(
-        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'secure'
+        i => i.type === CustomizationType.ManualPrompt && (i as ManualPrompt).promptName === 'secure'
       );
       expect(secureCommand).toBeUndefined();
 
@@ -406,9 +526,9 @@ describe('AgentCommand Discovery (Phase 4)', () => {
       const root = path.join(fixturesDir, 'cursor-command-mixed/from-cursor');
       const result = await cursorPlugin.discover(root);
 
-      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+      const commands = result.items.filter(i => i.type === CustomizationType.ManualPrompt);
       expect(commands).toHaveLength(1);
-      expect((commands[0] as AgentCommand).commandName).toBe('simple');
+      expect((commands[0] as ManualPrompt).promptName).toBe('simple');
 
       const warning = result.warnings.find(w => w.message.includes('complex'));
       expect(warning).toBeDefined();
@@ -420,12 +540,12 @@ describe('AgentCommand Discovery (Phase 4)', () => {
       const root = path.join(fixturesDir, 'cursor-command-nested/from-cursor');
       const result = await cursorPlugin.discover(root);
 
-      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+      const commands = result.items.filter(i => i.type === CustomizationType.ManualPrompt);
       expect(commands).toHaveLength(2);
 
-      const commandNames = commands.map(c => (c as AgentCommand).commandName);
-      expect(commandNames).toContain('component');
-      expect(commandNames).toContain('api');
+      const promptNames = commands.map(c => (c as ManualPrompt).promptName);
+      expect(promptNames).toContain('component');
+      expect(promptNames).toContain('api');
     });
 
     it('should include nested path in sourcePath', async () => {
@@ -433,7 +553,7 @@ describe('AgentCommand Discovery (Phase 4)', () => {
       const result = await cursorPlugin.discover(root);
 
       const componentCommand = result.items.find(
-        i => i.type === CustomizationType.AgentCommand && (i as AgentCommand).commandName === 'component'
+        i => i.type === CustomizationType.ManualPrompt && (i as ManualPrompt).promptName === 'component'
       );
       expect(componentCommand?.sourcePath).toBe('.cursor/commands/frontend/component.md');
     });
@@ -444,7 +564,7 @@ describe('AgentCommand Discovery (Phase 4)', () => {
       const root = path.join(fixturesDir, 'cursor-basic/from-cursor');
       const result = await cursorPlugin.discover(root);
 
-      const commands = result.items.filter(i => i.type === CustomizationType.AgentCommand);
+      const commands = result.items.filter(i => i.type === CustomizationType.ManualPrompt);
       expect(commands).toHaveLength(0);
     });
   });

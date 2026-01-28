@@ -5,6 +5,7 @@ import {
   isAgentSkill,
   isFileRule,
   isAgentIgnore,
+  isManualPrompt,
   isAgentCommand,
   getUniqueFilename,
   createId,
@@ -13,6 +14,7 @@ import {
   type AgentSkill,
   type FileRule,
   type AgentIgnore,
+  type ManualPrompt,
   type AgentCommand,
 } from '../src/index.js';
 
@@ -123,17 +125,59 @@ describe('isAgentIgnore', () => {
   });
 });
 
-describe('isAgentCommand', () => {
-  it('should return true for AgentCommand', () => {
-    const item: AgentCommand = {
+describe('isManualPrompt', () => {
+  it('should return true for ManualPrompt', () => {
+    const item: ManualPrompt = {
       id: 'test',
-      type: CustomizationType.AgentCommand,
-      sourcePath: '.cursor/commands/review.md',
+      type: CustomizationType.ManualPrompt,
+      sourcePath: '.cursor/skills/review/SKILL.md',
       content: 'Review code',
-      commandName: 'review',
+      promptName: 'review',
       metadata: {},
     };
 
+    expect(isManualPrompt(item)).toBe(true);
+  });
+
+  it('should return false for other types', () => {
+    const item: AgentCustomization = {
+      id: 'test',
+      type: CustomizationType.GlobalPrompt,
+      sourcePath: 'test.md',
+      content: 'content',
+      metadata: {},
+    };
+
+    expect(isManualPrompt(item)).toBe(false);
+  });
+
+  it('should return true when using AgentCommand deprecated enum value', () => {
+    // AgentCommand enum value is deprecated alias for ManualPrompt
+    const item: ManualPrompt = {
+      id: 'test',
+      type: CustomizationType.AgentCommand, // Using deprecated alias
+      sourcePath: '.cursor/commands/deploy.md',
+      content: 'Deploy',
+      promptName: 'deploy',
+      metadata: {},
+    };
+
+    expect(isManualPrompt(item)).toBe(true);
+  });
+});
+
+describe('isAgentCommand (deprecated)', () => {
+  it('should return true for ManualPrompt (backward compatibility)', () => {
+    const item: ManualPrompt = {
+      id: 'test',
+      type: CustomizationType.ManualPrompt,
+      sourcePath: '.cursor/commands/review.md',
+      content: 'Review code',
+      promptName: 'review',
+      metadata: {},
+    };
+
+    // isAgentCommand is deprecated but should still work
     expect(isAgentCommand(item)).toBe(true);
   });
 
@@ -212,6 +256,11 @@ describe('createId', () => {
     expect(createId(CustomizationType.AgentSkill, 'skill.md')).toBe('agent-skill:skill.md');
     expect(createId(CustomizationType.FileRule, 'rule.mdc')).toBe('file-rule:rule.mdc');
     expect(createId(CustomizationType.AgentIgnore, '.ignore')).toBe('agent-ignore:.ignore');
-    expect(createId(CustomizationType.AgentCommand, 'command.md')).toBe('agent-command:command.md');
+    expect(createId(CustomizationType.ManualPrompt, 'prompt.md')).toBe('manual-prompt:prompt.md');
+  });
+
+  it('should use manual-prompt for deprecated AgentCommand alias', () => {
+    // AgentCommand is a deprecated alias that should produce same ID as ManualPrompt
+    expect(createId(CustomizationType.AgentCommand, 'command.md')).toBe('manual-prompt:command.md');
   });
 });

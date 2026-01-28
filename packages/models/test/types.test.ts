@@ -3,6 +3,8 @@ import {
   CustomizationType,
   type AgentCustomization,
   type GlobalPrompt,
+  type ManualPrompt,
+  type AgentCommand,
 } from '../src/index.js';
 
 describe('CustomizationType', () => {
@@ -20,6 +22,15 @@ describe('CustomizationType', () => {
 
   it('should have AgentIgnore type', () => {
     expect(CustomizationType.AgentIgnore).toBe('agent-ignore');
+  });
+
+  it('should have ManualPrompt type', () => {
+    expect(CustomizationType.ManualPrompt).toBe('manual-prompt');
+  });
+
+  it('should have deprecated AgentCommand alias pointing to ManualPrompt', () => {
+    // AgentCommand is deprecated but should still work for backward compatibility
+    expect(CustomizationType.AgentCommand).toBe('manual-prompt');
   });
 });
 
@@ -52,5 +63,53 @@ describe('GlobalPrompt', () => {
     };
 
     expect(globalPrompt.type).toBe(CustomizationType.GlobalPrompt);
+  });
+});
+
+describe('ManualPrompt', () => {
+  it('should be an AgentCustomization with ManualPrompt type', () => {
+    const manualPrompt: ManualPrompt = {
+      id: 'mp-1',
+      type: CustomizationType.ManualPrompt,
+      sourcePath: '.cursor/skills/review/SKILL.md',
+      content: 'Review the code',
+      promptName: 'review',
+      metadata: {},
+    };
+
+    expect(manualPrompt.type).toBe(CustomizationType.ManualPrompt);
+    expect(manualPrompt.promptName).toBe('review');
+  });
+
+  it('should have promptName field (not commandName)', () => {
+    const manualPrompt: ManualPrompt = {
+      id: 'mp-2',
+      type: CustomizationType.ManualPrompt,
+      sourcePath: '.cursor/commands/deploy.md',
+      content: 'Deploy to production',
+      promptName: 'deploy',
+      metadata: {},
+    };
+
+    expect(manualPrompt).toHaveProperty('promptName');
+    expect(manualPrompt.promptName).toBe('deploy');
+  });
+});
+
+describe('AgentCommand (deprecated alias)', () => {
+  it('should be assignable to ManualPrompt for backward compatibility', () => {
+    // AgentCommand is a deprecated type alias for ManualPrompt
+    const command: AgentCommand = {
+      id: 'ac-1',
+      type: CustomizationType.ManualPrompt,
+      sourcePath: '.cursor/commands/test.md',
+      content: 'Test command',
+      promptName: 'test',
+      metadata: {},
+    };
+
+    // Should be assignable to ManualPrompt
+    const prompt: ManualPrompt = command;
+    expect(prompt.type).toBe(CustomizationType.ManualPrompt);
   });
 });

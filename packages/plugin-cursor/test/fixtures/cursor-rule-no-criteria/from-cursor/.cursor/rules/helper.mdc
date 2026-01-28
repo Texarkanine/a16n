@@ -1,0 +1,9 @@
+---
+alwaysApply: false
+---
+
+This is a helper rule without activation criteria.
+It should become a ManualPrompt since it has no:
+- alwaysApply: true
+- globs
+- description

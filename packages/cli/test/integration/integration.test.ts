@@ -343,18 +343,18 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
       const agentSkills = result.discovered.filter(d => d.type === 'agent-skill');
       expect(agentSkills).toHaveLength(1);
       
-      // Read the output rule files
-      const rulesDir = path.join(tempDir, '.cursor', 'rules');
-      const files = await fs.readdir(rulesDir);
-      expect(files).toHaveLength(1);
+      // Read the output skill files (Phase 7: AgentSkill → .cursor/skills/)
+      const skillsDir = path.join(tempDir, '.cursor', 'skills');
+      const dirs = await fs.readdir(skillsDir);
+      expect(dirs).toHaveLength(1);
       
-      const ruleContent = await fs.readFile(
-        path.join(rulesDir, files[0]!),
+      const skillContent = await fs.readFile(
+        path.join(skillsDir, dirs[0]!, 'SKILL.md'),
         'utf-8'
       );
-      expect(ruleContent).toContain('description:');
-      expect(ruleContent).toContain('Testing best practices');
-      expect(ruleContent).toContain('Write unit tests first');
+      expect(skillContent).toContain('description:');
+      expect(skillContent).toContain('Testing best practices');
+      expect(skillContent).toContain('Write unit tests first');
     });
   });
 });
@@ -491,7 +491,7 @@ describe('Integration Tests - Phase 3 AgentIgnore', () => {
   });
 });
 
-describe('Integration Tests - Phase 4 AgentCommand', () => {
+describe('Integration Tests - Phase 4 ManualPrompt (Commands)', () => {
   beforeEach(async () => {
     await fs.rm(tempDir, { recursive: true, force: true });
     await fs.mkdir(tempDir, { recursive: true });
@@ -516,9 +516,9 @@ describe('Integration Tests - Phase 4 AgentCommand', () => {
         root: tempDir,
       });
       
-      // Verify AgentCommand was discovered
-      const agentCommands = result.discovered.filter(d => d.type === 'agent-command');
-      expect(agentCommands).toHaveLength(1);
+      // Verify ManualPrompt was discovered
+      const manualPrompts = result.discovered.filter(d => d.type === 'manual-prompt');
+      expect(manualPrompts).toHaveLength(1);
       
       // Verify skill file was created
       const skillContent = await fs.readFile(
@@ -551,8 +551,8 @@ describe('Integration Tests - Phase 4 AgentCommand', () => {
       });
       
       // No commands should be discovered (complex is skipped)
-      const agentCommands = result.discovered.filter(d => d.type === 'agent-command');
-      expect(agentCommands).toHaveLength(0);
+      const manualPrompts = result.discovered.filter(d => d.type === 'manual-prompt');
+      expect(manualPrompts).toHaveLength(0);
       
       // Should have a skipped warning
       const skippedWarning = result.warnings.find(
@@ -582,9 +582,9 @@ describe('Integration Tests - Phase 4 AgentCommand', () => {
         root: tempDir,
       });
       
-      // Command should be discovered and written back
-      const agentCommands = result.discovered.filter(d => d.type === 'agent-command');
-      expect(agentCommands).toHaveLength(1);
+      // Command should be discovered and written back as ManualPrompt
+      const manualPrompts = result.discovered.filter(d => d.type === 'manual-prompt');
+      expect(manualPrompts).toHaveLength(1);
       
       // Verify file was written
       const outputContent = await fs.readFile(
@@ -596,7 +596,7 @@ describe('Integration Tests - Phase 4 AgentCommand', () => {
   });
 
   describe('claude-to-cursor-no-commands', () => {
-    it('should not produce AgentCommands when converting from Claude', async () => {
+    it('should not produce ManualPrompts when converting from Claude (no skills with disable-model-invocation)', async () => {
       // Create Claude input with skills (but no commands - Claude has no command concept)
       await fs.mkdir(path.join(tempDir, '.claude', 'skills', 'testing'), { recursive: true });
       await fs.writeFile(
@@ -617,9 +617,9 @@ Write unit tests first.
         root: tempDir,
       });
       
-      // No AgentCommands should be discovered (Claude has no command concept)
-      const agentCommands = result.discovered.filter(d => d.type === 'agent-command');
-      expect(agentCommands).toHaveLength(0);
+      // No ManualPrompts should be discovered (Claude has no command concept)
+      const manualPrompts = result.discovered.filter(d => d.type === 'manual-prompt');
+      expect(manualPrompts).toHaveLength(0);
       
       // .cursor/commands directory should NOT exist
       await expect(

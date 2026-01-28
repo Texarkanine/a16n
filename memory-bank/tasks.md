@@ -371,13 +371,13 @@ Task 8 (Fixtures) ──┴── Task 9 (Integration Tests)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Task 1: Rename Type | ⬜ Pending | |
-| Task 2: Classification Change | ⬜ Pending | |
-| Task 3: Cursor Skills Discovery | ⬜ Pending | |
-| Task 4: Cursor Skills Emission | ⬜ Pending | |
-| Task 5: Claude Discovery | ⬜ Pending | |
-| Task 6: Claude Emission | ⬜ Pending | |
-| Task 7: Update References | ⬜ Pending | |
-| Task 8: Test Fixtures | ⬜ Pending | |
-| Task 9: Integration Tests | ⬜ Pending | |
+| Task 1: Rename Type | ✅ Complete | ManualPrompt type with backward compat |
+| Task 2: Classification Change | ✅ Complete | No criteria → ManualPrompt |
+| Task 3: Cursor Skills Discovery | ✅ Complete | `.cursor/skills/` discovery |
+| Task 4: Cursor Skills Emission | ✅ Complete | AgentSkill/ManualPrompt → `.cursor/skills/` |
+| Task 5: Claude Discovery | ✅ Complete | `disable-model-invocation: true` → ManualPrompt |
+| Task 6: Claude Emission | ✅ Complete | ManualPrompt with disable flag |
+| Task 7: Update References | ✅ Complete | All packages use ManualPrompt |
+| Task 8: Test Fixtures | ✅ Complete | cursor-skills, claude-skills-manual fixtures |
+| Task 9: Integration Tests | ✅ Complete | Updated for new paths |
 | Task 10: Documentation | ⬜ Pending | |

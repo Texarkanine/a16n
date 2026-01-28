@@ -8,6 +8,8 @@ export {
   type AgentSkill,
   type FileRule,
   type AgentIgnore,
+  type ManualPrompt,
+  /** @deprecated Use ManualPrompt instead */
   type AgentCommand,
 } from './types.js';
 
@@ -29,6 +31,8 @@ export {
   isAgentSkill,
   isFileRule,
   isAgentIgnore,
+  isManualPrompt,
+  /** @deprecated Use isManualPrompt instead */
   isAgentCommand,
   getUniqueFilename,
   createId,
