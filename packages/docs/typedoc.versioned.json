@@ -1,0 +1,28 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPointStrategy": "expand",
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true,
+  "readme": "none",
+  "sort": ["source-order"],
+  "kindSortOrder": [
+    "Function",
+    "Class",
+    "Interface",
+    "Enum",
+    "TypeAlias",
+    "Variable"
+  ],
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "rootDir": "../..",
+    "paths": {
+      "@a16njs/models": ["packages/models/src/index.ts"],
+      "@a16njs/engine": ["packages/engine/src/index.ts"],
+      "@a16njs/glob-hook": ["packages/glob-hook/src/index.ts"],
+      "@a16njs/plugin-cursor": ["packages/plugin-cursor/src/index.ts"],
+      "@a16njs/plugin-claude": ["packages/plugin-claude/src/index.ts"]
+    }
+  }
+}

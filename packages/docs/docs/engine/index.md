@@ -25,5 +25,5 @@ _(Code examples for programmatic usage will be provided here)_
 
 ## See Also
 
-- [Models](/docs/models) - Shared type definitions
-- [Plugin Development](/docs/plugin-cursor) - Creating custom plugins
+- [Models](/models) - Shared type definitions
+- [Plugin Development](/plugin-cursor) - Creating custom plugins

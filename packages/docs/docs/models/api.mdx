@@ -1,0 +1,42 @@
+---
+sidebar_position: 2
+title: Models API Reference  
+---
+
+import VersionPicker from '@site/src/components/VersionPicker';
+
+# Models API Reference
+
+<VersionPicker pkg="models" />
+
+Complete API documentation for the `@a16njs/models` package - shared TypeScript types and interfaces used across the a16n toolkit.
+
+## Enumerations
+
+- [CustomizationType](api/enumerations/CustomizationType) - Types of agent customizations
+- [WarningCode](api/enumerations/WarningCode) - Warning codes for validation issues
+
+## Interfaces
+
+- [A16nPlugin](api/interfaces/A16nPlugin) - Plugin interface for format implementations
+- [AgentCustomization](api/interfaces/AgentCustomization) - Base agent customization structure
+- [AgentIgnore](api/interfaces/AgentIgnore) - Ignore patterns configuration
+- [AgentSkill](api/interfaces/AgentSkill) - Agent skill definition
+- [DiscoveryResult](api/interfaces/DiscoveryResult) - Plugin discovery result
+- [EmitOptions](api/interfaces/EmitOptions) - Options for emitting configuration files
+- [EmitResult](api/interfaces/EmitResult) - Result of emit operation
+- [FileRule](api/interfaces/FileRule) - File-specific rule configuration
+- [GlobalPrompt](api/interfaces/GlobalPrompt) - Global prompt definition
+- [ManualPrompt](api/interfaces/ManualPrompt) - Manual prompt configuration
+- [Warning](api/interfaces/Warning) - Warning information
+- [WrittenFile](api/interfaces/WrittenFile) - Metadata for written files
+
+## Functions
+
+- [createId](api/functions/createId) - Generate unique identifiers
+- [getUniqueFilename](api/functions/getUniqueFilename) - Generate unique filenames
+- [isAgentIgnore](api/functions/isAgentIgnore) - Type guard for AgentIgnore
+- [isAgentSkill](api/functions/isAgentSkill) - Type guard for AgentSkill
+- [isFileRule](api/functions/isFileRule) - Type guard for FileRule
+- [isGlobalPrompt](api/functions/isGlobalPrompt) - Type guard for GlobalPrompt
+- [isManualPrompt](api/functions/isManualPrompt) - Type guard for ManualPrompt

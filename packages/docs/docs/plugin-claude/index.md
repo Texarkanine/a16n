@@ -31,5 +31,5 @@ _(Details about the `CLAUDE.md` format and structure will be documented here)_
 
 ## See Also
 
-- [Plugin: Cursor](/docs/plugin-cursor) - Cursor IDE format plugin
-- [Models](/docs/models) - Plugin interfaces
+- [Plugin: Cursor](/plugin-cursor) - Cursor IDE format plugin
+- [Models](/models) - Plugin interfaces

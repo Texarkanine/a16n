@@ -13,13 +13,5 @@
     "Enum",
     "TypeAlias",
     "Variable"
-  ],
-  "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022"],
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "skipLibCheck": true,
-    "types": ["node"]
-  }
+  ]
 }

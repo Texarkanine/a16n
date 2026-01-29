@@ -17,6 +17,51 @@
 
 ## Current Session
 
+**Task:** DOCS-PIVOT-STAGING  
+**Status:** ✅ COMPLETE - ALL PHASES (2026-01-29)
+
+### Implementation Summary
+
+Fully implemented versioned API documentation system with git tag-based historical docs, React version picker, and curated API indexes.
+
+| Phase | Status | Notes |
+|-------|--------|-------|
+| 1. Cleanup | ✅ Complete | Removed 46 committed API docs |
+| 2. Build Scripts | ✅ Complete | Staging area + parallel TypeDoc |
+| 3. Docusaurus Config | ✅ Complete | `.generated/` source, search, homepage |
+| 4. Version Picker | ✅ Complete | React component with proper navigation |
+| 5. Versioned API | ✅ Complete | TypeScript script, monorepo resolution |
+| 6. CI Versioning | ✅ Complete | Dual build modes (local/CI) |
+| 7. Verification | ✅ Complete | All systems functional |
+
+### Key Fixes During Implementation
+
+**Phases 1-3:**
+1. **glob-hook ESM** - Added `.js` extensions to relative imports
+2. **Location** - Moved `apps/docs/` → `packages/docs/`
+3. **Parallel TypeDoc** - 6x speedup (~66s → ~11s)
+4. **Spec correction** - Updated DOCS_2.md for packages/docs/
+
+**Phases 4-6:**
+5. **TypeDoc Historical Resolution** - Check out all packages from same commit for type compatibility
+6. **Routing Conflicts** - Renamed README.md → index.md with frontmatter, removed self-referential links
+7. **CLI Tool API Removal** - Excluded `cli` and `glob-hook` (not libraries)
+8. **Homepage 404** - Set `routeBasePath: '/'` and `slug: /` on intro.md
+9. **Version Sorting** - Custom `sidebarItemsGenerator` with semantic versioning
+10. **VersionPicker Navigation** - Fixed URL construction and trailing slash handling
+11. **Dual Build Modes** - Local `current` vs CI `tagged versions only`
+
+### Commits Created
+
+- `7057f71` - refactor(docs): remove committed API docs
+- `2d3c00d` - feat(docs): implement staging area build scripts
+- `4264b4d` - fix(glob-hook): add .js extensions to imports
+- `a48de31` - refactor(docs): move to packages/docs
+
+---
+
+## Previous Session
+
 **Task:** DOCS-SITE-MVP  
 **Status:** ✅ COMPLETE (2026-01-28)
 

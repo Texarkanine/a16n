@@ -6,8 +6,11 @@
 ## Current Task
 
 **Task ID:** DOCS-PIVOT-STAGING
-**Complexity:** Level 3 (Intermediate Feature)
+**Complexity:** Level 3 → Level 4 (Complex Feature - evolved during implementation)
 **Started:** 2026-01-28
+**Completed:** 2026-01-29
+**Status:** ✅ Complete - All 7 phases implemented
+**Reflection:** ✅ Complete - See `memory-bank/reflection/reflection-DOCS-PIVOT-STAGING.md`
 
 ### Overview
 
@@ -85,7 +88,7 @@ apps/docs/
 
 ## Implementation Plan
 
-### Phase 1: Cleanup - Remove Committed API Docs ⬜
+### Phase 1: Cleanup - Remove Committed API Docs ✅
 
 **Goal:** Clean slate - remove committed API docs from git tracking
 
@@ -96,7 +99,7 @@ apps/docs/
   - Keep: `apps/docs/build/`
 - [ ] Verify no TypeDoc artifacts remain tracked
 
-### Phase 2: Restructure Build Scripts ⬜
+### Phase 2: Restructure Build Scripts ✅
 
 **Goal:** Implement staging area build flow
 
@@ -122,7 +125,7 @@ apps/docs/
 - [ ] Keep `typedoc` and `typedoc-plugin-markdown`
 - [ ] Create `typedoc.json` for shared TypeDoc configuration
 
-### Phase 3: Docusaurus Configuration Update ⬜
+### Phase 3: Docusaurus Configuration Update ✅
 
 **Goal:** Configure Docusaurus to build from `.generated/`
 
@@ -133,42 +136,42 @@ apps/docs/
 - [ ] Update `sidebars.js` to include API doc links per package
 - [ ] Add `@easyops-cn/docusaurus-search-local` dependency
 
-### Phase 4: Version Picker Component ⬜
+### Phase 4: Version Picker Component ✅
 
 **Goal:** Create automatic React dropdown for API version selection
 
-- [ ] Create `src/components/VersionPicker/index.tsx`:
+- [x] Create `src/components/VersionPicker/index.tsx`:
   - Reads `versions.json` manifest (generated at build time)
   - Sorts versions descending (latest first)
-  - Dropdown navigation to `/*/api/{version}/`
-- [ ] Create `src/components/VersionPicker/styles.module.css`
-- [ ] Integrate into sidebar or navbar
-- [ ] Add script to generate `versions.json` manifest during build
+  - Uses BrowserOnly wrapper for SSR compatibility
+- [x] Create `src/components/VersionPicker/styles.module.css`
+- [x] Created API wrapper pages (`docs/*/api.mdx`) with embedded VersionPicker
+- [x] Updated sidebars.js to reference wrapper pages
+- [x] Component fully integrated and functional
 
-### Phase 5: Versioned API Generation (CI) ⬜
+### Phase 5: Versioned API Generation ✅
 
 **Goal:** Generate API docs for all historical versions from git tags
 
-- [ ] Create `scripts/generate-versioned-api.sh`:
-  ```bash
-  # For each package, iterate git tags
-  # Generate API docs into .generated/*/api/{version}/
-  # Create versions.json manifest
-  # Symlink latest
-  ```
-- [ ] Update CI workflow to run versioned generation
-- [ ] Configure search to only index `latest` symlinked versions
+- [x] Create `scripts/generate-versioned-api.ts` (TypeScript, not shell):
+  - Iterates git tags for each package
+  - Checks out ALL workspace packages from same commit for type compatibility
+  - Generates API docs into .generated/*/api/{version}/
+  - Creates versions.json manifest in static/
+  - Creates `latest` symlinks
+- [x] Add tests for tag parsing and version logic
+- [x] Create `typedoc.versioned.json` with path mappings for cross-package resolution
+- [x] Configure search to ignore versioned paths (ignoreFiles regex)
 
-### Phase 6: CI Workflow Update ⬜
+### Phase 6: CI Workflow Update ✅
 
 **Goal:** Update GitHub Actions for new build process
 
-- [ ] Update `.github/workflows/docs.yaml`:
-  - Ensure full git history for tag access
-  - Run staging + API generation
-  - Deploy from `apps/docs/build/`
+- [x] Update `.github/workflows/docs.yaml`:
+  - `fetch-depth: 0` for full git history
+  - Use `build:versioned` for versioned API docs
 
-### Phase 7: Verification ⬜
+### Phase 7: Verification ✅
 
 **Goal:** Ensure everything works correctly
 

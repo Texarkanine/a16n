@@ -34,3 +34,4 @@ coverage/
 packages/docs/build/
 packages/docs/.docusaurus/
 packages/docs/.generated/
+packages/docs/static/versions.json

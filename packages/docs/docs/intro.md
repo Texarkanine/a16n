@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+slug: /
 ---
 
 # Introduction
@@ -8,14 +9,12 @@ Welcome to the **a16n** documentation!
 
 ## What is a16n?
 
-**a16n** (short for "align") is a toolkit for translating AI agent configuration files between different IDE formats. It enables seamless conversion between:
-
-- **Cursor IDE** (`.cursor/rules/*.mdc`, `.cursorignore`)
-- **Claude Code** (`CLAUDE.md`, `.claude/settings.json`)
+**a16n** (short for "agent customization") is a toolkit for translating AI agent configuration files between different tools' formats.
 
 ## Key Features
 
 - 🔄 **Bidirectional conversion** between Cursor and Claude formats
+	- Does its best to warn & inform you about lossy or impossible conversions
 - 📝 **Preserves metadata** including file-specific rules and ignore patterns
 - 🎯 **CLI tool** for easy integration into workflows
 - 🧩 **Plugin architecture** for extensibility
@@ -41,21 +40,10 @@ Convert Claude rules to Cursor format:
 a16n claude-to-cursor --source ./CLAUDE.md --target .cursor
 ```
 
-## Package Overview
-
-| Package | Description |
-|---------|-------------|
-| [`a16n` (CLI)](/docs/cli) | Command-line interface for conversion operations |
-| [`@a16njs/engine`](/docs/engine) | Core conversion engine |
-| [`@a16njs/models`](/docs/models) | Shared types and interfaces |
-| [`@a16njs/plugin-cursor`](/docs/plugin-cursor) | Cursor IDE format plugin |
-| [`@a16njs/plugin-claude`](/docs/plugin-claude) | Claude Code format plugin |
-| [`@a16njs/glob-hook`](/docs/glob-hook) | Glob pattern hook system |
-
 ## Next Steps
 
-- Explore the [CLI documentation](/docs/cli) to learn about available commands
-- Read about the [architecture](/docs/engine) to understand the plugin system
+- Explore the [CLI documentation](/cli) to learn about available commands
+- Read about the [architecture](/engine) to understand the plugin system
 
 ## Contributing
 

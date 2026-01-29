@@ -1,0 +1,364 @@
+> docs@0.0.0 build:versioned /mnt/v/users/Austin/Documents/git/a16n/packages/docs
+> npm run stage && npm run apidoc && npm run apidoc:versioned && docusaurus build
+
+
+> docs@0.0.0 stage
+> rm -rf .generated && mkdir -p .generated && cp -r docs/* .generated/
+
+
+> docs@0.0.0 apidoc
+> npm run apidoc:cli & npm run apidoc:engine & npm run apidoc:models & npm run apidoc:plugin-cursor & npm run apidoc:plugin-claude & npm run apidoc:glob-hook & wait
+
+
+> docs@0.0.0 apidoc:glob-hook
+> typedoc --tsconfig ../glob-hook/tsconfig.json --plugin typedoc-plugin-markdown --out .generated/glob-hook/api ../glob-hook/src/index.ts
+
+
+> docs@0.0.0 apidoc:plugin-claude
+> typedoc --tsconfig ../plugin-claude/tsconfig.json --plugin typedoc-plugin-markdown --out .generated/plugin-claude/api ../plugin-claude/src/index.ts
+
+
+> docs@0.0.0 apidoc:engine
+> typedoc --tsconfig ../engine/tsconfig.json --plugin typedoc-plugin-markdown --out .generated/engine/api ../engine/src/index.ts
+
+
+> docs@0.0.0 apidoc:models
+> typedoc --tsconfig ../models/tsconfig.json --plugin typedoc-plugin-markdown --out .generated/models/api ../models/src/index.ts
+
+
+> docs@0.0.0 apidoc:cli
+> typedoc --tsconfig ../cli/tsconfig.json --plugin typedoc-plugin-markdown --out .generated/cli/api ../cli/src/index.ts
+
+
+> docs@0.0.0 apidoc:plugin-cursor
+> typedoc --tsconfig ../plugin-cursor/tsconfig.json --plugin typedoc-plugin-markdown --out .generated/plugin-cursor/api ../plugin-cursor/src/index.ts
+
+[info] Loaded plugin typedoc-plugin-markdown
+[info] Loaded plugin typedoc-plugin-markdown
+[info] Loaded plugin typedoc-plugin-markdown
+[info] Loaded plugin typedoc-plugin-markdown
+[info] Loaded plugin typedoc-plugin-markdown
+[info] markdown generated at ./.generated/models/api
+[info] Loaded plugin typedoc-plugin-markdown
+[info] markdown generated at ./.generated/engine/api
+[info] markdown generated at ./.generated/plugin-claude/api
+[info] markdown generated at ./.generated/glob-hook/api
+[info] markdown generated at ./.generated/plugin-cursor/api
+[info] markdown generated at ./.generated/cli/api
+
+> docs@0.0.0 apidoc:versioned
+> tsx scripts/generate-versioned-api.ts
+
+Generating versioned API documentation...
+
+Found 6 git tags
+Found tags for 6 packages
+
+
+Processing cli (1 versions):
+  Generating cli@0.3.0...
+  Created symlink: latest -> 0.3.0
+
+Processing engine (1 versions):
+  Generating engine@0.1.0...
+  Created symlink: latest -> 0.1.0
+
+Processing models (1 versions):
+  Generating models@0.2.0...
+  Created symlink: latest -> 0.2.0
+
+Processing plugin-cursor (1 versions):
+  Generating plugin-cursor@0.3.0...
+  Created symlink: latest -> 0.3.0
+
+Processing plugin-claude (1 versions):
+  Generating plugin-claude@0.3.0...
+  Created symlink: latest -> 0.3.0
+
+Processing glob-hook (1 versions):
+  Generating glob-hook@0.1.0...
+  Created symlink: latest -> 0.1.0
+
+
+Generated versions.json with 6 packages
+
+=== Summary ===
+✅ Successful: 6
+
+Versioned API generation complete!
+[INFO] [en] Creating an optimized production build...
+
+✔ Client
+  Compiled successfully in 29.19s
+
+✔ Server
+
+
+
+● Client █████████████████████████ cache (99%) shutdown IdleFileCachePlugin
+ stored
+
+✔ Server
+
+
+[WARNING] Docusaurus found broken links!
+
+Please check the pages of your site in the list below, and make sure you don't reference any path that does not exist.
+Note: it's possible to ignore broken links with the 'onBrokenLinks' Docusaurus configuration, and let the build pass.
+
+It looks like some of the broken links we found appear in many pages of your site.
+Maybe those broken links appear on all pages through your site layout?
+We recommend that you check your theme configuration for such links (particularly, theme navbar and footer).
+Frequent broken links are linking to:
+- /
+- ./api/
+
+Exhaustive list of all broken links found:
+- Broken link on source page path = /404.html:
+   -> linking to /
+- Broken link on source page path = /search:
+   -> linking to /
+- Broken link on source page path = /docs/cli/:
+   -> linking to /
+- Broken link on source page path = /docs/cli/api:
+   -> linking to /
+- Broken link on source page path = /docs/cli/api/:
+   -> linking to /
+   -> linking to ./api/ (resolved as: /docs/cli/api/api/)
+- Broken link on source page path = /docs/cli/api/0.3.0/:
+   -> linking to /
+- Broken link on source page path = /docs/cli/api/latest/:
+   -> linking to /
+- Broken link on source page path = /docs/engine/:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/:
+   -> linking to /
+   -> linking to ./api/ (resolved as: /docs/engine/api/api/)
+- Broken link on source page path = /docs/engine/api/0.1.0/:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/0.1.0/classes/A16nEngine:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/0.1.0/interfaces/ConversionOptions:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/0.1.0/interfaces/ConversionResult:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/0.1.0/interfaces/GitIgnoreResult:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/0.1.0/interfaces/PluginInfo:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/classes/A16nEngine:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/interfaces/ConversionOptions:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/interfaces/ConversionResult:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/interfaces/GitIgnoreResult:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/interfaces/PluginInfo:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/latest/:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/latest/classes/A16nEngine:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/latest/interfaces/ConversionOptions:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/latest/interfaces/ConversionResult:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/latest/interfaces/GitIgnoreResult:
+   -> linking to /
+- Broken link on source page path = /docs/engine/api/latest/interfaces/PluginInfo:
+   -> linking to /
+- Broken link on source page path = /docs/glob-hook/:
+   -> linking to /
+- Broken link on source page path = /docs/glob-hook/api:
+   -> linking to /
+- Broken link on source page path = /docs/glob-hook/api/:
+   -> linking to /
+   -> linking to ./api/ (resolved as: /docs/glob-hook/api/api/)
+- Broken link on source page path = /docs/glob-hook/api/0.1.0/:
+   -> linking to /
+- Broken link on source page path = /docs/glob-hook/api/latest/:
+   -> linking to /
+- Broken link on source page path = /docs/intro:
+   -> linking to /
+- Broken link on source page path = /docs/models/:
+   -> linking to /
+- Broken link on source page path = /docs/models/api:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/:
+   -> linking to /
+   -> linking to ./api/ (resolved as: /docs/models/api/api/)
+- Broken link on source page path = /docs/models/api/0.2.0/:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/enumerations/CustomizationType:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/enumerations/WarningCode:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/functions/createId:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/functions/getUniqueFilename:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/functions/isAgentCommand:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/functions/isAgentIgnore:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/functions/isAgentSkill:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/functions/isFileRule:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/functions/isGlobalPrompt:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/interfaces/A16nPlugin:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/interfaces/AgentCommand:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/interfaces/AgentCustomization:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/interfaces/AgentIgnore:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/interfaces/AgentSkill:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/interfaces/DiscoveryResult:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/interfaces/EmitOptions:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/interfaces/EmitResult:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/interfaces/FileRule:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/interfaces/GlobalPrompt:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/interfaces/Warning:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/0.2.0/interfaces/WrittenFile:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/enumerations/CustomizationType:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/enumerations/WarningCode:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/functions/createId:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/functions/getUniqueFilename:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/functions/isAgentIgnore:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/functions/isAgentSkill:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/functions/isFileRule:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/functions/isGlobalPrompt:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/functions/isManualPrompt:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/interfaces/A16nPlugin:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/interfaces/AgentCustomization:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/interfaces/AgentIgnore:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/interfaces/AgentSkill:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/interfaces/DiscoveryResult:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/interfaces/EmitOptions:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/interfaces/EmitResult:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/interfaces/FileRule:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/interfaces/GlobalPrompt:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/interfaces/ManualPrompt:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/interfaces/Warning:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/interfaces/WrittenFile:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/enumerations/CustomizationType:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/enumerations/WarningCode:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/functions/createId:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/functions/getUniqueFilename:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/functions/isAgentCommand:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/functions/isAgentIgnore:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/functions/isAgentSkill:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/functions/isFileRule:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/functions/isGlobalPrompt:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/interfaces/A16nPlugin:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/interfaces/AgentCommand:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/interfaces/AgentCustomization:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/interfaces/AgentIgnore:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/interfaces/AgentSkill:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/interfaces/DiscoveryResult:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/interfaces/EmitOptions:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/interfaces/EmitResult:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/interfaces/FileRule:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/interfaces/GlobalPrompt:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/interfaces/Warning:
+   -> linking to /
+- Broken link on source page path = /docs/models/api/latest/interfaces/WrittenFile:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-claude/:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-claude/api:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-claude/api/:
+   -> linking to /
+   -> linking to ./api/ (resolved as: /docs/plugin-claude/api/api/)
+- Broken link on source page path = /docs/plugin-claude/api/0.3.0/:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-claude/api/0.3.0/variables/default:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-claude/api/latest/:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-claude/api/latest/variables/default:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-claude/api/variables/default:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-cursor/:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-cursor/api:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-cursor/api/:
+   -> linking to /
+   -> linking to ./api/ (resolved as: /docs/plugin-cursor/api/api/)
+- Broken link on source page path = /docs/plugin-cursor/api/0.3.0/:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-cursor/api/0.3.0/variables/default:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-cursor/api/latest/:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-cursor/api/latest/variables/default:
+   -> linking to /
+- Broken link on source page path = /docs/plugin-cursor/api/variables/default:
+   -> linking to /
+
+[SUCCESS] Generated static files in "build".
+[INFO] Use `npm run serve` command to test your build locally.
+
+> docs@0.0.0 serve /mnt/v/users/Austin/Documents/git/a16n/packages/docs
+> docusaurus serve
+
+[SUCCESS] Serving "build" directory at: http://localhost:3000/

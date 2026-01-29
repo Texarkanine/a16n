@@ -29,4 +29,4 @@ _(Hook configuration options will be documented here)_
 
 ## See Also
 
-- [CLI](/docs/cli) - Command-line interface
+- [CLI](/cli) - Command-line interface

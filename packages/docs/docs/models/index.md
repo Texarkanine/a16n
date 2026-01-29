@@ -25,5 +25,5 @@ _(Plugin contract and implementation guidelines will be provided here)_
 
 ## See Also
 
-- [Engine](/docs/engine) - How the engine uses these types
-- [Plugin Development](/docs/plugin-cursor) - Implementing plugins with these types
+- [Engine](/engine) - How the engine uses these types
+- [Plugin Development](/plugin-cursor) - Implementing plugins with these types

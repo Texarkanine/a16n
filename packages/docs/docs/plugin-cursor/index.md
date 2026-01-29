@@ -32,5 +32,5 @@ _(Details about the `.mdc` file format and structure will be documented here)_
 
 ## See Also
 
-- [Plugin: Claude](/docs/plugin-claude) - Claude Code format plugin
-- [Models](/docs/models) - Plugin interfaces
+- [Plugin: Claude](/plugin-claude) - Claude Code format plugin
+- [Models](/models) - Plugin interfaces
