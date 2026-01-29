@@ -77,3 +77,13 @@ plugins: [
 - Subsequent builds: 40-50% faster (filesystem cache)
 - Production builds: 10-15 seconds faster (no source maps)
 - Combined with @docusaurus/faster: 2-4x total speedup
+
+## Resolution Status
+
+✅ COMPLETE
+
+**Verification:** Build now passes validation, optimizations active
+
+**Files Modified:**
+- `packages/docs/docusaurus.config.js` - Moved webpack config to plugin
+- `packages/docs/package.json` - Added @docusaurus/faster dependency

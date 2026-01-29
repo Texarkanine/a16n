@@ -95,3 +95,18 @@ Plugin: Cursor
     - 0.4.0  ← NEWEST FIRST
     - 0.3.0
 ```
+
+## Resolution Status
+
+**Fixes Applied:**
+1. ✅ Simplified sidebar sorting function to sort top-level items
+2. ✅ Removed " (latest)" labels from all locations
+3. ✅ Removed broken curated links from wrapper pages
+
+**Verification:** Pending user confirmation after build completes
+
+**Files Modified:**
+- `packages/docs/docusaurus.config.js` - Fixed sorting to apply at every level
+- `packages/docs/scripts/generate-versioned-api.ts` - Removed " (latest)" from titles
+- `packages/docs/src/components/VersionPicker/index.tsx` - Removed " (latest)" from dropdown
+- `packages/docs/docs/*/api.mdx` (4 files) - Removed broken links
