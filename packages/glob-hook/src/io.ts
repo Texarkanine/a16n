@@ -1,4 +1,4 @@
-import type { HookInput, HookOutput } from './types';
+import type { HookInput, HookOutput } from './types.js';
 
 /**
  * Parse JSON input from a string.

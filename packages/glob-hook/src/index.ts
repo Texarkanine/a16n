@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { readFileSync } from 'node:fs';
-import { matchesAny } from './matcher';
-import { parseStdin, writeOutput, createEmptyOutput, createMatchOutput } from './io';
+import { matchesAny } from './matcher.js';
+import { parseStdin, writeOutput, createEmptyOutput, createMatchOutput } from './io.js';
 
 /**
  * Parse command line arguments.
