@@ -1,9 +1,9 @@
 import * as fs from 'fs/promises';
-import * as path from 'path';
+import * as nodePath from 'path';
 import {
   type AgentCustomization,
   type AgentIgnore,
-  type AgentCommand,
+  type ManualPrompt,
   type DiscoveryResult,
   type Warning,
   type FileRule,
@@ -26,7 +26,7 @@ async function findMdcFiles(rulesDir: string, relativePath: string = ''): Promis
   const results: string[] = [];
   
   try {
-    const entries = await fs.readdir(path.join(rulesDir, relativePath), { withFileTypes: true });
+    const entries = await fs.readdir(nodePath.join(rulesDir, relativePath), { withFileTypes: true });
     
     for (const entry of entries) {
       const entryRelativePath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
@@ -64,7 +64,7 @@ function parseGlobs(globsString: string): string[] {
  * 1. alwaysApply: true → GlobalPrompt
  * 2. globs: present → FileRule
  * 3. description: present → AgentSkill
- * 4. None of above → GlobalPrompt (fallback)
+ * 4. None of above → ManualPrompt (agent-requestable, invoked via slash command)
  */
 function classifyRule(
   frontmatter: MdcFrontmatter,
@@ -111,14 +111,17 @@ function classifyRule(
     } as AgentSkill;
   }
 
-  // Priority 4: Fallback → GlobalPrompt
+  // Priority 4: No activation criteria → ManualPrompt (Phase 7)
+  // Rules without alwaysApply: true, globs, or description are agent-requestable
+  const promptName = nodePath.basename(sourcePath, nodePath.extname(sourcePath));
   return {
-    id: createId(CustomizationType.GlobalPrompt, sourcePath),
-    type: CustomizationType.GlobalPrompt,
+    id: createId(CustomizationType.ManualPrompt, sourcePath),
+    type: CustomizationType.ManualPrompt,
     sourcePath,
     content: body,
+    promptName,
     metadata: { ...frontmatter },
-  } as GlobalPrompt;
+  } as ManualPrompt;
 }
 
 /**
@@ -166,7 +169,7 @@ async function findCommandFiles(commandsDir: string, relativePath: string = ''):
   const results: string[] = [];
 
   try {
-    const entries = await fs.readdir(path.join(commandsDir, relativePath), { withFileTypes: true });
+    const entries = await fs.readdir(nodePath.join(commandsDir, relativePath), { withFileTypes: true });
 
     for (const entry of entries) {
       const entryRelativePath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
@@ -187,21 +190,21 @@ async function findCommandFiles(commandsDir: string, relativePath: string = ''):
 
 /**
  * Discover commands from .cursor/commands/**\/*.md
- * - Simple commands → AgentCommand
+ * - Simple commands → ManualPrompt
  * - Complex commands → Skip with warning
  */
 async function discoverCommands(root: string): Promise<{
-  items: AgentCommand[];
+  items: ManualPrompt[];
   warnings: Warning[];
 }> {
-  const items: AgentCommand[] = [];
+  const items: ManualPrompt[] = [];
   const warnings: Warning[] = [];
 
-  const commandsDir = path.join(root, '.cursor', 'commands');
+  const commandsDir = nodePath.join(root, '.cursor', 'commands');
   const commandFiles = await findCommandFiles(commandsDir);
 
   for (const file of commandFiles) {
-    const filePath = path.join(commandsDir, file);
+    const filePath = nodePath.join(commandsDir, file);
     const content = await fs.readFile(filePath, 'utf-8');
     const sourcePath = `.cursor/commands/${file}`;
 
@@ -209,24 +212,24 @@ async function discoverCommands(root: string): Promise<{
     const { isComplex, reasons } = isComplexCommand(content);
 
     if (isComplex) {
-      // Extract command name for warning message
-      const commandName = path.basename(file, '.md');
+      // Extract prompt name for warning message
+      const promptName = nodePath.basename(file, '.md');
       warnings.push({
         code: WarningCode.Skipped,
-        message: `Skipped command '${commandName}': Contains ${reasons.join(', ')} (not convertible to Claude)`,
+        message: `Skipped command '${promptName}': Contains ${reasons.join(', ')} (not convertible to Claude)`,
         sources: [sourcePath],
       });
       continue;
     }
 
-    // Simple command - create AgentCommand
-    const commandName = path.basename(file, '.md');
+    // Simple command - create ManualPrompt
+    const promptName = nodePath.basename(file, '.md');
     items.push({
-      id: createId(CustomizationType.AgentCommand, sourcePath),
-      type: CustomizationType.AgentCommand,
+      id: createId(CustomizationType.ManualPrompt, sourcePath),
+      type: CustomizationType.ManualPrompt,
       sourcePath,
       content,
-      commandName,
+      promptName,
       metadata: {},
     });
   }
@@ -235,11 +238,188 @@ async function discoverCommands(root: string): Promise<{
 }
 
 /**
+ * Parse YAML-like frontmatter from a SKILL.md file.
+ * Returns the frontmatter key-values and body content.
+ */
+interface SkillFrontmatter {
+  name?: string;
+  description?: string;
+  disableModelInvocation?: boolean;
+}
+
+interface ParsedSkill {
+  frontmatter: SkillFrontmatter;
+  body: string;
+}
+
+function parseSkillFrontmatter(content: string): ParsedSkill {
+  const lines = content.split('\n');
+  
+  let frontmatterStart = -1;
+  let frontmatterEnd = -1;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]?.trim();
+    if (line === '---') {
+      if (frontmatterStart === -1) {
+        frontmatterStart = i;
+      } else {
+        frontmatterEnd = i;
+        break;
+      }
+    }
+  }
+  
+  // No frontmatter found
+  if (frontmatterStart === -1 || frontmatterEnd === -1) {
+    return {
+      frontmatter: {},
+      body: content.trim(),
+    };
+  }
+  
+  const frontmatter: SkillFrontmatter = {};
+  
+  // Parse frontmatter lines
+  for (let i = frontmatterStart + 1; i < frontmatterEnd; i++) {
+    const line = lines[i];
+    if (!line) continue;
+    
+    // Parse disable-model-invocation: true
+    const disableMatch = line.match(/^disable-model-invocation:\s*(true|false)\s*$/);
+    if (disableMatch) {
+      frontmatter.disableModelInvocation = disableMatch[1] === 'true';
+      continue;
+    }
+    
+    // Parse description: "..."
+    const descriptionMatch = line.match(/^description:\s*["']?(.+?)["']?\s*$/);
+    if (descriptionMatch) {
+      frontmatter.description = descriptionMatch[1];
+      continue;
+    }
+    
+    // Parse name: "..."
+    const nameMatch = line.match(/^name:\s*["']?(.+?)["']?\s*$/);
+    if (nameMatch) {
+      frontmatter.name = nameMatch[1];
+      continue;
+    }
+  }
+  
+  // Extract body (everything after second ---)
+  const bodyLines = lines.slice(frontmatterEnd + 1);
+  const body = bodyLines.join('\n').trim();
+  
+  return { frontmatter, body };
+}
+
+/**
+ * Find all SKILL.md files in .cursor/skills/ subdirectories.
+ * Returns paths like ".cursor/skills/deploy/SKILL.md"
+ */
+async function findSkillFiles(root: string): Promise<string[]> {
+  const results: string[] = [];
+  const skillsDir = nodePath.join(root, '.cursor', 'skills');
+  
+  try {
+    const entries = await fs.readdir(skillsDir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const skillFile = nodePath.join(skillsDir, entry.name, 'SKILL.md');
+        try {
+          await fs.access(skillFile);
+          results.push(`.cursor/skills/${entry.name}/SKILL.md`);
+        } catch {
+          // No SKILL.md in this directory
+        }
+      }
+    }
+  } catch {
+    // .cursor/skills doesn't exist
+  }
+  
+  return results;
+}
+
+/**
+ * Discover skills from .cursor/skills/*\/SKILL.md
+ * - Skills with description -> AgentSkill
+ * - Skills with disable-model-invocation: true -> ManualPrompt
+ * - Skills without either -> Skip with warning
+ */
+async function discoverSkills(root: string): Promise<{
+  items: AgentCustomization[];
+  warnings: Warning[];
+}> {
+  const items: AgentCustomization[] = [];
+  const warnings: Warning[] = [];
+  
+  const skillFiles = await findSkillFiles(root);
+  
+  for (const skillPath of skillFiles) {
+    const fullPath = nodePath.join(root, skillPath);
+    
+    try {
+      const content = await fs.readFile(fullPath, 'utf-8');
+      const { frontmatter, body } = parseSkillFrontmatter(content);
+      
+      // Extract skill name from path or frontmatter
+      const dirName = skillPath.split('/')[2] || 'unknown';
+      const skillName = frontmatter.name || dirName;
+      
+      // Classification priority:
+      // 1. disable-model-invocation: true → ManualPrompt
+      // 2. description present → AgentSkill
+      // 3. Neither → Skip with warning
+      
+      if (frontmatter.disableModelInvocation === true) {
+        // ManualPrompt
+        items.push({
+          id: createId(CustomizationType.ManualPrompt, skillPath),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: skillPath,
+          content: body,
+          promptName: skillName,
+          metadata: { name: frontmatter.name },
+        } as ManualPrompt);
+      } else if (frontmatter.description) {
+        // AgentSkill
+        items.push({
+          id: createId(CustomizationType.AgentSkill, skillPath),
+          type: CustomizationType.AgentSkill,
+          sourcePath: skillPath,
+          content: body,
+          description: frontmatter.description,
+          metadata: { name: frontmatter.name },
+        } as AgentSkill);
+      } else {
+        // Skip with warning
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Skipped skill '${skillName}': Missing description or disable-model-invocation (not convertible)`,
+          sources: [skillPath],
+        });
+      }
+    } catch (error) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Could not read ${skillPath}: ${(error as Error).message}`,
+        sources: [skillPath],
+      });
+    }
+  }
+  
+  return { items, warnings };
+}
+
+/**
  * Discover .cursorignore file and parse its patterns.
  * Returns null if file doesn't exist or has no valid patterns.
  */
 async function discoverCursorIgnore(root: string): Promise<AgentIgnore | null> {
-  const ignorePath = path.join(root, '.cursorignore');
+  const ignorePath = nodePath.join(root, '.cursorignore');
 
   try {
     const content = await fs.readFile(ignorePath, 'utf-8');
@@ -281,11 +461,11 @@ export async function discover(root: string): Promise<DiscoveryResult> {
   const warnings: Warning[] = [];
 
   // Find .cursor/rules/*.mdc files
-  const rulesDir = path.join(root, '.cursor', 'rules');
+  const rulesDir = nodePath.join(root, '.cursor', 'rules');
   const mdcFiles = await findMdcFiles(rulesDir);
 
   for (const file of mdcFiles) {
-    const filePath = path.join(rulesDir, file);
+    const filePath = nodePath.join(rulesDir, file);
     const content = await fs.readFile(filePath, 'utf-8');
     const { frontmatter, body } = parseMdc(content);
 
@@ -299,6 +479,11 @@ export async function discover(root: string): Promise<DiscoveryResult> {
   const commandResult = await discoverCommands(root);
   items.push(...commandResult.items);
   warnings.push(...commandResult.warnings);
+
+  // Discover skills from .cursor/skills/ (Phase 7)
+  const skillResult = await discoverSkills(root);
+  items.push(...skillResult.items);
+  warnings.push(...skillResult.warnings);
 
   // Discover .cursorignore (Phase 3)
   const agentIgnore = await discoverCursorIgnore(root);

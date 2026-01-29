@@ -14,7 +14,7 @@ import {
   isFileRule,
   isAgentSkill,
   isAgentIgnore,
-  isAgentCommand,
+  isManualPrompt,
 } from '@a16njs/models';
 
 /**
@@ -40,12 +40,12 @@ function sanitizeFilename(sourcePath: string): string {
 }
 
 /**
- * Sanitize a command name to prevent path traversal and ensure filesystem safety.
+ * Sanitize a prompt name to prevent path traversal and ensure filesystem safety.
  * Returns a safe string with only alphanumeric characters and hyphens.
  */
-function sanitizeCommandName(commandName: string): string {
+function sanitizePromptName(promptName: string): string {
   // Remove any path separators and normalize
-  const sanitized = commandName
+  const sanitized = promptName
     .toLowerCase()
     .replace(/[/\\]/g, '-')  // Replace path separators with hyphens
     .replace(/[^a-z0-9]+/g, '-')  // Replace other unsafe chars with hyphens
@@ -104,6 +104,7 @@ ${content}
 
 /**
  * Format content as MDC with AgentSkill frontmatter (description).
+ * Used for legacy .cursor/rules/*.mdc emission.
  */
 function formatAgentSkillMdc(content: string, description: string): string {
   // Quote description if it contains special YAML characters
@@ -114,6 +115,43 @@ description: ${quotedDesc}
 ---
 
 ${content}
+`;
+}
+
+/**
+ * Format AgentSkill as a SKILL.md file.
+ * Used for .cursor/skills/ emission (Phase 7).
+ */
+function formatAgentSkillMd(skill: import('@a16njs/models').AgentSkill): string {
+  const skillName = (skill.metadata?.name as string) || sanitizeFilename(skill.sourcePath);
+  const safeName = JSON.stringify(skillName);
+  const safeDescription = JSON.stringify(skill.description);
+
+  return `---
+name: ${safeName}
+description: ${safeDescription}
+---
+
+${skill.content}
+`;
+}
+
+/**
+ * Format ManualPrompt as a SKILL.md file with disable-model-invocation.
+ * Used for .cursor/skills/ emission (Phase 7).
+ */
+function formatManualPromptSkillMd(prompt: import('@a16njs/models').ManualPrompt): string {
+  const safeName = JSON.stringify(prompt.promptName);
+  const description = `Invoke with /${prompt.promptName}`;
+  const safeDescription = JSON.stringify(description);
+
+  return `---
+name: ${safeName}
+description: ${safeDescription}
+disable-model-invocation: true
+---
+
+${prompt.content}
 `;
 }
 
@@ -139,19 +177,22 @@ export async function emit(
   const fileRules = models.filter(isFileRule);
   const agentSkills = models.filter(isAgentSkill);
   const agentIgnores = models.filter(isAgentIgnore);
-  const agentCommands = models.filter(isAgentCommand);
+  const manualPrompts = models.filter(isManualPrompt);
   
   // Track unsupported types (future types)
   for (const model of models) {
-    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model) && !isAgentCommand(model)) {
+    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model) && !isManualPrompt(model)) {
       unsupported.push(model);
     }
   }
 
-  const allItems = [...globalPrompts, ...fileRules, ...agentSkills];
+  // Items that go to .cursor/rules/*.mdc
+  const mdcItems = [...globalPrompts, ...fileRules];
+  // Items that go to .cursor/skills/*/SKILL.md (Phase 7)
+  const skillItems = [...agentSkills, ...manualPrompts];
   
-  // Early return only if no items at all (including agentIgnores and agentCommands)
-  if (allItems.length === 0 && agentIgnores.length === 0 && agentCommands.length === 0) {
+  // Early return only if no items at all (including agentIgnores)
+  if (mdcItems.length === 0 && skillItems.length === 0 && agentIgnores.length === 0) {
     return { written, warnings, unsupported };
   }
 
@@ -160,9 +201,12 @@ export async function emit(
   
   // Ensure .cursor/rules directory exists (only if we have mdc items, skip in dry-run)
   const rulesDir = path.join(root, '.cursor', 'rules');
-  if (allItems.length > 0 && !dryRun) {
+  if (mdcItems.length > 0 && !dryRun) {
     await fs.mkdir(rulesDir, { recursive: true });
   }
+
+  // Track used skill names for .cursor/skills/ collision detection
+  const usedSkillNames = new Set<string>();
 
   // Emit each GlobalPrompt as a separate .mdc file
   for (const gp of globalPrompts) {
@@ -232,17 +276,31 @@ export async function emit(
     });
   }
 
-  // Emit each AgentSkill as a separate .mdc file with description
+  // === Emit AgentSkills as .cursor/skills/*/SKILL.md (Phase 7) ===
   for (const skill of agentSkills) {
-    const baseName = sanitizeFilename(skill.sourcePath) + '.mdc';
-    const { filename, collision } = getUniqueFilename(baseName, usedFilenames);
+    // Get skill name from metadata or sourcePath
+    const skillName = (skill.metadata?.name as string) || sanitizeFilename(skill.sourcePath);
+    const baseName = sanitizePromptName(skillName);
     
-    if (collision) {
+    // Get unique name to avoid collisions
+    let dirName = baseName;
+    if (usedSkillNames.has(dirName)) {
       collisionSources.push(skill.sourcePath);
+      let counter = 1;
+      while (usedSkillNames.has(`${baseName}-${counter}`)) {
+        counter++;
+      }
+      dirName = `${baseName}-${counter}`;
+    }
+    usedSkillNames.add(dirName);
+
+    const skillDir = path.join(root, '.cursor', 'skills', dirName);
+    if (!dryRun) {
+      await fs.mkdir(skillDir, { recursive: true });
     }
 
-    const filepath = path.join(rulesDir, filename);
-    const content = formatAgentSkillMdc(skill.content, skill.description);
+    const filepath = path.join(skillDir, 'SKILL.md');
+    const content = formatAgentSkillMd(skill);
 
     // Check if file exists before writing
     let isNewFile = true;
@@ -311,64 +369,51 @@ export async function emit(
     }
   }
 
-  // === Emit AgentCommands as .cursor/commands/*.md ===
-  if (agentCommands.length > 0) {
-    const commandsDir = path.join(root, '.cursor', 'commands');
+  // === Emit ManualPrompts as .cursor/skills/*/SKILL.md (Phase 7) ===
+  for (const prompt of manualPrompts) {
+    // Sanitize prompt name to prevent path traversal
+    const baseName = sanitizePromptName(prompt.promptName);
+    
+    // Get unique name to avoid collisions (shared with AgentSkills)
+    let dirName = baseName;
+    if (usedSkillNames.has(dirName)) {
+      collisionSources.push(prompt.sourcePath);
+      let counter = 1;
+      while (usedSkillNames.has(`${baseName}-${counter}`)) {
+        counter++;
+      }
+      dirName = `${baseName}-${counter}`;
+    }
+    usedSkillNames.add(dirName);
+
+    const skillDir = path.join(root, '.cursor', 'skills', dirName);
     if (!dryRun) {
-      await fs.mkdir(commandsDir, { recursive: true });
-    }
-    const usedCommandNames = new Set<string>();
-    const commandCollisionSources: string[] = [];
-
-    for (const command of agentCommands) {
-      // Sanitize command name to prevent path traversal
-      const baseName = sanitizeCommandName(command.commandName);
-      
-      // Get unique filename to avoid collisions
-      let filename = `${baseName}.md`;
-      if (usedCommandNames.has(filename)) {
-        // Collision detected - track for warning
-        commandCollisionSources.push(command.sourcePath);
-        let counter = 2;
-        while (usedCommandNames.has(`${baseName}-${counter}.md`)) {
-          counter++;
-        }
-        filename = `${baseName}-${counter}.md`;
-      }
-      usedCommandNames.add(filename);
-
-      const commandPath = path.join(commandsDir, filename);
-      
-      // Check if file exists before writing
-      let isNewFile = true;
-      try {
-        await fs.access(commandPath);
-        isNewFile = false; // File exists
-      } catch {
-        isNewFile = true; // File does not exist
-      }
-      
-      if (!dryRun) {
-        await fs.writeFile(commandPath, command.content, 'utf-8');
-      }
-
-      written.push({
-        path: commandPath,
-        type: CustomizationType.AgentCommand,
-        itemCount: 1,
-        isNewFile,
-        sourceItems: [command],
-      });
+      await fs.mkdir(skillDir, { recursive: true });
     }
 
-    // Emit warning if any command collisions occurred
-    if (commandCollisionSources.length > 0) {
-      warnings.push({
-        code: WarningCode.FileRenamed,
-        message: `Command filename collision: ${commandCollisionSources.length} file(s) renamed to avoid overwrite`,
-        sources: commandCollisionSources,
-      });
+    const filepath = path.join(skillDir, 'SKILL.md');
+    const content = formatManualPromptSkillMd(prompt);
+
+    // Check if file exists before writing
+    let isNewFile = true;
+    try {
+      await fs.access(filepath);
+      isNewFile = false; // File exists
+    } catch {
+      isNewFile = true; // File does not exist
     }
+
+    if (!dryRun) {
+      await fs.writeFile(filepath, content, 'utf-8');
+    }
+
+    written.push({
+      path: filepath,
+      type: CustomizationType.ManualPrompt,
+      itemCount: 1,
+      isNewFile,
+      sourceItems: [prompt],
+    });
   }
 
   return { written, warnings, unsupported };

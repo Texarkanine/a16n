@@ -2,7 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
   type AgentCustomization,
-  type AgentCommand,
+  type ManualPrompt,
   type EmitResult,
   type EmitOptions,
   type WrittenFile,
@@ -15,7 +15,7 @@ import {
   isFileRule,
   isAgentSkill,
   isAgentIgnore,
-  isAgentCommand,
+  isManualPrompt,
   getUniqueFilename,
 } from '@a16njs/models';
 
@@ -60,12 +60,12 @@ function sanitizeFilename(sourcePath: string): string {
 }
 
 /**
- * Sanitize a command name to prevent path traversal and ensure filesystem safety.
+ * Sanitize a prompt name to prevent path traversal and ensure filesystem safety.
  * Returns a safe string with only alphanumeric characters and hyphens.
  */
-function sanitizeCommandName(commandName: string): string {
+function sanitizePromptName(promptName: string): string {
   // Remove any path separators and normalize
-  const sanitized = commandName
+  const sanitized = promptName
     .toLowerCase()
     .replace(/[/\\]/g, '-')  // Replace path separators with hyphens
     .replace(/[^a-z0-9]+/g, '-')  // Replace other unsafe chars with hyphens
@@ -128,20 +128,22 @@ ${skill.content}
 }
 
 /**
- * Format an AgentCommand as a Claude skill.
- * The description enables /command-name invocation.
+ * Format a ManualPrompt as a Claude skill.
+ * The description enables /prompt-name invocation.
+ * Includes disable-model-invocation: true to indicate manual-only.
  */
-function formatCommandAsSkill(command: AgentCommand): string {
-  const safeName = JSON.stringify(command.commandName);
-  const description = `Invoke with /${command.commandName}`;
+function formatManualPromptAsSkill(prompt: ManualPrompt): string {
+  const safeName = JSON.stringify(prompt.promptName);
+  const description = `Invoke with /${prompt.promptName}`;
   const safeDescription = JSON.stringify(description);
 
   return `---
 name: ${safeName}
 description: ${safeDescription}
+disable-model-invocation: true
 ---
 
-${command.content}
+${prompt.content}
 `;
 }
 
@@ -170,11 +172,11 @@ export async function emit(
   const fileRules = models.filter(isFileRule);
   const agentSkills = models.filter(isAgentSkill);
   const agentIgnores = models.filter(isAgentIgnore);
-  const agentCommands = models.filter(isAgentCommand);
+  const manualPrompts = models.filter(isManualPrompt);
 
   // Track unsupported types (future types)
   for (const model of models) {
-    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model) && !isAgentCommand(model)) {
+    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model) && !isManualPrompt(model)) {
       unsupported.push(model);
     }
   }
@@ -471,11 +473,11 @@ export async function emit(
     });
   }
 
-  // === Emit AgentCommands as .claude/skills/*/SKILL.md ===
-  if (agentCommands.length > 0) {
-    for (const command of agentCommands) {
-      // Sanitize command name to prevent path traversal
-      const baseName = sanitizeCommandName(command.commandName);
+  // === Emit ManualPrompts as .claude/skills/*/SKILL.md ===
+  if (manualPrompts.length > 0) {
+    for (const prompt of manualPrompts) {
+      // Sanitize prompt name to prevent path traversal
+      const baseName = sanitizePromptName(prompt.promptName);
       // Get unique skill name to avoid directory collisions
       const skillName = getUniqueFilename(baseName, usedSkillNames);
 
@@ -485,7 +487,7 @@ export async function emit(
       }
 
       const skillPath = path.join(skillDir, 'SKILL.md');
-      const content = formatCommandAsSkill(command);
+      const content = formatManualPromptAsSkill(prompt);
       
       // Check if file exists before writing
       let isNewFile = true;
@@ -502,10 +504,10 @@ export async function emit(
 
       written.push({
         path: skillPath,
-        type: CustomizationType.AgentCommand,
+        type: CustomizationType.ManualPrompt,
         itemCount: 1,
         isNewFile,
-        sourceItems: [command],
+        sourceItems: [prompt],
       });
     }
   }
