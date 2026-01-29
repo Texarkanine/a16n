@@ -145,10 +145,6 @@ const config = {
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
         title: 'a16n',
-        logo: {
-          alt: 'a16n Logo',
-          src: 'img/logo.svg',
-        },
         items: [
           {
             type: 'docSidebar',
