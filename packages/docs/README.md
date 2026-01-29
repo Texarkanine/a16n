@@ -26,12 +26,26 @@ This generates API docs from your current code at `/api/current` and starts the 
 
 **Use this when:** Working on a feature branch and need to see API docs for unreleased code.
 
-### Production Build (Versioned API Only)
+### Quick Build (Prose Only)
 
-To build the complete site with all versioned API documentation:
+Fast production build with only prose documentation:
 
 ```bash
-# Build with all versioned API docs (from git tags ONLY)
+# Build prose only (no API docs, ~30s)
+pnpm build:prose
+
+# Serve the built site locally
+pnpm serve
+```
+
+**Use this for:** Quick iteration, testing prose changes.
+
+### Full Build (Versioned API)
+
+Complete build with all versioned API documentation:
+
+```bash
+# Build with all versioned API docs (from git tags ONLY, ~4 min)
 pnpm build
 
 # Serve the built site locally
@@ -40,8 +54,8 @@ pnpm serve
 
 Visit `http://localhost:3000` to browse the site.
 
-**Note:** Production builds take ~4-5 minutes as they generate API docs for every tagged version.
-**CI uses this:** The CI workflow runs `pnpm build`, which ONLY generates docs from git tags (no current/WIP code).
+**Note:** Full builds take ~4 minutes as they generate API docs for every tagged version.
+**CI uses this:** For releases, `pnpm --filter docs build` generates all versioned API docs.
 
 ## Authoring Content
 
@@ -67,7 +81,7 @@ API docs are **auto-generated** from TypeScript source code using TypeDoc.
    - Fast (~30 seconds)
 
 2. **Production (`apidoc:versioned`):** Generates docs for every git tag
-   - Used by `pnpm build` (CI uses this)
+   - Used by `pnpm build` (the standard build)
    - Implemented in `scripts/generate-versioned-api.ts`
    - Creates `/api/0.4.0`, `/api/0.3.0`, etc.
    - Slow (~4 minutes)
@@ -83,10 +97,10 @@ API docs are **auto-generated** from TypeScript source code using TypeDoc.
 The VersionPicker component is embedded in each package's API Reference page (`docs/*/api.mdx`).
 
 It will only work in builds that generate `versions.json`:
-- ✅ `pnpm build:versioned` - Full versioned docs
-- ✅ CI builds - Uses `build:versioned` 
-- ❌ `pnpm build` - Current version only, no versions.json
-- ❌ `pnpm start:full` - Dev mode, no versions.json
+- ✅ `pnpm build` - Full versioned docs, includes versions.json
+- ✅ CI builds - Uses `build`
+- ❌ `pnpm build:prose` - Prose only, no API docs, no versions.json
+- ❌ `pnpm start:full` - Dev mode with current API, no versions.json
 
 ## Build Scripts
 
@@ -94,13 +108,17 @@ It will only work in builds that generate `versions.json`:
 |--------|---------|
 | `pnpm start` | Dev server (prose only, ~5s) |
 | `pnpm start:full` | Dev server with current API (~30s) |
-| `pnpm build` | Production build - versioned API from tags ONLY (~4min) |
+| `pnpm build` | Complete build - all versioned API from tags (~4min) |
+| `pnpm build:prose` | Fast build - prose only (~30s) |
 | `pnpm serve` | Serve built site locally |
 | `pnpm apidoc:current` | Generate API from working directory (local dev only) |
-| `pnpm apidoc:versioned` | Generate API from all git tags (CI uses this) |
+| `pnpm apidoc:versioned` | Generate API from all git tags (used by build) |
 | `pnpm test` | Run tests for build scripts |
 
-**Important:** `build` (used by CI) generates ONLY from git tags. `start:full` (local dev) generates from current code.
+**Important:** 
+- `build` is the standard build (all versioned API docs) - CI uses this
+- `build:prose` is fast (prose only) for quick local iteration
+- `start:full` (local dev) generates current API from working directory
 
 ## Structure
 
@@ -138,9 +156,10 @@ packages/docs/
 
 1. **Edit prose**: Modify `docs/**/*.md` files
 2. **Preview**: Run `pnpm start` (fast, no API docs needed)
-3. **Full check**: Run `pnpm build && pnpm serve` to verify
-4. **Commit**: Only commit `docs/` changes (not `.generated/` or `build/`)
-5. **Deploy**: CI runs `pnpm build:versioned` and deploys to GitHub Pages
+3. **Quick check**: Run `pnpm build:prose && pnpm serve` to verify (fast, prose only)
+4. **Full check**: Run `pnpm build && pnpm serve` to verify with all versioned APIs
+5. **Commit**: Only commit `docs/` changes (not `.generated/` or `build/`)
+6. **Deploy**: CI runs `pnpm --filter docs build` and deploys to GitHub Pages
 
 ## Configuration
 
@@ -153,7 +172,7 @@ packages/docs/
 
 ### "VersionPicker not showing"
 
-The VersionPicker requires `versions.json` to exist. Run `pnpm build:versioned` instead of `pnpm build`.
+The VersionPicker requires `versions.json` to exist. Run `pnpm build` (not `build:prose`).
 
 ### "API docs not updating"
 
@@ -167,6 +186,6 @@ Or just delete `.generated/` - it will be regenerated on next build.
 
 ### "Build is slow"
 
-For local development, use `pnpm start` (no API docs) or `pnpm build` (current API only).
+For local development, use `pnpm start` (no API docs, ~5s) or `pnpm build:prose` (prose only, ~30s).
 
-Only use `pnpm build:versioned` when you need to test versioned docs or before pushing.
+Only use `pnpm build` when you need to test versioned docs or before pushing to production.
