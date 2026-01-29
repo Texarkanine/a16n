@@ -6,7 +6,16 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "start:full": "npm run stage && npm run apidoc && docusaurus start",
+    "build": "npm run stage && npm run apidoc && docusaurus build",
+    "stage": "rm -rf .generated && mkdir -p .generated && cp -r docs/* .generated/",
+    "apidoc": "npm run apidoc:cli && npm run apidoc:engine && npm run apidoc:models && npm run apidoc:plugin-cursor && npm run apidoc:plugin-claude && npm run apidoc:glob-hook",
+    "apidoc:cli": "typedoc --plugin typedoc-plugin-markdown --out .generated/cli/api ../../packages/cli/src/index.ts",
+    "apidoc:engine": "typedoc --plugin typedoc-plugin-markdown --out .generated/engine/api ../../packages/engine/src/index.ts",
+    "apidoc:models": "typedoc --plugin typedoc-plugin-markdown --out .generated/models/api ../../packages/models/src/index.ts",
+    "apidoc:plugin-cursor": "typedoc --plugin typedoc-plugin-markdown --out .generated/plugin-cursor/api ../../packages/plugin-cursor/src/index.ts",
+    "apidoc:plugin-claude": "typedoc --plugin typedoc-plugin-markdown --out .generated/plugin-claude/api ../../packages/plugin-claude/src/index.ts",
+    "apidoc:glob-hook": "typedoc --plugin typedoc-plugin-markdown --out .generated/glob-hook/api ../../packages/glob-hook/src/index.ts",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -25,7 +34,8 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.6.3",
     "@docusaurus/types": "^3.6.3",
-    "docusaurus-plugin-typedoc": "^1.0.5",
+    "@easyops-cn/docusaurus-search-local": "^0.52.0",
+    "@types/node": "^20.0.0",
     "typedoc": "^0.28.3",
     "typedoc-plugin-markdown": "^4.4.0"
   },
