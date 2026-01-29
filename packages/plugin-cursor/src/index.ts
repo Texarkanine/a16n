@@ -13,7 +13,6 @@ const cursorPlugin: A16nPlugin = {
     CustomizationType.GlobalPrompt,
     CustomizationType.FileRule,
     CustomizationType.AgentSkill,
-    CustomizationType.ManualPrompt,
   ],
 
   discover,

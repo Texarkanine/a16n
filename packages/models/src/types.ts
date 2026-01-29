@@ -11,8 +11,8 @@ export enum CustomizationType {
   FileRule = 'file-rule',
   /** Files/patterns to exclude from agent context */
   AgentIgnore = 'agent-ignore',
-  /** Explicitly invoked prompts (slash commands, skills with disable-model-invocation) */
-  ManualPrompt = 'manual-prompt',
+  /** Explicitly invoked slash commands */
+  AgentCommand = 'agent-command',
 }
 
 /**
@@ -71,13 +71,14 @@ export interface AgentIgnore extends AgentCustomization {
 }
 
 /**
- * A manually-invoked prompt (slash command or skill with disable-model-invocation).
- * Examples: Cursor commands in .cursor/commands/, skills with disable-model-invocation: true
+ * An explicitly invoked slash command.
+ * Examples: Cursor commands in .cursor/commands/
  *
- * These prompts are only activated when explicitly invoked by the user.
+ * Note: Cursor → Claude only. Claude has no dedicated command concept.
+ * Commands with special features ($ARGUMENTS, !, @, allowed-tools) are skipped.
  */
-export interface ManualPrompt extends AgentCustomization {
-  type: CustomizationType.ManualPrompt;
-  /** Prompt name for invocation (e.g., "review" for /review) */
-  promptName: string;
+export interface AgentCommand extends AgentCustomization {
+  type: CustomizationType.AgentCommand;
+  /** Command name derived from filename (e.g., "review" from "review.md") */
+  commandName: string;
 }
