@@ -33,4 +33,4 @@ coverage/
 # Documentation site
 apps/docs/build/
 apps/docs/.docusaurus/
-apps/docs/docs/api/
+apps/docs/.generated/
