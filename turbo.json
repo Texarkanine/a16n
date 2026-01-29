@@ -8,6 +8,9 @@
     "test": {
       "dependsOn": ["build"]
     },
+    "docs#test": {
+      "dependsOn": []
+    },
     "lint": {},
     "typecheck": {
       "dependsOn": ["^build"]
