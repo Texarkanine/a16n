@@ -21,7 +21,38 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@20.19.30)(terser@5.46.0)
 
-  apps/docs:
+  packages/cli:
+    dependencies:
+      '@a16njs/engine':
+        specifier: workspace:*
+        version: link:../engine
+      '@a16njs/models':
+        specifier: workspace:*
+        version: link:../models
+      '@a16njs/plugin-claude':
+        specifier: workspace:*
+        version: link:../plugin-claude
+      '@a16njs/plugin-cursor':
+        specifier: workspace:*
+        version: link:../plugin-cursor
+      chalk:
+        specifier: ^5.6.2
+        version: 5.6.2
+      commander:
+        specifier: ^12.0.0
+        version: 12.1.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.30
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.30)(terser@5.46.0)
+
+  packages/docs:
     dependencies:
       '@docusaurus/core':
         specifier: ^3.6.3
@@ -60,37 +91,6 @@ importers:
       typedoc-plugin-markdown:
         specifier: ^4.4.0
         version: 4.9.0(typedoc@0.28.16(typescript@5.9.3))
-
-  packages/cli:
-    dependencies:
-      '@a16njs/engine':
-        specifier: workspace:*
-        version: link:../engine
-      '@a16njs/models':
-        specifier: workspace:*
-        version: link:../models
-      '@a16njs/plugin-claude':
-        specifier: workspace:*
-        version: link:../plugin-claude
-      '@a16njs/plugin-cursor':
-        specifier: workspace:*
-        version: link:../plugin-cursor
-      chalk:
-        specifier: ^5.6.2
-        version: 5.6.2
-      commander:
-        specifier: ^12.0.0
-        version: 12.1.0
-    devDependencies:
-      '@types/node':
-        specifier: ^20.0.0
-        version: 20.19.30
-      typescript:
-        specifier: ^5.4.0
-        version: 5.9.3
-      vitest:
-        specifier: ^2.0.0
-        version: 2.1.9(@types/node@20.19.30)(terser@5.46.0)
 
   packages/engine:
     dependencies:

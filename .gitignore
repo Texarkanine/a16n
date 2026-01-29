@@ -31,6 +31,6 @@ coverage/
 .env.local
 
 # Documentation site
-apps/docs/build/
-apps/docs/.docusaurus/
-apps/docs/.generated/
+packages/docs/build/
+packages/docs/.docusaurus/
+packages/docs/.generated/

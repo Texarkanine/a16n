@@ -27,7 +27,6 @@ const config = {
   markdown: {
     mermaid: true,
   },
-  onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -43,6 +42,7 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
+          path: '.generated',
           sidebarPath: './sidebars.js',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
@@ -56,8 +56,17 @@ const config = {
     ],
   ],
 
-  plugins: [
-    // TypeDoc plugins will be added after basic site works
+  plugins: [],
+
+  themes: [
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      {
+        hashed: true,
+        docsRouteBasePath: '/docs',
+        indexBlog: false,
+      },
+    ],
   ],
 
   themeConfig:
