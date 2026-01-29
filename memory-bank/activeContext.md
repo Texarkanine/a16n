@@ -5,50 +5,69 @@
 
 ## Current Focus
 
-**Task:** DOCS-SITE-MVP - Docusaurus documentation site MVP
+**Task:** DOCS-PIVOT-STAGING - Pivot docs to staging area approach
+**Status:** Planning Complete (2026-01-28)
+**Branch:** `docs`
 
-**Status:** ✅ COMPLETE (2026-01-28)
+## Task Summary
 
-**Goal:** ✅ ACHIEVED - Documentation pipeline proven with placeholder prose. TypeDoc integration deferred but infrastructure ready.
+Refactor the existing Docusaurus documentation site from committed API docs to a staging area pattern:
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| API docs | Committed (46 files) | Generated at CI time |
+| Build source | `docs/` | `.generated/` (staging) |
+| Versioning | None | Git tag-based |
+| Version picker | None | Auto React dropdown |
+| Search | None | Local search |
 
 ## Key Decisions Made
 
 | Decision | Rationale |
 |----------|-----------|
-| `apps/docs/` location | Follows spec; separates docs from library packages |
-| Docusaurus 3 + TypeDoc | JS-native, no Python; TypeDoc replaces mkdocs-merge workflow |
-| Placeholder prose | Proves pipeline; users fill in later |
-| GitHub Pages via workflow | CI builds fresh; no generated content in repo |
-| TypeDoc per-package | Each package gets its own API section |
+| Staging area at `.generated/` | Matches DOCS_2.md spec; keeps generated content out of repo |
+| Standalone TypeDoc | Simpler than `docusaurus-plugin-typedoc`; direct control |
+| Git tag-based versions | Tags exist (6 packages tagged); enables historical API docs |
+| Latest-first dropdown | User requirement; better UX for most users |
+| Local search with version exclusion | Prevents search pollution from old API versions |
 
-## Implementation Sequence
+## Feasibility Confirmed
 
-1. **Project Structure** → `apps/docs/` scaffolding
-2. **Docusaurus Config** → Core site configuration
-3. **Placeholder Guides** → One `index.md` per package
-4. **TypeDoc Integration** → API doc generation
-5. **Turbo Integration** → Build task orchestration
-6. **CI Workflow** → GitHub Pages deployment
-7. **Verification** → Full build test
+✅ **Git tags exist:** 6 package tags available for version generation
+✅ **Entry points exist:** All 6 `packages/*/src/index.ts` files present
+✅ **Docusaurus supports custom docs path:** `path: '.generated'` option
+✅ **TypeDoc standalone works:** `typedoc-plugin-markdown` CLI usage
+✅ **Custom React components:** Docusaurus `src/components/` pattern
 
-## Completed Deliverables
+## Implementation Phases
 
-1. ✅ Working Docusaurus 3.9.2 site at `apps/docs/`
-2. ✅ All 6 package placeholder guides created
-3. ✅ GitHub Actions workflow for deployment
-4. ✅ Turbo integration (66s build time)
-5. ⚠️ TypeDoc integration deferred (version conflicts)
+1. **Cleanup** - Delete committed API docs from git
+2. **Build Scripts** - Implement staging area flow
+3. **Docusaurus Config** - Point to `.generated/`, add search
+4. **Version Picker** - React dropdown component
+5. **Versioned API** - Git tag iteration script
+6. **CI Workflow** - Update for new build process
+7. **Verification** - End-to-end testing
 
-## Ready for Next Phase
+## Files to Modify
 
-- Documentation site is deployable to GitHub Pages
-- Placeholder content ready for users to expand
-- TypeDoc infrastructure in place for future API docs
+| File | Change |
+|------|--------|
+| `apps/docs/api/` | DELETE (remove from git) |
+| `.gitignore` | Fix paths, add `.generated/` |
+| `apps/docs/package.json` | New build scripts |
+| `apps/docs/docusaurus.config.js` | New docs path, search plugin |
+| `apps/docs/sidebars.js` | API doc links |
+| NEW: `apps/docs/src/components/VersionPicker/` | React dropdown |
+| NEW: `apps/docs/scripts/generate-versioned-api.sh` | Build script |
+| `.github/workflows/docs.yaml` | Updated build steps |
 
-## Recent Completed Work
+## Immediate Next Steps
 
-| Phase | Completion Date | Archive |
-|-------|-----------------|---------|
-| Phase 7 | 2026-01-28 | [AgentSkills Standard](archive/features/20260128-PHASE-7-AGENTSKILLS.md) |
-| Phase 6 | 2026-01-28 | [CLI Polish](archive/enhancements/20260128-PHASE6-CLI-POLISH.md) |
-| Phase 5 | 2026-01-28 | [Git Ignore + Conflict Flag](archive/features/20260128-PHASE5-CONFLICT-FLAG.md) |
+1. User approval of plan
+2. Begin Phase 1: Cleanup committed API docs
+3. Iteratively implement phases 2-7
+
+## Context from Previous Work
+
+The `docs` branch has a working Docusaurus spike (reflection in `memory-bank/reflection/reflection-DOCS-SITE-MVP.md`). This pivot builds on that foundation but changes the API docs architecture significantly.
