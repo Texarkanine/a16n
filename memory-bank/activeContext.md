@@ -5,9 +5,23 @@
 
 ## Current Focus
 
+**Task:** TEST-FIXES-20260129 - Test failures and build optimization
+**Status:** ✅ Complete (2026-01-29)
+**Branch:** `docs`
+**Reflection:** ✅ Complete - see `memory-bank/reflection/reflection-20260129-TEST-FIXES.md`
+
+### Session Summary
+
+Fixed test failures caused by rebase errors and optimized the build pipeline:
+
+1. **ManualPrompt restoration** - Restored files incorrectly renamed to AgentCommand during rebase
+2. **glob-hook tsx dependency** - Added missing devDependency for CLI tests
+3. **docs#test optimization** - Decoupled docs tests from docs build in turbo.json
+
+### Previous Task
+
 **Task:** DOCS-PIVOT-STAGING - Versioned API documentation system
 **Status:** ✅ All Phases Complete (2026-01-29)
-**Branch:** `docs`
 **Reflection:** ✅ Complete - see `memory-bank/reflection/reflection-DOCS-PIVOT-STAGING.md`
 
 ## Task Summary
