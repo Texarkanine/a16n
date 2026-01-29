@@ -405,10 +405,8 @@ export async function main(dryRun = false): Promise<void> {
           const content = readFileSync(readmePath, 'utf-8');
           
           // Add frontmatter with proper title and slug
-          const isLatest = tag.version === latestVersion;
-          const title = isLatest ? `${tag.version} (latest)` : tag.version;
           const frontmatter = `---
-title: ${title}
+title: ${tag.version}
 slug: /${pkg.name}/api/${tag.version}
 ---
 

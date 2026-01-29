@@ -59,7 +59,7 @@ function VersionPickerInner({ pkg }: VersionPickerProps): JSX.Element | null {
   // Extract current version from URL path
   // Pattern: /{pkg}/api/{version}/...
   const versionMatch = location.pathname.match(/\/api\/(\d+\.\d+\.\d+)(\/|$)/);
-  const currentVersion = versionMatch?.[1] || '';
+  const currentVersion = versionMatch?.[1] || (versions.length > 0 ? versions[0] : '');
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newVersion = e.target.value;
@@ -68,22 +68,17 @@ function VersionPickerInner({ pkg }: VersionPickerProps): JSX.Element | null {
     const baseMatch = location.pathname.match(/^(.*\/api)/);
     const basePath = baseMatch?.[1] || location.pathname;
     
+    // Navigate to versioned overview page
     let newPath: string;
-    if (!newVersion) {
-      // Navigate to wrapper page (current/latest)
-      newPath = basePath;
+    if (versionMatch) {
+      // Already on a versioned page, replace version
+      newPath = location.pathname.replace(
+        /\/api\/\d+\.\d+\.\d+(\/.*)?$/,
+        `/api/${newVersion}/`
+      );
     } else {
-      // Navigate to versioned overview page
-      if (versionMatch) {
-        // Already on a versioned page, replace version
-        newPath = location.pathname.replace(
-          /\/api\/\d+\.\d+\.\d+(\/.*)?$/,
-          `/api/${newVersion}/`
-        );
-      } else {
-        // On wrapper page, add version
-        newPath = `${basePath}/${newVersion}/`;
-      }
+      // On wrapper page, add version
+      newPath = `${basePath}/${newVersion}/`;
     }
     
     // Use window.location for navigation to avoid SSR issues
@@ -107,7 +102,6 @@ function VersionPickerInner({ pkg }: VersionPickerProps): JSX.Element | null {
         className={styles.select}
         aria-label={`Select ${pkg} API version`}
       >
-        <option value="">current (latest)</option>
         {versions.map((v) => (
           <option key={v} value={v}>
             {v}

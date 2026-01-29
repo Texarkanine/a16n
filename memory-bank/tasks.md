@@ -148,6 +148,7 @@ apps/docs/
 - [x] Created API wrapper pages (`docs/*/api.mdx`) with embedded VersionPicker
 - [x] Updated sidebars.js to reference wrapper pages
 - [x] Component fully integrated and functional
+- [x] Fixed: Removed hardcoded "current" option, made latest version default
 
 ### Phase 5: Versioned API Generation ✅
 
@@ -162,6 +163,7 @@ apps/docs/
 - [x] Add tests for tag parsing and version logic
 - [x] Create `typedoc.versioned.json` with path mappings for cross-package resolution
 - [x] Configure search to ignore versioned paths (ignoreFiles regex)
+- [x] Fixed: Sidebar generator now appends " (latest)" to newest version dynamically
 
 ### Phase 6: CI Workflow Update ✅
 

@@ -36,6 +36,18 @@ const config = {
     locales: ['en'],
   },
 
+  // Enable faster experimental features
+  // Docs: https://docusaurus.io/docs/api/docusaurus-config#future
+  // Expected: 2-4x faster builds using Rust-based tooling (SWC, Lightning CSS)
+  future: {
+    experimental_faster: {
+      swcJsLoader: true,
+      swcJsMinimizer: true,
+      swcHtmlMinimizer: true,
+      lightningCssMinimizer: true,
+    },
+  },
+
   presets: [
     [
       'classic',
@@ -45,57 +57,43 @@ const config = {
           path: '.generated',
           routeBasePath: '/',
           sidebarPath: './sidebars.js',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/your-org/a16n/tree/main/apps/docs/',
+            'https://github.com/Texarkanine/a16n/tree/main/packages/docs/docs/',
           async sidebarItemsGenerator({defaultSidebarItemsGenerator, ...args}) {
             const sidebarItems = await defaultSidebarItemsGenerator(args);
             
-            // Recursively sort version folders descending (0.4.0 > 0.3.0 > 0.2.0)
-            const sortItems = (items) => {
-              return items.map(item => {
+            // Sort version folders newest-first (0.4.0 -> 0.3.0 -> 0.2.0)
+            // Applied to EVERY level including top-level items
+            function sortVersions(items) {
+              // First, recursively sort children
+              items.forEach(item => {
                 if (item.type === 'category' && item.items) {
-                  // Recursively sort children first
-                  item.items = sortItems(item.items);
-                  
-                  // If this category contains version folders, sort them descending
-                  // Match both "0.3.0" and "0.3.0 (latest)" formats
-                  const hasVersions = item.items.some(i => 
-                    i.label && /^\d+\.\d+\.\d+/.test(i.label)
-                  );
-                  
-                  if (hasVersions) {
-                    item.items.sort((a, b) => {
-                      // Extract version numbers (ignore any suffix like " (latest)")
-                      const aMatch = a.label?.match(/^(\d+)\.(\d+)\.(\d+)/);
-                      const bMatch = b.label?.match(/^(\d+)\.(\d+)\.(\d+)/);
-                      
-                      // Non-versions sort to end
-                      if (!aMatch && !bMatch) return 0;
-                      if (!aMatch) return 1;
-                      if (!bMatch) return -1;
-                      
-                      // Compare versions (descending: latest first)
-                      const aMajor = parseInt(aMatch[1], 10);
-                      const bMajor = parseInt(bMatch[1], 10);
-                      if (aMajor !== bMajor) return bMajor - aMajor;
-                      
-                      const aMinor = parseInt(aMatch[2], 10);
-                      const bMinor = parseInt(bMatch[2], 10);
-                      if (aMinor !== bMinor) return bMinor - aMinor;
-                      
-                      const aPatch = parseInt(aMatch[3], 10);
-                      const bPatch = parseInt(bMatch[3], 10);
-                      return bPatch - aPatch;
-                    });
-                  }
+                  sortVersions(item.items);
                 }
-                return item;
               });
-            };
+              
+              // Then sort THIS level (this was the missing piece!)
+              items.sort((a, b) => {
+                const aLabel = a.label || '';
+                const bLabel = b.label || '';
+                const aMatch = aLabel.match(/^(\d+)\.(\d+)\.(\d+)/);
+                const bMatch = bLabel.match(/^(\d+)\.(\d+)\.(\d+)/);
+                
+                // Non-version items: preserve order
+                if (!aMatch && !bMatch) return 0;
+                if (!aMatch) return 1;
+                if (!bMatch) return -1;
+                
+                // Both are versions: sort descending (newest first)
+                const [, aMaj, aMin, aPat] = aMatch.map(Number);
+                const [, bMaj, bMin, bPat] = bMatch.map(Number);
+                return (bMaj - aMaj) || (bMin - aMin) || (bPat - aPat);
+              });
+              
+              return items;
+            }
             
-            return sortItems(sidebarItems);
+            return sortVersions(sidebarItems);
           },
         },
         theme: {
@@ -105,7 +103,27 @@ const config = {
     ],
   ],
 
-  plugins: [],
+  plugins: [
+    // Custom plugin to optimize webpack configuration
+    // Docs: https://docusaurus.io/docs/api/plugin-methods/lifecycle-apis#configureWebpack
+    function webpackOptimizationPlugin(context, options) {
+      return {
+        name: 'webpack-optimization-plugin',
+        configureWebpack(config, isServer) {
+          return {
+            cache: {
+              type: 'filesystem',
+              buildDependencies: {
+                config: [__filename],
+              },
+            },
+            // Disable source maps in production (not needed for docs site)
+            devtool: process.env.NODE_ENV === 'production' ? false : config.devtool,
+          };
+        },
+      };
+    },
+  ],
 
   themes: [
     [
@@ -153,7 +171,7 @@ const config = {
             items: [
               {
                 label: 'Documentation',
-                to: '/intro',
+                to: '/',
               },
             ],
           },
