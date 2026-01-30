@@ -34,7 +34,7 @@ jobs:
         id: check
         run: |
           # Always deploy if triggered by workflow_call or workflow_dispatch
-          if [[ "${{ github.event_name }}" == "workflow_call" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "${{ github.event_name }}" != "push" ]]; then
             echo "should_deploy=true" >> $GITHUB_OUTPUT
             echo "✅ Deployment triggered by ${{ github.event_name }} - proceeding"
             exit 0
@@ -48,19 +48,22 @@ jobs:
           
           echo "Changed files:"
           echo "$CHANGED_FILES"
+          echo ""
           
-          # Check if ANY files outside packages/docs or .github/workflows/docs.yaml changed
-          NON_DOCS_CHANGES=$(echo "$CHANGED_FILES" | grep -v '^packages/docs/' | grep -v '^\.github/workflows/docs\.yaml$' || true)
+          # Only block if PUBLISHED PACKAGE SOURCE CODE changed
+          # These packages are versioned via release-please - their API docs should wait for releases
+          # Other files (docs config, memory-bank, tooling, workflows, tests) are safe to deploy with
+          PUBLISHED_SRC=$(echo "$CHANGED_FILES" | grep -E '^packages/(cli|engine|models|plugin-cursor|plugin-claude|glob-hook)/src/' || true)
           
-          if [[ -n "$NON_DOCS_CHANGES" ]]; then
-            echo "⚠️  Non-docs files changed - skipping deployment"
-            echo "Non-docs changes detected:"
-            echo "$NON_DOCS_CHANGES"
+          if [[ -n "$PUBLISHED_SRC" ]]; then
+            echo "⚠️  Published package source code changed - skipping deployment"
+            echo "Source changes detected:"
+            echo "$PUBLISHED_SRC"
             echo ""
-            echo "Docs will be deployed after the next release."
+            echo "API documentation will be updated after the next release."
             echo "should_deploy=false" >> $GITHUB_OUTPUT
           else
-            echo "✅ Only docs files changed - safe to deploy"
+            echo "✅ No published package source changes - safe to deploy"
             echo "should_deploy=true" >> $GITHUB_OUTPUT
           fi
 
