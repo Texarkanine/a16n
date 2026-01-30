@@ -18,19 +18,19 @@ Fix documentation deployment workflow and Docusaurus configuration:
 
 ### Problem Statement
 
-**Issue 1: Docs Workflow Triggers**
+#### Issue 1: Docs Workflow Triggers
 - Current: Triggers on every push to main
 - Problem: Can deploy docs showing unreleased features if code + docs merge together
 - Solution: Add safety check to skip deployment if non-docs files changed
 
-**Issue 2: Release Integration**
+#### Issue 2: Release Integration
 - Current: No automatic docs update after package releases
 - Problem: New version tags don't automatically trigger docs rebuild
 - Solution: Add docs job to release.yaml that calls docs workflow
 
-**Issue 3: Docusaurus baseUrl**
+#### Issue 3: Docusaurus baseUrl
 - Current: baseUrl = '/' (default)
-- Problem: Site deployed to https://texarkanine.github.io/a16n/ returns error
+- Problem: Site deployed to <https://texarkanine.github.io/a16n/> returns error
 - Error: "We suggest trying baseUrl = /a16n/"
 - Solution: Change baseUrl to '/a16n/' for GitHub Pages
 
@@ -53,7 +53,7 @@ Fix documentation deployment workflow and Docusaurus configuration:
 
 3. **Docusaurus baseUrl:**
    - Test: Local build with baseUrl='/a16n/' → should work
-   - Test: Deployed site loads at https://texarkanine.github.io/a16n/
+   - Test: Deployed site loads at <https://texarkanine.github.io/a16n/>
 
 ### Implementation Plan
 
@@ -156,7 +156,7 @@ None - all changes use existing GitHub Actions and Docusaurus features.
 
 ### Success Criteria
 
-1. ✅ Docusaurus site loads correctly at https://texarkanine.github.io/a16n/
+1. ✅ Docusaurus site loads correctly at <https://texarkanine.github.io/a16n/>
 2. ✅ Docs deploy immediately for prose-only changes
 3. ✅ Docs deployment skipped when code changes are included
 4. ✅ Docs automatically rebuild after package releases
