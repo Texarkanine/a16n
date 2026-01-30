@@ -9,4 +9,4 @@ No active task. Use `/niko` to start a new task.
 
 ## Recent Completions
 
-- **DOCS-WORKFLOW-FIX** (2026-01-29 to 2026-01-30): Fixed Docusaurus baseUrl, added smart deployment safety guards, and integrated docs with release workflow. See `memory-bank/archive/enhancements/20260130-DOCS-WORKFLOW-FIX.md`.
+- **DOCS-SIMPLIFY** (2026-01-29 to 2026-01-30): Simplified docs workflow from 116 lines to 50 lines by adding docs to release-please. Eliminated complex safety checks. See `memory-bank/archive/enhancements/20260130-DOCS-SIMPLIFY.md`.
