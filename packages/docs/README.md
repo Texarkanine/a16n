@@ -104,16 +104,16 @@ It will only work in builds that generate `versions.json`:
 
 ## Build Scripts
 
-| Script | Purpose |
-|--------|---------|
-| `pnpm start` | Dev server (prose only, ~5s) |
-| `pnpm start:full` | Dev server with current API (~30s) |
-| `pnpm build` | Complete build - all versioned API from tags (~4min) |
-| `pnpm build:prose` | Fast build - prose only (~30s) |
-| `pnpm serve` | Serve built site locally |
-| `pnpm apidoc:current` | Generate API from working directory (local dev only) |
-| `pnpm apidoc:versioned` | Generate API from all git tags (used by build) |
-| `pnpm test` | Run tests for build scripts |
+| Script                 | Purpose                                              |
+|------------------------|------------------------------------------------------|
+| `pnpm start`           | Dev server (prose only, ~5s)                         |
+| `pnpm start:full`      | Dev server with current API (~30s)                   |
+| `pnpm build`           | Complete build - all versioned API from tags (~4min) |
+| `pnpm build:prose`     | Fast build - prose only (~30s)                       |
+| `pnpm serve`           | Serve built site locally                             |
+| `pnpm apidoc:current`  | Generate API from working directory (local dev only) |
+| `pnpm apidoc:versioned`| Generate API from all git tags (used by build)       |
+| `pnpm test`            | Run tests for build scripts                          |
 
 **Important:** 
 - `build` is the standard build (all versioned API docs) - CI uses this
@@ -159,6 +159,66 @@ packages/docs/
 4. **Full check**: Run `pnpm build && pnpm serve` to verify with all versioned APIs
 5. **Commit**: Only commit `docs/` changes (not `.generated/` or `build/`)
 6. **Deploy**: CI runs `pnpm --filter docs build` and deploys to GitHub Pages
+
+## CI/CD Workflow
+
+The documentation site is automatically built and deployed to GitHub Pages via GitHub Actions.
+
+### Deployment Trigger Flow
+
+```mermaid
+flowchart TD
+    subgraph "Commits & Releases"
+        A[Commits to main] --> B[release-please bot]
+        B --> C[Creates/Updates Release PR]
+        C -->|PR merged to main| D[Push event triggers release.yaml]
+    end
+    
+    subgraph "release.yaml"
+        D --> E[release-please action]
+        E -->|Creates tags & outputs releases_created| F[publish job]
+        F -->|npm packages| G[Publish to npm]
+        F -->|docs is private| H[Skip npm publish]
+        F -->|After publish completes| I[docs job]
+    end
+    
+    subgraph "docs.yaml"
+        I -->|workflow_call| K[Build docs site]
+        K --> L[Generate versioned API from git tags]
+        L --> M[Deploy to GitHub Pages]
+        
+        N[Manual trigger] -->|workflow_dispatch| K
+    end
+    
+    style H fill:#ffffcc
+    style M fill:#ccffcc
+```
+
+### When Docs Deploy
+
+| Scenario                  | Deploys?        | How                                                |
+|---------------------------|-----------------|----------------------------------------------------|
+| Package release           | ✅ Yes          | release.yaml calls docs.yaml via workflow_call     |
+| Docs changes with release | ✅ Yes          | release-please includes docs in release            |
+| Urgent doc fix            | ✅ Yes          | Use workflow_dispatch (manual trigger)             |
+| Docs-only changes         | ⏳ Next release | Or use workflow_dispatch for urgent fixes          |
+
+### How It Works
+
+1. **packages/docs is in release-please** - Tracks commits, creates changelog, bumps version
+2. **docs is private** - `pnpm publish` automatically skips it (no npm publish)
+3. **release.yaml calls docs.yaml** - After packages publish, triggers doc deployment
+4. **workflow_dispatch** - Manual trigger for urgent fixes between releases
+
+### Manual Deployment
+
+For urgent documentation fixes between releases:
+
+1. Go to **Actions** → **Documentation** workflow
+2. Click **Run workflow**
+3. Select branch and click **Run workflow**
+
+This deploys immediately without waiting for a release.
 
 ## Configuration
 

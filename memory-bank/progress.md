@@ -15,7 +15,7 @@
 | **Phase 6** | ✅ Complete | CLI Polish (dry-run wording + --delete-source) |
 | **Phase 7** | ✅ Complete | AgentSkills standard alignment |
 | **Docs** | ✅ Complete | PR #18 - Versioned API documentation system |
-| **Docs Workflow** | ✅ Complete | PR #20 - Deployment safety and release integration |
+| **Docs Workflow** | ✅ Complete | PR #20, #21 - Simplified deployment workflow |
 
 ## Current Session
 

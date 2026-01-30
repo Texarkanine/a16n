@@ -30,6 +30,10 @@
     "packages/glob-hook": {
       "component": "@a16njs/glob-hook",
       "changelog-path": "CHANGELOG.md"
+    },
+    "packages/docs": {
+      "component": "@a16njs/docs",
+      "changelog-path": "CHANGELOG.md"
     }
   },
   "pull-request-header": ":service_dog: I have created a release \\*bark\\* \\*woof\\*"
