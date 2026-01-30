@@ -122,7 +122,7 @@ It will only work in builds that generate `versions.json`:
 
 ## Structure
 
-```
+```text
 packages/docs/
 ├── docs/               # Hand-written prose (COMMITTED)
 │   ├── intro.md

@@ -49,4 +49,4 @@ a16n claude-to-cursor --source ./CLAUDE.md --target .cursor
 
 This project is open source. Contributions are welcome!
 
-Visit our [GitHub repository](https://github.com/your-org/a16n) to get started.
+Visit our [GitHub repository](https://github.com/Texarkanine/a16n) to get started.

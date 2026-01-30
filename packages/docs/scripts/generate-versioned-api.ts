@@ -146,7 +146,7 @@ export function groupTagsByPackage(tags: string[]): Map<string, ParsedTag[]> {
  * @returns Latest version string
  */
 export function getLatestVersion(versions: string[]): string {
-  return versions.sort((a, b) =>
+  return [...versions].sort((a, b) =>
     b.localeCompare(a, undefined, { numeric: true })
   )[0];
 }

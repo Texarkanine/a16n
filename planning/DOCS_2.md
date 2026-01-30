@@ -6,7 +6,7 @@ Unified Docusaurus site in `packages/docs`. Hand-written guides plus TypeDoc-gen
 
 ## Structure
 
-```
+```text
 packages/
   docs/
     package.json            # private: true
@@ -130,7 +130,7 @@ ln -s "$(ls -v .generated/core/api | tail -1)" .generated/core/api/latest
 
 ### Result Structure
 
-```
+```text
 .generated/core/api/
   1.0.0/
   1.1.0/

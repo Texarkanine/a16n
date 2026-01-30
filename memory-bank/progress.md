@@ -155,7 +155,7 @@ pnpm run build
 ```
 
 ✅ **File Structure Verification**
-```
+```text
 apps/docs/build/
 ├── 404.html
 ├── assets/

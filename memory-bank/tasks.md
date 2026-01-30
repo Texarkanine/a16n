@@ -39,7 +39,7 @@ Pivot the existing Docusaurus documentation site from committed API docs to a st
 
 ### Target Architecture (from DOCS_2.md + version picker requirement)
 
-```
+```text
 apps/docs/
   package.json            # private: true, updated scripts
   docusaurus.config.js    # points to .generated/, search plugin

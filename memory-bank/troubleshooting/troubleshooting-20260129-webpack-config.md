@@ -71,7 +71,7 @@ plugins: [
 ✅ Source maps disabled in production
 
 **Files Modified:**
-- `/home/mobaxterm/Documents/git/a16n/packages/docs/docusaurus.config.js`
+- `packages/docs/docusaurus.config.js`
 
 **Expected Impact:**
 - Subsequent builds: 40-50% faster (filesystem cache)

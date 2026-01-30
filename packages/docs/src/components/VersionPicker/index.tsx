@@ -9,6 +9,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from '@docusaurus/router';
 import BrowserOnly from '@docusaurus/BrowserOnly';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './styles.module.css';
 
 /**
@@ -32,9 +33,10 @@ function VersionPickerInner({ pkg }: VersionPickerProps): JSX.Element | null {
   const [versions, setVersions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const versionsUrl = useBaseUrl('/versions.json');
 
   useEffect(() => {
-    fetch('/versions.json')
+    fetch(versionsUrl)
       .then((r) => {
         if (!r.ok) {
           throw new Error(`Failed to fetch versions.json: ${r.status}`);
@@ -54,7 +56,7 @@ function VersionPickerInner({ pkg }: VersionPickerProps): JSX.Element | null {
         console.warn('VersionPicker: Could not load versions.json', err);
         setLoading(false);
       });
-  }, [pkg]);
+  }, [pkg, versionsUrl]);
 
   // Extract current version from URL path
   // Pattern: /{pkg}/api/{version}/...
