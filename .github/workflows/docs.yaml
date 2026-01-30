@@ -44,14 +44,7 @@ jobs:
           echo "Checking files changed in this push..."
           
           # Get list of changed files in the entire push (all commits)
-          # Handle null SHA (all zeros) which occurs on initial push/branch creation
-          BEFORE_SHA="${{ github.event.before }}"
-          if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
-            echo "Initial push detected (null before SHA) - listing files in commit"
-            CHANGED_FILES=$(git show --name-only --format="" "${{ github.sha }}")
-          else
-            CHANGED_FILES=$(git diff --name-only "$BEFORE_SHA" "${{ github.sha }}")
-          fi
+          CHANGED_FILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
           
           echo "Changed files:"
           echo "$CHANGED_FILES"

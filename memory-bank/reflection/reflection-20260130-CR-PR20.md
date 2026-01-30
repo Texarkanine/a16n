@@ -2,43 +2,40 @@
 
 **Date:** 2026-01-30
 **Task ID:** CR-PR20
-**Duration:** Single session
+**Duration:** Multiple sessions
 
 ## What Was Done
 
 Addressed CodeRabbit review feedback on PR #20 (docs workflow fix):
 
-1. **Added null SHA guard in docs.yaml** - When `github.event.before` is the all-zero null SHA (occurs on initial push/branch creation), the git diff command would fail. Added a conditional to detect this case and use `git show --name-only` instead.
+1. **Multi-commit push detection** - Changed from `git diff HEAD^ HEAD` to diffing `github.event.before..github.sha` with `fetch-depth: 0` to properly analyze all commits in a push.
 
 2. **Fixed MD034 bare URL** - Wrapped the PR URL in angle brackets in tasks.md to satisfy markdownlint.
 
+3. **Null SHA guard - ADDED then REMOVED** - Initially added a guard for null SHA, but user decided YAGNI applies since the repo already exists. Simplified back to direct `git diff`.
+
 ## Key Learnings
 
-### GitHub Actions Push Event Edge Cases
-- `github.event.before` is `0000000000000000000000000000000000000000` on:
-  - Initial push to a new branch
-  - First commit after branch creation
-- Git diff fails with null SHA: `fatal: bad revision '0000000000000000000000000000000000000000'`
-- Solution: Detect null SHA and fall back to `git show --name-only --format="" SHA`
+### YAGNI in Edge Case Handling
+- CodeRabbit suggested handling the null SHA case (`github.event.before` = all zeros)
+- User correctly identified this as over-engineering: "The repo already exists!"
+- The null SHA case only occurs on the very first push to a new repository
+- For established repos, this edge case will never trigger
+- **Lesson:** Don't add defensive code for scenarios that can't happen in your context
 
 ### Markdownlint MD034
 - Bare URLs in markdown should be wrapped in angle brackets: `<https://...>`
 - This makes the URL explicit as a link and satisfies linters
 
-## Pattern Established
+## Pattern Applied
 
-For GitHub Actions workflows that diff commits:
+Simple approach for GitHub Actions commit diffing in established repos:
 
 ```yaml
-BEFORE_SHA="${{ github.event.before }}"
-if [[ "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
-  # Initial push - list files in the commit itself
-  CHANGED_FILES=$(git show --name-only --format="" "${{ github.sha }}")
-else
-  # Normal push - diff the range
-  CHANGED_FILES=$(git diff --name-only "$BEFORE_SHA" "${{ github.sha }}")
-fi
+CHANGED_FILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
 ```
+
+No null SHA guard needed - YAGNI.
 
 ## Verification
 
