@@ -104,16 +104,16 @@ It will only work in builds that generate `versions.json`:
 
 ## Build Scripts
 
-| Script | Purpose |
-|--------|---------|
-| `pnpm start` | Dev server (prose only, ~5s) |
-| `pnpm start:full` | Dev server with current API (~30s) |
-| `pnpm build` | Complete build - all versioned API from tags (~4min) |
-| `pnpm build:prose` | Fast build - prose only (~30s) |
-| `pnpm serve` | Serve built site locally |
-| `pnpm apidoc:current` | Generate API from working directory (local dev only) |
-| `pnpm apidoc:versioned` | Generate API from all git tags (used by build) |
-| `pnpm test` | Run tests for build scripts |
+| Script                 | Purpose                                              |
+|------------------------|------------------------------------------------------|
+| `pnpm start`           | Dev server (prose only, ~5s)                         |
+| `pnpm start:full`      | Dev server with current API (~30s)                   |
+| `pnpm build`           | Complete build - all versioned API from tags (~4min) |
+| `pnpm build:prose`     | Fast build - prose only (~30s)                       |
+| `pnpm serve`           | Serve built site locally                             |
+| `pnpm apidoc:current`  | Generate API from working directory (local dev only) |
+| `pnpm apidoc:versioned`| Generate API from all git tags (used by build)       |
+| `pnpm test`            | Run tests for build scripts                          |
 
 **Important:** 
 - `build` is the standard build (all versioned API docs) - CI uses this
@@ -196,12 +196,12 @@ flowchart TD
 
 ### When Docs Deploy
 
-| Scenario | Deploys? | How |
-|----------|----------|-----|
-| Package release | ✅ Yes | release.yaml calls docs.yaml via workflow_call |
-| Docs changes with release | ✅ Yes | release-please includes docs in release |
-| Urgent doc fix | ✅ Yes | Use workflow_dispatch (manual trigger) |
-| Docs-only changes | ⏳ Next release | Or use workflow_dispatch for urgent fixes |
+| Scenario                  | Deploys?        | How                                                |
+|---------------------------|-----------------|----------------------------------------------------|
+| Package release           | ✅ Yes          | release.yaml calls docs.yaml via workflow_call     |
+| Docs changes with release | ✅ Yes          | release-please includes docs in release            |
+| Urgent doc fix            | ✅ Yes          | Use workflow_dispatch (manual trigger)             |
+| Docs-only changes         | ⏳ Next release | Or use workflow_dispatch for urgent fixes          |
 
 ### How It Works
 
@@ -209,15 +209,6 @@ flowchart TD
 2. **docs is private** - `pnpm publish` automatically skips it (no npm publish)
 3. **release.yaml calls docs.yaml** - After packages publish, triggers doc deployment
 4. **workflow_dispatch** - Manual trigger for urgent fixes between releases
-
-### Why Release-Based?
-
-The versioned API documentation is generated from **git tags**. By tying docs deployment to releases:
-
-- **API docs always match npm packages** - Tags exist when docs deploy
-- **Simple workflow** - No complex safety checks needed
-- **Changelog tracks docs** - Documentation changes are versioned
-- **Guaranteed consistency** - Docs deploy with the code they document
 
 ### Manual Deployment
 
