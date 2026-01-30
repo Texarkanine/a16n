@@ -3,10 +3,13 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", "build/**", ".docusaurus/**"]
     },
     "test": {
       "dependsOn": ["build"]
+    },
+    "docs#test": {
+      "dependsOn": []
     },
     "lint": {},
     "typecheck": {
@@ -14,6 +17,10 @@
     },
     "clean": {
       "cache": false
+    },
+    "start": {
+      "cache": false,
+      "persistent": true
     }
   }
 }

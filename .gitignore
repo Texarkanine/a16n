@@ -29,3 +29,9 @@ coverage/
 # Environment
 .env
 .env.local
+
+# Documentation site
+packages/docs/build/
+packages/docs/.docusaurus/
+packages/docs/.generated/
+packages/docs/static/versions.json

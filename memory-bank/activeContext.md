@@ -7,10 +7,6 @@
 
 No active task. Use `/niko` to start a new task.
 
-## Recent Completed Work
+## Recent Completions
 
-| Phase | Completion Date | Archive |
-|-------|-----------------|---------|
-| Phase 7 | 2026-01-28 | [AgentSkills Standard](archive/features/20260128-PHASE-7-AGENTSKILLS.md) |
-| Phase 6 | 2026-01-28 | [CLI Polish](archive/enhancements/20260128-PHASE6-CLI-POLISH.md) |
-| Phase 5 | 2026-01-28 | [Git Ignore + Conflict Flag](archive/features/20260128-PHASE5-CONFLICT-FLAG.md) |
+- **DOCS-COMPREHENSIVE** (2026-01-28 to 2026-01-29): Implemented versioned API documentation system with Docusaurus, git tag-based historical docs, React version picker, and build optimizations. See `memory-bank/archive/features/20260129-DOCS-COMPREHENSIVE.md`.

@@ -6,7 +6,7 @@
 ## Overall Project Status
 
 | Phase | Status | Notes |
-|-------|--------|-------|
+| ----- | ------ | ----- |
 | **Phase 1** | ✅ Complete | PR #1 merged (GlobalPrompt MVP) |
 | **Phase 2** | ✅ Complete | PR #3 merged (FileRule + AgentSkill) |
 | **Phase 3** | ✅ Complete | PR #4 merged (AgentIgnore + CLI polish) |
@@ -14,7 +14,8 @@
 | **Phase 5** | ✅ Complete | Git ignore output management + conflict flag |
 | **Phase 6** | ✅ Complete | CLI Polish (dry-run wording + --delete-source) |
 | **Phase 7** | ✅ Complete | AgentSkills standard alignment |
+| **Docs** | ✅ Complete | PR #18 - Versioned API documentation system |
 
 ## Current Session
 
-No active task. Use `/niko` to start a new task.
+No active session. Use `/niko` to start a new task.
