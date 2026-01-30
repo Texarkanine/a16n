@@ -169,27 +169,25 @@ The documentation site is automatically built and deployed to GitHub Pages via G
 ```mermaid
 flowchart TD
     subgraph "Commits & Releases"
-        A[Commits to main] --> B[release-please]
-        B --> C[Creates Release PR]
-        C -->|Merged| D[Tags created for changed packages]
-        D --> E[release.yaml]
+        A[Commits to main] --> B[release-please bot]
+        B --> C[Creates/Updates Release PR]
+        C -->|PR merged to main| D[Push event triggers release.yaml]
     end
     
     subgraph "release.yaml"
-        E --> F[publish job]
+        D --> E[release-please action]
+        E -->|Creates tags & outputs releases_created| F[publish job]
         F -->|npm packages| G[Publish to npm]
         F -->|docs is private| H[Skip npm publish]
-        F --> I[docs job]
-        I --> J[Call docs.yaml via workflow_call]
+        F -->|After publish completes| I[docs job]
     end
     
     subgraph "docs.yaml"
-        J --> K[Build docs site]
+        I -->|workflow_call| K[Build docs site]
         K --> L[Generate versioned API from git tags]
         L --> M[Deploy to GitHub Pages]
         
-        N[Manual trigger] --> O[workflow_dispatch]
-        O --> K
+        N[Manual trigger] -->|workflow_dispatch| K
     end
     
     style H fill:#ffffcc
