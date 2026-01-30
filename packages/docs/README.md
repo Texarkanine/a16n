@@ -160,6 +160,120 @@ packages/docs/
 5. **Commit**: Only commit `docs/` changes (not `.generated/` or `build/`)
 6. **Deploy**: CI runs `pnpm --filter docs build` and deploys to GitHub Pages
 
+## CI/CD Workflow
+
+The documentation site is automatically built and deployed to GitHub Pages via GitHub Actions.
+
+### Deployment Trigger Flow
+
+```mermaid
+flowchart TD
+    subgraph Triggers
+        A[Push to main] --> B{Path filter}
+        B -->|packages/docs/** changed| C[docs.yaml triggered]
+        B -->|Only other files| X[No trigger]
+        
+        D[Release PR merged] --> E[release.yaml]
+        E --> F[Packages published to npm]
+        F --> G[Calls docs.yaml via workflow_call]
+        
+        H[Manual trigger] --> I[workflow_dispatch]
+    end
+    
+    subgraph "docs.yaml: check-safety job"
+        C --> J{Event type?}
+        G --> J
+        I --> J
+        
+        J -->|workflow_call or workflow_dispatch| K[✅ Always deploy]
+        J -->|push| L{Check changed files}
+        
+        L -->|packages/*/src/ changed| M[❌ Skip - wait for release]
+        L -->|No src/ changes| N[✅ Safe to deploy]
+    end
+    
+    subgraph "docs.yaml: deploy job"
+        K --> O[Build docs]
+        N --> O
+        O --> P[Generate versioned API from git tags]
+        P --> Q[Deploy to GitHub Pages]
+    end
+    
+    M --> R[Docs deploy after next release]
+    
+    style M fill:#ffcccc
+    style K fill:#ccffcc
+    style N fill:#ccffcc
+    style Q fill:#ccffcc
+```
+
+### When Docs Deploy
+
+| Scenario | Deploys? | Why |
+|----------|----------|-----|
+| Prose doc fix only | ✅ Yes | No package src changes |
+| Docs config change | ✅ Yes | No package src changes |
+| Package release | ✅ Yes | workflow_call from release.yaml |
+| Manual trigger | ✅ Yes | workflow_dispatch always deploys |
+| Feature + docs together | ❌ No | Package src changed - waits for release |
+| Feature only | ❌ No | Path filter excludes |
+
+### Why the Safety Check?
+
+The versioned API documentation is generated from **git tags**. If we deploy docs when package source code changes (but before release), users would see documentation for features that don't exist in the published npm packages yet.
+
+The safety check ensures:
+- **API docs match npm packages** - Only deploy after releases create version tags
+- **Prose changes deploy immediately** - No waiting for non-API changes
+- **Config/tooling changes deploy** - Only `packages/*/src/` triggers the guard
+
+### Alternative: Simpler Release-Based Approach
+
+The current workflow could be significantly simplified by adding `packages/docs` to release-please:
+
+```mermaid
+flowchart TD
+    subgraph "Simplified Flow"
+        A[Commits to main] --> B[release-please]
+        B --> C[Creates Release PR]
+        C -->|Merged| D[Tags created for changed packages]
+        D --> E[release.yaml publish job]
+        E -->|docs is private| F[Skip npm publish for docs]
+        E --> G[Call docs.yaml via workflow_call]
+        G --> H[Build & Deploy docs]
+        
+        I[Manual trigger] --> J[workflow_dispatch]
+        J --> H
+    end
+    
+    style F fill:#ffffcc
+    style H fill:#ccffcc
+```
+
+**How it would work:**
+
+1. Add `packages/docs` to `release-please-config.json`
+2. release-please tracks docs commits, creates changelog, bumps version, creates tags
+3. `pnpm publish` automatically skips docs (it has `"private": true`)
+4. Remove the push trigger and safety check from docs.yaml
+5. Only `workflow_call` (from releases) and `workflow_dispatch` (manual) remain
+
+**Benefits:**
+- Much simpler workflow - no safety check logic needed
+- Docs always deploy with releases - guaranteed consistency
+- Changelog tracks documentation changes
+
+**Tradeoff:**
+- Prose-only fixes wait for next release (use `workflow_dispatch` for urgent fixes)
+
+**To implement:** Add to `release-please-config.json`:
+```json
+"packages/docs": {
+  "component": "@a16njs/docs",
+  "changelog-path": "CHANGELOG.md"
+}
+```
+
 ## Configuration
 
 - `docusaurus.config.js` - Docusaurus configuration
