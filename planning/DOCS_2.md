@@ -124,8 +124,7 @@ for tag in $(git tag --list 'core@*'); do
   git checkout main -- packages/core/src
 done
 
-# Symlink latest for easy linking
-ln -s "$(ls -v .generated/core/api | tail -1)" .generated/core/api/latest
+# Note: No "latest" symlink - VersionPicker component handles version navigation
 ```
 
 ### Result Structure
@@ -135,7 +134,6 @@ ln -s "$(ls -v .generated/core/api | tail -1)" .generated/core/api/latest
   1.0.0/
   1.1.0/
   2.0.0/
-  latest -> 2.0.0
 ```
 
 ### Version Picker
