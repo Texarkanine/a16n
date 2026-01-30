@@ -9,7 +9,7 @@
  */
 
 import { execSync } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync, symlinkSync, rmSync, readFileSync, unlinkSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 
 /** Package configuration for API doc generation */
@@ -271,27 +271,6 @@ function generateForVersion(pkg: PackageConfig, tag: ParsedTag): GenerationResul
 }
 
 /**
- * Create a symlink for 'latest' pointing to the latest version.
- * @param pkgName - Package name
- * @param latestVersion - Version to link to
- */
-function createLatestSymlink(pkgName: string, latestVersion: string): void {
-  const docsDir = getDocsDir();
-  const apiDir = join(docsDir, '.generated', pkgName, 'api');
-  const latestLink = join(apiDir, 'latest');
-  const targetDir = join(apiDir, latestVersion);
-
-  // Remove existing symlink if present
-  if (existsSync(latestLink)) {
-    rmSync(latestLink, { recursive: true });
-  }
-
-  // Create symlink (relative path)
-  symlinkSync(latestVersion, latestLink);
-  console.log(`  Created symlink: latest -> ${latestVersion}`);
-}
-
-/**
  * Generate the versions.json manifest file.
  * Outputs to static/versions.json so Docusaurus serves it at /versions.json.
  * @param tagGroups - Map of package name to tags
@@ -377,28 +356,10 @@ export async function main(dryRun = false): Promise<void> {
   try {
     const docsDir = getDocsDir();
     
-    // Determine latest version for each package
-    const latestVersions = new Map<string, string>();
+    // Process each versioned directory
     for (const pkg of PACKAGES) {
       const pkgTags = tagGroups.get(pkg.name);
       if (!pkgTags || pkgTags.length === 0) continue;
-      
-      const versions = pkgTags.map(t => t.version);
-      const latest = getLatestVersion(versions);
-      latestVersions.set(pkg.name, latest);
-    }
-    
-    // Process each versioned directory and create symlinks
-    for (const pkg of PACKAGES) {
-      const pkgTags = tagGroups.get(pkg.name);
-      if (!pkgTags || pkgTags.length === 0) continue;
-      
-      const latestVersion = latestVersions.get(pkg.name);
-      
-      // Create symlink for 'latest' pointing to the highest version
-      if (latestVersion) {
-        createLatestSymlink(pkg.name, latestVersion);
-      }
       
       for (const tag of pkgTags) {
         const versionDir = join(docsDir, '.generated', pkg.name, 'api', tag.version);
