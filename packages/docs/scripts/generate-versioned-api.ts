@@ -399,9 +399,10 @@ slug: /${pkg.name}/api/${tag.version}
     console.log('Configuring pagination for API reference pages...');
     
     // Build sorted version lists per package (newest first)
+    // Use successfulTagGroups to avoid pagination links to failed generations
     const packageVersions = new Map<string, string[]>();
     for (const pkg of PACKAGES) {
-      const pkgTags = tagGroups.get(pkg.name);
+      const pkgTags = successfulTagGroups.get(pkg.name);
       if (!pkgTags || pkgTags.length === 0) continue;
       
       const versions = pkgTags
@@ -460,14 +461,19 @@ slug: /${pkg.name}/api/${tag.version}
               const frontmatter = parts[1];
               const restContent = parts.slice(2).join('---\n');
               
-              // Add pagination controls (trim to avoid blank lines)
-              let newFrontmatter = frontmatter.trimEnd();
-              if (!frontmatter.includes('pagination_next:')) {
-                newFrontmatter += `\npagination_next: ${nextValue}`;
-              }
-              if (!frontmatter.includes('pagination_prev:')) {
-                newFrontmatter += `\npagination_prev: ${prevValue}`;
-              }
+              // Replace pagination controls for idempotency (remove existing, then add fresh)
+              const cleanedFrontmatter = frontmatter
+                .split('\n')
+                .filter(
+                  (line) =>
+                    !line.startsWith('pagination_next:') &&
+                    !line.startsWith('pagination_prev:')
+                )
+                .join('\n')
+                .trimEnd();
+              let newFrontmatter = cleanedFrontmatter;
+              newFrontmatter += `\npagination_next: ${nextValue}`;
+              newFrontmatter += `\npagination_prev: ${prevValue}`;
               
               const newContent = `---\n${newFrontmatter}\n---\n${restContent}`;
               writeFileSync(filePath, newContent);
