@@ -9,4 +9,4 @@ No active task. Use `/niko` to start a new task.
 
 ## Recent Completions
 
-- **DOCS-COMPREHENSIVE** (2026-01-28 to 2026-01-29): Implemented versioned API documentation system with Docusaurus, git tag-based historical docs, React version picker, and build optimizations. See `memory-bank/archive/features/20260129-DOCS-COMPREHENSIVE.md`.
+- **DOCS-WORKFLOW-FIX** (2026-01-29 to 2026-01-30): Fixed Docusaurus baseUrl, added smart deployment safety guards, and integrated docs with release workflow. See `memory-bank/archive/enhancements/20260130-DOCS-WORKFLOW-FIX.md`.
