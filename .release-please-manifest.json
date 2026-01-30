@@ -4,5 +4,5 @@
   "packages/models": "0.3.0",
   "packages/plugin-cursor": "0.4.0",
   "packages/plugin-claude": "0.4.0",
-  "packages/glob-hook": "0.1.0"
+  "packages/glob-hook": "0.2.0"
 }
