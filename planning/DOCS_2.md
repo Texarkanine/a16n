@@ -217,12 +217,12 @@ echo "}" >> .generated/versions.json
 
 ## Search
 
-Local search via `@easyops-dev/docusaurus-search-local`. Indexes at build time, works offline, no external service.
+Local search via `@easyops-cn/docusaurus-search-local`. Indexes at build time, works offline, no external service.
 
 ### Install
 
 ```bash
-npm install @easyops-dev/docusaurus-search-local
+npm install @easyops-cn/docusaurus-search-local
 ```
 
 ### Config
@@ -230,7 +230,7 @@ npm install @easyops-dev/docusaurus-search-local
 ```js
 // docusaurus.config.js
 themes: [
-  ['@easyops-dev/docusaurus-search-local', {
+  ['@easyops-cn/docusaurus-search-local', {
     hashed: true,
     indexDocs: true,
     indexBlog: false,

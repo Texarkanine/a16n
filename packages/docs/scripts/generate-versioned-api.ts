@@ -418,7 +418,8 @@ slug: /${pkg.name}/api/${tag.version}
           unlinkSync(readmePath);
           
           // Fix links in this version's files to point to version root
-          exec(`find "${versionDir}" -type f -name "*.md" -exec sed -i 's|](../README.md)|](../)|g' {} +`, docsDir);
+          // Use sed -i.bak for macOS/BSD compatibility, then remove backup files
+          exec(`find "${versionDir}" -type f -name "*.md" -exec sed -i.bak 's|](../README.md)|](../)|g' {} + && find "${versionDir}" -type f -name "*.md.bak" -delete`, docsDir);
         }
       }
     }

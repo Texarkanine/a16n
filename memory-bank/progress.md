@@ -6,7 +6,7 @@
 ## Overall Project Status
 
 | Phase | Status | Notes |
-|-------|--------|-------|
+| ----- | ------ | ----- |
 | **Phase 1** | ✅ Complete | PR #1 merged (GlobalPrompt MVP) |
 | **Phase 2** | ✅ Complete | PR #3 merged (FileRule + AgentSkill) |
 | **Phase 3** | ✅ Complete | PR #4 merged (AgentIgnore + CLI polish) |
@@ -25,7 +25,7 @@
 Fully implemented versioned API documentation system with git tag-based historical docs, React version picker, and curated API indexes.
 
 | Phase | Status | Notes |
-|-------|--------|-------|
+| ----- | ------ | ----- |
 | 1. Cleanup | ✅ Complete | Removed 46 committed API docs |
 | 2. Build Scripts | ✅ Complete | Staging area + parallel TypeDoc |
 | 3. Docusaurus Config | ✅ Complete | `.generated/` source, search, homepage |
@@ -70,7 +70,7 @@ Fully implemented versioned API documentation system with git tag-based historic
 **Build Phase:** All 7 phases completed successfully
 
 | Phase | Status | Time | Notes |
-|-------|--------|------|-------|
+| ----- | ------ | ---- | ----- |
 | 1. Project Structure | ✅ Complete | ~5min | Created `apps/docs/`, updated workspace config |
 | 2. Docusaurus Config | ✅ Complete | ~10min | Basic config without TypeDoc plugins |
 | 3. Placeholder Guides | ✅ Complete | ~15min | 6 package guides + intro page |

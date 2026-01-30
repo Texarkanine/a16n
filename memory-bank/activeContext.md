@@ -29,7 +29,7 @@ Fixed test failures caused by rebase errors and optimized the build pipeline:
 Refactor the existing Docusaurus documentation site from committed API docs to a staging area pattern:
 
 | Aspect | Before | After |
-|--------|--------|-------|
+| ------ | ------ | ----- |
 | API docs | Committed (46 files) | Generated at CI time |
 | Build source | `docs/` | `.generated/` (staging) |
 | Versioning | None | Git tag-based |
@@ -39,7 +39,7 @@ Refactor the existing Docusaurus documentation site from committed API docs to a
 ## Key Decisions Made
 
 | Decision | Rationale |
-|----------|-----------|
+| -------- | --------- |
 | Staging area at `.generated/` | Matches DOCS_2.md spec; keeps generated content out of repo |
 | Standalone TypeDoc | Simpler than `docusaurus-plugin-typedoc`; direct control |
 | Git tag-based versions | Tags exist (6 packages tagged); enables historical API docs |
@@ -67,7 +67,7 @@ Refactor the existing Docusaurus documentation site from committed API docs to a
 ## Files to Modify
 
 | File | Change |
-|------|--------|
+| ---- | ------ |
 | `apps/docs/api/` | DELETE (remove from git) |
 | `.gitignore` | Fix paths, add `.generated/` |
 | `apps/docs/package.json` | New build scripts |
@@ -85,4 +85,4 @@ Refactor the existing Docusaurus documentation site from committed API docs to a
 
 ## Context from Previous Work
 
-The `docs` branch has a working Docusaurus spike (reflection in `memory-bank/reflection/reflection-DOCS-SITE-MVP.md`). This pivot builds on that foundation but changes the API docs architecture significantly.
+The `docs` branch has a working Docusaurus spike (reflection in `memory-bank/reflection/reflection-DOCS-PIVOT-STAGING.md`). This pivot builds on that foundation but changes the API docs architecture significantly.
