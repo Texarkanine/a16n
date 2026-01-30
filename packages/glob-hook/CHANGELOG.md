@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.1.0...@a16njs/glob-hook@0.2.0) (2026-01-30)
+
+
+### Features
+
+* **docs:** Add Docusaurus-based docs module w/ generated, versioned APIDoc ([#18](https://github.com/Texarkanine/a16n/issues/18)) ([414882f](https://github.com/Texarkanine/a16n/commit/414882f6f0249a8cb9a507848eddcce371bce4d2))
+
 ## [0.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.0.1...@a16njs/glob-hook@0.1.0) (2026-01-28)
 
 
