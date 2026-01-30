@@ -388,12 +388,17 @@ export async function main(dryRun = false): Promise<void> {
       latestVersions.set(pkg.name, latest);
     }
     
-    // Process each versioned directory
+    // Process each versioned directory and create symlinks
     for (const pkg of PACKAGES) {
       const pkgTags = tagGroups.get(pkg.name);
       if (!pkgTags || pkgTags.length === 0) continue;
       
       const latestVersion = latestVersions.get(pkg.name);
+      
+      // Create symlink for 'latest' pointing to the highest version
+      if (latestVersion) {
+        createLatestSymlink(pkg.name, latestVersion);
+      }
       
       for (const tag of pkgTags) {
         const versionDir = join(docsDir, '.generated', pkg.name, 'api', tag.version);

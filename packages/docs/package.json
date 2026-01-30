@@ -10,7 +10,7 @@
     "build": "npm run stage && npm run apidoc:versioned && docusaurus build",
     "build:prose": "npm run stage && docusaurus build",
     "stage": "rm -rf .generated && mkdir -p .generated && cp -r docs/* .generated/",
-    "apidoc:current": "npm run apidoc:current:engine & npm run apidoc:current:models & npm run apidoc:current:plugin-cursor & npm run apidoc:current:plugin-claude & wait && npm run apidoc:current:postprocess",
+    "apidoc:current": "npm run apidoc:current:engine && npm run apidoc:current:models && npm run apidoc:current:plugin-cursor && npm run apidoc:current:plugin-claude && npm run apidoc:current:postprocess",
     "apidoc:current:postprocess": "find .generated -type f -name 'README.md' -path '*/api/current/*' -execdir sh -c 'echo \"---\\ntitle: current (unreleased)\\nslug: /$(basename $(dirname $(dirname $(pwd))))/api/current\\n---\\n\" | cat - README.md > index.md && rm README.md' \\; && find .generated -type f -name '*.md' -path '*/api/current/*' -exec sed -i.bak 's|](../README.md)|](../)|g' {} + && find .generated -type f -name '*.md.bak' -path '*/api/current/*' -delete",
     "apidoc:current:engine": "typedoc --tsconfig ../engine/tsconfig.json --plugin typedoc-plugin-markdown --out .generated/engine/api/current ../engine/src/index.ts",
     "apidoc:current:models": "typedoc --tsconfig ../models/tsconfig.json --plugin typedoc-plugin-markdown --out .generated/models/api/current ../models/src/index.ts",

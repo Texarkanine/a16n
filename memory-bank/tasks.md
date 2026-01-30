@@ -5,8 +5,8 @@
 
 ## Current Task: CodeRabbit PR #18 Fixes
 
-**Status:** Complete
-**PR URL:** https://github.com/Texarkanine/a16n/pull/18
+**Status:** In Progress
+**PR URL:** [PR #18](https://github.com/Texarkanine/a16n/pull/18)
 **Rate Limit Until:** 
 
 ### Actionable Items
@@ -15,6 +15,8 @@
 - [x] ID: SED-PORTABLE-TS - Fix sed -i for macOS portability in generate-versioned-api.ts - FIXED
 - [x] ID: SED-PORTABLE-PKG - Fix sed -i for macOS portability in package.json postprocess - FIXED
 - [x] ID: TYPO-DOCS2 - Fix @easyops-dev → @easyops-cn typo in DOCS_2.md (3 occurrences) - FIXED
+- [x] ID: APIDOC-WAIT - Fix apidoc:current script to run sequentially for reliable error detection - FIXED
+- [x] ID: LATEST-SYMLINK - Call createLatestSymlink function in generate-versioned-api.ts - FIXED
 
 ### Requires Human Decision
 (none)
