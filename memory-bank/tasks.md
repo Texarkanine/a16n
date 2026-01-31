@@ -5,7 +5,7 @@
 **Task ID**: DOCS-COMPREHENSIVE-FILL
 **Title**: Comprehensive Documentation Site Population
 **Complexity**: Level 3 (Intermediate Feature)
-**Status**: Planning
+**Status**: In Progress (Phases 1-3 Complete, 4-7 Remaining)
 
 ## Task Description
 
@@ -43,7 +43,7 @@ Fill out the a16n documentation site with correct and useful information. This i
 
 ## Implementation Plan
 
-### Phase 1: Infrastructure & CLI Docs Generation (Foundation)
+### Phase 1: Infrastructure & CLI Docs Generation (Foundation) ✅ COMPLETE
 
 **Goal**: Build the CLI documentation automation system
 
@@ -56,9 +56,17 @@ Fill out the a16n documentation site with correct and useful information. This i
 | 1.5 | Update `package.json` scripts | `packages/docs/package.json` |
 | 1.6 | Test versioned generation | (test run) |
 
-**Deliverable**: Running `pnpm docs:generate` produces versioned CLI docs
+**Deliverable**: Running `pnpm docs:generate` produces versioned CLI docs ✅
 
-### Phase 2: Sidebar & Structure (Organization)
+**Completed Deliverables:**
+- Created `packages/docs/scripts/generate-cli-docs.ts` (~200 lines)
+- Created `packages/docs/test/generate-cli-docs.test.ts` (14 tests, all passing)
+- Added `commander` as dev dependency
+- Added `clidoc:current` script to package.json
+- Integrated CLI docs into `apidoc:current` pipeline
+- All 395 tests passing
+
+### Phase 2: Sidebar & Structure (Organization) ✅ COMPLETE
 
 **Goal**: Restructure sidebar and create placeholder pages
 
@@ -70,9 +78,18 @@ Fill out the a16n documentation site with correct and useful information. This i
 | 2.4 | Create `faq.md` (stub) | `packages/docs/docs/faq.md` |
 | 2.5 | Rename/reorganize intro.md if needed | `packages/docs/docs/intro.md` |
 
-**Deliverable**: Sidebar shows new structure, pages exist (empty/stub)
+**Deliverable**: Sidebar shows new structure, pages exist (empty/stub) ✅
 
-### Phase 3: Main README Slim-Down (Source of Truth)
+**Completed Deliverables:**
+- Updated `sidebars.js` with "a16n" category for guides
+- Created `understanding-conversions/index.md` (stub with structure)
+- Created `plugin-development/index.md` (stub with prominent warning banner)
+- Created `faq.md` (stub with common questions)
+- Created `cli/reference.mdx` (wrapper page for CLI docs)
+- Updated `intro.md` with correct commands and better structure
+- Docusaurus build successful
+
+### Phase 3: Main README Slim-Down (Source of Truth) ✅ COMPLETE
 
 **Goal**: Pare down main README, move content to doc site pages
 
@@ -85,22 +102,37 @@ Fill out the a16n documentation site with correct and useful information. This i
 | 3.5 | Slim README to: warning, elevator pitch, badges (→cli), quickstart, supported tools table, link to docs | `README.md` |
 | 3.6 | Update badge to link to CLI package on npm | `README.md` |
 
-**Deliverable**: Main README is concise, links to doc site for details
+**Deliverable**: Main README is concise, links to doc site for details ✅
 
-### Phase 4: Doc Site Content - Guides (User-Facing)
+**Completed Deliverables:**
+- Moved conversion tables to `understanding-conversions/index.md` (complete with warning codes, file mappings)
+- Moved FAQ content to `faq.md` (complete with all original questions + more)
+- Moved programmatic API to `engine/index.md` (complete with code examples, API reference)
+- Moved plugin writing guide to `plugin-development/index.md` (complete with interface, examples)
+- Slimmed README from ~275 lines to ~70 lines
+- Added documentation badge linking to doc site
+- Main README now focuses on quick start + links to comprehensive docs
+
+### Phase 4: Doc Site Content - Guides (User-Facing) 🔄 PARTIAL
 
 **Goal**: Fill out all guide/prose pages
 
 | Step | Task | Files |
 |------|------|-------|
-| 4.1 | Update intro.md with "Why a16n", correct examples, links | `packages/docs/docs/intro.md` |
-| 4.2 | Complete understanding-conversions page | `packages/docs/docs/understanding-conversions/index.md` |
-| 4.3 | Complete plugin-development page (from planning doc) | `packages/docs/docs/plugin-development/index.md` |
-| 4.4 | Complete FAQ page | `packages/docs/docs/faq.md` |
+| 4.1 | ✅ Update intro.md with "Why a16n", correct examples, links | `packages/docs/docs/intro.md` |
+| 4.2 | ✅ Complete understanding-conversions page | `packages/docs/docs/understanding-conversions/index.md` |
+| 4.3 | ✅ Complete plugin-development page (from planning doc) | `packages/docs/docs/plugin-development/index.md` |
+| 4.4 | ✅ Complete FAQ page | `packages/docs/docs/faq.md` |
 
-**Deliverable**: All guide pages have complete, accurate content
+**Deliverable**: All guide pages have complete, accurate content ✅
 
-### Phase 5: Doc Site Content - Reference (Package Docs)
+**Note**: Phase 4 is effectively complete - all guide pages have been fully written with comprehensive content during Phase 3. ✅
+
+**Note**: Phase 4 is effectively complete - all guide pages have been fully written with comprehensive content during Phase 3.
+
+### Phase 5: Doc Site Content - Reference (Package Docs) 🔄 IN PROGRESS
+
+**Note**: glob-hook will have static prose docs (not generated) since it doesn't use Commander.js
 
 **Goal**: Fill out all package reference pages
 
