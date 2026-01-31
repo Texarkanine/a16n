@@ -1,0 +1,121 @@
+---
+title: CLI Reference
+description: Command reference for the a16n CLI
+---
+
+# CLI Reference
+
+Complete command reference for the a16n CLI.
+
+## Commands
+
+### convert
+
+Convert agent customization between tools.
+
+```bash
+npx a16n convert --from <source> --to <target> [path]
+```
+
+**Arguments:**
+- `[path]` - Project path (default: `.`)
+
+**Required Options:**
+- `-f, --from <agent>` - Source agent (e.g., `cursor`, `claude`)
+- `-t, --to <agent>` - Target agent (e.g., `cursor`, `claude`)
+
+**Options:**
+- `--dry-run` - Show what would happen without writing files
+- `--json` - Output as JSON
+- `-q, --quiet` - Suppress non-error output
+- `-v, --verbose` - Show detailed output
+- `--gitignore-output-with <style>` - Manage git-ignore status of output files
+  - `none` (default) - Don't manage git status
+  - `ignore` - Add to `.gitignore`
+  - `exclude` - Add to `.git/info/exclude`
+  - `hook` - Add to pre-commit hook
+  - `match` - Mirror source file git status
+- `--if-gitignore-conflict <resolution>` - How to resolve conflicts in match mode
+  - `skip` (default) - Emit warning and skip
+  - `ignore` - Force add to `.gitignore`
+  - `exclude` - Force add to `.git/info/exclude`
+  - `hook` - Force add to pre-commit hook
+  - `commit` - Force track in git
+- `--delete-source` - Delete source files after successful conversion
+
+**Examples:**
+
+```bash
+# Basic conversion
+npx a16n convert --from cursor --to claude
+
+# Preview changes
+npx a16n convert --from cursor --to claude --dry-run
+
+# With git ignore management
+npx a16n convert --from cursor --to claude --gitignore-output-with match
+
+# Delete source after conversion
+npx a16n convert --from cursor --to claude --delete-source
+```
+
+### discover
+
+List agent customization files without converting.
+
+```bash
+npx a16n discover --from <agent> [path]
+```
+
+**Arguments:**
+- `[path]` - Project path (default: `.`)
+
+**Required Options:**
+- `-f, --from <agent>` - Agent to discover (e.g., `cursor`, `claude`)
+
+**Options:**
+- `--json` - Output as JSON
+- `-v, --verbose` - Show detailed output
+
+**Examples:**
+
+```bash
+# Discover Cursor rules
+npx a16n discover --from cursor
+
+# Output as JSON
+npx a16n discover --from cursor --json
+```
+
+### plugins
+
+Show available plugins.
+
+```bash
+npx a16n plugins
+```
+
+**Example Output:**
+
+```
+Available plugins:
+
+  cursor
+    Name: Cursor Plugin
+    Supports: cursor
+
+  claude
+    Name: Claude Plugin
+    Supports: claude
+```
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | Error occurred |
+
+## Environment
+
+The CLI reads the current directory by default. Use the `[path]` argument to specify a different project root.

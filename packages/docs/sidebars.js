@@ -13,16 +13,28 @@
 
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
-  // By default, Docusaurus generates a sidebar from the docs folder structure
   tutorialSidebar: [
-    'intro',
+    // Guides & Overview
+    {
+      type: 'category',
+      label: 'a16n',
+      items: [
+        'intro',
+        'understanding-conversions/index',
+        'plugin-development/index',
+        'faq',
+      ],
+    },
+    // CLI Reference
     {
       type: 'category',
       label: 'CLI',
       items: [
         'cli/index',
+        'cli/reference',
       ],
     },
+    // Package: Engine
     {
       type: 'category',
       label: 'Engine',
@@ -44,6 +56,7 @@ const sidebars = {
         },
       ],
     },
+    // Package: Models
     {
       type: 'category',
       label: 'Models',
@@ -65,6 +78,7 @@ const sidebars = {
         },
       ],
     },
+    // Package: Plugin Cursor
     {
       type: 'category',
       label: 'Plugin: Cursor',
@@ -86,6 +100,7 @@ const sidebars = {
         },
       ],
     },
+    // Package: Plugin Claude
     {
       type: 'category',
       label: 'Plugin: Claude',
@@ -107,6 +122,7 @@ const sidebars = {
         },
       ],
     },
+    // Package: Glob Hook
     {
       type: 'category',
       label: 'Glob Hook',

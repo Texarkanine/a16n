@@ -32,13 +32,22 @@
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| 1 | Pending | CLI Doc Generation Infrastructure |
-| 2 | Pending | Sidebar & Structure |
-| 3 | Pending | Main README Slim-Down |
+| 1 | **Complete** | CLI Doc Generation Infrastructure |
+| 2 | **Complete** | Sidebar & Structure |
+| 3 | **Complete** | Main README Slim-Down |
 | 4 | Pending | Doc Site Content - Guides |
 | 5 | Pending | Doc Site Content - Reference |
 | 6 | Pending | Package READMEs |
 | 7 | Pending | Verification & Polish |
+
+### Phase 1 Deliverables
+
+- Created `packages/docs/scripts/generate-cli-docs.ts` (~200 lines)
+- Created `packages/docs/test/generate-cli-docs.test.ts` (14 tests)
+- Added `commander` as dev dependency to docs package
+- Added `clidoc:current` script to package.json
+- Integrated CLI docs into `apidoc:current` pipeline
+- All 395 tests passing
 
 ### Blockers
 
