@@ -393,6 +393,104 @@ slug: /${pkg.name}/api/${tag.version}
     // Remove top-level README.md files (they conflict with wrapper pages)
     exec('find .generated -type f -name "README.md" -path "*/api/README.md" -delete', getDocsDir());
     
+    // Configure smart pagination for API reference pages
+    // Version index pages: chain through versions, then to next package
+    // Detail pages (classes, interfaces): disabled (reference material)
+    console.log('Configuring pagination for API reference pages...');
+    
+    // Build sorted version lists per package (newest first)
+    // Use successfulTagGroups to avoid pagination links to failed generations
+    const packageVersions = new Map<string, string[]>();
+    for (const pkg of PACKAGES) {
+      const pkgTags = successfulTagGroups.get(pkg.name);
+      if (!pkgTags || pkgTags.length === 0) continue;
+      
+      const versions = pkgTags
+        .map(t => t.version)
+        .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+      packageVersions.set(pkg.name, versions);
+    }
+    
+    // Get package order for "next package" links
+    const packageOrder = PACKAGES.map(p => p.name).filter(name => packageVersions.has(name));
+    
+    for (let pkgIdx = 0; pkgIdx < packageOrder.length; pkgIdx++) {
+      const pkgName = packageOrder[pkgIdx];
+      const versions = packageVersions.get(pkgName)!;
+      const nextPkgName = pkgIdx < packageOrder.length - 1 ? packageOrder[pkgIdx + 1] : null;
+      
+      for (let vIdx = 0; vIdx < versions.length; vIdx++) {
+        const version = versions[vIdx];
+        const versionDir = join(docsDir, '.generated', pkgName, 'api', version);
+        
+        // Determine pagination for this version's index page
+        // Prev: newer version (or API landing page if newest)
+        // Next: older version (or next package's index if oldest)
+        const newerVersion = vIdx > 0 ? versions[vIdx - 1] : null;
+        const olderVersion = vIdx < versions.length - 1 ? versions[vIdx + 1] : null;
+        
+        const paginationPrev = newerVersion 
+          ? `${pkgName}/api/${newerVersion}/index`
+          : `${pkgName}/api`;  // Link back to API landing page
+        
+        const paginationNext = olderVersion
+          ? `${pkgName}/api/${olderVersion}/index`
+          : nextPkgName 
+            ? `${nextPkgName}/index`  // Link to next package's overview
+            : null;  // Last package, last version - end of chain
+        
+        // Process all files in this version directory
+        const apiFiles = exec(`find "${versionDir}" -type f -name "*.md"`, docsDir)
+          .split('\n')
+          .filter(Boolean);
+        
+        for (const filePath of apiFiles) {
+          const isIndexFile = filePath.endsWith('/index.md');
+          const content = readFileSync(filePath, 'utf-8');
+          
+          // Determine pagination values for this file
+          const prevValue = isIndexFile ? paginationPrev : 'null';
+          const nextValue = isIndexFile ? (paginationNext ?? 'null') : 'null';
+          
+          // Check if file already has frontmatter
+          const hasFrontmatter = content.startsWith('---\n');
+          
+          if (hasFrontmatter) {
+            const parts = content.split('---\n');
+            if (parts.length >= 3) {
+              const frontmatter = parts[1];
+              const restContent = parts.slice(2).join('---\n');
+              
+              // Replace pagination controls for idempotency (remove existing, then add fresh)
+              const cleanedFrontmatter = frontmatter
+                .split('\n')
+                .filter(
+                  (line) =>
+                    !line.startsWith('pagination_next:') &&
+                    !line.startsWith('pagination_prev:')
+                )
+                .join('\n')
+                .trimEnd();
+              let newFrontmatter = cleanedFrontmatter;
+              newFrontmatter += `\npagination_next: ${nextValue}`;
+              newFrontmatter += `\npagination_prev: ${prevValue}`;
+              
+              const newContent = `---\n${newFrontmatter}\n---\n${restContent}`;
+              writeFileSync(filePath, newContent);
+            }
+          } else {
+            const newContent = `---
+pagination_next: ${nextValue}
+pagination_prev: ${prevValue}
+---
+
+${content}`;
+            writeFileSync(filePath, newContent);
+          }
+        }
+      }
+    }
+    
     console.log('Post-processing complete');
   } catch (err) {
     console.warn('Warning: Could not post-process files:', err instanceof Error ? err.message : err);
