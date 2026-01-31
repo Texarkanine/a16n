@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.2.0...@a16njs/docs@0.2.1) (2026-01-31)
+
+
+### Bug Fixes
+
+* **docs:** prev/next navigation interaction w/ generated documentation ([#23](https://github.com/Texarkanine/a16n/issues/23)) ([6d537b1](https://github.com/Texarkanine/a16n/commit/6d537b1781b43e828469f53b8af58000748cc084))
+
 ## [0.2.0](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.1.0...@a16njs/docs@0.2.0) (2026-01-30)
 
 
