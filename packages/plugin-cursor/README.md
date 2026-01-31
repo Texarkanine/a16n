@@ -1,5 +1,8 @@
 # @a16njs/plugin-cursor
 
+[![npm version](https://img.shields.io/npm/v/@a16njs/plugin-cursor.svg)](https://www.npmjs.com/package/@a16njs/plugin-cursor)
+[![Documentation](https://img.shields.io/badge/docs-a16n.dev-blue)](https://a16n.dev/plugin-cursor)
+
 Cursor IDE plugin for a16n. Discovers and emits Cursor rules.
 
 ## Installation
@@ -48,40 +51,11 @@ Commands in `.cursor/commands/*.md` are prepackaged prompts invoked via `/comman
 | File references | `@src/utils.js` | Context injection |
 | `allowed-tools` | Frontmatter key | Tool permissions |
 
-### Classification Priority
-
-Rules are classified based on frontmatter (first match wins):
-
-1. `alwaysApply: true` → GlobalPrompt
-2. `globs:` present → FileRule  
-3. `description:` present → AgentSkill
-4. No frontmatter → GlobalPrompt (fallback)
-
 ### Emission
 
 - Creates `.cursor/rules/<name>.mdc` files with appropriate frontmatter
 - Creates `.cursor/commands/<name>.md` files for AgentCommand items
 - Creates `.cursorignore` from AgentIgnore patterns
-
-## .cursorignore Format
-
-The `.cursorignore` file uses gitignore-style patterns:
-
-```text
-# Build output
-dist/
-build/
-
-# Environment
-.env
-.env.local
-
-# Logs
-*.log
-
-# Secrets
-secrets/
-```
 
 ## MDC Format
 
@@ -126,3 +100,7 @@ console.log(`Found ${result.items.length} rules`);
 // Emit to Cursor format
 await cursorPlugin.emit(result.items, './my-project');
 ```
+
+## Documentation
+
+Full documentation available at [a16n.dev/plugin-cursor](https://a16n.dev/plugin-cursor).

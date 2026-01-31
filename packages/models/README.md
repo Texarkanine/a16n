@@ -1,5 +1,8 @@
 # @a16njs/models
 
+[![npm version](https://img.shields.io/npm/v/@a16njs/models.svg)](https://www.npmjs.com/package/@a16njs/models)
+[![Documentation](https://img.shields.io/badge/docs-a16n.dev-blue)](https://a16n.dev/models)
+
 Type definitions and plugin interface for a16n.
 
 ## Installation
@@ -53,3 +56,7 @@ import {
 - `isAgentIgnore(item)` - Type guard for AgentIgnore
 - `isManualPrompt(item)` - Type guard for ManualPrompt
 - `createId(type, sourcePath)` - Create unique ID
+
+## Documentation
+
+Full documentation available at [a16n.dev/models](https://a16n.dev/models).

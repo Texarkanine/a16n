@@ -1,5 +1,8 @@
 # @a16njs/glob-hook
 
+[![npm version](https://img.shields.io/npm/v/@a16njs/glob-hook.svg)](https://www.npmjs.com/package/@a16njs/glob-hook)
+[![Documentation](https://img.shields.io/badge/docs-a16n.dev-blue)](https://a16n.dev/glob-hook)
+
 CLI tool for glob-based file path matching in Claude Code hooks. Part of the [a16n](https://github.com/texarkanine/a16n) project.
 
 ## Why This Package?
@@ -96,29 +99,10 @@ Always outputs `{}` (empty object) and logs errors to stderr. This ensures hook 
 
 Patterns use [micromatch](https://github.com/micromatch/micromatch) syntax with `dot: true` (matches dotfiles).
 
-## Integration with a16n
-
-This package is part of the a16n conversion pipeline. When converting Cursor FileRules to Claude:
-
-1. a16n reads Cursor rules with glob patterns
-2. For each rule, a16n generates:
-   - A context file (`.a16n/rules/<name>.txt`)
-   - A hook configuration using glob-hook
-3. Claude hooks invoke glob-hook to match file patterns
-
 ## Requirements
 
 - Node.js >= 18.0.0
 
-## Development
+## Documentation
 
-```bash
-# Install dependencies
-pnpm install
-
-# Run tests
-pnpm --filter @a16njs/glob-hook test
-
-# Build
-pnpm --filter @a16njs/glob-hook build
-```
+Full documentation available at [a16n.dev/glob-hook](https://a16n.dev/glob-hook).
