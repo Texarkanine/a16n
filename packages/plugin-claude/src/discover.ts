@@ -4,6 +4,7 @@ import {
   type AgentCustomization,
   type AgentIgnore,
   type SimpleAgentSkill,
+  type AgentSkillIO,
   type FileRule,
   type ManualPrompt,
   type DiscoveryResult,
@@ -215,13 +216,61 @@ function convertReadRuleToPattern(rule: string): string | null {
 interface SkillFrontmatter {
   description?: string;
   name?: string;
-  hasHooks: boolean;
+  hooks?: Record<string, unknown>;
   disableModelInvocation?: boolean;
 }
 
 interface ParsedSkill {
   frontmatter: SkillFrontmatter;
   body: string;
+}
+
+/**
+ * Parse hooks section from frontmatter lines.
+ * Returns the hooks object and the line index after the hooks section.
+ */
+function parseHooksSection(lines: string[], startIndex: number, endIndex: number): { hooks: Record<string, unknown>; nextIndex: number } {
+  const hooks: Record<string, unknown> = {};
+  let i = startIndex;
+  
+  while (i < endIndex) {
+    const line = lines[i];
+    if (!line) {
+      i++;
+      continue;
+    }
+    
+    // Check if this is a hook name (e.g., "  pre-commit:")
+    const hookMatch = line.match(/^  (\S+):\s*$/);
+    if (hookMatch) {
+      const hookName = hookMatch[1]!;
+      const hookItems: unknown[] = [];
+      i++;
+      
+      // Parse hook items (e.g., "    - run: ./script.sh")
+      while (i < endIndex) {
+        const itemLine = lines[i];
+        if (!itemLine || !itemLine.startsWith('    ')) break;
+        
+        const itemMatch = itemLine.match(/^\s+-\s+(\w+):\s*(.+)$/);
+        if (itemMatch) {
+          hookItems.push({ [itemMatch[1]!]: itemMatch[2]! });
+        }
+        i++;
+      }
+      
+      hooks[hookName] = hookItems;
+      continue;
+    }
+    
+    // If we hit a non-indented line, we're done with hooks
+    if (!line.startsWith(' ')) {
+      break;
+    }
+    i++;
+  }
+  
+  return { hooks, nextIndex: i };
 }
 
 function parseSkillFrontmatter(content: string): ParsedSkill {
@@ -245,21 +294,28 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
   // No frontmatter found
   if (frontmatterStart === -1 || frontmatterEnd === -1) {
     return {
-      frontmatter: { hasHooks: false },
+      frontmatter: {},
       body: content.trim(),
     };
   }
   
-  const frontmatter: SkillFrontmatter = { hasHooks: false };
+  const frontmatter: SkillFrontmatter = {};
   
   // Parse frontmatter lines
-  for (let i = frontmatterStart + 1; i < frontmatterEnd; i++) {
+  let i = frontmatterStart + 1;
+  while (i < frontmatterEnd) {
     const line = lines[i];
-    if (!line) continue;
+    if (!line) {
+      i++;
+      continue;
+    }
     
     // Check for hooks: key (indicates skill-scoped hooks)
     if (line.match(/^hooks:\s*$/)) {
-      frontmatter.hasHooks = true;
+      i++;
+      const { hooks, nextIndex } = parseHooksSection(lines, i, frontmatterEnd);
+      frontmatter.hooks = hooks;
+      i = nextIndex;
       continue;
     }
     
@@ -267,6 +323,7 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
     const descriptionMatch = line.match(/^description:\s*["']?(.+?)["']?\s*$/);
     if (descriptionMatch) {
       frontmatter.description = descriptionMatch[1];
+      i++;
       continue;
     }
     
@@ -274,6 +331,7 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
     const nameMatch = line.match(/^name:\s*["']?(.+?)["']?\s*$/);
     if (nameMatch) {
       frontmatter.name = nameMatch[1];
+      i++;
       continue;
     }
 
@@ -281,8 +339,11 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
     const disableMatch = line.match(/^disable-model-invocation:\s*(true|false)\s*$/);
     if (disableMatch) {
       frontmatter.disableModelInvocation = disableMatch[1] === 'true';
+      i++;
       continue;
     }
+    
+    i++;
   }
   
   // Extract body (everything after second ---)
@@ -293,10 +354,10 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
 }
 
 /**
- * Find all SKILL.md files in .claude/skills/ subdirectories.
- * Returns paths like ".claude/skills/testing/SKILL.md"
+ * Find all skill directories in .claude/skills/ that contain SKILL.md.
+ * Returns directory names (e.g., "testing", "secure-deploy").
  */
-async function findSkillFiles(root: string): Promise<string[]> {
+async function findSkillDirs(root: string): Promise<string[]> {
   const results: string[] = [];
   const skillsDir = path.join(root, '.claude', 'skills');
   
@@ -308,7 +369,7 @@ async function findSkillFiles(root: string): Promise<string[]> {
         const skillFile = path.join(skillsDir, entry.name, 'SKILL.md');
         try {
           await fs.access(skillFile);
-          results.push(`.claude/skills/${entry.name}/SKILL.md`);
+          results.push(entry.name);
         } catch {
           // No SKILL.md in this directory
         }
@@ -319,6 +380,29 @@ async function findSkillFiles(root: string): Promise<string[]> {
   }
   
   return results;
+}
+
+/**
+ * Read all non-SKILL.md files in a skill directory.
+ * Returns a map of filename → content.
+ */
+async function readSkillFiles(skillDir: string): Promise<Record<string, string>> {
+  const files: Record<string, string> = {};
+  
+  try {
+    const entries = await fs.readdir(skillDir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      if (entry.isFile() && entry.name !== 'SKILL.md') {
+        const filePath = path.join(skillDir, entry.name);
+        files[entry.name] = await fs.readFile(filePath, 'utf-8');
+      }
+    }
+  } catch {
+    // Directory read error - return empty files
+  }
+  
+  return files;
 }
 
 /**
@@ -436,46 +520,73 @@ export async function discover(root: string): Promise<DiscoveryResult> {
     }
   }
 
-  // Find all .claude/skills/*/SKILL.md files (AgentSkill)
-  const skillFiles = await findSkillFiles(root);
+  // Find all .claude/skills/*/ directories with SKILL.md (AgentSkill or AgentSkillIO)
+  const skillDirs = await findSkillDirs(root);
+  const skillsDir = path.join(root, '.claude', 'skills');
 
-  for (const skillPath of skillFiles) {
-    const fullPath = path.join(root, skillPath);
+  for (const dirName of skillDirs) {
+    const skillDir = path.join(skillsDir, dirName);
+    const skillPath = `.claude/skills/${dirName}/SKILL.md`;
+    const fullPath = path.join(skillDir, 'SKILL.md');
     
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
       const { frontmatter, body } = parseSkillFrontmatter(content);
       
-      // Extract skill name from path (e.g., "testing" from ".claude/skills/testing/SKILL.md")
-      const skillName = skillPath.split('/')[2] || 'unknown';
+      // Extract skill name from frontmatter or directory
+      const skillName = frontmatter.name || dirName;
       
-      // Skip skills with hooks - they're not convertible to Cursor
-      if (frontmatter.hasHooks) {
-        const displayName = frontmatter.name || skillName;
-        warnings.push({
-          code: WarningCode.Skipped,
-          message: `Skipped skill '${displayName}': Contains hooks (not convertible to Cursor)`,
-          sources: [skillPath],
-        });
-        continue;
-      }
+      // Read all other files in the skill directory
+      const files = await readSkillFiles(skillDir);
+      const hasExtraFiles = Object.keys(files).length > 0;
+      const hasHooks = frontmatter.hooks && Object.keys(frontmatter.hooks).length > 0;
       
       // Classification priority:
-      // 1. disable-model-invocation: true -> ManualPrompt
-      // 2. description present -> SimpleAgentSkill
-      if (frontmatter.disableModelInvocation === true) {
+      // 1. Has hooks or extra files → AgentSkillIO (with description required)
+      // 2. disable-model-invocation: true → ManualPrompt
+      // 3. description present → SimpleAgentSkill
+      
+      if (hasHooks || hasExtraFiles) {
+        // AgentSkillIO - complex skill with hooks or resources
+        if (!frontmatter.description) {
+          // AgentSkillIO requires description
+          warnings.push({
+            code: WarningCode.Skipped,
+            message: `Skipped skill '${skillName}': Has hooks or resource files but missing description`,
+            sources: [skillPath],
+          });
+          continue;
+        }
+        
+        const agentSkillIO: AgentSkillIO = {
+          id: createId(CustomizationType.AgentSkillIO, skillPath),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: skillPath,
+          content: body,
+          name: skillName,
+          description: frontmatter.description,
+          hooks: frontmatter.hooks,
+          disableModelInvocation: frontmatter.disableModelInvocation,
+          resources: Object.keys(files),
+          files,
+          metadata: { name: frontmatter.name },
+        };
+        items.push(agentSkillIO);
+      } else if (frontmatter.disableModelInvocation === true) {
+        // ManualPrompt
         const prompt: ManualPrompt = {
           id: createId(CustomizationType.ManualPrompt, skillPath),
           type: CustomizationType.ManualPrompt,
           sourcePath: skillPath,
           content: body,
-          promptName: frontmatter.name || skillName,
+          promptName: skillName,
           metadata: {
-            name: frontmatter.name || skillName,
+            name: skillName,
           },
         };
         items.push(prompt);
       } else if (frontmatter.description) {
+        // SimpleAgentSkill
         const skill: SimpleAgentSkill = {
           id: createId(CustomizationType.SimpleAgentSkill, skillPath),
           type: CustomizationType.SimpleAgentSkill,
@@ -483,7 +594,7 @@ export async function discover(root: string): Promise<DiscoveryResult> {
           content: body,
           description: frontmatter.description,
           metadata: {
-            name: frontmatter.name || skillName,
+            name: skillName,
           },
         };
         items.push(skill);

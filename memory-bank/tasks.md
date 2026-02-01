@@ -29,7 +29,7 @@ All four milestones successfully implemented on 2026-01-31 and 2026-02-01.
 | Milestone | Description | Spec Section | Status |
 |-----------|-------------|--------------|--------|
 | 4 | Type System Updates (B1 + B2) | Lines 355-429 | ✅ Complete |
-| 5 | AgentSkillIO Discovery (B3) | Lines 457-525 | ⏳ Not Started |
+| 5 | AgentSkillIO Discovery (B3) | Lines 457-525 | ✅ Complete |
 | 6 | AgentSkillIO Emission (B4) | Lines 527-588 | ⏳ Not Started |
 | 7 | Integration Testing & Polish | Lines 771-785 | ⏳ Not Started |
 
@@ -582,16 +582,16 @@ pnpm format && pnpm lint -- --fix && pnpm build && pnpm test
 - [x] **4.12** Update models tests
 - [x] **4.13** Run `pnpm build && pnpm test`
 
-### Milestone 5: AgentSkillIO Discovery
+### Milestone 5: AgentSkillIO Discovery ✅ COMPLETE
 
-- [ ] **5.1** Create `cursor-skills-complex` test fixture
-- [ ] **5.2** Create `claude-skills-complex` test fixture
-- [ ] **5.3** Stub discovery tests (expect failures)
-- [ ] **5.4** Update Cursor `discoverSkills()` to read full directories
-- [ ] **5.5** Update Claude skill discovery to read full directories
-- [ ] **5.6** Implement classification logic (simple vs complex)
-- [ ] **5.7** Run `pnpm --filter @a16njs/plugin-cursor test`
-- [ ] **5.8** Run `pnpm --filter @a16njs/plugin-claude test`
+- [x] **5.1** Create `cursor-skills-complex` test fixture
+- [x] **5.2** Create `claude-skills-complex` test fixture
+- [x] **5.3** Stub discovery tests (expect failures)
+- [x] **5.4** Update Cursor `discoverSkills()` to read full directories
+- [x] **5.5** Update Claude skill discovery to read full directories
+- [x] **5.6** Implement classification logic (simple vs complex)
+- [x] **5.7** Run `pnpm --filter @a16njs/plugin-cursor test`
+- [x] **5.8** Run `pnpm --filter @a16njs/plugin-claude test`
 
 ### Milestone 6: AgentSkillIO Emission
 

@@ -13,10 +13,10 @@
 | Milestone | Description | Tasks | Complete | Status |
 |-----------|-------------|-------|----------|--------|
 | 4 | Type System Updates | 13 | 13 | ✅ Complete |
-| 5 | AgentSkillIO Discovery | 8 | 0 | ⏳ Not Started |
+| 5 | AgentSkillIO Discovery | 8 | 8 | ✅ Complete |
 | 6 | AgentSkillIO Emission | 6 | 0 | ⏳ Not Started |
 | 7 | Integration & Polish | 6 | 0 | ⏳ Not Started |
-| **Total** | | **33** | **13** | **39%** |
+| **Total** | | **33** | **21** | **64%** |
 
 ---
 
@@ -149,6 +149,44 @@ pnpm test   # ✅ All tests pass
 pnpm lint   # ✅ No errors
 ```
 
+## Milestone 5 Complete
+
+**Date**: 2026-02-01
+**Time**: ~45 minutes
+
+### Summary
+
+Implemented AgentSkillIO discovery following TDD methodology:
+
+1. **Test Fixtures Created**:
+   - `cursor-skills-complex/` - Cursor skill with extra files (checklist.md, config.json)
+   - `claude-skills-complex/` - Claude skill with hooks and extra files (pre-check.sh, manifest.json)
+
+2. **Discovery Logic Updated**:
+   - `findSkillDirs()` - Finds skill directories with SKILL.md
+   - `readSkillFiles()` - Reads all non-SKILL.md files in a skill directory
+   - Classification logic: hooks or extra files → AgentSkillIO, simple skills → SimpleAgentSkill
+
+3. **Packages Updated**:
+   - `@a16njs/plugin-cursor` - Full directory discovery
+   - `@a16njs/plugin-claude` - Full directory discovery with hooks parsing
+   - `a16n` (CLI) - Updated tests for new behavior
+
+4. **Tests**: 452 tests pass across all packages
+
+### Behavior Changes
+
+- Skills with hooks are now discovered as AgentSkillIO (previously skipped with warning)
+- Skills with extra files are now discovered as AgentSkillIO
+- Simple skills (only SKILL.md, no hooks, no extra files) remain as SimpleAgentSkill
+
+### Verification
+
+```bash
+pnpm build  # ✅ Success
+pnpm test   # ✅ 452 tests pass
+```
+
 ### Next Steps
 
-Ready to proceed with Milestone 5: AgentSkillIO Discovery (B3)
+Ready to proceed with Milestone 6: AgentSkillIO Emission (B4)

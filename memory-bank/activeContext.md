@@ -9,14 +9,14 @@
 
 ## Implementation Progress
 
-Milestone 4 (Type System Updates) is now complete.
+Milestones 4 and 5 are now complete.
 
 ### Milestones Status
 
 | Milestone | Description | Tasks | Status |
 |-----------|-------------|-------|--------|
 | 4 | Type System Updates (B1+B2) | 13 | ✅ Complete |
-| 5 | AgentSkillIO Discovery (B3) | 8 | ⏳ Ready |
+| 5 | AgentSkillIO Discovery (B3) | 8 | ✅ Complete |
 | 6 | AgentSkillIO Emission (B4) | 6 | ⏳ Ready |
 | 7 | Integration & Polish | 6 | ⏳ Ready |
 
@@ -119,6 +119,14 @@ Type system successfully updated:
 - `isSimpleAgentSkill()` and `isAgentSkillIO()` type guards
 - All packages updated and tested
 
+## Milestone 5 Summary (Complete)
+
+Discovery logic updated for AgentSkillIO:
+- Both Cursor and Claude plugins now read full skill directories
+- Skills with extra files (Cursor) or hooks (Claude) → AgentSkillIO
+- Simple skills (only SKILL.md) → SimpleAgentSkill or ManualPrompt
+- 452 tests pass across all packages
+
 ## Blockers
 
-None. Ready for Milestone 5 (AgentSkillIO Discovery).
+None. Ready for Milestone 6 (AgentSkillIO Emission).

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import claudePlugin from '../src/index.js';
-import { CustomizationType, WarningCode, type SimpleAgentSkill, type AgentIgnore, type ManualPrompt } from '@a16njs/models';
+import { CustomizationType, WarningCode, type SimpleAgentSkill, type AgentIgnore, type ManualPrompt, type AgentSkillIO } from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
@@ -102,24 +102,23 @@ describe('Claude AgentSkill Discovery (Phase 2)', () => {
     });
   });
 
-  describe('skills with hooks (unsupported)', () => {
-    it('should skip skills that contain hooks in frontmatter', async () => {
+  describe('skills with hooks → AgentSkillIO (Phase 8 B3)', () => {
+    it('should discover skills with hooks as AgentSkillIO', async () => {
       const root = path.join(fixturesDir, 'claude-skills-with-hooks/from-claude');
       const result = await claudePlugin.discover(root);
 
-      // No skills should be discovered (the one skill has hooks)
-      const skills = result.items.filter(i => i.type === CustomizationType.SimpleAgentSkill);
-      expect(skills).toHaveLength(0);
+      // Skills with hooks should now be discovered as AgentSkillIO
+      const agentSkillIO = result.items.filter(i => i.type === CustomizationType.AgentSkillIO);
+      expect(agentSkillIO).toHaveLength(1);
     });
 
-    it('should emit warning when skipping skill with hooks', async () => {
+    it('should NOT emit warning for skills with hooks (they become AgentSkillIO)', async () => {
       const root = path.join(fixturesDir, 'claude-skills-with-hooks/from-claude');
       const result = await claudePlugin.discover(root);
 
-      expect(result.warnings).toHaveLength(1);
-      expect(result.warnings[0]?.code).toBe(WarningCode.Skipped);
-      expect(result.warnings[0]?.message).toContain('hooks');
-      expect(result.warnings[0]?.message).toContain('secure-operations');
+      // No warnings should be emitted - hooks are now supported
+      const hooksWarning = result.warnings.find(w => w.message.includes('hooks'));
+      expect(hooksWarning).toBeUndefined();
     });
   });
 });
@@ -259,13 +258,14 @@ describe('Claude Plugin Never Discovers ManualPrompt (Phase 4)', () => {
     }
   });
 
-  it('should only discover GlobalPrompt, AgentSkill, FileRule, and AgentIgnore', async () => {
+  it('should only discover GlobalPrompt, AgentSkill, AgentSkillIO, FileRule, and AgentIgnore', async () => {
     const root = path.join(fixturesDir, 'claude-skills/from-claude');
     const result = await claudePlugin.discover(root);
 
     const validTypes = [
       CustomizationType.GlobalPrompt,
       CustomizationType.SimpleAgentSkill,
+      CustomizationType.AgentSkillIO,
       CustomizationType.FileRule,
       CustomizationType.AgentIgnore,
     ];
@@ -273,6 +273,154 @@ describe('Claude Plugin Never Discovers ManualPrompt (Phase 4)', () => {
     for (const item of result.items) {
       expect(validTypes).toContain(item.type);
     }
+  });
+});
+
+describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
+  /**
+   * Tests for discovering complex skills that have hooks and/or extra files.
+   * Skills with hooks or additional resources should be classified as AgentSkillIO.
+   */
+  describe('complex skills with hooks → AgentSkillIO', () => {
+    it('should discover AgentSkillIO from skill with hooks in frontmatter', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const agentSkillIO = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+      );
+      expect(agentSkillIO).toBeDefined();
+      expect(agentSkillIO?.type).toBe(CustomizationType.AgentSkillIO);
+    });
+
+    it('should preserve hooks structure in AgentSkillIO.hooks', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+      ) as AgentSkillIO;
+      
+      expect(skill).toBeDefined();
+      expect(skill.hooks).toBeDefined();
+      expect(skill.hooks).toHaveProperty('pre-commit');
+      expect(skill.hooks).toHaveProperty('post-deploy');
+    });
+
+    it('should include all extra files in AgentSkillIO.files map', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+      ) as AgentSkillIO;
+      
+      expect(skill).toBeDefined();
+      expect(skill.files).toBeDefined();
+      expect(Object.keys(skill.files)).toContain('pre-check.sh');
+      expect(Object.keys(skill.files)).toContain('manifest.json');
+      expect(skill.files['pre-check.sh']).toContain('Running security checks');
+      expect(skill.files['manifest.json']).toContain('"securityLevel": "high"');
+    });
+
+    it('should extract skill name from frontmatter', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+      ) as AgentSkillIO;
+      
+      expect(skill).toBeDefined();
+      expect(skill.name).toBe('secure-deploy');
+    });
+
+    it('should extract description from frontmatter', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+      ) as AgentSkillIO;
+      
+      expect(skill).toBeDefined();
+      expect(skill.description).toBe('Secure deployment workflow with pre-commit verification');
+    });
+
+    it('should include SKILL.md content in AgentSkillIO.content', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+      ) as AgentSkillIO;
+      
+      expect(skill).toBeDefined();
+      expect(skill.content).toContain('Secure Deploy Skill');
+      expect(skill.content).toContain('secure deployment workflow with automated checks');
+    });
+
+    it('should list resource filenames in AgentSkillIO.resources', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+      ) as AgentSkillIO;
+      
+      expect(skill).toBeDefined();
+      expect(skill.resources).toBeDefined();
+      expect(skill.resources).toContain('pre-check.sh');
+      expect(skill.resources).toContain('manifest.json');
+    });
+  });
+
+  describe('simple skills remain as SimpleAgentSkill', () => {
+    it('should classify skill without hooks and no extra files as SimpleAgentSkill', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const simpleSkill = result.items.find(
+        i => i.type === CustomizationType.SimpleAgentSkill && i.sourcePath.includes('simple-testing')
+      );
+      expect(simpleSkill).toBeDefined();
+      expect(simpleSkill?.type).toBe(CustomizationType.SimpleAgentSkill);
+    });
+  });
+
+  describe('mixed simple and complex skills', () => {
+    it('should correctly classify both simple and complex skills', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      // Should have one AgentSkillIO (secure-deploy) and one SimpleAgentSkill (simple-testing)
+      const agentSkillIO = result.items.filter(i => i.type === CustomizationType.AgentSkillIO);
+      const simpleSkills = result.items.filter(i => i.type === CustomizationType.SimpleAgentSkill);
+
+      expect(agentSkillIO).toHaveLength(1);
+      expect(simpleSkills).toHaveLength(1);
+      expect(agentSkillIO[0]?.sourcePath).toContain('secure-deploy');
+      expect(simpleSkills[0]?.sourcePath).toContain('simple-testing');
+    });
+  });
+
+  describe('backward compatibility', () => {
+    it('should no longer skip skills with hooks (they become AgentSkillIO)', async () => {
+      // Previously, the claude-skills-with-hooks fixture would cause a warning
+      // Now it should be discovered as AgentSkillIO instead
+      const root = path.join(fixturesDir, 'claude-skills-with-hooks/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      // The skill with hooks should now be discovered as AgentSkillIO, not skipped
+      const agentSkillIO = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO
+      );
+      expect(agentSkillIO).toBeDefined();
+      
+      // Should no longer have a warning about hooks
+      const hooksWarning = result.warnings.find(w => w.message.includes('hooks'));
+      expect(hooksWarning).toBeUndefined();
+    });
   });
 });
 

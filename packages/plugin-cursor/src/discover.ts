@@ -8,6 +8,7 @@ import {
   type Warning,
   type FileRule,
   type SimpleAgentSkill,
+  type AgentSkillIO,
   type GlobalPrompt,
   CustomizationType,
   WarningCode,
@@ -315,10 +316,10 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
 }
 
 /**
- * Find all SKILL.md files in .cursor/skills/ subdirectories.
- * Returns paths like ".cursor/skills/deploy/SKILL.md"
+ * Find all skill directories in .cursor/skills/ that contain SKILL.md.
+ * Returns directory names (e.g., "deploy", "reset-db").
  */
-async function findSkillFiles(root: string): Promise<string[]> {
+async function findSkillDirs(root: string): Promise<string[]> {
   const results: string[] = [];
   const skillsDir = nodePath.join(root, '.cursor', 'skills');
   
@@ -330,7 +331,7 @@ async function findSkillFiles(root: string): Promise<string[]> {
         const skillFile = nodePath.join(skillsDir, entry.name, 'SKILL.md');
         try {
           await fs.access(skillFile);
-          results.push(`.cursor/skills/${entry.name}/SKILL.md`);
+          results.push(entry.name);
         } catch {
           // No SKILL.md in this directory
         }
@@ -344,10 +345,36 @@ async function findSkillFiles(root: string): Promise<string[]> {
 }
 
 /**
- * Discover skills from .cursor/skills/*\/SKILL.md
- * - Skills with description -> SimpleAgentSkill
+ * Read all non-SKILL.md files in a skill directory.
+ * Returns a map of filename → content.
+ */
+async function readSkillFiles(skillDir: string): Promise<Record<string, string>> {
+  const files: Record<string, string> = {};
+  
+  try {
+    const entries = await fs.readdir(skillDir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      if (entry.isFile() && entry.name !== 'SKILL.md') {
+        const filePath = nodePath.join(skillDir, entry.name);
+        files[entry.name] = await fs.readFile(filePath, 'utf-8');
+      }
+    }
+  } catch {
+    // Directory read error - return empty files
+  }
+  
+  return files;
+}
+
+/**
+ * Discover skills from .cursor/skills/.
+ * 
+ * Classification:
+ * - Skills with extra files -> AgentSkillIO (Phase 8 B3)
  * - Skills with disable-model-invocation: true -> ManualPrompt
- * - Skills without either -> Skip with warning
+ * - Skills with description only -> SimpleAgentSkill
+ * - Skills without description or disable-model-invocation -> Skip with warning
  */
 async function discoverSkills(root: string): Promise<{
   items: AgentCustomization[];
@@ -356,25 +383,57 @@ async function discoverSkills(root: string): Promise<{
   const items: AgentCustomization[] = [];
   const warnings: Warning[] = [];
   
-  const skillFiles = await findSkillFiles(root);
+  const skillDirs = await findSkillDirs(root);
+  const skillsDir = nodePath.join(root, '.cursor', 'skills');
   
-  for (const skillPath of skillFiles) {
-    const fullPath = nodePath.join(root, skillPath);
+  for (const dirName of skillDirs) {
+    const skillDir = nodePath.join(skillsDir, dirName);
+    const skillPath = `.cursor/skills/${dirName}/SKILL.md`;
+    const fullPath = nodePath.join(skillDir, 'SKILL.md');
     
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
       const { frontmatter, body } = parseSkillFrontmatter(content);
       
-      // Extract skill name from path or frontmatter
-      const dirName = skillPath.split('/')[2] || 'unknown';
+      // Extract skill name from frontmatter or directory
       const skillName = frontmatter.name || dirName;
       
-      // Classification priority:
-      // 1. disable-model-invocation: true → ManualPrompt
-      // 2. description present → SimpleAgentSkill
-      // 3. Neither → Skip with warning
+      // Read all other files in the skill directory
+      const files = await readSkillFiles(skillDir);
+      const hasExtraFiles = Object.keys(files).length > 0;
       
-      if (frontmatter.disableModelInvocation === true) {
+      // Classification priority:
+      // 1. Has extra files → AgentSkillIO (with description required)
+      // 2. disable-model-invocation: true → ManualPrompt
+      // 3. description present → SimpleAgentSkill
+      // 4. Neither → Skip with warning
+      
+      if (hasExtraFiles) {
+        // AgentSkillIO - complex skill with resources
+        if (!frontmatter.description) {
+          // AgentSkillIO requires description
+          warnings.push({
+            code: WarningCode.Skipped,
+            message: `Skipped skill '${skillName}': Has resource files but missing description`,
+            sources: [skillPath],
+          });
+          continue;
+        }
+        
+        const agentSkillIO: AgentSkillIO = {
+          id: createId(CustomizationType.AgentSkillIO, skillPath),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: skillPath,
+          content: body,
+          name: skillName,
+          description: frontmatter.description,
+          disableModelInvocation: frontmatter.disableModelInvocation,
+          resources: Object.keys(files),
+          files,
+          metadata: { name: frontmatter.name },
+        };
+        items.push(agentSkillIO);
+      } else if (frontmatter.disableModelInvocation === true) {
         // ManualPrompt
         items.push({
           id: createId(CustomizationType.ManualPrompt, skillPath),

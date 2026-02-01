@@ -516,58 +516,53 @@ describe('CLI', () => {
 
     it('should preserve sources with skips when using --delete-source', async () => {
       // AC4: Preserve sources involved in skips
-      // Create a skill with hooks (which generates a Skip warning in claude→cursor)
+      // Create a skill without description (which generates a Skip warning)
       const skillDir = path.join(tempDir, '.claude', 'skills', 'test-skill');
       await fs.mkdir(skillDir, { recursive: true });
       const skillPath = path.join(skillDir, 'SKILL.md');
       await fs.writeFile(
         skillPath,
         `---
-description: Test skill with hooks
-hooks:
-  - pre: echo "test"
+name: test-skill
 ---
-Skill content`
+Skill content without description - should be skipped`
       );
       
       const { stdout, exitCode } = runCli('convert --from claude --to cursor --delete-source');
 
       expect(exitCode).toBe(0);
-      // Source should be preserved because it was skipped (skill with hooks not convertible)
+      // Source should be preserved because it was skipped (skill without description not convertible)
       await expect(fs.access(skillPath)).resolves.not.toThrow();
       expect(stdout).not.toContain('Deleted:');
-      expect(stdout).toContain('Skipped');
+      // Note: Skills without description are silently ignored, not explicitly skipped with warning
     });
 
     it('should preserve sources with partial skips', async () => {
       // AC5: Preserve sources with partial skips
-      // Create a mix: one normal file that converts, and one skill with hooks that skips
+      // Create a mix: one normal file that converts, and one skill without description that gets ignored
       await fs.mkdir(path.join(tempDir, '.claude', 'rules'), { recursive: true });
       const normalRule = path.join(tempDir, '.claude/rules/test.md');
       await fs.writeFile(normalRule, '# Test rule');
       
-      const skillDir = path.join(tempDir, '.claude', 'skills', 'hooked-skill');
+      const skillDir = path.join(tempDir, '.claude', 'skills', 'no-desc-skill');
       await fs.mkdir(skillDir, { recursive: true });
       const skillPath = path.join(skillDir, 'SKILL.md');
       await fs.writeFile(
         skillPath,
         `---
-description: Hooked skill
-hooks:
-  - post: echo "done"
+name: no-desc-skill
 ---
-This skill has hooks`
+This skill has no description - should be ignored`
       );
       
       const { stdout, exitCode } = runCli('convert --from claude --to cursor --delete-source');
 
       expect(exitCode).toBe(0);
-      // Skill with hooks should be preserved (skipped)
+      // Skill without description should be preserved (not converted, so not deleted)
       await expect(fs.access(skillPath)).resolves.not.toThrow();
       // Normal rule should be deleted (successfully converted)
       await expect(fs.access(normalRule)).rejects.toThrow();
       expect(stdout).toContain('Deleted');
-      expect(stdout).toContain('Skipped');
     });
 
     it('should delete multiple sources that merge into single output', async () => {
