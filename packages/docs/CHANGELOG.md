@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.2.1...@a16njs/docs@0.3.0) (2026-02-01)
+
+
+### Features
+
+* **docs:** Fill out docs and make them mostly right ([#25](https://github.com/Texarkanine/a16n/issues/25)) ([e37eba3](https://github.com/Texarkanine/a16n/commit/e37eba3f0b32a013d018b3ecd3f2bf6fa9d26cff))
+
 ## [0.2.1](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.2.0...@a16njs/docs@0.2.1) (2026-01-31)
 
 
