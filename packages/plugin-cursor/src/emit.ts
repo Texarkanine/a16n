@@ -248,7 +248,10 @@ ${skill.content}
       }
 
       const baseName = sanitizeFilename(skill.name) + '.mdc';
-      const { filename } = getUniqueFilename(baseName, usedFilenames);
+      const { filename, collision } = getUniqueFilename(baseName, usedFilenames);
+      if (collision) {
+        collisionSources.push(skill.sourcePath);
+      }
 
       const filepath = path.join(rulesDir, filename);
       const content = formatAgentSkillMdc(skill.content, skill.description);

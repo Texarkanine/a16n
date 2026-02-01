@@ -25,6 +25,10 @@
 
 - [x] ID: emit-collision-order - Move collision warning emission after AgentSkillIO loop (packages/plugin-cursor/src/emit.ts:556-563) - FIXED
 
+### Actionable Items (Round 4)
+
+- [x] ID: emit-collision-simple - Track collision from getUniqueFilename in simple AgentSkillIO rule emission (packages/plugin-cursor/src/emit.ts:251) - FIXED
+
 ### Requires Human Decision
 
 None
