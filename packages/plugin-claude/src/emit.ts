@@ -8,6 +8,7 @@ import {
   type WrittenFile,
   type Warning,
   type FileRule,
+  type GlobalPrompt,
   type AgentSkill,
   CustomizationType,
   WarningCode,
@@ -74,28 +75,35 @@ function sanitizePromptName(promptName: string): string {
 }
 
 /**
- * Escape a string for safe use in double-quoted shell arguments.
- * Escapes: backslash, double quote, dollar sign, backtick.
+ * Format a GlobalPrompt as a Claude rule file.
+ * GlobalPrompts are emitted as plain markdown without frontmatter.
+ * Includes source header for traceability.
+ * 
+ * @param gp - The GlobalPrompt to format
+ * @returns Formatted markdown content
  */
-function escapeShellArg(str: string): string {
-  return str.replace(/[\\"`$]/g, '\\$&');
+function formatGlobalPromptAsClaudeRule(gp: GlobalPrompt): string {
+  const header = `## From: ${gp.sourcePath}`;
+  return `${header}\n\n${gp.content}`;
 }
 
 /**
- * Build hook configuration for a FileRule.
+ * Format a FileRule as a Claude rule file with paths frontmatter.
+ * FileRules are emitted with YAML frontmatter containing the globs as paths.
+ * 
+ * @param fr - The FileRule to format
+ * @returns Formatted markdown with YAML frontmatter
  */
-function buildHookConfig(fileRule: FileRule, rulePath: string): object {
-  // Escape globs and rulePath to prevent command injection
-  const escapedGlobs = fileRule.globs.map(g => escapeShellArg(g));
-  const globsArg = escapedGlobs.join(',');
-  const escapedRulePath = escapeShellArg(rulePath);
-  return {
-    matcher: 'Read|Write|Edit',
-    hooks: [{
-      type: 'command',
-      command: `npx @a16njs/glob-hook --globs "${globsArg}" --context-file "${escapedRulePath}"`,
-    }],
-  };
+function formatFileRuleAsClaudeRule(fr: FileRule): string {
+  // Format globs as YAML array
+  const pathsArray = fr.globs.map(glob => `  - ${glob}`).join('\n');
+  const frontmatter = `---
+paths:
+${pathsArray}
+---`;
+  
+  const header = `## From: ${fr.sourcePath}`;
+  return `${frontmatter}\n\n${header}\n\n${fr.content}`;
 }
 
 /**
@@ -181,49 +189,49 @@ export async function emit(
     }
   }
 
-  // === Emit GlobalPrompts as CLAUDE.md ===
+  // === Emit GlobalPrompts as .claude/rules/*.md ===
   if (globalPrompts.length > 0) {
-    const sections = globalPrompts.map((gp) => {
-      const header = `## From: ${gp.sourcePath}`;
-      return `${header}\n\n${gp.content}`;
-    });
-
-    const content = sections.join('\n\n---\n\n');
-    const claudePath = path.join(root, 'CLAUDE.md');
-
-    // Check if file exists before writing
-    let isNewFile = true;
-    try {
-      await fs.access(claudePath);
-      isNewFile = false; // File exists
-    } catch {
-      isNewFile = true; // File does not exist
-    }
-
+    const rulesDir = path.join(root, '.claude', 'rules');
     if (!dryRun) {
-      await fs.writeFile(claudePath, content, 'utf-8');
+      await fs.mkdir(rulesDir, { recursive: true });
     }
 
-    written.push({
-      path: claudePath,
-      type: CustomizationType.GlobalPrompt,
-      itemCount: globalPrompts.length,
-      isNewFile,
-      sourceItems: globalPrompts,
-    });
+    const usedFilenames = new Set<string>();
 
-    if (globalPrompts.length > 1) {
-      warnings.push({
-        code: WarningCode.Merged,
-        message: `Merged ${globalPrompts.length} items into single CLAUDE.md`,
-        sources: globalPrompts.map((gp) => gp.sourcePath),
+    for (const gp of globalPrompts) {
+      // Get unique filename to avoid collisions
+      const baseName = sanitizeFilename(gp.sourcePath);
+      const filename = getUniqueFilename(baseName, usedFilenames, '.md');
+
+      const rulePath = path.join(rulesDir, filename);
+      const content = formatGlobalPromptAsClaudeRule(gp);
+
+      // Check if file exists before writing
+      let isNewFile = true;
+      try {
+        await fs.access(rulePath);
+        isNewFile = false; // File exists
+      } catch {
+        isNewFile = true; // File does not exist
+      }
+
+      if (!dryRun) {
+        await fs.writeFile(rulePath, content, 'utf-8');
+      }
+
+      written.push({
+        path: rulePath,
+        type: CustomizationType.GlobalPrompt,
+        itemCount: 1,
+        isNewFile,
+        sourceItems: [gp],
       });
     }
   }
 
-  // === Emit FileRules as .a16n/rules/*.md + .claude/settings.local.json ===
+  // === Emit FileRules as .claude/rules/*.md ===
   if (fileRules.length > 0) {
-    const hooks: object[] = [];
+    const rulesDir = path.join(root, '.claude', 'rules');
     const usedFilenames = new Set<string>();
     let validFileRulesExist = false;
 
@@ -241,12 +249,9 @@ export async function emit(
         continue;
       }
       
-      // Create directories only when we have valid rules (skip in dry-run)
+      // Create directory only when we have valid rules (skip in dry-run)
       if (!validFileRulesExist && !dryRun) {
-        const rulesDir = path.join(root, '.a16n', 'rules');
         await fs.mkdir(rulesDir, { recursive: true });
-        const claudeDir = path.join(root, '.claude');
-        await fs.mkdir(claudeDir, { recursive: true });
       }
       validFileRulesExist = true;
 
@@ -254,8 +259,11 @@ export async function emit(
       const baseName = sanitizeFilename(rule.sourcePath);
       const filename = getUniqueFilename(baseName, usedFilenames, '.md');
 
-      const rulePath = `.a16n/rules/${filename}`;
-      const fullPath = path.join(root, rulePath);
+      const fullPath = path.join(rulesDir, filename);
+
+      // Filter to only valid globs for emission
+      const filteredRule = { ...rule, globs: validGlobs };
+      const content = formatFileRuleAsClaudeRule(filteredRule);
 
       // Check if file exists before writing
       let isNewFile = true;
@@ -268,7 +276,7 @@ export async function emit(
 
       // Write rule content (skip in dry-run)
       if (!dryRun) {
-        await fs.writeFile(fullPath, rule.content, 'utf-8');
+        await fs.writeFile(fullPath, content, 'utf-8');
       }
 
       written.push({
@@ -277,76 +285,6 @@ export async function emit(
         itemCount: 1,
         isNewFile,
         sourceItems: [rule],
-      });
-
-      // Build hook for this rule with filtered valid globs
-      const filteredRule = { ...rule, globs: validGlobs };
-      hooks.push(buildHookConfig(filteredRule, rulePath));
-    }
-
-    // Only write settings.local.json if there are valid hooks
-    if (hooks.length > 0) {
-      const claudeDir = path.join(root, '.claude');
-      if (!dryRun) {
-        await fs.mkdir(claudeDir, { recursive: true });
-      }
-      
-      // Write settings.local.json, merging with existing content if present
-      const settingsPath = path.join(claudeDir, 'settings.local.json');
-      let settings: Record<string, unknown> = { hooks: { PreToolUse: hooks } };
-      let isNewFile = true;
-      
-      try {
-        const existingContent = await fs.readFile(settingsPath, 'utf-8');
-        isNewFile = false; // File exists
-        const existing = JSON.parse(existingContent) as Record<string, unknown>;
-        const existingHooks = existing.hooks as Record<string, unknown[]> | undefined;
-        const existingPreToolUse = Array.isArray(existingHooks?.PreToolUse)
-          ? existingHooks.PreToolUse
-          : [];
-        
-        // Merge: preserve existing settings, append new PreToolUse hooks
-        settings = {
-          ...existing,
-          hooks: {
-            ...existingHooks,
-            PreToolUse: [...existingPreToolUse, ...hooks],
-          },
-        };
-      } catch (err: unknown) {
-        // File doesn't exist or isn't valid JSON - use fresh settings
-        if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
-          // Only warn if it's not a "file not found" error
-          warnings.push({
-            code: WarningCode.Skipped,
-            message: `Could not parse existing settings.local.json, overwriting: ${(err as Error).message}`,
-            sources: [settingsPath],
-          });
-        }
-        // If ENOENT, isNewFile remains true
-      }
-      
-      if (!dryRun) {
-        await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
-      }
-
-      // Collect all FileRules that were successfully processed (have valid globs)
-      const validFileRules = fileRules.filter(r => r.globs.some(g => g.trim().length > 0));
-      
-      written.push({
-        path: settingsPath,
-        type: CustomizationType.FileRule,
-        itemCount: hooks.length,
-        isNewFile,
-        sourceItems: validFileRules,
-      });
-
-      // Emit approximation warning for successfully processed FileRules
-      const processedRules = fileRules.filter(r => r.globs.some(g => g.trim().length > 0));
-      warnings.push({
-        code: WarningCode.Approximated,
-        message: `FileRule approximated via @a16njs/glob-hook (behavior may differ slightly)`,
-        sources: processedRules.map((r) => r.sourcePath),
       });
     }
   }
