@@ -1,5 +1,12 @@
 # @a16njs/engine
 
+## [0.3.0](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@0.2.0...@a16njs/engine@0.3.0) (2026-02-01)
+
+
+### Features
+
+* Phase 8 - handle full AgentSkills.io packages AND Claude Code "rules" ([#27](https://github.com/Texarkanine/a16n/issues/27)) ([ab4001e](https://github.com/Texarkanine/a16n/commit/ab4001e9b70045eb6d416a15966b25469bb8ebb3))
+
 ## [0.2.0](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@0.1.0...@a16njs/engine@0.2.0) (2026-02-01)
 
 
