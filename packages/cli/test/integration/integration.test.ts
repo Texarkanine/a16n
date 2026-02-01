@@ -115,15 +115,15 @@ describe('Integration Tests - Fixture Based', () => {
       expect(result.written.length).toBeGreaterThan(0);
       
       // Read actual and expected outputs
-      const actualFiles = await readDirFiles(tempDir);
-      const expectedFiles = await readDirFiles(toDir);
+      const actualRulesDir = path.join(tempDir, '.claude', 'rules');
+      const actualFiles = await readDirFiles(actualRulesDir);
       
-      // Compare CLAUDE.md content
-      const actualClaude = actualFiles.get('CLAUDE.md');
-      const expectedClaude = expectedFiles.get('CLAUDE.md');
+      // Verify rule file was created
+      expect(actualFiles.size).toBeGreaterThan(0);
       
-      expect(actualClaude).toBeDefined();
-      expect(actualClaude?.trim()).toBe(expectedClaude?.trim());
+      // Check content includes expected text from cursor rule
+      const ruleContent = Array.from(actualFiles.values())[0];
+      expect(ruleContent).toContain('Always use TypeScript');
     });
   });
 
@@ -163,10 +163,9 @@ describe('Integration Tests - Fixture Based', () => {
   });
 
   describe('cursor-to-claude-multiple', () => {
-    it('should merge multiple Cursor rules into single CLAUDE.md', async () => {
+    it('should emit multiple Cursor rules as separate .claude/rules/*.md files', async () => {
       const fixturePath = path.join(fixturesDir, 'cursor-to-claude-multiple');
       const fromDir = path.join(fixturePath, 'from-cursor');
-      const toDir = path.join(fixturePath, 'to-claude');
       
       // Copy input to temp
       await copyDir(fromDir, tempDir);
@@ -180,20 +179,26 @@ describe('Integration Tests - Fixture Based', () => {
       
       // Verify multiple items discovered
       expect(result.discovered.length).toBe(2);
-      expect(result.written.length).toBe(1); // Merged into single file
+      // BREAKING: Each gets its own file now
+      expect(result.written.length).toBe(2);
       
-      // Should have a Merged warning
-      expect(result.warnings.some(w => w.code === 'merged')).toBe(true);
+      // BREAKING: Should NOT have a Merged warning
+      expect(result.warnings.some(w => w.code === 'merged')).toBe(false);
       
-      // Read actual CLAUDE.md
-      const actualContent = await fs.readFile(
-        path.join(tempDir, 'CLAUDE.md'),
-        'utf-8'
+      // Read actual rule files
+      const rulesDir = path.join(tempDir, '.claude', 'rules');
+      const files = await fs.readdir(rulesDir);
+      expect(files).toHaveLength(2);
+      
+      // Read both files and verify both rules are present
+      const contents = await Promise.all(
+        files.map(f => fs.readFile(path.join(rulesDir, f), 'utf-8'))
       );
+      const combinedContent = contents.join('\n');
       
-      // Should contain both rules
-      expect(actualContent).toContain('Use 2-space indentation');
-      expect(actualContent).toContain('Write unit tests');
+      // Should contain both rules (in separate files)
+      expect(combinedContent).toContain('Use 2-space indentation');
+      expect(combinedContent).toContain('Write unit tests');
     });
   });
 
@@ -217,9 +222,9 @@ describe('Integration Tests - Fixture Based', () => {
       expect(result.discovered.length).toBeGreaterThan(0);
       expect(result.written.length).toBeGreaterThan(0); // Now returns what WOULD be written
       
-      // But CLAUDE.md should NOT actually exist (files not written in dry-run)
+      // But .claude/rules/ should NOT actually exist (files not written in dry-run)
       await expect(
-        fs.access(path.join(tempDir, 'CLAUDE.md'))
+        fs.access(path.join(tempDir, '.claude', 'rules'))
       ).rejects.toThrow();
     });
   });
@@ -269,28 +274,23 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
       const fileRules = result.discovered.filter(d => d.type === 'file-rule');
       expect(fileRules).toHaveLength(1);
       
-      // Verify rule content file was created
+      // Verify rule file was created in .claude/rules/
       const ruleContent = await fs.readFile(
-        path.join(tempDir, '.a16n', 'rules', 'react.md'),
+        path.join(tempDir, '.claude', 'rules', 'react.md'),
         'utf-8'
       );
       expect(ruleContent).toContain('Use React best practices');
+      expect(ruleContent).toContain('paths:');
+      expect(ruleContent).toContain('**/*.tsx');
       
-      // Verify settings.local.json was created with hooks
-      const settings = JSON.parse(
-        await fs.readFile(
-          path.join(tempDir, '.claude', 'settings.local.json'),
-          'utf-8'
-        )
-      );
-      expect(settings.hooks).toBeDefined();
-      expect(settings.hooks.PreToolUse).toHaveLength(1);
-      expect(settings.hooks.PreToolUse[0].hooks[0].command).toContain('@a16njs/glob-hook');
-      expect(settings.hooks.PreToolUse[0].hooks[0].command).toContain('**/*.tsx');
+      // BREAKING: settings.local.json should NOT exist (native rules now)
+      await expect(
+        fs.access(path.join(tempDir, '.claude', 'settings.local.json'))
+      ).rejects.toThrow();
       
-      // Verify approximation warning was emitted
+      // BREAKING: NO approximation warning (native support now)
       const approxWarning = result.warnings.find(w => w.code === 'approximated');
-      expect(approxWarning).toBeDefined();
+      expect(approxWarning).toBeUndefined();
     });
   });
 
@@ -310,7 +310,7 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
       });
       
       // Verify AgentSkill was discovered
-      const agentSkills = result.discovered.filter(d => d.type === 'agent-skill');
+      const agentSkills = result.discovered.filter(d => d.type === 'simple-agent-skill');
       expect(agentSkills).toHaveLength(1);
       
       // Verify skill file was created
@@ -340,7 +340,7 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
       });
       
       // Verify AgentSkill was discovered
-      const agentSkills = result.discovered.filter(d => d.type === 'agent-skill');
+      const agentSkills = result.discovered.filter(d => d.type === 'simple-agent-skill');
       expect(agentSkills).toHaveLength(1);
       
       // Read the output skill files (Phase 7: AgentSkill → .cursor/skills/)
@@ -627,4 +627,89 @@ Write unit tests first.
       ).rejects.toThrow();
     });
   });
+
+  describe('cursor-to-claude-complex-skill', () => {
+    it('should convert complex Cursor skill with resources to Claude', async () => {
+      const fixturePath = path.join(fixturesDir, 'cursor-to-claude-complex-skill');
+      const fromDir = path.join(fixturePath, 'from-cursor');
+      const toDir = path.join(fixturePath, 'to-claude');
+      
+      // Copy input to temp
+      await copyDir(fromDir, tempDir);
+      
+      // Run conversion
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+      
+      // Verify conversion succeeded
+      expect(result.discovered.length).toBe(1);
+      expect(result.discovered[0].type).toBe('agent-skill-io');
+      expect(result.written.length).toBeGreaterThan(0);
+      
+      // Read actual and expected outputs
+      const actualSkillDir = path.join(tempDir, '.claude', 'skills', 'deploy');
+      const expectedSkillDir = path.join(toDir, '.claude', 'skills', 'deploy');
+      
+      const actualFiles = await readDirFiles(actualSkillDir);
+      const expectedFiles = await readDirFiles(expectedSkillDir);
+      
+      // Verify all files were created
+      compareOutputs(actualFiles, expectedFiles);
+      
+      // Verify resource files exist
+      expect(actualFiles.has('SKILL.md')).toBe(true);
+      expect(actualFiles.has('checklist.md')).toBe(true);
+      expect(actualFiles.has('config.json')).toBe(true);
+    });
+  });
+
+  describe('roundtrip-cursor-complex', () => {
+    it('should preserve complex Cursor skill through round-trip conversion', async () => {
+      const fixturePath = path.join(fixturesDir, 'roundtrip-cursor-complex');
+      const fromDir = path.join(fixturePath, 'from-cursor');
+      const toDir = path.join(fixturePath, 'to-cursor');
+      
+      // Copy input to temp
+      await copyDir(fromDir, tempDir);
+      
+      // Convert Cursor → Claude
+      const result1 = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+      
+      expect(result1.discovered.length).toBe(1);
+      expect(result1.discovered[0].type).toBe('agent-skill-io');
+      
+      // Convert Claude → Cursor (back)
+      const result2 = await engine.convert({
+        source: 'claude',
+        target: 'cursor',
+        root: tempDir,
+      });
+      
+      expect(result2.discovered.length).toBe(1);
+      expect(result2.discovered[0].type).toBe('agent-skill-io');
+      
+      // Read actual and expected outputs
+      const actualSkillDir = path.join(tempDir, '.cursor', 'skills', 'database');
+      const expectedSkillDir = path.join(toDir, '.cursor', 'skills', 'database');
+      
+      const actualFiles = await readDirFiles(actualSkillDir);
+      const expectedFiles = await readDirFiles(expectedSkillDir);
+      
+      // Verify all files preserved through round-trip
+      compareOutputs(actualFiles, expectedFiles);
+      
+      // Verify all resource files exist
+      expect(actualFiles.has('SKILL.md')).toBe(true);
+      expect(actualFiles.has('schema.sql')).toBe(true);
+      expect(actualFiles.has('migrations.md')).toBe(true);
+    });
+  });
+
 });

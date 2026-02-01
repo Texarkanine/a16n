@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # Claude Code Plugin Overview
 
-The **@a16njs/plugin-claude** package implements the Claude Code format plugin for reading and writing `CLAUDE.md` files, `.claude/skills/*/SKILL.md` files, and `.claude/settings.json` permissions.
+The **@a16njs/plugin-claude** package implements agent customization awareness for [Claude Code](https://code.claude.com/).
 
 ## Installation
 
@@ -21,23 +21,26 @@ npm install @a16njs/plugin-claude
 ### Discovery
 
 * [CLAUDE.md](https://docs.anthropic.com/en/docs/claude-code/memory): `CLAUDE.md`, `*/CLAUDE.md`
-	* GlobalPrompt
+	* [GlobalPrompt](/models#globalprompt)
+* [Claude Rules](https://docs.anthropic.com/en/docs/claude-code/memory#modular-rules-with-claude%2Frules%2F): `.claude/rules/*.md` (including subdirectories)
+	* Rules without `paths:` frontmatter: [GlobalPrompt](/models#globalprompt)
+	* Rules with `paths:` frontmatter: [FileRule](/models#filerule)
 * [Claude Skills](https://docs.anthropic.com/en/docs/claude-code/skills): `.claude/skills/*/SKILL.md`
 	* Simple Skills (single SKILL.md file only)
-		* `disable-model-invocation: true`: ManualPrompt
-		* others: AgentSkill
-	* Complex Skills (hooks, multiple files, resources): Skipped
+		* `disable-model-invocation: true`: [ManualPrompt](/models#manualprompt)
+		* others: [SimpleAgentSkill](/models#simpleagentskill)
+	* Complex Skills (hooks, multiple files, resources): Skipped w/ Warning
 * [Claude Settings](https://docs.anthropic.com/en/docs/claude-code/settings): `.claude/settings.json`
-	* `permissions.deny` with `Read()`: AgentIgnore
+	* `permissions.deny` with `Read()`: [AgentIgnore](/models#agentignore)
 	* Other permission types: Skipped
 
 ### Emission
 
-* GlobalPrompt: `CLAUDE.md` (merged with section headers)
-* FileRule: `.a16n/rules/<name>.txt` + `.claude/settings.local.json` hook
-* AgentSkill: `.claude/skills/<name>/SKILL.md`
-* AgentIgnore: `.claude/settings.json` with `permissions.deny`
-* ManualPrompt: `.claude/skills/<name>/SKILL.md` with `enable-model-invocation: false`
+* [GlobalPrompt](/models#globalprompt): `.claude/rules/<name>.md` (individual files)
+* [FileRule](/models#filerule): `.claude/rules/<name>.md` with `paths:` YAML frontmatter (native support)
+* [SimpleAgentSkill](/models#simpleagentskill): `.claude/skills/<name>/SKILL.md`
+* [AgentIgnore](/models#agentignore): `.claude/settings.json` with `permissions.deny`
+* [ManualPrompt](/models#manualprompt): `.claude/skills/<name>/SKILL.md` with `enable-model-invocation: false`
 
 ---
 
@@ -85,19 +88,9 @@ For complete plugin API details, see the [Plugin Claude API Reference](/plugin-c
 
 ---
 
-## Emission Behavior
-
-- **GlobalPrompts** are merged into a single `CLAUDE.md` with section headers (emits "Merged" warning)
-- **FileRules** create `.a16n/rules/*.txt` content files and `.claude/settings.local.json` hook configuration (emits "Approximated" warning)
-- **AgentSkills** are written to `.claude/skills/<name>/SKILL.md`
-- **ManualPrompts** are emitted as skills with `description: "Invoke with /command"` to enable slash command invocation
-
----
-
 ## See Also
 
 - [Plugin Claude API Reference](/plugin-claude/api) - Complete API documentation
 - [Plugin: Cursor](/plugin-cursor) - Cursor IDE format plugin
-- [Glob Hook](/glob-hook) - File pattern matching for hooks
 - [Understanding Conversions](/understanding-conversions) - Conversion details
 - [Models](/models) - Type definitions

@@ -23,10 +23,11 @@ a16n is a CLI tool and library that translates agent customization between codin
 - **Language**: TypeScript
 - **Package Manager**: pnpm (workspaces)
 - **Build Orchestration**: Turborepo
-- **Versioning**: Changesets
-- **Testing**: Vitest (planned)
+- **Versioning**: Release-Please
+- **Testing**: Vitest
+- **Documentation**: Docusaurus
 
-## Project Structure (Planned)
+## Project Structure
 ```
 a16n/
 ├── packages/
@@ -34,9 +35,8 @@ a16n/
 │   ├── engine/          # @a16njs/engine - Orchestration
 │   ├── cli/             # a16n - CLI package
 │   ├── plugin-cursor/   # @a16njs/plugin-cursor
-│   └── plugin-claude/   # @a16njs/plugin-claude
+│   ├── plugin-claude/   # @a16njs/plugin-claude
+│   ├── glob-hook/       # @a16njs/glob-hook - Glob matcher for hooks
+│   └── docs/            # docs - Docusaurus documentation site
 └── planning/            # Specification documents
 ```
-
-## Current Phase
-**Pre-Implementation**: Spec-driven development phase. Planning documents complete, implementation not yet started.

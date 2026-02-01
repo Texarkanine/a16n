@@ -4,11 +4,7 @@ sidebar_position: 4
 
 # Cursor Plugin Overview
 
-The **@a16njs/plugin-cursor** package implements the Cursor IDE format plugin for reading and writing `.cursor/rules/*.mdc` files, `.cursor/commands/*.md` files, and `.cursorignore` patterns.
-
-:::tip Canonical Documentation
-For complete details on Cursor's rule format, commands, and ignore patterns, see [Cursor's official documentation](https://docs.cursor.com/context/rules-for-ai).
-:::
+The **@a16njs/plugin-cursor** package implements agent customization awareness for [Cursor](https://cursor.com/).
 
 ## Installation
 
@@ -25,27 +21,27 @@ npm install @a16njs/plugin-cursor
 ### Discovery
 
 * [Cursor Rules](https://cursor.com/docs/context/rules): `.cursor/rules/**/*.mdc`
-	* `alwaysApply: true`: GlobalPrompt
+	* `alwaysApply: true`: [GlobalPrompt](/models#globalprompt)
 	* `globs: ...`: FileRule
-	* `description: "..."`: AgentSkill
+	* `description: "..."`: [SimpleAgentSkill](/models#simpleagentskill)
 * [Cursor Skills](https://cursor.com/docs/context/skills): `.cursor/skills/**/*.md`
 	* Simple Skills
-		* `disable-model-invocation: true`: ManualPrompt
-		* others: AgentSkills
+		* `disable-model-invocation: true`: [ManualPrompt](/models#manualprompt)
+		* others: [SimpleAgentSkill](/models#simpleagentskill)
 	* Complex Skills (more than one file): Skipped
 * [Cursor Commands](https://cursor.com/docs/context/commands): `.cursor/commands/**/*.md`
-	* Simple Commands: ManualPrompt
+	* Simple Commands: [ManualPrompt](/models#manualprompt)
 	* Complex Commands (placeholders, $ARGUMENTS, $1, etc.): Skipped
 * [Cursor Ignore](https://cursor.com/docs/context/ignore-files): `.cursorignore`
-	* AgentIgnore
+	* [AgentIgnore](/models#agentignore)
 
 ### Emission
 
-* GlobalPrompt: Cursor Rule with `alwaysApply: true`
-* FileRule: Cursor Rule with `globs: ...`
-* AgentSkill: Cursor Skill
-* AgentIgnore: `.cursorignore` entry
-* ManualPrompt: Cursor Command
+* [GlobalPrompt](/models#globalprompt): Cursor Rule with `alwaysApply: true`
+* [FileRule](/models#filerule): Cursor Rule with `globs: ...`
+* [SimpleAgentSkill](/models#simpleagentskill): Cursor Skill
+* [AgentIgnore](/models#agentignore): `.cursorignore` entry
+* [ManualPrompt](/models#manualprompt): Cursor Command
 
 ---
 

@@ -15,9 +15,10 @@ Plugin-based monorepo with:
 | Concern | Choice | Rationale |
 |---------|--------|-----------|
 | Package Manager | pnpm | workspace:* protocol, strict node_modules, fast |
-| Versioning | Changesets | Auto-cascades dependency bumps |
+| Versioning | Release-Please | Automated semantic versioning via GitHub Actions |
 | Build | Turborepo | Minimal config, aggressive caching |
 | Language | TypeScript | Type safety for plugin interfaces |
+| Testing | Vitest | Fast, modern test framework with great TypeScript support |
 | Glob Matching | micromatch | Battle-tested, comprehensive glob support |
 
 ## Core Abstractions
@@ -26,11 +27,12 @@ Plugin-based monorepo with:
 
 ```typescript
 enum CustomizationType {
-  GlobalPrompt = 'global-prompt',  // Always-applied prompts
-  AgentSkill = 'agent-skill',      // Description-triggered skills
-  FileRule = 'file-rule',          // Glob-triggered rules
-  AgentIgnore = 'agent-ignore',    // Exclusion patterns (Phase 3)
-  ManualPrompt = 'manual-prompt',  // User-requested prompts (Phase 7, renamed from AgentCommand)
+  GlobalPrompt = 'global-prompt',     // Always-applied prompts
+  SimpleAgentSkill = 'simple-agent-skill', // Simple description-triggered skills (Phase 8)
+  AgentSkillIO = 'agent-skill-io',    // Complex skills with resources/files (Phase 8)
+  FileRule = 'file-rule',             // Glob-triggered rules
+  AgentIgnore = 'agent-ignore',       // Exclusion patterns (Phase 3)
+  ManualPrompt = 'manual-prompt',     // User-requested prompts (Phase 7, renamed from AgentCommand)
 }
 ```
 
@@ -173,14 +175,17 @@ Non-Read rules (e.g., `Bash(rm:*)`, `Edit(*)`) are ignored during AgentIgnore di
 |------|---------------|-------|
 | GlobalPrompt | `CLAUDE.md` (nestable) | Merges multiple into one |
 | FileRule | `.claude/settings.local.json` + `.a16n/rules/*.txt` | Uses glob-hook |
-| AgentSkill | `.claude/skills/<name>/SKILL.md` | With description frontmatter |
-| AgentSkill (with hooks) | **Unsupported** | Skipped - see below |
+| SimpleAgentSkill | `.claude/skills/<name>/SKILL.md` | Simple skill with description only |
+| AgentSkillIO | `.claude/skills/<name>/SKILL.md` + resources | Complex skill with resource files |
+| Skills with hooks | **Unsupported** | Skipped with warning - hooks not part of AgentSkills.io standard |
 | AgentIgnore | `.claude/settings.json` `permissions.deny` | Phase 3: Read() rules |
-| AgentCommand | `.claude/skills/<name>/SKILL.md` | Phase 4: emitted as skills, never discovered |
+| ManualPrompt | `.claude/skills/<name>/SKILL.md` | Phase 4: emitted as skills, never discovered |
 
-#### Claude Skills with Hooks (Unsupported)
+#### Skills with Hooks (Not Part of AgentSkills.io)
 
-Claude skills can embed lifecycle hooks in their YAML frontmatter:
+**Critical Note**: Hooks are **NOT** part of the AgentSkills.io standard. Neither Cursor nor the AgentSkills.io specification supports hooks in skills.
+
+Some Claude skills may include lifecycle hooks in their YAML frontmatter:
 
 ```markdown
 ---
@@ -197,15 +202,13 @@ hooks:
 Instructions when skill is active...
 ```
 
-**Why these are not convertible**:
-1. Skill-scoped hooks only run during that skill's lifecycle
-2. Cursor has no equivalent concept of skill-scoped hooks
-3. Stripping hooks would produce broken/unsafe skills
-4. The skill's functionality depends on those hooks
+**Why these are skipped**:
+1. Hooks are Claude-specific, not part of AgentSkills.io
+2. Cursor has no equivalent concept
+3. These skills cannot be converted without losing critical functionality
+4. Stripping hooks would produce broken/unsafe skills
 
-**Handling**: Detect `hooks:` key in skill frontmatter → skip with warning, do not convert.
-
-**Future**: Investigate if certain hook patterns could be approximated.
+**Handling**: Detect `hooks:` key in skill frontmatter → skip with warning (`WarningCode.Skipped`), do not convert.
 
 ## Phase 2: FileRule Implementation
 
@@ -257,37 +260,56 @@ project/
     └── settings.local.json   # Hook configuration
 ```
 
-## Phase 2: AgentSkill Implementation
+## Phase 8: AgentSkills.io Full Support
 
-### Claude Skill Format
+### Type Hierarchy
 
-**Simple skill** (convertible to Cursor):
+**Phase 8 introduced two skill types:**
+
+1. **SimpleAgentSkill** - Basic skills with only description and content
+2. **AgentSkillIO** - Complex skills with resource files (configs, scripts, etc.)
+
+### Classification Decision Tree
+
+```
+Skill has hooks? → SKIP (hooks not supported by AgentSkills.io)
+Has extra files/resources? → AgentSkillIO (requires description)
+Has description? → SimpleAgentSkill
+Has disable-model-invocation: true? → ManualPrompt
+```
+
+### Simple Skill Format
+
 ```markdown
 ---
 name: my-skill
-description: "Skill activation description for Claude to match"
+description: "Skill activation description"
 ---
 
-Instructions for Claude when this skill is active...
+Instructions for when this skill is active...
 ```
 
-**Skill with hooks** (NOT convertible - skipped with warning):
+### Complex Skill (AgentSkillIO) Format
+
+```
+.claude/skills/database-migrations/
+├── SKILL.md                 # Main skill file with frontmatter
+├── schema.sql              # Resource file
+├── migrations.md           # Resource file
+└── validate.sh            # Resource file
+```
+
+**SKILL.md:**
 ```markdown
 ---
-name: secure-operations
-description: "Perform operations with security checks"
-hooks:
-  PreToolUse:
-    - matcher: "Bash"
-      hooks:
-        - type: command
-          command: "./scripts/security-check.sh"
+name: database-migrations
+description: "Help with database schema changes"
 ---
 
-Instructions when skill is active...
+Use these resources when working with database migrations...
 ```
 
-Only simple skills (without `hooks:` in frontmatter) can be converted to Cursor.
+All resource files are included in the `AgentSkillIO.files` map and emitted alongside the main SKILL.md.
 
 ### Skill Directory Structure
 

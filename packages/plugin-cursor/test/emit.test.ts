@@ -8,6 +8,7 @@ import {
   type GlobalPrompt,
   type FileRule,
   type AgentSkill,
+  type AgentSkillIO,
   type AgentIgnore,
   type ManualPrompt,
   createId,
@@ -334,8 +335,8 @@ describe('Cursor AgentSkill Emission (Phase 2)', () => {
     it('should emit AgentSkill as .mdc with description: frontmatter', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.claude/skills/auth/SKILL.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/auth/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.claude/skills/auth/SKILL.md',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -356,8 +357,8 @@ describe('Cursor AgentSkill Emission (Phase 2)', () => {
     it('should include skill content after frontmatter', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, 'auth.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, 'auth.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: 'auth.md',
           content: 'Use JWT for authentication.',
           description: 'Auth patterns',
@@ -374,8 +375,8 @@ describe('Cursor AgentSkill Emission (Phase 2)', () => {
     it('should quote description with special characters', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, 'test.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, 'test.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: 'test.md',
           content: 'Content',
           description: 'Auth: patterns & guidelines',
@@ -420,8 +421,8 @@ describe('Cursor Mixed Emission (Phase 2 - Updated for Phase 7)', () => {
         metadata: {},
       } as FileRule,
       {
-        id: createId(CustomizationType.AgentSkill, 'auth.md'),
-        type: CustomizationType.AgentSkill,
+        id: createId(CustomizationType.SimpleAgentSkill, 'auth.md'),
+        type: CustomizationType.SimpleAgentSkill,
         sourcePath: 'auth.md',
         content: 'Auth content',
         description: 'Auth patterns',
@@ -871,8 +872,8 @@ describe('Cursor Skills Emission (Phase 7)', () => {
     it('should emit AgentSkill to .cursor/skills/<name>/SKILL.md', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.claude/skills/auth/SKILL.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/auth/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.claude/skills/auth/SKILL.md',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -883,7 +884,7 @@ describe('Cursor Skills Emission (Phase 7)', () => {
       const result = await cursorPlugin.emit(models, tempDir);
 
       expect(result.written).toHaveLength(1);
-      expect(result.written[0]?.type).toBe(CustomizationType.AgentSkill);
+      expect(result.written[0]?.type).toBe(CustomizationType.SimpleAgentSkill);
 
       // Verify skill directory structure
       const skillPath = path.join(tempDir, '.cursor', 'skills', 'auth-helper', 'SKILL.md');
@@ -894,8 +895,8 @@ describe('Cursor Skills Emission (Phase 7)', () => {
     it('should include name and description in skill frontmatter', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.claude/skills/db/SKILL.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/db/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.claude/skills/db/SKILL.md',
           content: 'Database operations',
           description: 'Database helper',
@@ -915,8 +916,8 @@ describe('Cursor Skills Emission (Phase 7)', () => {
     it('should sanitize skill names for directory creation', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.claude/skills/weird/SKILL.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/weird/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.claude/skills/weird/SKILL.md',
           content: 'Content',
           description: 'Test',
@@ -985,8 +986,8 @@ describe('Cursor Skills Emission (Phase 7)', () => {
     it('should handle collisions between AgentSkill and ManualPrompt with same name', async () => {
       const models = [
         {
-          id: createId(CustomizationType.AgentSkill, '.claude/skills/review/SKILL.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/review/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.claude/skills/review/SKILL.md',
           content: 'Skill content',
           description: 'Review skill',
@@ -1073,8 +1074,8 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
     // Test that WrittenFile for each AgentSkill SKILL.md includes
     // sourceItems array with single AgentSkill
     const skill: AgentSkill = {
-      id: createId(CustomizationType.AgentSkill, '.cursor/rules/database.mdc'),
-      type: CustomizationType.AgentSkill,
+      id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/database.mdc'),
+      type: CustomizationType.SimpleAgentSkill,
       sourcePath: '.cursor/rules/database.mdc',
       content: 'Database operations',
       description: 'Database helper',
@@ -1085,7 +1086,7 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
 
     expect(result.written).toHaveLength(1);
     const written = result.written[0];
-    expect(written?.type).toBe(CustomizationType.AgentSkill);
+    expect(written?.type).toBe(CustomizationType.SimpleAgentSkill);
     expect(written?.itemCount).toBe(1);
     expect(written?.sourceItems).toBeDefined();
     expect(written?.sourceItems).toHaveLength(1);
@@ -1154,5 +1155,145 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
     expect(written?.sourceItems).toBeDefined();
     expect(written?.sourceItems).toHaveLength(1);
     expect(written?.sourceItems?.[0]).toBe(command);
+  });
+});
+
+describe('Cursor AgentSkillIO Emission (Phase 8 B4)', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('simple AgentSkillIO (no hooks, no files)', () => {
+    it('should emit simple AgentSkillIO as .cursor/rules/*.mdc', async () => {
+      // Simple skill with only name + description should emit as Cursor rule
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.claude/skills/deploy/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.claude/skills/deploy/SKILL.md',
+          content: 'Deployment guidelines',
+          name: 'deploy',
+          description: 'Help with deployments',
+          files: {},
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      
+      // Should emit as Cursor rule
+      const rulePath = path.join(tempDir, '.cursor', 'rules', 'deploy.mdc');
+      const content = await fs.readFile(rulePath, 'utf-8');
+      expect(content).toContain('description:');
+      expect(content).toContain('Help with deployments');
+      expect(content).toContain('Deployment guidelines');
+    });
+
+    it('should emit simple AgentSkillIO with disable as .cursor/skills/*/SKILL.md', async () => {
+      // Simple skill with disable-model-invocation should emit as ManualPrompt
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.claude/skills/review/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.claude/skills/review/SKILL.md',
+          content: 'Review code for security',
+          name: 'review',
+          description: 'Code review helper',
+          disableModelInvocation: true,
+          files: {},
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      
+      // Should emit as ManualPrompt skill
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('disable-model-invocation: true');
+      expect(content).toContain('Review code for security');
+    });
+  });
+
+  describe('complex AgentSkillIO (with hooks or files)', () => {
+    it('should emit complex AgentSkillIO to .cursor/skills/ with all files', async () => {
+      // Complex skill should emit full directory with SKILL.md + resource files
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.claude/skills/deploy/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.claude/skills/deploy/SKILL.md',
+          content: 'Deployment process',
+          name: 'deploy',
+          description: 'Deployment helper',
+          files: {
+            'checklist.md': '- [ ] Run tests\n- [ ] Build\n- [ ] Deploy',
+            'config.json': '{"env":"production"}',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      // Should write 3 files: SKILL.md + 2 resource files
+      expect(result.written.length).toBeGreaterThanOrEqual(1);
+      
+      // Verify SKILL.md exists
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'deploy', 'SKILL.md');
+      const skillContent = await fs.readFile(skillPath, 'utf-8');
+      expect(skillContent).toContain('Deployment process');
+
+      // Verify resource files exist
+      const checklistPath = path.join(tempDir, '.cursor', 'skills', 'deploy', 'checklist.md');
+      const checklistContent = await fs.readFile(checklistPath, 'utf-8');
+      expect(checklistContent).toContain('Run tests');
+
+      const configPath = path.join(tempDir, '.cursor', 'skills', 'deploy', 'config.json');
+      const configContent = await fs.readFile(configPath, 'utf-8');
+      expect(configContent).toContain('production');
+    });
+
+    it('should include all resource files from files map', async () => {
+      // Verify all files in AgentSkillIO.files are written
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.claude/skills/multi/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.claude/skills/multi/SKILL.md',
+          content: 'Multi-file skill',
+          name: 'multi',
+          description: 'Multi-file test',
+          files: {
+            'file1.txt': 'Content 1',
+            'file2.txt': 'Content 2',
+            'file3.txt': 'Content 3',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      // Verify all 3 files + SKILL.md exist
+      const skillDir = path.join(tempDir, '.cursor', 'skills', 'multi');
+      const files = await fs.readdir(skillDir);
+      expect(files).toContain('SKILL.md');
+      expect(files).toContain('file1.txt');
+      expect(files).toContain('file2.txt');
+      expect(files).toContain('file3.txt');
+
+      // Verify content
+      const file1 = await fs.readFile(path.join(skillDir, 'file1.txt'), 'utf-8');
+      expect(file1).toBe('Content 1');
+    });
   });
 });

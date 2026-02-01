@@ -3,7 +3,9 @@ import * as path from 'path';
 import {
   type AgentCustomization,
   type AgentIgnore,
-  type AgentSkill,
+  type SimpleAgentSkill,
+  type AgentSkillIO,
+  type FileRule,
   type ManualPrompt,
   type DiscoveryResult,
   type Warning,
@@ -11,6 +13,179 @@ import {
   WarningCode,
   createId,
 } from '@a16njs/models';
+
+/**
+ * Frontmatter structure for Claude rules files.
+ * Contains paths field for conditional file-based activation.
+ */
+interface ClaudeRuleFrontmatter {
+  paths?: string | string[];
+  [key: string]: unknown;
+}
+
+/**
+ * Parsed Claude rule with frontmatter and body content.
+ */
+interface ParsedClaudeRule {
+  frontmatter: ClaudeRuleFrontmatter;
+  body: string;
+}
+
+/**
+ * Recursively find all .md files in .claude/rules/ directory.
+ * Returns relative paths like ".claude/rules/style.md" or ".claude/rules/frontend/react.md"
+ * 
+ * @param root - Project root directory
+ * @returns Array of relative paths to rule files
+ */
+async function findClaudeRules(root: string): Promise<string[]> {
+  const results: string[] = [];
+  const rulesDir = path.join(root, '.claude', 'rules');
+
+  async function traverse(currentDir: string, relativePath: string): Promise<void> {
+    try {
+      const entries = await fs.readdir(currentDir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        // Skip hidden directories (like .git)
+        if (entry.name.startsWith('.')) {
+          continue;
+        }
+
+        const entryRelativePath = relativePath
+          ? `${relativePath}/${entry.name}`
+          : entry.name;
+        const entryFullPath = path.join(currentDir, entry.name);
+
+        if (entry.isFile() && entry.name.endsWith('.md')) {
+          // Found a rule file
+          results.push(`.claude/rules/${entryRelativePath}`);
+        } else if (entry.isDirectory()) {
+          // Recurse into subdirectory
+          await traverse(entryFullPath, entryRelativePath);
+        }
+      }
+    } catch {
+      // Directory doesn't exist or can't be read - that's okay
+    }
+  }
+
+  await traverse(rulesDir, '');
+  return results;
+}
+
+/**
+ * Parse YAML frontmatter from a Claude rule file.
+ * Extracts the paths field and other frontmatter metadata.
+ * 
+ * @param content - Full file content including frontmatter
+ * @returns Parsed frontmatter and body content
+ */
+function parseClaudeRuleFrontmatter(content: string): ParsedClaudeRule {
+  const lines = content.split('\n');
+  
+  let frontmatterStart = -1;
+  let frontmatterEnd = -1;
+  
+  // Find frontmatter delimiters (---)
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]?.trim();
+    if (line === '---') {
+      if (frontmatterStart === -1) {
+        frontmatterStart = i;
+      } else {
+        frontmatterEnd = i;
+        break;
+      }
+    }
+  }
+  
+  // No frontmatter found
+  if (frontmatterStart === -1 || frontmatterEnd === -1) {
+    return {
+      frontmatter: {},
+      body: content.trim(),
+    };
+  }
+  
+  const frontmatter: ClaudeRuleFrontmatter = {};
+  
+  // Parse frontmatter lines
+  let i = frontmatterStart + 1;
+  while (i < frontmatterEnd) {
+    const line = lines[i];
+    if (!line) {
+      i++;
+      continue;
+    }
+    
+    // Check for paths: field
+    const pathsMatch = line.match(/^paths:\s*$/);
+    if (pathsMatch) {
+      // Multi-line array format
+      const paths: string[] = [];
+      i++;
+      while (i < frontmatterEnd) {
+        const pathLine = lines[i];
+        if (!pathLine) {
+          i++;
+          continue;
+        }
+        const arrayItemMatch = pathLine.match(/^\s*-\s*["']?(.+?)["']?\s*$/);
+        if (arrayItemMatch) {
+          paths.push(arrayItemMatch[1]!);
+          i++;
+        } else {
+          // End of array
+          break;
+        }
+      }
+      if (paths.length > 0) {
+        frontmatter.paths = paths;
+      }
+      continue;
+    }
+    
+    // Check for paths: "value" or paths: ["value1", "value2"] (inline format)
+    const pathsInlineMatch = line.match(/^paths:\s*(.+)$/);
+    if (pathsInlineMatch) {
+      const value = pathsInlineMatch[1]!.trim();
+      // Try to parse as JSON array
+      if (value.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(value) as unknown;
+          if (Array.isArray(parsed)) {
+            frontmatter.paths = parsed.filter((p): p is string => typeof p === 'string');
+          }
+        } catch {
+          // Not valid JSON, treat as single string
+          frontmatter.paths = [value.replace(/^["']|["']$/g, '')];
+        }
+      } else {
+        // Single string value
+        frontmatter.paths = [value.replace(/^["']|["']$/g, '')];
+      }
+      i++;
+      continue;
+    }
+    
+    // Store other frontmatter fields generically (allow hyphenated keys like disable-model-invocation)
+    const keyValueMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.+)$/);
+    if (keyValueMatch) {
+      const key = keyValueMatch[1]!;
+      const value = keyValueMatch[2]!.trim().replace(/^["']|["']$/g, '');
+      frontmatter[key] = value;
+    }
+    
+    i++;
+  }
+  
+  // Extract body (everything after second ---)
+  const bodyLines = lines.slice(frontmatterEnd + 1);
+  const body = bodyLines.join('\n').trim();
+  
+  return { frontmatter, body };
+}
 
 /**
  * Convert a Claude Read() permission rule to a gitignore-style pattern.
@@ -41,13 +216,61 @@ function convertReadRuleToPattern(rule: string): string | null {
 interface SkillFrontmatter {
   description?: string;
   name?: string;
-  hasHooks: boolean;
+  hooks?: Record<string, unknown>;
   disableModelInvocation?: boolean;
 }
 
 interface ParsedSkill {
   frontmatter: SkillFrontmatter;
   body: string;
+}
+
+/**
+ * Parse hooks section from frontmatter lines.
+ * Returns the hooks object and the line index after the hooks section.
+ */
+function parseHooksSection(lines: string[], startIndex: number, endIndex: number): { hooks: Record<string, unknown>; nextIndex: number } {
+  const hooks: Record<string, unknown> = {};
+  let i = startIndex;
+  
+  while (i < endIndex) {
+    const line = lines[i];
+    if (!line) {
+      i++;
+      continue;
+    }
+    
+    // Check if this is a hook name (e.g., "  pre-commit:")
+    const hookMatch = line.match(/^  (\S+):\s*$/);
+    if (hookMatch) {
+      const hookName = hookMatch[1]!;
+      const hookItems: unknown[] = [];
+      i++;
+      
+      // Parse hook items (e.g., "    - run: ./script.sh")
+      while (i < endIndex) {
+        const itemLine = lines[i];
+        if (!itemLine || !itemLine.startsWith('    ')) break;
+        
+        const itemMatch = itemLine.match(/^\s+-\s+(\w+):\s*(.+)$/);
+        if (itemMatch) {
+          hookItems.push({ [itemMatch[1]!]: itemMatch[2]! });
+        }
+        i++;
+      }
+      
+      hooks[hookName] = hookItems;
+      continue;
+    }
+    
+    // If we hit a non-indented line, we're done with hooks
+    if (!line.startsWith(' ')) {
+      break;
+    }
+    i++;
+  }
+  
+  return { hooks, nextIndex: i };
 }
 
 function parseSkillFrontmatter(content: string): ParsedSkill {
@@ -71,21 +294,28 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
   // No frontmatter found
   if (frontmatterStart === -1 || frontmatterEnd === -1) {
     return {
-      frontmatter: { hasHooks: false },
+      frontmatter: {},
       body: content.trim(),
     };
   }
   
-  const frontmatter: SkillFrontmatter = { hasHooks: false };
+  const frontmatter: SkillFrontmatter = {};
   
   // Parse frontmatter lines
-  for (let i = frontmatterStart + 1; i < frontmatterEnd; i++) {
+  let i = frontmatterStart + 1;
+  while (i < frontmatterEnd) {
     const line = lines[i];
-    if (!line) continue;
+    if (!line) {
+      i++;
+      continue;
+    }
     
     // Check for hooks: key (indicates skill-scoped hooks)
     if (line.match(/^hooks:\s*$/)) {
-      frontmatter.hasHooks = true;
+      i++;
+      const { hooks, nextIndex } = parseHooksSection(lines, i, frontmatterEnd);
+      frontmatter.hooks = hooks;
+      i = nextIndex;
       continue;
     }
     
@@ -93,6 +323,7 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
     const descriptionMatch = line.match(/^description:\s*["']?(.+?)["']?\s*$/);
     if (descriptionMatch) {
       frontmatter.description = descriptionMatch[1];
+      i++;
       continue;
     }
     
@@ -100,6 +331,7 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
     const nameMatch = line.match(/^name:\s*["']?(.+?)["']?\s*$/);
     if (nameMatch) {
       frontmatter.name = nameMatch[1];
+      i++;
       continue;
     }
 
@@ -107,8 +339,11 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
     const disableMatch = line.match(/^disable-model-invocation:\s*(true|false)\s*$/);
     if (disableMatch) {
       frontmatter.disableModelInvocation = disableMatch[1] === 'true';
+      i++;
       continue;
     }
+    
+    i++;
   }
   
   // Extract body (everything after second ---)
@@ -119,10 +354,10 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
 }
 
 /**
- * Find all SKILL.md files in .claude/skills/ subdirectories.
- * Returns paths like ".claude/skills/testing/SKILL.md"
+ * Find all skill directories in .claude/skills/ that contain SKILL.md.
+ * Returns directory names (e.g., "testing", "secure-deploy").
  */
-async function findSkillFiles(root: string): Promise<string[]> {
+async function findSkillDirs(root: string): Promise<string[]> {
   const results: string[] = [];
   const skillsDir = path.join(root, '.claude', 'skills');
   
@@ -134,7 +369,7 @@ async function findSkillFiles(root: string): Promise<string[]> {
         const skillFile = path.join(skillsDir, entry.name, 'SKILL.md');
         try {
           await fs.access(skillFile);
-          results.push(`.claude/skills/${entry.name}/SKILL.md`);
+          results.push(entry.name);
         } catch {
           // No SKILL.md in this directory
         }
@@ -145,6 +380,29 @@ async function findSkillFiles(root: string): Promise<string[]> {
   }
   
   return results;
+}
+
+/**
+ * Read all non-SKILL.md files in a skill directory.
+ * Returns a map of filename → content.
+ */
+async function readSkillFiles(skillDir: string): Promise<Record<string, string>> {
+  const files: Record<string, string> = {};
+  
+  try {
+    const entries = await fs.readdir(skillDir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      if (entry.isFile() && entry.name !== 'SKILL.md') {
+        const filePath = path.join(skillDir, entry.name);
+        files[entry.name] = await fs.readFile(filePath, 'utf-8');
+      }
+    }
+  } catch {
+    // Directory read error - return empty files
+  }
+  
+  return files;
 }
 
 /**
@@ -262,54 +520,91 @@ export async function discover(root: string): Promise<DiscoveryResult> {
     }
   }
 
-  // Find all .claude/skills/*/SKILL.md files (AgentSkill)
-  const skillFiles = await findSkillFiles(root);
+  // Find all .claude/skills/*/ directories with SKILL.md (AgentSkill or AgentSkillIO)
+  const skillDirs = await findSkillDirs(root);
+  const skillsDir = path.join(root, '.claude', 'skills');
 
-  for (const skillPath of skillFiles) {
-    const fullPath = path.join(root, skillPath);
+  for (const dirName of skillDirs) {
+    const skillDir = path.join(skillsDir, dirName);
+    const skillPath = `.claude/skills/${dirName}/SKILL.md`;
+    const fullPath = path.join(skillDir, 'SKILL.md');
     
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
       const { frontmatter, body } = parseSkillFrontmatter(content);
       
-      // Extract skill name from path (e.g., "testing" from ".claude/skills/testing/SKILL.md")
-      const skillName = skillPath.split('/')[2] || 'unknown';
+      // Extract skill name from frontmatter or directory
+      const skillName = frontmatter.name || dirName;
       
-      // Skip skills with hooks - they're not convertible to Cursor
-      if (frontmatter.hasHooks) {
-        const displayName = frontmatter.name || skillName;
+      // Read all other files in the skill directory
+      const files = await readSkillFiles(skillDir);
+      const hasExtraFiles = Object.keys(files).length > 0;
+      const hasHooks = frontmatter.hooks && Object.keys(frontmatter.hooks).length > 0;
+      
+      // Classification priority:
+      // 1. Has hooks → SKIP (hooks are not supported by AgentSkills.io)
+      // 2. Has extra files → AgentSkillIO (with description required)
+      // 3. disable-model-invocation: true → ManualPrompt
+      // 4. description present → SimpleAgentSkill
+
+      if (hasHooks) {
+        // Skills with hooks are not supported - skip with warning
         warnings.push({
           code: WarningCode.Skipped,
-          message: `Skipped skill '${displayName}': Contains hooks (not convertible to Cursor)`,
+          message: `Skipped skill '${skillName}': Hooks are not supported by AgentSkills.io`,
           sources: [skillPath],
         });
         continue;
       }
-      
-      // Classification priority:
-      // 1. disable-model-invocation: true -> ManualPrompt
-      // 2. description present -> AgentSkill
-      if (frontmatter.disableModelInvocation === true) {
+
+      if (hasExtraFiles) {
+        // AgentSkillIO - complex skill with resource files
+        if (!frontmatter.description) {
+          // AgentSkillIO requires description
+          warnings.push({
+            code: WarningCode.Skipped,
+            message: `Skipped skill '${skillName}': Has resource files but missing description`,
+            sources: [skillPath],
+          });
+          continue;
+        }
+
+        const agentSkillIO: AgentSkillIO = {
+          id: createId(CustomizationType.AgentSkillIO, skillPath),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: skillPath,
+          content: body,
+          name: skillName,
+          description: frontmatter.description,
+          disableModelInvocation: frontmatter.disableModelInvocation,
+          resources: Object.keys(files),
+          files,
+          metadata: { name: frontmatter.name },
+        };
+        items.push(agentSkillIO);
+      } else if (frontmatter.disableModelInvocation === true) {
+        // ManualPrompt
         const prompt: ManualPrompt = {
           id: createId(CustomizationType.ManualPrompt, skillPath),
           type: CustomizationType.ManualPrompt,
           sourcePath: skillPath,
           content: body,
-          promptName: frontmatter.name || skillName,
+          promptName: skillName,
           metadata: {
-            name: frontmatter.name || skillName,
+            name: skillName,
           },
         };
         items.push(prompt);
       } else if (frontmatter.description) {
-        const skill: AgentSkill = {
-          id: createId(CustomizationType.AgentSkill, skillPath),
-          type: CustomizationType.AgentSkill,
+        // SimpleAgentSkill
+        const skill: SimpleAgentSkill = {
+          id: createId(CustomizationType.SimpleAgentSkill, skillPath),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: skillPath,
           content: body,
           description: frontmatter.description,
           metadata: {
-            name: frontmatter.name || skillName,
+            name: skillName,
           },
         };
         items.push(skill);
@@ -327,6 +622,69 @@ export async function discover(root: string): Promise<DiscoveryResult> {
   const agentIgnore = await discoverAgentIgnore(root);
   if (agentIgnore) {
     items.push(agentIgnore);
+  }
+
+  // Find all .claude/rules/*.md files (Phase 8 A1)
+  const ruleFiles = await findClaudeRules(root);
+  
+  for (const rulePath of ruleFiles) {
+    const fullPath = path.join(root, rulePath);
+    
+    // Normalize path separators for cross-platform consistency
+    const normalizedPath = rulePath.split(path.sep).join('/');
+    
+    try {
+      const content = await fs.readFile(fullPath, 'utf-8');
+      const { frontmatter, body } = parseClaudeRuleFrontmatter(content);
+      
+      // Normalize paths to array
+      let paths: string[] = [];
+      if (frontmatter.paths) {
+        if (typeof frontmatter.paths === 'string') {
+          paths = [frontmatter.paths];
+        } else if (Array.isArray(frontmatter.paths)) {
+          paths = frontmatter.paths;
+        }
+      }
+      
+      // Classification:
+      // - No paths or empty paths -> GlobalPrompt
+      // - paths present -> FileRule with globs
+      if (paths.length === 0) {
+        // GlobalPrompt
+        items.push({
+          id: createId(CustomizationType.GlobalPrompt, normalizedPath),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: normalizedPath,
+          content: body,
+          metadata: {
+            nested: false,
+            depth: 0,
+            ...frontmatter,
+          },
+        });
+      } else {
+        // FileRule
+        const fileRule: FileRule = {
+          id: createId(CustomizationType.FileRule, normalizedPath),
+          type: CustomizationType.FileRule,
+          sourcePath: normalizedPath,
+          content: body,
+          globs: paths,
+          metadata: {
+            ...frontmatter,
+          },
+        };
+        items.push(fileRule);
+      }
+      
+    } catch (error) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Could not read ${rulePath}: ${(error as Error).message}`,
+        sources: [rulePath],
+      });
+    }
   }
 
   return { items, warnings };

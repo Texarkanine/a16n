@@ -99,11 +99,17 @@ describe('CLI', () => {
       const { stdout, exitCode } = runCli('convert --from cursor --to claude');
 
       expect(exitCode).toBe(0);
-      expect(stdout).toContain('CLAUDE.md');
+      // Normalize paths for OS-agnostic assertions
+      const normalizedStdout = stdout.replaceAll('\\', '/');
+      expect(normalizedStdout).toContain('.claude/rules/test.md');
 
-      // Verify file was created
+      // Verify file was created in .claude/rules/
+      const claudeRulesDir = path.join(tempDir, '.claude', 'rules');
+      const files = await fs.readdir(claudeRulesDir);
+      expect(files.length).toBeGreaterThan(0);
+      
       const claudeContent = await fs.readFile(
-        path.join(tempDir, 'CLAUDE.md'),
+        path.join(claudeRulesDir, 'test.md'),
         'utf-8'
       );
       expect(claudeContent).toContain('Convert test');
@@ -123,12 +129,13 @@ describe('CLI', () => {
 
       // Verify file was NOT created
       await expect(
-        fs.access(path.join(tempDir, 'CLAUDE.md'))
+        fs.access(path.join(tempDir, '.claude', 'rules'))
       ).rejects.toThrow();
     });
 
     it('should output JSON with --json flag', async () => {
-      await fs.writeFile(path.join(tempDir, 'CLAUDE.md'), 'JSON test');
+      await fs.mkdir(path.join(tempDir, '.claude', 'rules'), { recursive: true });
+      await fs.writeFile(path.join(tempDir, '.claude/rules/test.md'), 'JSON test');
 
       const { stdout, exitCode } = runCli('convert --from claude --to cursor --json');
 
@@ -281,12 +288,14 @@ describe('CLI', () => {
       );
 
       const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run --gitignore-output-with match');
-      
+
       expect(exitCode).toBe(0);
       // Should show per-file details in match mode
       // Format: "  <filename> → <destination>"
-      expect(stdout).toContain('Would update .gitignore');
-      expect(stdout).toMatch(/CLAUDE\.md.*→.*\.gitignore/);
+      // Normalize paths for OS-agnostic assertions
+      const normalizedStdout = stdout.replaceAll('\\', '/');
+      expect(normalizedStdout).toContain('Would update .gitignore');
+      expect(normalizedStdout).toMatch(/\.claude\/rules\/secret\.md.*→.*\.gitignore/);
     });
 
     it('should route outputs to .git/info/exclude when source is ignored via exclude', async () => {
@@ -340,7 +349,7 @@ describe('CLI', () => {
       
       // Check that .git/info/exclude was updated with the output file
       const excludeContent = await fs.readFile(path.join(tempDir, '.git', 'info', 'exclude'), 'utf-8');
-      expect(excludeContent).toContain('CLAUDE.md');
+      expect(excludeContent).toContain('.claude/rules/secret.md');
       expect(excludeContent).toContain('# BEGIN a16n managed');
     });
   });
@@ -491,7 +500,7 @@ describe('CLI', () => {
       const sourcePath = path.join(cursorDir, 'test.mdc');
       await fs.writeFile(
         sourcePath,
-        '---\nalwaysApply: true\n---\nTest content'
+        '---\nalwaysApply: true\n---\nTest content\n'
       );
 
       const { stdout, exitCode } = runCli('convert --from cursor --to claude --delete-source');
@@ -503,62 +512,60 @@ describe('CLI', () => {
       // Verify source file was deleted
       await expect(fs.access(sourcePath)).rejects.toThrow();
       
-      // Verify output file exists
-      await expect(fs.access(path.join(tempDir, 'CLAUDE.md'))).resolves.not.toThrow();
+      // Verify output file exists in .claude/rules/
+      const claudeRulesDir = path.join(tempDir, '.claude', 'rules');
+      const files = await fs.readdir(claudeRulesDir);
+      expect(files.length).toBeGreaterThan(0);
     });
 
-    it('should preserve sources with skips when using --delete-source', async () => {
-      // AC4: Preserve sources involved in skips
-      // Create a skill with hooks (which generates a Skip warning in claude→cursor)
+    it('should preserve sources that are not converted when using --delete-source', async () => {
+      // AC4: Sources that don't produce output should not be deleted
+      // Create a skill without description (silently ignored - no output produced)
       const skillDir = path.join(tempDir, '.claude', 'skills', 'test-skill');
       await fs.mkdir(skillDir, { recursive: true });
       const skillPath = path.join(skillDir, 'SKILL.md');
       await fs.writeFile(
         skillPath,
         `---
-description: Test skill with hooks
-hooks:
-  - pre: echo "test"
+name: test-skill
 ---
-Skill content`
+Skill content without description - will be ignored`
       );
-      
+
       const { stdout, exitCode } = runCli('convert --from claude --to cursor --delete-source');
 
       expect(exitCode).toBe(0);
-      // Source should be preserved because it was skipped (skill with hooks not convertible)
+      // Source should be preserved because it was not converted (no description = silently ignored)
       await expect(fs.access(skillPath)).resolves.not.toThrow();
       expect(stdout).not.toContain('Deleted:');
-      expect(stdout).toContain('Skipped');
     });
 
     it('should preserve sources with partial skips', async () => {
       // AC5: Preserve sources with partial skips
-      // Create a mix: one normal file that converts, and one skill with hooks that skips
-      await fs.writeFile(path.join(tempDir, 'CLAUDE.md'), '# Test rule');
+      // Create a mix: one normal file that converts, and one skill without description that gets ignored
+      await fs.mkdir(path.join(tempDir, '.claude', 'rules'), { recursive: true });
+      const normalRule = path.join(tempDir, '.claude/rules/test.md');
+      await fs.writeFile(normalRule, '# Test rule');
       
-      const skillDir = path.join(tempDir, '.claude', 'skills', 'hooked-skill');
+      const skillDir = path.join(tempDir, '.claude', 'skills', 'no-desc-skill');
       await fs.mkdir(skillDir, { recursive: true });
       const skillPath = path.join(skillDir, 'SKILL.md');
       await fs.writeFile(
         skillPath,
         `---
-description: Hooked skill
-hooks:
-  - post: echo "done"
+name: no-desc-skill
 ---
-This skill has hooks`
+This skill has no description - should be ignored`
       );
       
       const { stdout, exitCode } = runCli('convert --from claude --to cursor --delete-source');
 
       expect(exitCode).toBe(0);
-      // Skill with hooks should be preserved (skipped)
+      // Skill without description should be preserved (not converted, so not deleted)
       await expect(fs.access(skillPath)).resolves.not.toThrow();
-      // CLAUDE.md should be deleted (successfully converted)
-      await expect(fs.access(path.join(tempDir, 'CLAUDE.md'))).rejects.toThrow();
+      // Normal rule should be deleted (successfully converted)
+      await expect(fs.access(normalRule)).rejects.toThrow();
       expect(stdout).toContain('Deleted');
-      expect(stdout).toContain('Skipped');
     });
 
     it('should delete multiple sources that merge into single output', async () => {
@@ -580,8 +587,10 @@ This skill has hooks`
       await expect(fs.access(source1)).rejects.toThrow();
       await expect(fs.access(source2)).rejects.toThrow();
       
-      // Single output should exist
-      await expect(fs.access(path.join(tempDir, 'CLAUDE.md'))).resolves.not.toThrow();
+      // Two separate output files should exist (no longer merged)
+      const claudeRulesDir = path.join(tempDir, '.claude', 'rules');
+      const files = await fs.readdir(claudeRulesDir);
+      expect(files.length).toBe(2);
       
       // Should report 2 deletions
       expect(stdout).toContain('Deleted:');

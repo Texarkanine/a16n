@@ -7,12 +7,14 @@ import {
   type WrittenFile,
   type Warning,
   type FileRule,
-  type AgentSkill,
+  type SimpleAgentSkill,
+  type AgentSkillIO,
   CustomizationType,
   WarningCode,
   isGlobalPrompt,
   isFileRule,
-  isAgentSkill,
+  isSimpleAgentSkill,
+  isAgentSkillIO,
   isAgentIgnore,
   isManualPrompt,
 } from '@a16njs/models';
@@ -103,7 +105,7 @@ ${content}
 }
 
 /**
- * Format content as MDC with AgentSkill frontmatter (description).
+ * Format content as MDC with SimpleAgentSkill frontmatter (description).
  * Used for legacy .cursor/rules/*.mdc emission.
  */
 function formatAgentSkillMdc(content: string, description: string): string {
@@ -119,10 +121,10 @@ ${content}
 }
 
 /**
- * Format AgentSkill as a SKILL.md file.
+ * Format SimpleAgentSkill as a SKILL.md file.
  * Used for .cursor/skills/ emission (Phase 7).
  */
-function formatAgentSkillMd(skill: import('@a16njs/models').AgentSkill): string {
+function formatAgentSkillMd(skill: import('@a16njs/models').SimpleAgentSkill): string {
   const skillName = (skill.metadata?.name as string) || sanitizeFilename(skill.sourcePath);
   const safeName = JSON.stringify(skillName);
   const safeDescription = JSON.stringify(skill.description);
@@ -156,6 +158,235 @@ ${prompt.content}
 }
 
 /**
+ * Emit an AgentSkillIO to Cursor format.
+ * Smart routing based on skill complexity:
+ * - Simple (no resources, no files) → emit as rule or ManualPrompt
+ * - Complex (has resources or files) → emit full skill directory
+ *
+ * @param skill - The AgentSkillIO to emit
+ * @param root - Root directory to write to
+ * @param dryRun - If true, don't write files
+ * @param warnings - Array to append warnings to
+ * @param usedSkillNames - Set of used skill directory names (for collision detection)
+ * @param usedFilenames - Set of used rule filenames (for collision detection with GlobalPrompt/FileRule)
+ * @param collisionSources - Array to collect collision source paths
+ * @returns Array of written files
+ */
+async function emitAgentSkillIO(
+  skill: AgentSkillIO,
+  root: string,
+  dryRun: boolean,
+  warnings: Warning[],
+  usedSkillNames: Set<string>,
+  usedFilenames: Set<string>,
+  collisionSources: string[]
+): Promise<WrittenFile[]> {
+  const written: WrittenFile[] = [];
+
+  // Check if skill is effectively simple (no resources, no files)
+  const files = skill.files ?? {};
+  const isSimple = (!skill.resources || skill.resources.length === 0) &&
+                   Object.keys(files).length === 0;
+
+  if (isSimple) {
+    // Simple AgentSkillIO → emit idiomatically
+    if (skill.disableModelInvocation) {
+      // Emit as ManualPrompt skill (.cursor/skills/<name>/SKILL.md with disable flag)
+      const baseName = sanitizePromptName(skill.name);
+      let dirName = baseName;
+      if (usedSkillNames.has(dirName)) {
+        collisionSources.push(skill.sourcePath);
+        let counter = 1;
+        while (usedSkillNames.has(`${baseName}-${counter}`)) {
+          counter++;
+        }
+        dirName = `${baseName}-${counter}`;
+      }
+      usedSkillNames.add(dirName);
+
+      const skillDir = path.join(root, '.cursor', 'skills', dirName);
+      if (!dryRun) {
+        await fs.mkdir(skillDir, { recursive: true });
+      }
+
+      const filepath = path.join(skillDir, 'SKILL.md');
+      const safeName = JSON.stringify(skill.name);
+      const safeDescription = JSON.stringify(skill.description);
+      const content = `---
+name: ${safeName}
+description: ${safeDescription}
+disable-model-invocation: true
+---
+
+${skill.content}
+`;
+
+      let isNewFile = true;
+      try {
+        await fs.access(filepath);
+        isNewFile = false;
+      } catch {
+        isNewFile = true;
+      }
+
+      if (!dryRun) {
+        await fs.writeFile(filepath, content, 'utf-8');
+      }
+
+      written.push({
+        path: filepath,
+        type: CustomizationType.AgentSkillIO,
+        itemCount: 1,
+        isNewFile,
+        sourceItems: [skill],
+      });
+    } else {
+      // Emit as Cursor rule (.cursor/rules/<name>.mdc with description:)
+      const rulesDir = path.join(root, '.cursor', 'rules');
+      if (!dryRun) {
+        await fs.mkdir(rulesDir, { recursive: true });
+      }
+
+      const baseName = sanitizeFilename(skill.name) + '.mdc';
+      const { filename, collision } = getUniqueFilename(baseName, usedFilenames);
+      if (collision) {
+        collisionSources.push(skill.sourcePath);
+      }
+
+      const filepath = path.join(rulesDir, filename);
+      const content = formatAgentSkillMdc(skill.content, skill.description);
+
+      let isNewFile = true;
+      try {
+        await fs.access(filepath);
+        isNewFile = false;
+      } catch {
+        isNewFile = true;
+      }
+
+      if (!dryRun) {
+        await fs.writeFile(filepath, content, 'utf-8');
+      }
+
+      written.push({
+        path: filepath,
+        type: CustomizationType.AgentSkillIO,
+        itemCount: 1,
+        isNewFile,
+        sourceItems: [skill],
+      });
+    }
+  } else {
+    // Complex AgentSkillIO → emit full directory with all files
+    const baseName = sanitizePromptName(skill.name);
+    let dirName = baseName;
+    if (usedSkillNames.has(dirName)) {
+      collisionSources.push(skill.sourcePath);
+      let counter = 1;
+      while (usedSkillNames.has(`${baseName}-${counter}`)) {
+        counter++;
+      }
+      dirName = `${baseName}-${counter}`;
+    }
+    usedSkillNames.add(dirName);
+
+    const skillDir = path.join(root, '.cursor', 'skills', dirName);
+    if (!dryRun) {
+      await fs.mkdir(skillDir, { recursive: true });
+    }
+
+    // Write SKILL.md with full frontmatter
+    const skillPath = path.join(skillDir, 'SKILL.md');
+    const safeName = JSON.stringify(skill.name);
+    const safeDescription = JSON.stringify(skill.description);
+    
+    let frontmatter = `---
+name: ${safeName}
+description: ${safeDescription}`;
+
+    if (skill.disableModelInvocation) {
+      frontmatter += '\ndisable-model-invocation: true';
+    }
+
+    frontmatter += '\n---';
+
+    const skillContent = `${frontmatter}\n\n${skill.content}\n`;
+
+    let isNewFile = true;
+    try {
+      await fs.access(skillPath);
+      isNewFile = false;
+    } catch {
+      isNewFile = true;
+    }
+
+    if (!dryRun) {
+      await fs.writeFile(skillPath, skillContent, 'utf-8');
+    }
+
+    written.push({
+      path: skillPath,
+      type: CustomizationType.AgentSkillIO,
+      itemCount: 1,
+      isNewFile,
+      sourceItems: [skill],
+    });
+
+    // Write all resource files
+    const baseDir = path.resolve(skillDir);
+    for (const [filename, content] of Object.entries(skill.files ?? {})) {
+      // Validate filename to prevent path traversal
+      if (path.isAbsolute(filename) || filename.includes('..')) {
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Skipped resource with unsafe path: ${filename}`,
+          sources: [skill.sourcePath],
+        });
+        continue;
+      }
+
+      const resolvedPath = path.resolve(skillDir, filename);
+      if (!resolvedPath.startsWith(baseDir + path.sep) && resolvedPath !== baseDir) {
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Skipped resource outside skill directory: ${filename}`,
+          sources: [skill.sourcePath],
+        });
+        continue;
+      }
+
+      // Ensure parent directory exists for nested paths
+      const parentDir = path.dirname(resolvedPath);
+      if (!dryRun && parentDir !== skillDir) {
+        await fs.mkdir(parentDir, { recursive: true });
+      }
+
+      let isResourceNewFile = true;
+      try {
+        await fs.access(resolvedPath);
+        isResourceNewFile = false;
+      } catch {
+        isResourceNewFile = true;
+      }
+
+      if (!dryRun) {
+        await fs.writeFile(resolvedPath, content, 'utf-8');
+      }
+
+      written.push({
+        path: resolvedPath,
+        type: CustomizationType.AgentSkillIO,
+        itemCount: 1,
+        isNewFile: isResourceNewFile,
+        sourceItems: [skill],
+      });
+    }
+  }
+
+  return written;
+}
+
+/**
  * Emit agent customizations to Cursor format.
  * - GlobalPrompt → .mdc with alwaysApply: true
  * - FileRule → .mdc with globs:
@@ -175,13 +406,14 @@ export async function emit(
   // Separate by type
   const globalPrompts = models.filter(isGlobalPrompt);
   const fileRules = models.filter(isFileRule);
-  const agentSkills = models.filter(isAgentSkill);
+  const agentSkills = models.filter(isSimpleAgentSkill);
+  const agentSkillIOs = models.filter(isAgentSkillIO);
   const agentIgnores = models.filter(isAgentIgnore);
   const manualPrompts = models.filter(isManualPrompt);
   
   // Track unsupported types (future types)
   for (const model of models) {
-    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model) && !isManualPrompt(model)) {
+    if (!isGlobalPrompt(model) && !isFileRule(model) && !isSimpleAgentSkill(model) && !isAgentSkillIO(model) && !isAgentIgnore(model) && !isManualPrompt(model)) {
       unsupported.push(model);
     }
   }
@@ -191,8 +423,8 @@ export async function emit(
   // Items that go to .cursor/skills/*/SKILL.md (Phase 7)
   const skillItems = [...agentSkills, ...manualPrompts];
   
-  // Early return only if no items at all (including agentIgnores)
-  if (mdcItems.length === 0 && skillItems.length === 0 && agentIgnores.length === 0) {
+  // Early return only if no items at all (including agentIgnores and agentSkillIOs)
+  if (mdcItems.length === 0 && skillItems.length === 0 && agentSkillIOs.length === 0 && agentIgnores.length === 0) {
     return { written, warnings, unsupported };
   }
 
@@ -276,7 +508,7 @@ export async function emit(
     });
   }
 
-  // === Emit AgentSkills as .cursor/skills/*/SKILL.md (Phase 7) ===
+  // === Emit SimpleAgentSkills as .cursor/skills/*/SKILL.md (Phase 7) ===
   for (const skill of agentSkills) {
     // Get skill name from metadata or sourcePath
     const skillName = (skill.metadata?.name as string) || sanitizeFilename(skill.sourcePath);
@@ -317,19 +549,10 @@ export async function emit(
 
     written.push({
       path: filepath,
-      type: CustomizationType.AgentSkill,
+      type: CustomizationType.SimpleAgentSkill,
       itemCount: 1,
       isNewFile,
       sourceItems: [skill],
-    });
-  }
-
-  // Emit warning if any collisions occurred
-  if (collisionSources.length > 0) {
-    warnings.push({
-      code: WarningCode.FileRenamed,
-      message: `Filename collision: ${collisionSources.length} file(s) renamed to avoid overwrite`,
-      sources: collisionSources,
     });
   }
 
@@ -413,6 +636,21 @@ export async function emit(
       itemCount: 1,
       isNewFile,
       sourceItems: [prompt],
+    });
+  }
+
+  // === Emit AgentSkillIOs (Phase 8 B4) ===
+  for (const skillIO of agentSkillIOs) {
+    const skillIOWritten = await emitAgentSkillIO(skillIO, root, dryRun, warnings, usedSkillNames, usedFilenames, collisionSources);
+    written.push(...skillIOWritten);
+  }
+
+  // Emit warning if any collisions occurred (after all emitters complete)
+  if (collisionSources.length > 0) {
+    warnings.push({
+      code: WarningCode.FileRenamed,
+      message: `Filename collision: ${collisionSources.length} file(s) renamed to avoid overwrite`,
+      sources: collisionSources,
     });
   }
 

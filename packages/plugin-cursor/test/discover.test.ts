@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import cursorPlugin from '../src/index.js';
-import { CustomizationType, WarningCode, type ManualPrompt } from '@a16njs/models';
+import { CustomizationType, WarningCode, type ManualPrompt, type AgentSkillIO } from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
@@ -145,7 +145,7 @@ describe('AgentSkill Discovery (Phase 2)', () => {
     
     // All should be AgentSkill
     for (const item of result.items) {
-      expect(item.type).toBe(CustomizationType.AgentSkill);
+      expect(item.type).toBe(CustomizationType.SimpleAgentSkill);
     }
   });
 
@@ -155,7 +155,7 @@ describe('AgentSkill Discovery (Phase 2)', () => {
 
     const authSkill = result.items.find(i => i.sourcePath.includes('auth'));
     expect(authSkill).toBeDefined();
-    expect(authSkill?.type).toBe(CustomizationType.AgentSkill);
+    expect(authSkill?.type).toBe(CustomizationType.SimpleAgentSkill);
     expect((authSkill as import('@a16njs/models').AgentSkill).description).toBe('Authentication and authorization patterns');
   });
 
@@ -165,7 +165,7 @@ describe('AgentSkill Discovery (Phase 2)', () => {
 
     const dbSkill = result.items.find(i => i.sourcePath.includes('database'));
     expect(dbSkill).toBeDefined();
-    expect(dbSkill?.type).toBe(CustomizationType.AgentSkill);
+    expect(dbSkill?.type).toBe(CustomizationType.SimpleAgentSkill);
     expect((dbSkill as import('@a16njs/models').AgentSkill).description).toBe('Database operations and ORM usage');
   });
 
@@ -201,7 +201,7 @@ describe('Classification Priority (Phase 2)', () => {
     const result = await cursorPlugin.discover(root);
 
     for (const item of result.items) {
-      expect(item.type).toBe(CustomizationType.AgentSkill);
+      expect(item.type).toBe(CustomizationType.SimpleAgentSkill);
     }
   });
 
@@ -210,7 +210,7 @@ describe('Classification Priority (Phase 2)', () => {
     const result = await cursorPlugin.discover(root);
 
     expect(result.items).toHaveLength(1);
-    expect(result.items[0]?.type).toBe(CustomizationType.AgentSkill);
+    expect(result.items[0]?.type).toBe(CustomizationType.SimpleAgentSkill);
     expect((result.items[0] as import('@a16njs/models').AgentSkill).description).toBe('when to do a thing properly');
   });
 
@@ -330,7 +330,7 @@ describe('Cursor Skills Discovery (Phase 7)', () => {
       const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
       const result = await cursorPlugin.discover(root);
 
-      const skills = result.items.filter(i => i.type === CustomizationType.AgentSkill);
+      const skills = result.items.filter(i => i.type === CustomizationType.SimpleAgentSkill);
       expect(skills).toHaveLength(1);
       expect(skills[0]?.sourcePath).toBe('.cursor/skills/deploy/SKILL.md');
     });
@@ -339,7 +339,7 @@ describe('Cursor Skills Discovery (Phase 7)', () => {
       const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
       const result = await cursorPlugin.discover(root);
 
-      const skill = result.items.find(i => i.type === CustomizationType.AgentSkill) as import('@a16njs/models').AgentSkill;
+      const skill = result.items.find(i => i.type === CustomizationType.SimpleAgentSkill) as import('@a16njs/models').SimpleAgentSkill;
       expect(skill).toBeDefined();
       expect(skill.description).toBe('Helps with deploying services to production');
     });
@@ -348,7 +348,7 @@ describe('Cursor Skills Discovery (Phase 7)', () => {
       const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
       const result = await cursorPlugin.discover(root);
 
-      const skill = result.items.find(i => i.type === CustomizationType.AgentSkill);
+      const skill = result.items.find(i => i.type === CustomizationType.SimpleAgentSkill);
       expect(skill?.metadata?.name).toBe('deploy-service');
     });
   });
@@ -396,7 +396,7 @@ describe('Cursor Skills Discovery (Phase 7)', () => {
 
       // Should not crash, just no skills
       const skills = result.items.filter(
-        i => i.type === CustomizationType.AgentSkill || 
+        i => i.type === CustomizationType.SimpleAgentSkill || 
              (i.type === CustomizationType.ManualPrompt && i.sourcePath.includes('skills'))
       );
       expect(skills).toHaveLength(0);
@@ -566,6 +566,122 @@ describe('ManualPrompt Discovery (Phase 4 - Commands)', () => {
 
       const commands = result.items.filter(i => i.type === CustomizationType.ManualPrompt);
       expect(commands).toHaveLength(0);
+    });
+  });
+});
+
+describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
+  /**
+   * Tests for discovering complex skills that have extra files in their directory.
+   * Skills with additional resources (checklist.md, config.json, etc.) should be
+   * classified as AgentSkillIO instead of SimpleAgentSkill.
+   */
+  describe('complex skills with extra files → AgentSkillIO', () => {
+    it('should discover AgentSkillIO from skill with extra files', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const agentSkillIO = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('deploy')
+      );
+      expect(agentSkillIO).toBeDefined();
+      expect(agentSkillIO?.type).toBe(CustomizationType.AgentSkillIO);
+    });
+
+    it('should include all extra files in AgentSkillIO.files map', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('deploy')
+      ) as AgentSkillIO;
+      
+      expect(skill).toBeDefined();
+      expect(skill.files).toBeDefined();
+      expect(Object.keys(skill.files)).toContain('checklist.md');
+      expect(Object.keys(skill.files)).toContain('config.json');
+      expect(skill.files['checklist.md']).toContain('Pre-Deployment Checklist');
+      expect(skill.files['config.json']).toContain('"environment": "production"');
+    });
+
+    it('should extract skill name from frontmatter', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('deploy')
+      ) as AgentSkillIO;
+      
+      expect(skill).toBeDefined();
+      expect(skill.name).toBe('deploy-service');
+    });
+
+    it('should extract description from frontmatter', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('deploy')
+      ) as AgentSkillIO;
+      
+      expect(skill).toBeDefined();
+      expect(skill.description).toBe('Helps deploy services to production with checklists and scripts');
+    });
+
+    it('should include SKILL.md content in AgentSkillIO.content', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('deploy')
+      ) as AgentSkillIO;
+      
+      expect(skill).toBeDefined();
+      expect(skill.content).toContain('Deploy Service Skill');
+      expect(skill.content).toContain('Refer to the included resources for guidance');
+    });
+
+    it('should list resource filenames in AgentSkillIO.resources', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('deploy')
+      ) as AgentSkillIO;
+      
+      expect(skill).toBeDefined();
+      expect(skill.resources).toBeDefined();
+      expect(skill.resources).toContain('checklist.md');
+      expect(skill.resources).toContain('config.json');
+    });
+  });
+
+  describe('simple skills remain as SimpleAgentSkill', () => {
+    it('should classify skill with only SKILL.md as SimpleAgentSkill', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const simpleSkill = result.items.find(
+        i => i.type === CustomizationType.SimpleAgentSkill && i.sourcePath.includes('simple')
+      );
+      expect(simpleSkill).toBeDefined();
+      expect(simpleSkill?.type).toBe(CustomizationType.SimpleAgentSkill);
+    });
+  });
+
+  describe('mixed simple and complex skills', () => {
+    it('should correctly classify both simple and complex skills', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      // Should have one AgentSkillIO (deploy) and one SimpleAgentSkill (simple)
+      const agentSkillIO = result.items.filter(i => i.type === CustomizationType.AgentSkillIO);
+      const simpleSkills = result.items.filter(i => i.type === CustomizationType.SimpleAgentSkill);
+
+      expect(agentSkillIO).toHaveLength(1);
+      expect(simpleSkills).toHaveLength(1);
+      expect(agentSkillIO[0]?.sourcePath).toContain('deploy');
+      expect(simpleSkills[0]?.sourcePath).toContain('simple');
     });
   });
 });
