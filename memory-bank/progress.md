@@ -1,167 +1,133 @@
 # Memory Bank: Progress
 
-## Phase 8 Part A: Claude Native Rules Support
+## Phase 8 Part B: Full AgentSkills.io Support
 
-**Status**: ✅ COMPLETE (All A1-A4 Milestones)
+**Status**: 📋 PLANNING COMPLETE
 **Last Updated**: 2026-02-01
-**Total Time**: ~4.5 hours
+**Reference**: `memory-bank/tasks.md`
 
 ---
 
-## Milestone Status
+## Milestone Progress
 
-### Milestone A1: Claude Rules Discovery
-**Status**: ✅ Complete
-- Reflection document: `memory-bank/reflection/reflection-phase8-milestone-a1.md`
-- All acceptance criteria met
-
-### Milestone A2: Claude Rules Emission
-**Status**: ✅ Complete
-- Native `.claude/rules/*.md` emission implemented
-- GlobalPrompts: No frontmatter, source header
-- FileRules: YAML paths frontmatter
-- All acceptance criteria met
-
-### Milestone A3: Remove glob-hook
-**Status**: ✅ Complete
-- Removed `buildHookConfig()` function
-- Removed `escapeShellArg()` function
-- Removed `.a16n/rules/` directory creation
-- Removed `settings.local.json` hook writing
-- Removed approximation warnings for FileRules
-- All acceptance criteria met
-- Reflection document: `memory-bank/reflection/reflection-phase8-milestone-a2-a3.md`
-
-### Milestone A4: Documentation Cleanup
-**Status**: ✅ Complete
-- Updated 6 documentation files
-- Removed glob-hook references from Claude plugin docs
-- Added deprecation notes to glob-hook docs
-- Updated conversion tables and behavior descriptions
-- Verified docs build and full test suite (416 tests passing)
-- Reflection document: `memory-bank/reflection/reflection-phase8-milestone-a4.md`
+| Milestone | Description | Tasks | Complete | Status |
+|-----------|-------------|-------|----------|--------|
+| 4 | Type System Updates | 13 | 0 | ⏳ Not Started |
+| 5 | AgentSkillIO Discovery | 8 | 0 | ⏳ Not Started |
+| 6 | AgentSkillIO Emission | 6 | 0 | ⏳ Not Started |
+| 7 | Integration & Polish | 6 | 0 | ⏳ Not Started |
+| **Total** | | **33** | **0** | **0%** |
 
 ---
 
-## Implementation Summary
+## Planning Artifacts
 
-### Phase 1: Preparation (Stubbing) ✅
-- Stubbed 2 new functions with full signatures and JSDoc
-- Updated ~30 existing tests to expect new behavior
-- Removed settings merge tests (obsolete)
-- Added filename collision tests
-- Added new behavior validation tests
+### Research Completed
 
-### Phase 2: Write Tests ✅
-- Completed alongside Phase 1
-- All tests written and failing as expected per TDD
+1. **Current Type System**
+   - `AgentSkill` interface in `packages/models/src/types.ts`
+   - `isAgentSkill()` helper in `packages/models/src/helpers.ts`
+   - Used in both plugin-cursor and plugin-claude
 
-### Phase 3: Implement Code ✅
-- Implemented `formatGlobalPromptAsClaudeRule()` (10 lines)
-- Implemented `formatFileRuleAsClaudeRule()` (15 lines)
-- Rewrote GlobalPrompt emission section (~40 lines)
-- Rewrote FileRule emission section (~50 lines)
-- Removed glob-hook code (~130 lines)
-- Net: -15 lines (cleaner codebase)
+2. **Current Discovery**
+   - Both plugins discover `.cursor/skills/*/SKILL.md` and `.claude/skills/*/SKILL.md`
+   - Only read SKILL.md content, ignore other files
+   - Classify as `AgentSkill` or `ManualPrompt`
 
-### Phase 4: Verification ✅
-- All plugin-claude tests passing: 93/93 ✅
-- Fixed engine tests: 12/12 ✅
-- Fixed CLI tests: 100/100 ✅
-- All builds successful
-- No lint errors
-- **Total: 100/100 tests passing** ✅
+3. **Current Emission**
+   - Skills go to `.cursor/skills/` or `.claude/skills/` directories
+   - Single SKILL.md file per skill
 
----
+4. **Test Infrastructure**
+   - Fixture-based testing with `from-*` and `to-*` directories
+   - Integration tests in `packages/cli/test/integration/`
+   - 416+ tests currently passing
 
-## Test Results
+### Files Identified for Modification
 
-**Final Test Count**: 100 tests passing across all packages
-- `@a16njs/plugin-claude`: 93 tests (52 emit + 41 discovery)
-- `@a16njs/engine`: 12 tests
-- `a16n` (CLI): 100 tests (includes integration tests)
+**Models (11 files)**:
+- types.ts, helpers.ts, index.ts
+- 4 test files
 
-**Changes Made**:
-- Updated ~30 plugin-claude emit tests
-- Updated 2 engine tests
-- Updated 8 CLI tests
-- Updated 3 integration tests
-- Removed settings merge tests (obsolete)
-- Added new native rules tests
+**Plugin-Cursor (4 files)**:
+- discover.ts, emit.ts
+- 2 test files
 
-**Performance**: All tests complete in <30 seconds
+**Plugin-Claude (4 files)**:
+- discover.ts, emit.ts
+- 2 test files
 
----
+**Integration (2+ files)**:
+- integration.test.ts
+- New test fixtures
 
-## Breaking Changes Tracking
+### Fixtures Identified for Creation
 
-### User-Facing Changes
-
-**BEFORE (Current)**:
-```
-Output from cursor → claude:
-  - CLAUDE.md (merged GlobalPrompts)
-  - .a16n/rules/*.md (FileRule content)
-  - .claude/settings.local.json (glob-hook config)
-```
-
-**AFTER (A2/A3)**:
-```
-Output from cursor → claude:
-  - .claude/rules/*.md (individual GlobalPrompts, no frontmatter)
-  - .claude/rules/*.md (FileRules with paths frontmatter)
-  - NO CLAUDE.md
-  - NO .a16n/ directory
-  - NO settings.local.json hooks
-```
-
-### Technical Changes
-
-**Code Removals**:
-- `buildHookConfig()` function (~15 lines)
-- `escapeShellArg()` function (~3 lines)
-- `.a16n/rules/` creation (~60 lines)
-- `settings.local.json` hook writing (~50 lines)
-- Glob-hook warnings (~5 lines)
-- **Total removal**: ~130 lines
-
-**Code Additions**:
-- `formatGlobalPromptAsClaudeRule()` (~10 lines)
-- `formatFileRuleAsClaudeRule()` (~15 lines)
-- New GlobalPrompt emission (~40 lines)
-- New FileRule emission (~50 lines)
-- **Total addition**: ~115 lines
-
-**Net change**: -15 lines (cleaner codebase!)
+1. `cursor-skills-complex/` - Complex Cursor skill with resources
+2. `claude-skills-complex/` - Complex Claude skill with hooks
+3. `cursor-to-claude-complex-skill/` - Integration test
+4. `claude-to-cursor-complex-skill/` - Integration test
 
 ---
 
-## Planning Insights
+## Acceptance Criteria Tracking
 
-### What's Well-Defined
-1. **Clear scope**: Emission + cleanup, no architectural changes
-2. **Test strategy**: Update existing, remove obsolete, add integration
-3. **Breaking changes**: Documented and intentional
-4. **Reusable patterns**: A1 established filename handling patterns
+### Part B Acceptance Criteria
 
-### What Needs Care
-1. **Test updates**: 27 tests need careful updating for new behavior
-2. **Breaking change communication**: Need clear changelog/migration guide
-3. **Round-trip testing**: Ensure discover ↔ emit works correctly
-4. **Manual verification**: Real-world test before declaring complete
-
-### Lessons from A1
-1. **TDD works**: Invest in test design upfront
-2. **Fixtures help**: Consider if emission needs fixtures (probably temp dir is fine)
-3. **Incremental verification**: Test package-level before full suite
-4. **Document decisions**: Keep progress.md updated
+| ID | Criteria | Status |
+|----|----------|--------|
+| AC-B1-1 | SimpleAgentSkill type exists, AgentSkill is deprecated alias | ⏳ |
+| AC-B2-1 | AgentSkillIO type supports hooks, resources, files | ⏳ |
+| AC-B3-1 | Discovery reads entire skill directories | ⏳ |
+| AC-B3-2 | Simple skills classified as SimpleAgentSkill/ManualPrompt | ⏳ |
+| AC-B3-3 | Complex skills classified as AgentSkillIO | ⏳ |
+| AC-B4-1 | Simple AgentSkillIO emits as Cursor rule (idiomatic) | ⏳ |
+| AC-B4-2 | Complex AgentSkillIO emits to .cursor/skills/ with resources | ⏳ |
+| AC-B4-3 | Hooks copied verbatim with warning | ⏳ |
+| AC-7-1 | Round-trip tests pass (Claude → Cursor → Claude) | ⏳ |
+| AC-7-2 | Round-trip tests pass (Cursor → Claude → Cursor) | ⏳ |
 
 ---
 
-## Next Action
+## Estimated Effort
 
-When `/build` is invoked:
-1. Start with Phase 1: Stubbing
-2. Update existing emit tests to expect new behavior
-3. Stub new emission functions
-4. Follow TDD cycle through Phase 4
+| Milestone | Tasks | Est. Time |
+|-----------|-------|-----------|
+| 4 | Type System Updates | ~2 hours |
+| 5 | AgentSkillIO Discovery | ~3 hours |
+| 6 | AgentSkillIO Emission | ~3 hours |
+| 7 | Integration & Polish | ~2 hours |
+| **Total** | **33 tasks** | **~10 hours** |
+
+---
+
+## Risks & Mitigations
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|------------|--------|------------|
+| Backward compat issues | Low | High | Provide deprecated aliases, test existing code |
+| Complex skill edge cases | Medium | Low | Start simple, iterate based on real usage |
+| Test fixture complexity | Medium | Low | Create minimal but representative fixtures |
+| Discovery performance | Low | Low | Use existing patterns, don't over-optimize |
+
+---
+
+## Ready for Implementation
+
+Plan is complete. When `/build` is invoked:
+
+1. **Follow TDD process**:
+   - Stub tests first (expect failures)
+   - Implement code
+   - Verify tests pass
+   
+2. **Work in order**:
+   - Milestone 4 first (type system is prerequisite)
+   - Then 5, 6, 7 sequentially
+
+3. **Verify after each milestone**:
+   ```bash
+   pnpm format && pnpm lint -- --fix && pnpm build && pnpm test
+   ```
+
+4. **Create reflection docs** after each milestone

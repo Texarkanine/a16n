@@ -2,71 +2,115 @@
 
 ## Current Session Focus
 
-**Task**: Phase 8 Part A - Claude Native Rules Support
-**Mode**: ✅ COMPLETE
-**Started**: 2026-01-31
-**Completed**: 2026-02-01
-
-## Completion Summary
-
-Phase 8 Part A is fully complete. All four milestones (A1-A4) have been successfully implemented and documented.
-
-### Milestones Completed
-
-| Milestone | Description | Completion Date |
-|-----------|-------------|-----------------|
-| A1 | Claude Rules Discovery | 2026-01-31 |
-| A2 | Claude Rules Emission | 2026-01-31 |
-| A3 | Remove glob-hook | 2026-01-31 |
-| A4 | Documentation Cleanup | 2026-02-01 |
-
-### Key Achievements
-
-1. **Native Claude Rules**: `.claude/rules/*.md` discovery and emission implemented
-2. **Lossless FileRule Conversion**: No more glob-hook approximation warnings
-3. **Clean Architecture**: Net code reduction of 15 lines
-4. **Full Test Coverage**: 416 tests passing across all packages
-5. **Documentation Updated**: All docs reflect new native rules behavior
-
-### Technical Changes
-
-**Discovery**:
-- Added `findClaudeRules()` function
-- Added `parseClaudeRuleFrontmatter()` function
-- Rules without `paths:` → GlobalPrompt
-- Rules with `paths:` → FileRule
-
-**Emission**:
-- GlobalPrompts → `.claude/rules/<name>.md` (no frontmatter)
-- FileRules → `.claude/rules/<name>.md` (with `paths:` frontmatter)
-- No more CLAUDE.md merging
-- No more `.a16n/rules/` directory
-- No more `settings.local.json` hooks
-
-**Documentation**:
-- Updated 6 documentation files
-- Added deprecation notes to glob-hook docs
-- Updated conversion tables and behavior descriptions
-
-### Reflection Documents
-
-- `memory-bank/reflection/reflection-phase8-milestone-a1.md`
-- `memory-bank/reflection/reflection-phase8-milestone-a2-a3.md`
-- `memory-bank/reflection/reflection-phase8-milestone-a4.md`
-
-## Next Steps
-
-**Ready for Phase 8 Part B: Full AgentSkills.io Support**
-
-| Milestone | Description |
-|-----------|-------------|
-| B1 | Rename AgentSkill → SimpleAgentSkill |
-| B2 | Define AgentSkillIO type |
-| B3 | AgentSkillIO Discovery |
-| B4 | AgentSkillIO Emission |
-
+**Task**: Phase 8 Part B - Full AgentSkills.io Support
+**Mode**: Planning Complete
+**Started**: 2026-02-01
 **Reference**: `/home/mobaxterm/Documents/git/a16n/planning/PHASE_8_SPEC.md` (lines 344-603)
+
+## Planning Summary
+
+Detailed implementation plan created for milestones 4-7 (Part B: Full AgentSkills.io Support).
+
+### Milestones to Implement
+
+| Milestone | Description | Tasks | Status |
+|-----------|-------------|-------|--------|
+| 4 | Type System Updates (B1+B2) | 13 | ⏳ Ready |
+| 5 | AgentSkillIO Discovery (B3) | 8 | ⏳ Ready |
+| 6 | AgentSkillIO Emission (B4) | 6 | ⏳ Ready |
+| 7 | Integration & Polish | 6 | ⏳ Ready |
+
+### Dependencies
+
+```
+Milestone 4 → Milestone 5 → Milestone 6 → Milestone 7
+```
+
+**Note**: Milestone 4 (Type System Updates) is a prerequisite for milestones 5-7. Must complete in order.
+
+## Key Technical Decisions
+
+### B1: Type Rename Strategy
+
+- `AgentSkill` → `SimpleAgentSkill` with deprecated alias
+- Maintain backward compatibility via type alias
+- All existing code continues to work without changes initially
+
+### B2: AgentSkillIO Structure
+
+```typescript
+interface AgentSkillIO {
+  type: CustomizationType.AgentSkillIO;
+  name: string;
+  description: string;
+  hooks?: Record<string, unknown>;  // Copied verbatim
+  resources?: string[];             // Resource file paths
+  disableModelInvocation?: boolean;
+  files: Record<string, string>;    // filename → content map
+}
+```
+
+### B3: Discovery Classification Logic
+
+```
+SKILL.md found?
+├── No → Skip directory
+└── Yes → Parse frontmatter
+    ├── Has hooks OR extra files?
+    │   └── Yes → AgentSkillIO
+    ├── Has disable-model-invocation: true?
+    │   └── Yes → ManualPrompt
+    └── Has description only?
+        └── Yes → SimpleAgentSkill
+```
+
+### B4: Emission Routing
+
+**For Cursor output:**
+- Simple AgentSkillIO → `.cursor/rules/<name>.mdc` (idiomatic)
+- Complex AgentSkillIO → `.cursor/skills/<name>/` with all files
+- Hooks → Warning (not supported by Cursor)
+
+**For Claude output:**
+- All AgentSkillIO → `.claude/skills/<name>/` with all files
+- Hooks → Preserved in frontmatter (supported by Claude)
+
+## Files to Modify
+
+### Models Package
+- `packages/models/src/types.ts` - New types
+- `packages/models/src/helpers.ts` - New type guards
+- `packages/models/src/index.ts` - Updated exports
+- `packages/models/test/*.test.ts` - Updated tests
+
+### Cursor Plugin
+- `packages/plugin-cursor/src/discover.ts` - Full directory discovery
+- `packages/plugin-cursor/src/emit.ts` - AgentSkillIO emission
+- `packages/plugin-cursor/test/*.test.ts` - New tests
+
+### Claude Plugin  
+- `packages/plugin-claude/src/discover.ts` - Full directory discovery
+- `packages/plugin-claude/src/emit.ts` - AgentSkillIO emission
+- `packages/plugin-claude/test/*.test.ts` - New tests
+
+### CLI/Integration
+- `packages/cli/test/integration/` - Round-trip tests
+
+## Test Fixtures to Create
+
+1. `packages/plugin-cursor/test/fixtures/cursor-skills-complex/`
+2. `packages/plugin-claude/test/fixtures/claude-skills-complex/`
+3. `packages/cli/test/integration/fixtures/cursor-to-claude-complex-skill/`
+4. `packages/cli/test/integration/fixtures/claude-to-cursor-complex-skill/`
+
+## Next Actions
+
+When `/build` is invoked:
+1. Start with Milestone 4 (Type System Updates)
+2. Follow TDD methodology
+3. Complete each milestone before starting next
+4. Create reflection documents upon completion
 
 ## Blockers
 
-None. Phase 8 Part A complete, ready for Part B when needed.
+None. Plan complete, ready for implementation.
