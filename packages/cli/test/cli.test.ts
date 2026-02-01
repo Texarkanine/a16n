@@ -518,9 +518,9 @@ describe('CLI', () => {
       expect(files.length).toBeGreaterThan(0);
     });
 
-    it('should preserve sources with skips when using --delete-source', async () => {
-      // AC4: Preserve sources involved in skips
-      // Create a skill without description (which generates a Skip warning)
+    it('should preserve sources that are not converted when using --delete-source', async () => {
+      // AC4: Sources that don't produce output should not be deleted
+      // Create a skill without description (silently ignored - no output produced)
       const skillDir = path.join(tempDir, '.claude', 'skills', 'test-skill');
       await fs.mkdir(skillDir, { recursive: true });
       const skillPath = path.join(skillDir, 'SKILL.md');
@@ -529,16 +529,15 @@ describe('CLI', () => {
         `---
 name: test-skill
 ---
-Skill content without description - should be skipped`
+Skill content without description - will be ignored`
       );
-      
+
       const { stdout, exitCode } = runCli('convert --from claude --to cursor --delete-source');
 
       expect(exitCode).toBe(0);
-      // Source should be preserved because it was skipped (skill without description not convertible)
+      // Source should be preserved because it was not converted (no description = silently ignored)
       await expect(fs.access(skillPath)).resolves.not.toThrow();
       expect(stdout).not.toContain('Deleted:');
-      // Note: Skills without description are silently ignored, not explicitly skipped with warning
     });
 
     it('should preserve sources with partial skips', async () => {

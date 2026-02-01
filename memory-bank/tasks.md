@@ -2,19 +2,24 @@
 
 ## Current Task: CodeRabbit PR #27 Fixes
 
-**Status:** In Progress
+**Status:** COMPLETE
 **PR URL:** https://github.com/Texarkanine/a16n/pull/27
 **Rate Limit Until:**
-**Last Updated:** 2026-02-01T18:00:00Z
+**Last Updated:** 2026-02-01T19:40:00Z
 
-### Actionable Items
+### Actionable Items (Round 1 - commit 254957a)
 
-- [ ] ID: tasks-dod - Update Definition of Done checklist to match completion status (memory-bank/tasks.md:616-625)
-- [ ] ID: cli-paths - Normalize stdout paths for OS-agnostic assertions (packages/cli/test/cli.test.ts:103, 288-295)
-- [ ] ID: discover-regex - Update frontmatter key regex to accept hyphens (packages/plugin-claude/src/discover.ts:178)
-- [ ] ID: discover-hooks - Skip skills with hooks instead of silently dropping (packages/plugin-claude/src/discover.ts:542-573)
-- [ ] ID: backup-file - Remove or fix discover.ts.backup file (packages/plugin-claude/src/discover.ts.backup)
-- [ ] ID: emit-filenames - Fix usedFilenames scope in emitAgentSkillIO (packages/plugin-cursor/src/emit.ts:246)
+- [x] ID: tasks-dod - Update Definition of Done checklist to match completion status - FIXED
+- [x] ID: cli-paths - Normalize stdout paths for OS-agnostic assertions (packages/cli/test/cli.test.ts:103, 288-295) - FIXED
+- [x] ID: discover-regex - Update frontmatter key regex to accept hyphens (packages/plugin-claude/src/discover.ts:178) - FIXED
+- [x] ID: discover-hooks - Skip skills with hooks instead of silently dropping (packages/plugin-claude/src/discover.ts:542-573) - FIXED
+- [x] ID: backup-file - Remove or fix discover.ts.backup file (packages/plugin-claude/src/discover.ts.backup) - FIXED
+- [x] ID: emit-filenames - Fix usedFilenames scope in emitAgentSkillIO (packages/plugin-cursor/src/emit.ts:246) - FIXED
+
+### Actionable Items (Round 2)
+
+- [x] ID: emit-collision-param - Pass collisionSources parameter to emitAgentSkillIO (packages/plugin-cursor/src/emit.ts:650) - FIXED
+- [x] ID: cli-test-comment - Fix contradictory test name/comments about "skips" vs "silently ignored" (packages/cli/test/cli.test.ts:521-542) - FIXED
 
 ### Requires Human Decision
 
@@ -24,6 +29,7 @@ None
 
 - ID: precheck-sh - Test fixture file doesn't need reviewing (Texarkanine confirmed: "this is a test fixture and not a real skill/hook")
 - ID: types-test-hooks - Test already removed by Texarkanine per his comment about removing the test
+- ID: discover-test-warningcode - Already has WarningCode.Skipped assertions (lines 117, 128)
 
 ---
 

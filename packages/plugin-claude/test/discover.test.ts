@@ -114,6 +114,7 @@ describe('Claude AgentSkill Discovery (Phase 2)', () => {
       // Should have a warning about hooks not being supported
       const hooksWarning = result.warnings.find(w => w.message.toLowerCase().includes('hooks'));
       expect(hooksWarning).toBeDefined();
+      expect(hooksWarning?.code).toBe(WarningCode.Skipped);
       expect(hooksWarning?.message).toContain('Hooks are not supported');
     });
 
@@ -124,6 +125,7 @@ describe('Claude AgentSkill Discovery (Phase 2)', () => {
       // Warning should be emitted - hooks are not supported
       const hooksWarning = result.warnings.find(w => w.message.toLowerCase().includes('hooks'));
       expect(hooksWarning).toBeDefined();
+      expect(hooksWarning?.code).toBe(WarningCode.Skipped);
     });
   });
 });

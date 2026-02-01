@@ -172,26 +172,6 @@ describe('AgentSkillIO', () => {
     expect(skill.description).toBe('Deploy to production');
   });
 
-  it('should support hooks field', () => {
-    const skill: AgentSkillIO = {
-      id: 'skillIO-2',
-      type: CustomizationType.AgentSkillIO,
-      sourcePath: '.claude/skills/secure-deploy/SKILL.md',
-      content: 'Secure deploy content',
-      name: 'secure-deploy',
-      description: 'Secure deployment',
-      hooks: {
-        'pre-commit': { command: 'npm test' },
-        'post-deploy': { notify: true },
-      },
-      files: {},
-      metadata: {},
-    };
-
-    expect(skill.hooks).toBeDefined();
-    expect(skill.hooks!['pre-commit']).toEqual({ command: 'npm test' });
-  });
-
   it('should support resources field', () => {
     const skill: AgentSkillIO = {
       id: 'skillIO-3',

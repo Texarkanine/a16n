@@ -169,6 +169,7 @@ ${prompt.content}
  * @param warnings - Array to append warnings to
  * @param usedSkillNames - Set of used skill directory names (for collision detection)
  * @param usedFilenames - Set of used rule filenames (for collision detection with GlobalPrompt/FileRule)
+ * @param collisionSources - Array to collect collision source paths
  * @returns Array of written files
  */
 async function emitAgentSkillIO(
@@ -177,13 +178,15 @@ async function emitAgentSkillIO(
   dryRun: boolean,
   warnings: Warning[],
   usedSkillNames: Set<string>,
-  usedFilenames: Set<string>
+  usedFilenames: Set<string>,
+  collisionSources: string[]
 ): Promise<WrittenFile[]> {
   const written: WrittenFile[] = [];
 
   // Check if skill is effectively simple (no resources, no files)
+  const files = skill.files ?? {};
   const isSimple = (!skill.resources || skill.resources.length === 0) &&
-                   Object.keys(skill.files).length === 0;
+                   Object.keys(files).length === 0;
 
   if (isSimple) {
     // Simple AgentSkillIO → emit idiomatically
@@ -192,6 +195,7 @@ async function emitAgentSkillIO(
       const baseName = sanitizePromptName(skill.name);
       let dirName = baseName;
       if (usedSkillNames.has(dirName)) {
+        collisionSources.push(skill.sourcePath);
         let counter = 1;
         while (usedSkillNames.has(`${baseName}-${counter}`)) {
           counter++;
@@ -274,6 +278,7 @@ ${skill.content}
     const baseName = sanitizePromptName(skill.name);
     let dirName = baseName;
     if (usedSkillNames.has(dirName)) {
+      collisionSources.push(skill.sourcePath);
       let counter = 1;
       while (usedSkillNames.has(`${baseName}-${counter}`)) {
         counter++;
@@ -325,23 +330,48 @@ description: ${safeDescription}`;
     });
 
     // Write all resource files
-    for (const [filename, content] of Object.entries(skill.files)) {
-      const filePath = path.join(skillDir, filename);
-      
+    const baseDir = path.resolve(skillDir);
+    for (const [filename, content] of Object.entries(skill.files ?? {})) {
+      // Validate filename to prevent path traversal
+      if (path.isAbsolute(filename) || filename.includes('..')) {
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Skipped resource with unsafe path: ${filename}`,
+          sources: [skill.sourcePath],
+        });
+        continue;
+      }
+
+      const resolvedPath = path.resolve(skillDir, filename);
+      if (!resolvedPath.startsWith(baseDir + path.sep) && resolvedPath !== baseDir) {
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Skipped resource outside skill directory: ${filename}`,
+          sources: [skill.sourcePath],
+        });
+        continue;
+      }
+
+      // Ensure parent directory exists for nested paths
+      const parentDir = path.dirname(resolvedPath);
+      if (!dryRun && parentDir !== skillDir) {
+        await fs.mkdir(parentDir, { recursive: true });
+      }
+
       let isResourceNewFile = true;
       try {
-        await fs.access(filePath);
+        await fs.access(resolvedPath);
         isResourceNewFile = false;
       } catch {
         isResourceNewFile = true;
       }
 
       if (!dryRun) {
-        await fs.writeFile(filePath, content, 'utf-8');
+        await fs.writeFile(resolvedPath, content, 'utf-8');
       }
 
       written.push({
-        path: filePath,
+        path: resolvedPath,
         type: CustomizationType.AgentSkillIO,
         itemCount: 1,
         isNewFile: isResourceNewFile,
@@ -617,7 +647,7 @@ export async function emit(
 
   // === Emit AgentSkillIOs (Phase 8 B4) ===
   for (const skillIO of agentSkillIOs) {
-    const skillIOWritten = await emitAgentSkillIO(skillIO, root, dryRun, warnings, usedSkillNames, usedFilenames);
+    const skillIOWritten = await emitAgentSkillIO(skillIO, root, dryRun, warnings, usedSkillNames, usedFilenames, collisionSources);
     written.push(...skillIOWritten);
   }
 
