@@ -1,7 +1,6 @@
 # @a16njs/plugin-claude
 
 [![npm version](https://img.shields.io/npm/v/@a16njs/plugin-claude.svg)](https://www.npmjs.com/package/@a16njs/plugin-claude)
-[![Documentation](https://img.shields.io/badge/docs-a16n.dev-blue)](https://a16n.dev/plugin-claude)
 
 Claude Code plugin for a16n. Discovers and emits Claude configuration.
 
@@ -104,4 +103,4 @@ await claudePlugin.emit(result.items, './my-project');
 
 ## Documentation
 
-Full documentation available at [a16n.dev/plugin-claude](https://a16n.dev/plugin-claude).
+Full documentation available at <https://texarkanine.github.io/a16n/plugin-claude>.

@@ -1,7 +1,6 @@
 # @a16njs/engine
 
 [![npm version](https://img.shields.io/npm/v/@a16njs/engine.svg)](https://www.npmjs.com/package/@a16njs/engine)
-[![Documentation](https://img.shields.io/badge/docs-a16n.dev-blue)](https://a16n.dev/engine)
 
 Conversion engine for a16n. Orchestrates plugins to convert between tools.
 
@@ -79,4 +78,4 @@ Get a plugin by ID.
 
 ## Documentation
 
-Full documentation available at [a16n.dev/engine](https://a16n.dev/engine).
+Full documentation available at <https://texarkanine.github.io/a16n/engine>.

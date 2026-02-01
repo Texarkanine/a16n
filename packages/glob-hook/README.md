@@ -1,7 +1,6 @@
 # @a16njs/glob-hook
 
 [![npm version](https://img.shields.io/npm/v/@a16njs/glob-hook.svg)](https://www.npmjs.com/package/@a16njs/glob-hook)
-[![Documentation](https://img.shields.io/badge/docs-a16n.dev-blue)](https://a16n.dev/glob-hook)
 
 CLI tool for glob-based file path matching in Claude Code hooks. Part of the [a16n](https://github.com/texarkanine/a16n) project.
 
@@ -105,4 +104,4 @@ Patterns use [micromatch](https://github.com/micromatch/micromatch) syntax with 
 
 ## Documentation
 
-Full documentation available at [a16n.dev/glob-hook](https://a16n.dev/glob-hook).
+Full documentation available at <https://texarkanine.github.io/a16n/glob-hook>.

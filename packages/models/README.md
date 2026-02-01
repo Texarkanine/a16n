@@ -1,7 +1,6 @@
 # @a16njs/models
 
 [![npm version](https://img.shields.io/npm/v/@a16njs/models.svg)](https://www.npmjs.com/package/@a16njs/models)
-[![Documentation](https://img.shields.io/badge/docs-a16n.dev-blue)](https://a16n.dev/models)
 
 Type definitions and plugin interface for a16n.
 
@@ -59,4 +58,4 @@ import {
 
 ## Documentation
 
-Full documentation available at [a16n.dev/models](https://a16n.dev/models).
+Full documentation available at <https://texarkanine.github.io/a16n/models>.

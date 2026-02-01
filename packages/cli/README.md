@@ -1,7 +1,6 @@
 # a16n
 
 [![npm version](https://img.shields.io/npm/v/a16n.svg)](https://www.npmjs.com/package/a16n)
-[![Documentation](https://img.shields.io/badge/docs-a16n.dev-blue)](https://a16n.dev)
 
 Agent customization portability for AI coding tools.
 
@@ -85,4 +84,4 @@ a16n discover --from cursor .
 
 ## Documentation
 
-Full documentation available at [a16n.dev](https://a16n.dev/cli).
+Full documentation available at <https://texarkanine.github.io/a16n/cli>.

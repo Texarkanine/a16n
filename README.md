@@ -1,8 +1,3 @@
-# ⚠️ This README is currently a mockup.
-
-We're doing spec-driven development. This README describes the ideal state, not the current state.
-When this warning is gone, this project will behave as described.
-
 # a16n
 
 **Agent customization portability for AI coding tools.**
@@ -10,7 +5,6 @@ When this warning is gone, this project will behave as described.
 Convert your Cursor rules to Claude Code config, or vice versa. Take your agent customization anywhere.
 
 [![npm version](https://img.shields.io/npm/v/a16n.svg)](https://www.npmjs.com/package/a16n)
-[![Documentation](https://img.shields.io/badge/docs-a16n.dev-blue)](https://texarkanine.github.io/a16n/)
 
 ## Quick Start
 
@@ -44,7 +38,7 @@ npm install -g a16n
 
 ## Documentation
 
-Full documentation is available at **[a16n.dev](https://texarkanine.github.io/a16n/)**:
+Full documentation is available at <https://texarkanine.github.io/a16n/>:
 
 - [CLI Reference](https://texarkanine.github.io/a16n/cli/reference) - Complete command documentation
 - [Understanding Conversions](https://texarkanine.github.io/a16n/understanding-conversions) - How conversion mapping works
