@@ -5,7 +5,7 @@ slug: /
 
 # Introduction
 
-**a16n** (short for "a]gent customizatio[n") is a toolkit for converting AI agent customization between different AI coding tools.
+**a16n** (short for "agent customization") is a toolkit for converting AI agent customization between different AI coding tools.
 
 ## Why a16n?
 

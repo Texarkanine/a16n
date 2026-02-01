@@ -294,7 +294,7 @@ else (has hooks, resources, multiple files, extra frontmatter fields, etc)
 - How do we handle skill resources (images, data files) during copy?
   - as any other file in the AgentSkill.io directory. AgentSkillIO to AgentSkillIO is an easy copy.
 - Should we validate hooks are tool-compatible, or just copy them verbatim?
-  - verbatim copy, agentskillsio doesn't suport hooks. Claude code skills DO; those are already skipped on ingest. general rule: if we can't represent it in the Model IR, we don't ingest - we skip w/ warning.
+  - verbatim copy, agentskillsio doesn't support hooks. Claude code skills DO; those are already skipped on ingest. general rule: if we can't represent it in the Model IR, we don't ingest - we skip w/ warning.
 
 **Estimated Scope**: ~16-24 hours
 

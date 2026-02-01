@@ -57,8 +57,14 @@ a16n uses a unified taxonomy to represent agent customizations across different 
 
 During conversion, all customizations are normalized into a common format (IR) before being emitted to the target format. This enables tool-agnostic transformations:
 
+```mermaid
+```mermaid
+flowchart LR
+  A[Source Files] --> B[IR<br/>(AgentCustomization[])]
+  B --> C[Target Files]
 ```
-Source Files → IR (AgentCustomization[]) → Target Files
+/ End of Selection
+```
 ```
 
 The base `AgentCustomization` interface provides common fields (id, type, sourcePath, content, metadata), while specialized types like `FileRule` and `AgentSkill` add type-specific fields.
@@ -77,7 +83,13 @@ function processItem(item: AgentCustomization) {
 }
 ```
 
-Available guards: `isGlobalPrompt`, `isAgentSkill`, `isFileRule`, `isAgentIgnore`, `isManualPrompt`
+Available guards: 
+
+- `isAgentIgnore`
+- `isAgentSkill`
+- `isFileRule`
+- `isGlobalPrompt`
+- `isManualPrompt`
 
 ---
 

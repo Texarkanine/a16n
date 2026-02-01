@@ -55,13 +55,13 @@ importers:
   packages/docs:
     dependencies:
       '@docusaurus/core':
-        specifier: ^3.6.3
+        specifier: ^3.9.2
         version: 3.9.2(@docusaurus/faster@3.9.2(@docusaurus/types@3.9.2(@swc/core@1.15.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)))(@mdx-js/react@3.1.1(@types/react@19.2.10)(react@18.3.1))(@rspack/core@1.7.4)(@swc/core@1.15.11)(debug@4.4.3)(lightningcss@1.31.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
       '@docusaurus/faster':
-        specifier: ^3.6.3
+        specifier: ^3.9.2
         version: 3.9.2(@docusaurus/types@3.9.2(@swc/core@1.15.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
       '@docusaurus/preset-classic':
-        specifier: ^3.6.3
+        specifier: ^3.9.2
         version: 3.9.2(@docusaurus/faster@3.9.2(@docusaurus/types@3.9.2(@swc/core@1.15.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)))(@mdx-js/react@3.1.1(@types/react@19.2.10)(react@18.3.1))(@rspack/core@1.7.4)(@swc/core@1.15.11)(@types/react@19.2.10)(lightningcss@1.31.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
       '@docusaurus/theme-mermaid':
         specifier: ^3.9.2
@@ -80,10 +80,10 @@ importers:
         version: 18.3.1(react@18.3.1)
     devDependencies:
       '@docusaurus/module-type-aliases':
-        specifier: ^3.6.3
+        specifier: ^3.9.2
         version: 3.9.2(@swc/core@1.15.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@docusaurus/types':
-        specifier: ^3.6.3
+        specifier: ^3.9.2
         version: 3.9.2(@swc/core@1.15.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@easyops-cn/docusaurus-search-local':
         specifier: ^0.52.0
