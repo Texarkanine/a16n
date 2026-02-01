@@ -2,336 +2,162 @@
 
 ## Current Task
 
-**Task ID**: DOCS-COMPREHENSIVE-FILL
-**Title**: Comprehensive Documentation Site Population
-**Complexity**: Level 3 (Intermediate Feature)
-**Status**: Complete (All 7 Phases Done)
+**Task ID**: DOCS-CLEANUP-R2
+**Title**: Documentation Cleanup Round 2
+**Complexity**: Level 2 (Simple Enhancement)
+**Status**: Planning
 
 ## Task Description
 
-Fill out the a16n documentation site with correct and useful information. This involves:
-1. Slimming the main README to essentials + links to doc site
-2. Adding npm badges to all package READMEs + links to docs
-3. Populating all doc site prose pages with content
-4. Creating new pages (FAQ, Plugin Development, Understanding Conversions)
-5. Building versioned CLI documentation generation (spike)
-6. Restructuring sidebar for better organization
+Address feedback from documentation review:
 
-## Design Decisions
+1. **CLI versioned docs not generating** - Integrate CLI doc generation into versioned pipeline
+2. **Remove plugin-to-plugin conversion tables** - Doesn't scale with N plugins
+3. **Remove Quick Reference from Models** - Not useful
+4. **Simplify plugin pages** - Link to canonical tool docs instead of replicating
+5. **Clean up Models page** - Remove tool-specific implementation details
+6. **Punt on API version linking** - Too complex to maintain accurately
 
-### CLI Documentation Automation
-**Decision**: Build versioned CLI doc generation (per-tag, like TypeDoc API docs)
-**Rationale**: 
-- Commander.js exposes `.commands` and `.options` arrays programmatically
-- Can mirror existing TypeDoc versioned approach
-- Provides accurate docs per release version
-- ~150-200 lines of code to implement
+## Analysis
 
-### Sidebar Structure
-**Decision**: Hybrid approach
-- "a16n" or "Overview" category for guides/general prose
-- Package categories for reference material
-- No deep nesting (only 2 real categories)
+### Issue 1: CLI Versioned Docs
 
-### Plugin Development Warning
-**Decision**: Prominent warning at absolute top of page (like main README)
+The `generate-versioned-api.ts` script explicitly excludes CLI:
+```typescript
+// Note: CLI tools (cli, glob-hook) are excluded - they don't export library APIs.
+const PACKAGES: PackageConfig[] = [
+  { name: 'engine', ... },
+  { name: 'models', ... },
+  ...
+];
+```
 
-### Link Strategy
-**Decision**: Use version-agnostic links (e.g., `/models/api` not `/models/api/0.4.0`)
+But we have `generate-cli-docs.ts` that CAN generate versioned CLI docs. Need to:
+1. Add CLI to versioned generation
+2. Use `generateCliDocsForVersion()` instead of TypeDoc
+
+### Issue 2: Plugin-to-Plugin Conversion Tables
+
+Current tables like:
+```
+| Cursor | Claude | Notes |
+| alwaysApply: true | CLAUDE.md | ... |
+```
+
+These create N×N documentation that doesn't scale. Remove from:
+- `plugin-cursor/index.md` (lines 230-250)
+- `plugin-claude/index.md` (lines 300-321)
+
+### Issue 3: Quick Reference in Models
+
+The "Quick Reference" section (lines 127-147) duplicates info already in Type Guards section. Remove.
+
+### Issue 4: Simplify Plugin Pages
+
+Instead of documenting Cursor/Claude file formats in detail, link to canonical docs:
+- Cursor: Link to Cursor's official rules documentation
+- Claude: Link to Claude Code's official documentation
+
+Remove verbose sections:
+- `plugin-cursor/index.md`: Command Files, .cursorignore Format sections
+- `plugin-claude/index.md`: Similar verbose sections
+
+### Issue 5: Models Page Tool-Specific Info
+
+The "How Each Tool Implements Them" table is plugin-specific:
+```
+| Type | Cursor | Claude |
+| GlobalPrompt | .cursor/rules/*.mdc | CLAUDE.md |
+```
+
+This should reference internal IR types, not external tools. Either:
+- Remove the table entirely
+- Or move to a "tool-specific" section that acknowledges it will grow
+
+### Issue 6: API Version Linking
+
+User says: "we don't want to hardcode versions everywhere... I think we punt on that for now"
+
+Agreed. Keep links version-agnostic like `/models/api` instead of `/models/api/0.3.0`.
 
 ---
 
 ## Implementation Plan
 
-### Phase 1: Infrastructure & CLI Docs Generation (Foundation) ✅ COMPLETE
-
-**Goal**: Build the CLI documentation automation system
+### Phase 1: CLI Versioned Docs
 
 | Step | Task | Files |
 |------|------|-------|
-| 1.1 | Create `generate-cli-docs.ts` script | `packages/docs/scripts/generate-cli-docs.ts` |
-| 1.2 | Test generation on current CLI | (test run) |
-| 1.3 | Integrate with versioned generation pipeline | `packages/docs/scripts/generate-versioned-api.ts` |
-| 1.4 | Add glob-hook CLI generation | same script |
-| 1.5 | Update `package.json` scripts | `packages/docs/package.json` |
-| 1.6 | Test versioned generation | (test run) |
+| 1.1 | Add CLI to PACKAGES in generate-versioned-api.ts | `scripts/generate-versioned-api.ts` |
+| 1.2 | Create CLI-specific generation function | `scripts/generate-versioned-api.ts` |
+| 1.3 | Call CLI generator for each CLI tag | `scripts/generate-versioned-api.ts` |
+| 1.4 | Add CLI to versions.json | `scripts/generate-versioned-api.ts` |
 
-**Deliverable**: Running `pnpm docs:generate` produces versioned CLI docs ✅
+**Key insight**: CLI uses `generateCliDocsForVersion()` from `generate-cli-docs.ts`, not TypeDoc.
 
-**Completed Deliverables:**
-- Created `packages/docs/scripts/generate-cli-docs.ts` (~200 lines)
-- Created `packages/docs/test/generate-cli-docs.test.ts` (14 tests, all passing)
-- Added `commander` as dev dependency
-- Added `clidoc:current` script to package.json
-- Integrated CLI docs into `apidoc:current` pipeline
-- All 395 tests passing
-
-### Phase 2: Sidebar & Structure (Organization) ✅ COMPLETE
-
-**Goal**: Restructure sidebar and create placeholder pages
+### Phase 2: Remove Plugin-to-Plugin Conversion Tables
 
 | Step | Task | Files |
 |------|------|-------|
-| 2.1 | Update sidebar with new structure | `packages/docs/sidebars.js` |
-| 2.2 | Create `understanding-conversions/index.md` (stub) | `packages/docs/docs/understanding-conversions/index.md` |
-| 2.3 | Create `plugin-development/index.md` (stub with warning) | `packages/docs/docs/plugin-development/index.md` |
-| 2.4 | Create `faq.md` (stub) | `packages/docs/docs/faq.md` |
-| 2.5 | Rename/reorganize intro.md if needed | `packages/docs/docs/intro.md` |
+| 2.1 | Remove "Conversion Notes" section from plugin-cursor | `docs/plugin-cursor/index.md` |
+| 2.2 | Remove "Conversion Notes" section from plugin-claude | `docs/plugin-claude/index.md` |
 
-**Deliverable**: Sidebar shows new structure, pages exist (empty/stub) ✅
-
-**Completed Deliverables:**
-- Updated `sidebars.js` with "a16n" category for guides
-- Created `understanding-conversions/index.md` (stub with structure)
-- Created `plugin-development/index.md` (stub with prominent warning banner)
-- Created `faq.md` (stub with common questions)
-- Created `cli/reference.mdx` (wrapper page for CLI docs)
-- Updated `intro.md` with correct commands and better structure
-- Docusaurus build successful
-
-### Phase 3: Main README Slim-Down (Source of Truth) ✅ COMPLETE
-
-**Goal**: Pare down main README, move content to doc site pages
+### Phase 3: Clean Up Models Page
 
 | Step | Task | Files |
 |------|------|-------|
-| 3.1 | Move conversion tables to `understanding-conversions/index.md` | both files |
-| 3.2 | Move FAQ to `faq.md` | both files |
-| 3.3 | Move programmatic API to `engine/index.md` | both files |
-| 3.4 | Move plugin writing section to `plugin-development/index.md` | both files |
-| 3.5 | Slim README to: warning, elevator pitch, badges (→cli), quickstart, supported tools table, link to docs | `README.md` |
-| 3.6 | Update badge to link to CLI package on npm | `README.md` |
+| 3.1 | Remove "Quick Reference" section | `docs/models/index.md` |
+| 3.2 | Remove "How Each Tool Implements Them" table | `docs/models/index.md` |
+| 3.3 | Simplify "Conceptual Distinctions" (remove tool refs) | `docs/models/index.md` |
 
-**Deliverable**: Main README is concise, links to doc site for details ✅
-
-**Completed Deliverables:**
-- Moved conversion tables to `understanding-conversions/index.md` (complete with warning codes, file mappings)
-- Moved FAQ content to `faq.md` (complete with all original questions + more)
-- Moved programmatic API to `engine/index.md` (complete with code examples, API reference)
-- Moved plugin writing guide to `plugin-development/index.md` (complete with interface, examples)
-- Slimmed README from ~275 lines to ~70 lines
-- Added documentation badge linking to doc site
-- Main README now focuses on quick start + links to comprehensive docs
-
-### Phase 4: Doc Site Content - Guides (User-Facing) 🔄 PARTIAL
-
-**Goal**: Fill out all guide/prose pages
+### Phase 4: Simplify Plugin Pages
 
 | Step | Task | Files |
 |------|------|-------|
-| 4.1 | ✅ Update intro.md with "Why a16n", correct examples, links | `packages/docs/docs/intro.md` |
-| 4.2 | ✅ Complete understanding-conversions page | `packages/docs/docs/understanding-conversions/index.md` |
-| 4.3 | ✅ Complete plugin-development page (from planning doc) | `packages/docs/docs/plugin-development/index.md` |
-| 4.4 | ✅ Complete FAQ page | `packages/docs/docs/faq.md` |
+| 4.1 | Remove "Command Files" section from plugin-cursor | `docs/plugin-cursor/index.md` |
+| 4.2 | Remove ".cursorignore Format" section from plugin-cursor | `docs/plugin-cursor/index.md` |
+| 4.3 | Add link to Cursor's canonical documentation | `docs/plugin-cursor/index.md` |
+| 4.4 | Simplify plugin-claude similarly | `docs/plugin-claude/index.md` |
+| 4.5 | Add link to Claude's canonical documentation | `docs/plugin-claude/index.md` |
 
-**Deliverable**: All guide pages have complete, accurate content ✅
-
-**Note**: Phase 4 is effectively complete - all guide pages have been fully written with comprehensive content during Phase 3. ✅
-
-**Note**: Phase 4 is effectively complete - all guide pages have been fully written with comprehensive content during Phase 3.
-
-### Phase 5: Doc Site Content - Reference (Package Docs) ✅ COMPLETE
-
-**Note**: glob-hook will have static prose docs (not generated) since it doesn't use Commander.js
-
-**Goal**: Fill out all package reference pages
+### Phase 5: Verification
 
 | Step | Task | Files |
 |------|------|-------|
-| 5.1 | ✅ Complete cli/index.md (full reference, heading per flag) | `packages/docs/docs/cli/index.md` |
-| 5.2 | ✅ Complete glob-hook/index.md (full reference) | `packages/docs/docs/glob-hook/index.md` |
-| 5.3 | ✅ Complete engine/index.md (programmatic API, architecture) | `packages/docs/docs/engine/index.md` |
-| 5.4 | ✅ Complete models/index.md (type system explanation) | `packages/docs/docs/models/index.md` |
-| 5.5 | ✅ Complete plugin-cursor/index.md (expand from README) | `packages/docs/docs/plugin-cursor/index.md` |
-| 5.6 | ✅ Complete plugin-claude/index.md (expand from README) | `packages/docs/docs/plugin-claude/index.md` |
-
-**Deliverable**: All package reference pages have complete content ✅
-
-**Completed Deliverables:**
-- Full CLI reference with all commands, options, and examples
-- Comprehensive glob-hook docs with Claude Code integration examples
-- Enhanced engine docs with full API reference and usage examples
-- Complete models docs with type taxonomy and plugin interface
-- Plugin-cursor docs with MDC format, classification rules, and conversion notes
-- Plugin-claude docs with file formats, hook configuration, and emission behavior
-
-### Phase 6: Package READMEs (npm Presence) ✅ COMPLETE
-
-**Goal**: Tighten package READMEs, add badges, link to docs
-
-| Step | Task | Files |
-|------|------|-------|
-| 6.1 | ✅ Update CLI README with badge, doc link | `packages/cli/README.md` |
-| 6.2 | ✅ Update glob-hook README with badge, doc link | `packages/glob-hook/README.md` |
-| 6.3 | ✅ Update engine README with badge, doc link | `packages/engine/README.md` |
-| 6.4 | ✅ Update models README with badge, doc link | `packages/models/README.md` |
-| 6.5 | ✅ Update plugin-cursor README with badge, doc link | `packages/plugin-cursor/README.md` |
-| 6.6 | ✅ Update plugin-claude README with badge, doc link | `packages/plugin-claude/README.md` |
-
-**Deliverable**: All package READMEs have badges and link to doc site ✅
-
-**Completed Deliverables:**
-- All 6 package READMEs updated with npm version badges
-- All READMEs include documentation badge linking to a16n.dev
-- Each README links to its specific doc page (e.g., a16n.dev/cli)
-
-### Phase 7: Verification & Polish ✅ COMPLETE
-
-**Goal**: Test everything works, fix issues
-
-| Step | Task | Files |
-|------|------|-------|
-| 7.1 | ✅ Build doc site locally | (test) |
-| 7.2 | ✅ Verify all links work | (test) |
-| 7.3 | ✅ Verify CLI doc generation works | (test) |
-| 7.4 | ✅ Fix any linter/build errors | (various) |
-| 7.5 | ✅ Review all pages for consistency | (review) |
-
-**Deliverable**: Doc site builds and all content is accessible ✅
-
-**Completed Deliverables:**
-- All 395 tests passing
-- Docusaurus build successful
-- Versioned API generation working (7 versions across 4 packages)
-- No linter or build errors
+| 5.1 | Run `pnpm build` in docs | (test) |
+| 5.2 | Verify CLI versions appear | (test) |
+| 5.3 | Run full test suite | (test) |
 
 ---
 
 ## Technical Notes
 
-### CLI Doc Generation Approach
+### CLI Doc Generation Integration
 
+The existing `generateCliDocsForVersion()` function in `generate-cli-docs.ts`:
 ```typescript
-// Pseudocode for generate-cli-docs.ts
-import { Command } from 'commander';
-
-function generateMarkdown(program: Command): string {
-  let md = `# CLI Reference\n\n`;
-  
-  for (const cmd of program.commands) {
-    md += `## ${cmd.name()}\n\n`;
-    md += `${cmd.description()}\n\n`;
-    
-    if (cmd.options.length > 0) {
-      md += `### Options\n\n`;
-      for (const opt of cmd.options) {
-        md += `#### ${opt.flags}\n\n`;
-        md += `${opt.description}\n\n`;
-      }
-    }
-  }
-  
-  return md;
-}
+export async function generateCliDocsForVersion(
+  outputDir: string,
+  version?: string
+): Promise<void>
 ```
 
-### Badge Format
+Need to call this for each CLI git tag (pattern: `a16n@X.Y.Z`).
 
-```markdown
-[![npm version](https://img.shields.io/npm/v/@a16njs/models.svg)](https://www.npmjs.com/package/@a16njs/models)
-```
+### Version-Agnostic Links
 
-### Sidebar Structure Target
+Use paths like:
+- `/models/api` → Landing page (has VersionPicker)
+- `/engine/api` → Landing page
 
-```javascript
-{
-  type: 'category',
-  label: 'a16n',
-  items: ['intro', 'understanding-conversions/index', 'plugin-development/index', 'faq'],
-},
-{
-  type: 'category', 
-  label: 'CLI',
-  items: ['cli/index'],
-},
-// ... other packages
-```
+Avoid:
+- `/models/api/0.3.0/interfaces/A16nPlugin` (hardcoded version)
 
 ---
-
-## Files to Create
-
-- `packages/docs/scripts/generate-cli-docs.ts`
-- `packages/docs/docs/understanding-conversions/index.md`
-- `packages/docs/docs/plugin-development/index.md`
-- `packages/docs/docs/faq.md`
 
 ## Files to Modify
 
-- `README.md` (slim down)
-- `packages/docs/sidebars.js` (restructure)
-- `packages/docs/docs/intro.md` (complete)
-- `packages/docs/docs/cli/index.md` (complete)
-- `packages/docs/docs/glob-hook/index.md` (complete)
-- `packages/docs/docs/engine/index.md` (complete)
-- `packages/docs/docs/models/index.md` (complete)
-- `packages/docs/docs/plugin-cursor/index.md` (complete)
-- `packages/docs/docs/plugin-claude/index.md` (complete)
-- `packages/cli/README.md` (badge + link)
-- `packages/glob-hook/README.md` (badge + link)
-- `packages/engine/README.md` (badge + link)
-- `packages/models/README.md` (badge + link)
-- `packages/plugin-cursor/README.md` (badge + link)
-- `packages/plugin-claude/README.md` (badge + link)
-- `packages/docs/scripts/generate-versioned-api.ts` (add CLI generation)
-- `packages/docs/package.json` (update scripts if needed)
-
----
-
-## Dependencies & Execution Order
-
-```mermaid
-graph TD
-    Start([Start]) --> P1[Phase 1: CLI Doc Generation<br/>Infrastructure]
-    Start --> P6[Phase 6: Package READMEs<br/>Badges & Links]
-    
-    P1 --> P2[Phase 2: Sidebar & Structure<br/>Organization]
-    
-    P2 --> P3[Phase 3: Main README<br/>Slim-Down]
-    P2 --> P5[Phase 5: Reference Docs<br/>Package Content]
-    
-    P3 --> P4[Phase 4: Guide Docs<br/>User-Facing Content]
-    
-    P4 --> P7[Phase 7: Verification<br/>& Polish]
-    P5 --> P7
-    P6 --> P7
-    
-    P7 --> Done([Complete])
-    
-    style P1 fill:#e1f5ff
-    style P2 fill:#e1f5ff
-    style P3 fill:#fff4e1
-    style P4 fill:#fff4e1
-    style P5 fill:#e8f5e9
-    style P6 fill:#e8f5e9
-    style P7 fill:#f3e5f5
-    style Start fill:#fafafa
-    style Done fill:#fafafa
-    
-    classDef parallel fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
-    classDef critical fill:#fff4e1,stroke:#ff9800,stroke-width:2px
-    
-    class P5,P6 parallel
-    class P3,P4 critical
-```
-
-### Execution Strategies
-
-**Solo Implementor (Sequential)**
-```
-Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6 → Phase 7
-```
-
-**Parallel Team (Optimal)**
-```
-Developer A: Phase 1 → Phase 2 → Phase 3 → Phase 4
-Developer B: Phase 5 (starts after Phase 2 completes)
-Developer C: Phase 6 (starts immediately, no dependencies)
-All: Phase 7 (final verification together)
-```
-
-**Key Insights**
-- **Phase 6 can start immediately** - no dependencies, pure package README work
-- **Phase 5 can overlap** with Phases 3-4 once Phase 2 completes
-- **Critical path**: 1 → 2 → 3 → 4 → 7 (longest dependency chain)
-- **Parallelizable**: Phases 5 and 6 offer opportunities for concurrent work
+- `packages/docs/scripts/generate-versioned-api.ts`
+- `packages/docs/docs/models/index.md`
+- `packages/docs/docs/plugin-cursor/index.md`
+- `packages/docs/docs/plugin-claude/index.md`

@@ -41,19 +41,15 @@ console.log(`Warnings: ${result.warnings.length}`);
 
 The engine uses a plugin-based architecture with a three-stage pipeline:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        A16nEngine                           │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────┐    ┌─────────────┐    ┌─────────────────────┐  │
-│  │ Plugins │ →  │  Discover   │ →  │ Internal Model (IR) │  │
-│  └─────────┘    └─────────────┘    └─────────────────────┘  │
-│                                              ↓              │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │                        Emit                             ││
-│  │   IR → Target Plugin → File System                      ││
-│  └─────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph Engine["A16nEngine"]
+        direction TB
+        P[Plugins] --> D[Discover]
+        D --> IR[Internal Model]
+        IR --> E[Emit]
+        E --> FS[File System]
+    end
 ```
 
 ### Pipeline Stages
@@ -66,205 +62,15 @@ The engine uses a plugin-based architecture with a three-stage pipeline:
 
 ## API Reference
 
-### A16nEngine
+For complete API documentation including all methods, interfaces, and types, see the [Engine API Reference](/engine/api).
 
-The main engine class that orchestrates plugins.
+Key classes and methods:
 
-#### Constructor
-
-```typescript
-new A16nEngine(plugins: A16nPlugin[])
-```
-
-Creates an engine with the given plugins registered.
-
-```typescript
-import { A16nEngine } from '@a16njs/engine';
-import cursorPlugin from '@a16njs/plugin-cursor';
-import claudePlugin from '@a16njs/plugin-claude';
-
-const engine = new A16nEngine([cursorPlugin, claudePlugin]);
-```
-
----
-
-### engine.convert()
-
-Convert customizations from one format to another.
-
-```typescript
-async convert(options: ConversionOptions): Promise<ConversionResult>
-```
-
-#### ConversionOptions
-
-```typescript
-interface ConversionOptions {
-  /** Source plugin ID (e.g., 'cursor', 'claude') */
-  source: string;
-  
-  /** Target plugin ID (e.g., 'cursor', 'claude') */
-  target: string;
-  
-  /** Project root directory */
-  root: string;
-  
-  /** If true, only discover without writing files */
-  dryRun?: boolean;
-}
-```
-
-#### ConversionResult
-
-```typescript
-interface ConversionResult {
-  /** Items discovered from source */
-  discovered: AgentCustomization[];
-  
-  /** Files written to target */
-  written: WrittenFile[];
-  
-  /** Warnings from discovery and emission */
-  warnings: Warning[];
-  
-  /** Items that couldn't be represented by target */
-  unsupported: AgentCustomization[];
-}
-```
-
-#### Examples
-
-```typescript
-// Basic conversion
-const result = await engine.convert({
-  source: 'cursor',
-  target: 'claude',
-  root: './my-project',
-});
-
-// Dry run (no writes)
-const preview = await engine.convert({
-  source: 'cursor',
-  target: 'claude',
-  root: './my-project',
-  dryRun: true,
-});
-
-console.log('Would write:', preview.written.map(f => f.path));
-```
-
----
-
-### engine.discover()
-
-Discover customizations without converting.
-
-```typescript
-async discover(pluginId: string, root: string): Promise<DiscoveryResult>
-```
-
-#### DiscoveryResult
-
-```typescript
-interface DiscoveryResult {
-  /** All customization items found */
-  items: AgentCustomization[];
-  
-  /** Any warnings encountered during discovery */
-  warnings: Warning[];
-}
-```
-
-#### Example
-
-```typescript
-// Discover Cursor customizations
-const result = await engine.discover('cursor', './my-project');
-
-console.log(`Found ${result.items.length} customizations`);
-for (const item of result.items) {
-  console.log(`  ${item.type}: ${item.sourcePath}`);
-}
-```
-
----
-
-### engine.listPlugins()
-
-List all registered plugins.
-
-```typescript
-listPlugins(): PluginInfo[]
-```
-
-#### PluginInfo
-
-```typescript
-interface PluginInfo {
-  /** Plugin ID */
-  id: string;
-  
-  /** Human-readable name */
-  name: string;
-  
-  /** Customization types supported */
-  supports: CustomizationType[];
-  
-  /** How the plugin was loaded */
-  source: 'bundled' | 'installed';
-}
-```
-
-#### Example
-
-```typescript
-const plugins = engine.listPlugins();
-
-for (const plugin of plugins) {
-  console.log(`${plugin.id}: ${plugin.name}`);
-  console.log(`  Supports: ${plugin.supports.join(', ')}`);
-}
-```
-
----
-
-### engine.getPlugin()
-
-Get a plugin by its ID.
-
-```typescript
-getPlugin(id: string): A16nPlugin | undefined
-```
-
-#### Example
-
-```typescript
-const cursorPlugin = engine.getPlugin('cursor');
-
-if (cursorPlugin) {
-  // Use plugin directly
-  const result = await cursorPlugin.discover('./my-project');
-}
-```
-
----
-
-### engine.registerPlugin()
-
-Register an additional plugin after construction.
-
-```typescript
-registerPlugin(plugin: A16nPlugin): void
-```
-
-#### Example
-
-```typescript
-import myCustomPlugin from './my-plugin';
-
-const engine = new A16nEngine([cursorPlugin, claudePlugin]);
-engine.registerPlugin(myCustomPlugin);
-```
+- **`A16nEngine`** - Main engine class
+  - `convert(options)` - Convert customizations between formats
+  - `discover(pluginId, root)` - Find customizations without converting
+  - `listPlugins()` - List registered plugins
+  - `registerPlugin(plugin)` - Add a plugin at runtime
 
 ---
 
@@ -367,6 +173,7 @@ migrateProject('./my-project').catch(console.error);
 
 ## See Also
 
+- [Engine API Reference](/engine/api) - Complete API documentation
 - [Models](/models) - Type definitions and interfaces
 - [Plugin Development](/plugin-development) - Creating custom plugins
-- [CLI Reference](/cli) - Command-line interface
+- [CLI](/cli) - Command-line interface

@@ -221,40 +221,9 @@ for (const file of emitResult.written) {
 
 ---
 
-## Plugin Details
+## API Reference
 
-### ID and Name
-
-```typescript
-{
-  id: 'cursor',
-  name: 'Cursor IDE',
-  supports: [
-    'global-prompt',
-    'agent-skill', 
-    'file-rule',
-    'agent-ignore',
-    'manual-prompt'
-  ]
-}
-```
-
-### Metadata
-
-The plugin stores Cursor-specific metadata in the `metadata` field:
-
-```typescript
-{
-  // For rules with frontmatter
-  metadata: {
-    frontmatter: {
-      alwaysApply: true,
-      // or globs: string
-      // or description: string
-    }
-  }
-}
-```
+For complete plugin API details, see the [Plugin Cursor API Reference](/plugin-cursor/api).
 
 ---
 
@@ -283,6 +252,7 @@ The plugin stores Cursor-specific metadata in the `metadata` field:
 
 ## See Also
 
+- [Plugin Cursor API Reference](/plugin-cursor/api) - Complete API documentation
 - [Plugin: Claude](/plugin-claude) - Claude Code format plugin
 - [Understanding Conversions](/understanding-conversions) - Conversion details
-- [Models](/models) - Plugin interface documentation
+- [Models](/models) - Type definitions

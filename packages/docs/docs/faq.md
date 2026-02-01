@@ -9,11 +9,7 @@ description: Frequently asked questions about a16n
 
 ### What is a16n?
 
-a16n (short for "a]gent customizatio[n") is a tool for converting agent customization between different AI coding tools. It lets you maintain your AI assistant preferences in one format and convert them to work with multiple tools.
-
-### Why "a16n"?
-
-It's "agent customization" shortened like "i18n" (internationalization) and "l10n" (localization). Count the letters between 'a' and 'n' in "agentcustomizatio**n**" — there are 16.
+a16n (short for "agent customization") is a tool for converting AI coding agent customization between different toolchains, such as Claude Code and Cursor. It lets you maintain your AI assistant preferences in one format and convert them to work with multiple tools.
 
 ### What tools are supported?
 
@@ -21,19 +17,7 @@ Currently supported:
 - **Cursor** - The AI-first code editor
 - **Claude Code** - Anthropic's AI coding assistant
 
-### Is a16n free?
-
-Yes, a16n is open source and free to use under the AGPL-3.0 license.
-
-## Usage
-
-### How do I convert from Cursor to Claude?
-
-```bash
-npx a16n convert --from cursor --to claude
-```
-
-See the [CLI Reference](/cli/reference) for all options.
+Other toolchains may be supported via third-party plugins. See [Plugin Development](/plugin-development) for more information.
 
 ### Can I preview changes before writing?
 
@@ -49,22 +33,6 @@ By default, source files are preserved. Use `--delete-source` to remove them aft
 
 ```bash
 npx a16n convert --from cursor --to claude --delete-source
-```
-
-### How do I handle git-ignored files?
-
-Use the `--gitignore-output-with` flag:
-
-- `none` - Don't manage git status (default)
-- `ignore` - Add to `.gitignore`
-- `exclude` - Add to `.git/info/exclude`
-- `match` - Mirror source file git status
-- `hook` - Add to pre-commit hook
-
-Example:
-
-```bash
-npx a16n convert --from cursor --to claude --gitignore-output-with match
 ```
 
 ### Can I use this in CI?

@@ -5,42 +5,77 @@ description: How a16n converts agent customization between different AI coding t
 
 # Understanding Conversions
 
-Different AI coding tools have different capabilities. a16n handles this transparently, converting what it can and warning you about limitations.
+Different AI coding tools have different capabilities. a16n handles this as transparently as possible, converting what it can and warning you about limitations.
+
+## The Concepts
+
+a16n understands the following kinds of agent customizations:
+
+- **Global Prompts** - prompts that are always injected into the agent's context each time the agent is invoked, e.g.
+    - CLAUDE.md
+    - Cursor Rules with `alwaysApply: true`
+- **File-specific rules** - prompts that are injected into the agent's context when working with specific files, e.g.
+    - Cursor Rules with `globs: [...]`
+- **Skills** - prompts that are injected into the agent's context when the agent decides they're needed, e.g.
+    - Cursor Rules with `description: ...`
+    - Claude Code skills
+    - [AgentSkills.io](https://agentskills.io) skills
+- **Manual prompts** - prompts that are injected into the agent's context when the user invokes them, e.g.
+    - Cursor Commands
+    - Cursor Rules with no `globs` or `description`, when `@mention`'d
+    - AgentSkills with `disable-model-invocation: true`
+- **Ignore patterns** - patterns that are ignored by the agent, e.g.
+    - `.cursorignore`
+    - Claude Code `permissions.deny` Read rules
+
+See the [Models](/models) page for more details.
 
 ## What Translates Cleanly
 
-These concepts map directly between tools:
+Some concepts map cleanly between tools, including but not necessarily limited to:
 
-| Concept | Cursor | Claude Code |
-|---------|--------|-------------|
-| Global prompts | `alwaysApply: true` rules | `CLAUDE.md` |
-| File-specific rules | `globs: [...]` rules | Tool hooks |
-| Context-triggered | `description: ...` rules | Skills |
-| Ignore patterns | `.cursorignore` | `permissions.deny` Read rules |
-| Skills | `.cursor/skills/*/SKILL.md` | `.claude/skills/*/SKILL.md` |
-| Manual prompts | Skills with `disable-model-invocation: true` | Skills with `disable-model-invocation: true` |
+| Concept               | Cursor                                       | Claude Code                                  |
+|-----------------------|----------------------------------------------|----------------------------------------------|
+| Skills                | `description: ...` rules                     | Skills                                       |
+| AgentSkills.io Skills | `.cursor/skills/*/SKILL.md`                  | `.claude/skills/*/SKILL.md`                  |
+| Manual Prompts        | Commands in `.cursor/commands/*.md`          | Skills with `disable-model-invocation: true` |
+| Ignore patterns       | `.cursorignore`                              | `permissions.deny` Read rules                |
 
 ## What Gets Approximated
 
-Some features don't have perfect equivalents. a16n converts them as closely as possible and warns you:
+Some features don't have perfect equivalents. a16n converts them as closely as possible and warns you about such situations.
 
-| Feature | From | To | Behavior |
-|---------|------|-----|----------|
-| Multiple `alwaysApply` rules | Cursor | Claude | ⚠️ Merged into one file |
-| Ignore patterns | Cursor | Claude | ≈ Converted to Read permission denials |
-| Manual prompts | Cursor | Claude | ↔️ Bidirectional via `disable-model-invocation: true` |
+Some lossy conversions include, but are not necessarily limited to:
+
+| Feature                     | From   | To     | Behavior                                      |
+|-----------------------------|--------|--------|-----------------------------------------------|
+| Multiple `alwaysApply` rules| Cursor | Claude | ⚠️ Merged into one `CLAUDE.md`               |
+| Ignore patterns             | Cursor | Claude | ≈ Converted to Read permission denials        |
 
 ## What Gets Skipped
 
-Some features cannot be converted due to fundamental differences between tools:
+Not all concepts exist across all toolchains. a16n warns you and skips impossible conversions.
 
-| Feature | From | Reason |
-|---------|------|--------|
-| Complex commands | Cursor | Commands with `$ARGUMENTS`, `!`, `@`, or `allowed-tools` cannot be converted |
-| Skills with hooks | Claude | Skills with `hooks:` frontmatter are not convertible to Cursor |
+Some impossible conversions include, but are not necessarily limited to:
 
-a16n always warns you when conversions are lossy or irreversible.
+| Feature                 | From   | To     | Reason                                                                      |
+|-------------------------|--------|--------|-----------------------------------------------------------------------------|
+| Complex Commands        | Cursor | Claude | Commands with `$ARGUMENTS`, `!`, `@`, or `allowed-tools` have no equivalent |
+| Skills with hooks       | Claude | Cursor | Cursor skills do not support hooks                                          |
 
+## Non-Invertible
+
+a16n *translates* from one toolchain to another, and like all translations, running it back-and-forth, or through several iterations, does not always result in the original input.
+
+For example, if you convert three Cursor Rules with `alwaysApply: true` to Claude, you'll get a single `CLAUDE.md` file (with a warning).
+If you then convert from Claude back to Cursor, you'll get a single `.mdc` file with `alwaysApply: true`, with no Warning.
+You'll never get the original 3 rules back.
+
+For another example, Cursor Commands convert from `.cursor/commands/*.md` into Claude as AgentSkills with `disable-model-invocation: true`.
+Converting from Claude back to Cursor will just move the AgentSkill file, as Cursor does understand AgentSkills.
+You'll never get the original `.cursor/commands/*.md` file back.
+
+Since a16n doesn't know what conversions you may attempt after the first, it cannot warn you about such non-invertible (or multi-step) lossiness like this.
 ## Example Warning Output
 
 When you run a conversion, a16n shows you exactly what happened:
@@ -61,52 +96,34 @@ Summary: 4 discovered, 2 written, 2 warnings
 
 ## Warning Codes
 
-a16n uses specific warning codes to help you understand conversion issues:
+a16n emits warnings when conversions can't be perfect. These appear in CLI output (with icons) and in JSON output under the `warnings` array.
 
-| Code | Meaning |
-|------|---------|
-| `MERGED` | Multiple sources were combined into one output |
-| `APPROXIMATED` | Feature was converted to nearest equivalent |
-| `SKIPPED` | Feature could not be converted |
-| `EMPTY_CONTENT` | Source file had no convertible content |
+| Code | Icon | Meaning |
+|------|------|---------|
+| `merged` | ⚠ | Multiple sources were combined into one output |
+| `approximated` | ≈ | Feature was converted to nearest equivalent |
+| `skipped` | ⊘ | Feature could not be converted |
+| `overwritten` | ↺ | Existing file was replaced |
+| `file-renamed` | → | File was renamed to avoid collision |
 
-## Roundtrip Behavior
+**Note**: Warnings don't affect the exit code. The CLI exits 0 on success (even with warnings) and 1 on error.
 
-Converting back and forth is not always lossless:
+### JSON Output Example
 
-```bash
-# Original: 3 Cursor rules
-a16n convert --from cursor --to claude
+With `--json`, warnings appear in the output:
 
-# Result: 1 CLAUDE.md file
-
-# Convert back
-a16n convert --from claude --to cursor
-
-# Result: 1 Cursor rule (not 3)
+```json
+{
+  "warnings": [
+    {
+      "code": "approximated",
+      "message": "FileRule converted via hook (may differ slightly)"
+    }
+  ]
+}
 ```
-
-This is expected behavior. a16n warns you when conversions reduce information.
-
-## File Mappings
-
-### Cursor → Claude
-
-| Cursor Source | Claude Target |
-|---------------|---------------|
-| `.cursor/rules/*.mdc` (alwaysApply) | `CLAUDE.md` |
-| `.cursor/rules/*.mdc` (globs) | `.claude/hooks.json` + `@a16njs/glob-hook` |
-| `.cursorignore` | `.claude/settings.json` (permissions.deny) |
-| `.cursor/skills/*/SKILL.md` | `.claude/skills/*/SKILL.md` |
-
-### Claude → Cursor
-
-| Claude Source | Cursor Target |
-|---------------|---------------|
-| `CLAUDE.md` | `.cursor/rules/claude.mdc` |
-| `.claude/skills/*/SKILL.md` | `.cursor/skills/*/SKILL.md` |
 
 ## Learn More
 
 - [CLI Reference](/cli/reference) - Full command documentation
-- [FAQ](/faq) - Common questions about conversions
+- [FAQ](/faq) - Common questions

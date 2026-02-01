@@ -20,23 +20,27 @@ a16n uses a plugin architecture to support different AI coding tools. Each plugi
 
 ## Plugin Interface
 
-Plugins implement the `Plugin` interface from `@a16njs/models`:
+Plugins implement the `A16nPlugin` interface from `@a16njs/models`. See the [Models API Reference](/models/api) for complete interface documentation.
+
+The key methods are:
+
+- **`discover(root)`** - Scan a directory and return found customizations
+- **`emit(models, root, options)`** - Write customizations to disk in the plugin's format
 
 ```typescript
-import { Plugin, CustomizationType } from '@a16njs/models';
+import type { A16nPlugin } from '@a16njs/models';
+import { CustomizationType } from '@a16njs/models';
 
-const myPlugin: Plugin = {
+const myPlugin: A16nPlugin = {
   id: 'my-agent',
   name: 'My Agent',
   supports: [CustomizationType.GlobalPrompt, CustomizationType.FileRule],
   
   async discover(root: string) {
-    // Find and parse your agent's config files
     // Return { items: [...], warnings: [...] }
   },
   
   async emit(models, root, options) {
-    // Write models to disk in your agent's format
     // Return { written: [...], warnings: [...], unsupported: [...] }
   }
 };
@@ -44,42 +48,33 @@ const myPlugin: Plugin = {
 export default myPlugin;
 ```
 
+---
+
 ## Key Concepts
 
-### Items (Intermediate Representation)
+### Customization Types
 
-Items are the tool-agnostic representation of agent customization:
-
-```typescript
-interface Item {
-  type: CustomizationType;
-  sourcePath: string;
-  content: string;
-  metadata?: Record<string, unknown>;
-}
-```
-
-### CustomizationType
-
-The types of customization a16n understands:
+Plugins declare which types they support via the `supports` array:
 
 - `GlobalPrompt` - Always-applied system prompts
-- `FileRule` - File-specific rules (with globs)
-- `AgentRequested` - Context-triggered rules
+- `AgentSkill` - Description-triggered contextual rules
+- `FileRule` - File pattern-triggered rules
 - `AgentIgnore` - File ignore patterns
-- `AgentSkill` - Reusable skills/capabilities
+- `ManualPrompt` - Slash commands
+
+See [Understanding Conversions](/understanding-conversions) for detailed explanations.
 
 ### Discovery
 
-Discovery scans a project and returns found items:
+Discovery scans a project directory and returns customizations in the intermediate representation:
 
 ```typescript
 async discover(root: string): Promise<DiscoveryResult> {
-  const items: Item[] = [];
+  const items: AgentCustomization[] = [];
   const warnings: Warning[] = [];
   
-  // Scan for config files
-  // Parse and convert to Items
+  // Scan for config files specific to this tool
+  // Parse and convert to AgentCustomization items
   
   return { items, warnings };
 }
@@ -87,29 +82,31 @@ async discover(root: string): Promise<DiscoveryResult> {
 
 ### Emission
 
-Emission converts items to the target format and writes files:
+Emission converts intermediate representation back to the plugin's native format:
 
 ```typescript
 async emit(
-  items: Item[],
+  items: AgentCustomization[],
   root: string,
   options?: EmitOptions
 ): Promise<EmitResult> {
   const written: WrittenFile[] = [];
   const warnings: Warning[] = [];
-  const unsupported: Item[] = [];
-  
+  const unsupported: AgentCustomization[] = [];
+
   for (const item of items) {
-    if (canConvert(item)) {
-      // Convert and write
+    if (this.supports.includes(item.type)) {
+      // Convert and write file
     } else {
       unsupported.push(item);
     }
   }
-  
+
   return { written, warnings, unsupported };
 }
 ```
+
+---
 
 ## Project Structure
 
@@ -118,7 +115,7 @@ Recommended plugin structure:
 ```
 packages/plugin-example/
 ├── src/
-│   ├── index.ts        # Plugin entry point
+│   ├── index.ts        # Plugin entry point & exports
 │   ├── discover.ts     # Discovery logic
 │   └── emit.ts         # Emission logic
 ├── test/
@@ -130,6 +127,37 @@ packages/plugin-example/
 └── README.md
 ```
 
+---
+
+## Learning from Existing Plugins
+
+The best way to understand plugin development is to study the existing implementations:
+
+### [@a16njs/plugin-cursor](/plugin-cursor)
+
+The Cursor plugin demonstrates:
+- MDC file parsing (YAML frontmatter + markdown body)
+- Multiple file types (rules, commands, ignore files)
+- Frontmatter-based type classification
+
+Key files:
+- `discover.ts` - Glob-based file discovery, MDC parsing
+- `emit.ts` - MDC generation with proper frontmatter
+- `mdc.ts` - MDC format utilities
+
+### [@a16njs/plugin-claude](/plugin-claude)
+
+The Claude plugin demonstrates:
+- Single-file aggregation (`CLAUDE.md` merging)
+- Settings JSON handling
+- Hook configuration generation for FileRules
+
+Key files:
+- `discover.ts` - CLAUDE.md parsing, settings.json reading
+- `emit.ts` - Section-based file merging, hook generation
+
+---
+
 ## Publishing
 
 Community plugins can be published to npm:
@@ -139,66 +167,12 @@ Community plugins can be published to npm:
 
 a16n automatically discovers installed plugins matching these patterns.
 
-## Example: Minimal Plugin
+---
 
-```typescript
-import type { Plugin, Item, DiscoveryResult, EmitResult } from '@a16njs/models';
-import { CustomizationType } from '@a16njs/models';
-import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+## See Also
 
-const minimalPlugin: Plugin = {
-  id: 'minimal',
-  name: 'Minimal Plugin',
-  supports: [CustomizationType.GlobalPrompt],
-
-  async discover(root: string): Promise<DiscoveryResult> {
-    const configPath = join(root, 'minimal.config');
-    try {
-      const content = await readFile(configPath, 'utf-8');
-      return {
-        items: [{
-          type: CustomizationType.GlobalPrompt,
-          sourcePath: 'minimal.config',
-          content,
-        }],
-        warnings: [],
-      };
-    } catch {
-      return { items: [], warnings: [] };
-    }
-  },
-
-  async emit(items: Item[], root: string): Promise<EmitResult> {
-    const written = [];
-    const unsupported = [];
-
-    for (const item of items) {
-      if (item.type === CustomizationType.GlobalPrompt) {
-        const path = join(root, 'minimal.config');
-        await writeFile(path, item.content);
-        written.push({ path, isNewFile: true });
-      } else {
-        unsupported.push(item);
-      }
-    }
-
-    return { written, warnings: [], unsupported };
-  },
-};
-
-export default minimalPlugin;
-```
-
-## Existing Plugins
-
-Reference these for implementation patterns:
-
-- [@a16njs/plugin-cursor](/plugin-cursor) - Cursor IDE support
-- [@a16njs/plugin-claude](/plugin-claude) - Claude Code support
-
-## Resources
-
-- [Models Package](/models) - Type definitions
-- [Engine Package](/engine) - Core conversion engine
+- [Models API Reference](/models/api) - Plugin interface documentation
+- [Plugin: Cursor](/plugin-cursor) - Cursor implementation details
+- [Plugin: Claude](/plugin-claude) - Claude implementation details
+- [Understanding Conversions](/understanding-conversions) - Type taxonomy
 - [GitHub Repository](https://github.com/Texarkanine/a16n) - Source code

@@ -25,30 +25,19 @@ This package provides:
 
 ## Customization Types
 
-a16n uses a unified taxonomy to represent agent customizations across different tools.
+a16n uses a unified taxonomy to represent agent customizations across different tools. Understanding these types is key to working with the toolkit.
 
-### CustomizationType Enum
+### The Five Types
 
-```typescript
-enum CustomizationType {
-  /** Always-applied prompts (CLAUDE.md, alwaysApply rules) */
-  GlobalPrompt = 'global-prompt',
-  
-  /** Context-triggered by description matching */
-  AgentSkill = 'agent-skill',
-  
-  /** Triggered by file glob patterns */
-  FileRule = 'file-rule',
-  
-  /** Files/patterns to exclude from agent context */
-  AgentIgnore = 'agent-ignore',
-  
-  /** Explicitly invoked prompts (slash commands) */
-  ManualPrompt = 'manual-prompt',
-}
-```
+| Type | Description | Example Use Case |
+|------|-------------|------------------|
+| **GlobalPrompt** | Always-applied instructions | Coding standards, project conventions |
+| **AgentSkill** | Context-triggered by description | "When doing database work..." |
+| **FileRule** | Triggered by file patterns | React rules for `*.tsx` files |
+| **AgentIgnore** | Files to exclude | Build outputs, secrets, node_modules |
+| **ManualPrompt** | Explicitly invoked commands | `/review`, `/test` slash commands |
 
-### Type Mapping
+### How Each Tool Implements Them
 
 | Type | Cursor | Claude |
 |------|--------|--------|
@@ -58,325 +47,102 @@ enum CustomizationType {
 | **AgentIgnore** | `.cursorignore` | `.claude/settings.json` deny |
 | **ManualPrompt** | `.cursor/commands/*.md` | Skill with invoke description |
 
----
+### Conceptual Distinctions
 
-## Core Interfaces
+**GlobalPrompt vs AgentSkill**
+- GlobalPrompt: "Always follow these rules" - loaded for every interaction
+- AgentSkill: "When the context suggests X, also apply Y" - conditionally loaded
 
-### AgentCustomization
+**FileRule vs AgentSkill**
+- FileRule: Triggers based on *which files* are being edited (glob patterns)
+- AgentSkill: Triggers based on *what the agent understands* about the task (semantic)
 
-Base interface for all customization items:
-
-```typescript
-interface AgentCustomization {
-  /** Unique identifier for this item */
-  id: string;
-  
-  /** The type of customization */
-  type: CustomizationType;
-  
-  /** Original file path where this was discovered */
-  sourcePath: string;
-  
-  /** The actual prompt/rule content */
-  content: string;
-  
-  /** Tool-specific extras that don't fit the standard model */
-  metadata: Record<string, unknown>;
-}
-```
-
-### GlobalPrompt
-
-Always-applied prompts:
-
-```typescript
-interface GlobalPrompt extends AgentCustomization {
-  type: CustomizationType.GlobalPrompt;
-}
-```
-
-### AgentSkill
-
-Description-triggered skills:
-
-```typescript
-interface AgentSkill extends AgentCustomization {
-  type: CustomizationType.AgentSkill;
-  
-  /** What triggers this skill */
-  description: string;
-}
-```
-
-### FileRule
-
-Glob-pattern-triggered rules:
-
-```typescript
-interface FileRule extends AgentCustomization {
-  type: CustomizationType.FileRule;
-  
-  /** File patterns that trigger this rule */
-  globs: string[];
-}
-```
-
-### AgentIgnore
-
-Ignore patterns:
-
-```typescript
-interface AgentIgnore extends AgentCustomization {
-  type: CustomizationType.AgentIgnore;
-  
-  /** Gitignore-style patterns */
-  patterns: string[];
-}
-```
-
-### ManualPrompt
-
-Slash command prompts:
-
-```typescript
-interface ManualPrompt extends AgentCustomization {
-  type: CustomizationType.ManualPrompt;
-  
-  /** Prompt name for invocation (e.g., "review" for /review) */
-  promptName: string;
-}
-```
+**ManualPrompt**
+- Cursor: Native command files (`.cursor/commands/*.md`) with `/command` invocation
+- Claude: Emulated via skills with "Invoke with /command" descriptions
 
 ---
 
-## Type Guards
+## Core Concepts
 
-Runtime type checking utilities:
+### Intermediate Representation (IR)
+
+During conversion, all customizations are normalized into a common format (IR) before being emitted to the target format. This enables tool-agnostic transformations:
+
+```
+Source Files → IR (AgentCustomization[]) → Target Files
+```
+
+The base `AgentCustomization` interface provides common fields (id, type, sourcePath, content, metadata), while specialized types like `FileRule` and `AgentSkill` add type-specific fields.
+
+### Type Guards
+
+The package provides type guard functions for runtime type checking:
 
 ```typescript
-import {
-  isGlobalPrompt,
-  isAgentSkill,
-  isFileRule,
-  isAgentIgnore,
-  isManualPrompt,
-} from '@a16njs/models';
+import { isFileRule, isAgentSkill } from '@a16njs/models';
 
-const item: AgentCustomization = /* ... */;
-
-if (isFileRule(item)) {
-  // TypeScript knows item.globs is available
-  console.log(item.globs);
-}
-
-if (isAgentSkill(item)) {
-  // TypeScript knows item.description is available
-  console.log(item.description);
+function processItem(item: AgentCustomization) {
+  if (isFileRule(item)) {
+    console.log('Globs:', item.globs);  // TypeScript knows globs exists
+  }
 }
 ```
 
----
-
-## Plugin Interface
-
-### A16nPlugin
-
-The contract that all format plugins must implement:
-
-```typescript
-interface A16nPlugin {
-  /** Unique identifier, e.g., 'cursor', 'claude' */
-  id: string;
-  
-  /** Human-readable name */
-  name: string;
-  
-  /** Which customization types this plugin supports */
-  supports: CustomizationType[];
-
-  /**
-   * Discover all agent customizations in a directory tree.
-   * @param root - The root directory to search
-   * @returns All customizations found and any warnings
-   */
-  discover(root: string): Promise<DiscoveryResult>;
-
-  /**
-   * Emit customization models to disk in this plugin's format.
-   * @param models - The customizations to emit
-   * @param root - The root directory to write to
-   * @param options - Optional emit options (e.g., dryRun)
-   * @returns Info about what was written and any issues
-   */
-  emit(
-    models: AgentCustomization[], 
-    root: string, 
-    options?: EmitOptions
-  ): Promise<EmitResult>;
-}
-```
-
-### DiscoveryResult
-
-Result of plugin discovery:
-
-```typescript
-interface DiscoveryResult {
-  /** All customization items found */
-  items: AgentCustomization[];
-  
-  /** Any warnings encountered during discovery */
-  warnings: Warning[];
-}
-```
-
-### EmitResult
-
-Result of plugin emission:
-
-```typescript
-interface EmitResult {
-  /** Files that were written (or would be written in dry-run) */
-  written: WrittenFile[];
-  
-  /** Any warnings encountered during emission */
-  warnings: Warning[];
-  
-  /** Items that could not be represented by this plugin */
-  unsupported: AgentCustomization[];
-}
-```
-
-### WrittenFile
-
-Information about a written file:
-
-```typescript
-interface WrittenFile {
-  /** Path to the written file */
-  path: string;
-  
-  /** Type of customization written */
-  type: CustomizationType;
-  
-  /** How many models went into this file (1 for 1:1, more if merged) */
-  itemCount: number;
-  
-  /** True if this file was created fresh; false if merged/edited existing */
-  isNewFile: boolean;
-  
-  /** Source AgentCustomizations that contributed to this output */
-  sourceItems?: AgentCustomization[];
-}
-```
-
-### EmitOptions
-
-Options for emission:
-
-```typescript
-interface EmitOptions {
-  /** If true, calculate what would be written without actually writing */
-  dryRun?: boolean;
-}
-```
+Available guards: `isGlobalPrompt`, `isAgentSkill`, `isFileRule`, `isAgentIgnore`, `isManualPrompt`
 
 ---
 
 ## Warning System
 
-### WarningCode Enum
+Conversions may produce warnings when features can't be perfectly translated:
 
-```typescript
-enum WarningCode {
-  /** Multiple items were collapsed into one file */
-  Merged = 'merged',
-  
-  /** Feature was translated imperfectly */
-  Approximated = 'approximated',
-  
-  /** Feature was not supported and omitted */
-  Skipped = 'skipped',
-  
-  /** Existing file was replaced */
-  Overwritten = 'overwritten',
-  
-  /** File was renamed to avoid collision */
-  FileRenamed = 'file-renamed',
-  
-  /** Git-ignored source with tracked output (or vice versa) */
-  BoundaryCrossing = 'boundary-crossing',
-  
-  /** Sources have conflicting git status */
-  GitStatusConflict = 'git-status-conflict',
-}
-```
+| Warning Code | Meaning |
+|--------------|---------|
+| `merged` | Multiple items combined into one file |
+| `approximated` | Feature translated imperfectly |
+| `skipped` | Feature not supported, omitted |
+| `overwritten` | Existing file replaced |
+| `file-renamed` | Renamed to avoid collision |
+| `boundary-crossing` | Git-ignored source → tracked output |
+| `git-status-conflict` | Sources have conflicting git status |
 
-### Warning Interface
-
-```typescript
-interface Warning {
-  /** The type of warning */
-  code: WarningCode;
-  
-  /** Human-readable description of the issue */
-  message: string;
-  
-  /** Source files that were affected (optional) */
-  sources?: string[];
-  
-  /** Additional details (optional) */
-  details?: Record<string, unknown>;
-}
-```
+Warnings help you understand what happened during conversion and whether manual adjustments are needed.
 
 ---
 
-## Helper Functions
+## Plugin Interface
 
-### createId
+Plugins implement discovery (finding customizations) and emission (writing them). The `A16nPlugin` interface defines:
 
-Create a unique identifier for a customization:
+- `id` / `name` - Plugin identification
+- `supports` - Which customization types the plugin handles
+- `discover(root)` - Find customizations in a directory tree
+- `emit(models, root, options)` - Write customizations to disk
 
-```typescript
-import { createId } from '@a16njs/models';
-
-const id = createId(CustomizationType.GlobalPrompt, '.cursor/rules/core.mdc');
-// → "global-prompt::.cursor/rules/core.mdc"
-```
+See the [Models API Reference](/models/api) for complete interface definitions, or [Plugin Development](/plugin-development) for implementation guidance.
 
 ---
 
-## Usage Example
+## Quick Reference
 
 ```typescript
 import {
   CustomizationType,
-  type A16nPlugin,
   type AgentCustomization,
-  type GlobalPrompt,
-  type DiscoveryResult,
+  type A16nPlugin,
   isGlobalPrompt,
   isFileRule,
   createId,
 } from '@a16njs/models';
 
-// Create a customization
-const rule: GlobalPrompt = {
-  id: createId(CustomizationType.GlobalPrompt, 'rules.mdc'),
-  type: CustomizationType.GlobalPrompt,
-  sourcePath: 'rules.mdc',
-  content: 'Always use TypeScript strict mode.',
-  metadata: {},
-};
+// Create an ID
+const id = createId(CustomizationType.GlobalPrompt, 'rules.mdc');
+// → "global-prompt::rules.mdc"
 
 // Type guard usage
-function processItem(item: AgentCustomization) {
-  if (isGlobalPrompt(item)) {
-    console.log('Global:', item.content);
-  } else if (isFileRule(item)) {
-    console.log('FileRule:', item.globs.join(', '));
-  }
+if (isFileRule(item)) {
+  console.log(item.globs);  // TypeScript-safe access
 }
 ```
 
@@ -384,6 +150,7 @@ function processItem(item: AgentCustomization) {
 
 ## See Also
 
+- [Models API Reference](/models/api) - Complete interface documentation
 - [Engine](/engine) - How the engine uses these types
 - [Plugin Development](/plugin-development) - Creating custom plugins
 - [Understanding Conversions](/understanding-conversions) - The conversion taxonomy

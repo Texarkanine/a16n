@@ -1,10 +1,11 @@
 ---
 sidebar_position: 1
+title: CLI Overview
 ---
 
 # CLI
 
-The **a16n CLI** provides command-line tools for converting AI agent configuration files between Cursor and Claude Code formats.
+The **a16n CLI**, `a16n`, provides command-line tools for converting AI agent configuration files between various agentic development toolchains.
 
 ## Installation
 
@@ -220,6 +221,7 @@ With `--json`, outputs structured data:
 
 ## See Also
 
+- [CLI Reference](/cli/reference) - Generated command reference
 - [Understanding Conversions](/understanding-conversions) - How conversions work
 - [Engine](/engine) - Programmatic API
 - [Plugin: Cursor](/plugin-cursor) - Cursor format details

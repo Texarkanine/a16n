@@ -5,31 +5,27 @@ slug: /
 
 # Introduction
 
-Welcome to the **a16n** documentation!
-
-## What is a16n?
-
 **a16n** (short for "a]gent customizatio[n") is a toolkit for converting AI agent customization between different AI coding tools.
 
 ## Why a16n?
 
 Different AI coding tools have their own formats for customizing agent behavior:
+
 - **Cursor** uses `.cursor/rules/*.mdc` files
 - **Claude Code** uses `CLAUDE.md` and `.claude/settings.json`
+- Many toolchains understand the [AgentSkills.io](https://agentskills.io) format.
 
 a16n lets you:
 - Convert your existing customizations when switching tools
-- Maintain customizations in one format while using multiple tools
+- Maintain customizations in one format while distributing to multiple tools
 - Understand how different tools map similar concepts
 
 ## Key Features
 
-- **Bidirectional conversion** between Cursor and Claude formats
 - **Warning system** for lossy or impossible conversions
-- **Metadata preservation** including file-specific rules and globs
 - **Git integration** for managing output file tracking
 - **Plugin architecture** for extensibility
-- **Type-safe** with full TypeScript support
+- **API & CLI** - use it in scripts or integrate it into your own tools
 
 ## Quick Start
 
@@ -85,10 +81,10 @@ a16n is organized as a monorepo with several packages:
 | [@a16njs/models](/models) | Type definitions |
 | [@a16njs/plugin-cursor](/plugin-cursor) | Cursor IDE support |
 | [@a16njs/plugin-claude](/plugin-claude) | Claude Code support |
-| [@a16njs/glob-hook](/glob-hook) | Glob-based hook for Claude |
+| [@a16njs/glob-hook](/glob-hook) | Helper CLI for glob-based rules in Claude Code |
 
 ## Contributing
 
-This project is open source under the AGPL-3.0 license. Contributions are welcome!
+This project is open source & contributions are welcome!
 
 Visit our [GitHub repository](https://github.com/Texarkanine/a16n) to get started.

@@ -2,59 +2,34 @@
 
 ## Current Focus
 
-**Task**: DOCS-COMPREHENSIVE-FILL - Documentation Site Population
+**Task**: DOCS-CLEANUP-R2 - Documentation Cleanup Round 2
 **Phase**: Planning Complete → Ready for Implementation
-**Complexity**: Level 3
+**Complexity**: Level 2
 
-## Recent Decisions
+## Problem Statement
 
-1. **CLI Documentation**: Build versioned generation (per-tag, mirrors TypeDoc approach)
-   - Commander.js exposes `.commands` and `.options` arrays
-   - ~150-200 lines of code to implement
-   - No suitable existing package found (commander-to-markdown is archived)
+Post-review feedback identified several issues:
+1. CLI versioned docs not generating (warning: "No docs found in cli/reference")
+2. Plugin-to-plugin conversion tables don't scale
+3. Models page has tool-specific info that belongs elsewhere
+4. Plugin pages replicate canonical tool documentation
 
-2. **Sidebar Structure**: Hybrid approach
-   - "a16n" category for guides (intro, conversions, plugin dev, FAQ)
-   - Package categories for reference (CLI, Engine, Models, plugins)
+## Key Decisions
 
-3. **Plugin Dev Warning**: Prominent callout at absolute top of page
+1. **CLI Docs**: Add CLI to versioned generation pipeline using `generateCliDocsForVersion()`
+2. **Conversion Tables**: Remove - they create N×N documentation burden
+3. **API Linking**: Punt on version-specific linking - too complex to maintain
+4. **Plugin Pages**: Link to canonical docs (cursor.com, anthropic.com) instead of replicating
 
-4. **Links**: Version-agnostic (e.g., `/models/api` not `/models/api/0.4.0`)
+## Guiding Principle
 
-5. **Package READMEs**: Add npm badges + doc site links
+Document internal IR types (GlobalPrompt, AgentSkill, etc.) as the stable reference point. Avoid documenting plugin-to-plugin conversion details since:
+- With 2 plugins: 4 conversion paths (N×N)
+- With 3 plugins: 9 conversion paths
+- This doesn't scale
 
-## Implementation Plan Summary
-
-7 phases, can be executed sequentially or with some parallelism:
-
-| Phase | Description | Dependencies |
-|-------|-------------|--------------|
-| 1 | CLI Doc Generation Infrastructure | None |
-| 2 | Sidebar & Structure | Phase 1 |
-| 3 | Main README Slim-Down | Phase 2 |
-| 4 | Doc Site Content - Guides | Phase 3 |
-| 5 | Doc Site Content - Reference | Phase 2 |
-| 6 | Package READMEs | None |
-| 7 | Verification & Polish | All |
-
-## Key Files
-
-### To Create
-- `packages/docs/scripts/generate-cli-docs.ts`
-- `packages/docs/docs/understanding-conversions/index.md`
-- `packages/docs/docs/plugin-development/index.md`
-- `packages/docs/docs/faq.md`
-
-### Major Modifications
-- `README.md` (slim down significantly)
-- `packages/docs/sidebars.js` (restructure)
-- All `packages/*/README.md` (badges + links)
-- All `packages/docs/docs/*/index.md` (fill content)
+Instead, users should use `--dry-run` to understand specific conversions.
 
 ## Next Steps
 
-Ready to begin Phase 1: CLI Doc Generation Infrastructure
-
-1. Create `generate-cli-docs.ts` script
-2. Test on current CLI
-3. Integrate with versioned generation pipeline
+Ready to begin Phase 1: CLI Versioned Docs

@@ -239,37 +239,9 @@ for (const file of emitResult.written) {
 
 ---
 
-## Plugin Details
+## API Reference
 
-### ID and Name
-
-```typescript
-{
-  id: 'claude',
-  name: 'Claude Code',
-  supports: [
-    'global-prompt',
-    'agent-skill',
-    'file-rule',
-    'agent-ignore',
-    'manual-prompt'
-  ]
-}
-```
-
-### Metadata
-
-The plugin stores Claude-specific metadata:
-
-```typescript
-{
-  // For CLAUDE.md files
-  metadata: {
-    isNested: false,  // or true for nested CLAUDE.md
-    directory: '.',   // relative directory path
-  }
-}
-```
+For complete plugin API details, see the [Plugin Claude API Reference](/plugin-claude/api).
 
 ---
 
@@ -351,7 +323,8 @@ project/
 
 ## See Also
 
+- [Plugin Claude API Reference](/plugin-claude/api) - Complete API documentation
 - [Plugin: Cursor](/plugin-cursor) - Cursor IDE format plugin
 - [Glob Hook](/glob-hook) - File pattern matching for hooks
 - [Understanding Conversions](/understanding-conversions) - Conversion details
-- [Models](/models) - Plugin interface documentation
+- [Models](/models) - Type definitions
