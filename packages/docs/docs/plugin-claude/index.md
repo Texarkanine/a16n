@@ -29,7 +29,7 @@ npm install @a16njs/plugin-claude
 	* Simple Skills (single SKILL.md file only)
 		* `disable-model-invocation: true`: [ManualPrompt](/models#manualprompt)
 		* others: [SimpleAgentSkill](/models#simpleagentskill)
-	* Complex Skills (hooks, multiple files, resources): Skipped
+	* Complex Skills (hooks, multiple files, resources): Skipped w/ Warning
 * [Claude Settings](https://docs.anthropic.com/en/docs/claude-code/settings): `.claude/settings.json`
 	* `permissions.deny` with `Read()`: [AgentIgnore](/models#agentignore)
 	* Other permission types: Skipped

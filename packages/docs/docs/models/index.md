@@ -91,7 +91,7 @@ flowchart LR
   B --> C[Target Files]
 ```
 
-The base `AgentCustomization` interface provides common fields (id, type, sourcePath, content, metadata), while specialized types like `FileRule` and `AgentSkill` add type-specific fields.
+The base `AgentCustomization` interface provides common fields (id, type, sourcePath, content, metadata), while specialized types like `FileRule` and `SimpleAgentSkill` add type-specific fields.
 
 ### Type Guards
 

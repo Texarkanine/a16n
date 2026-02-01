@@ -27,10 +27,11 @@ import {
 
 ### Types
 
-- `CustomizationType` - Enum of customization types (GlobalPrompt, AgentSkill, FileRule, AgentIgnore, ManualPrompt)
+- `CustomizationType` - Enum of customization types (GlobalPrompt, SimpleAgentSkill, AgentSkillIO, FileRule, AgentIgnore, ManualPrompt)
 - `AgentCustomization` - Base interface for all customizations
 - `GlobalPrompt` - Always-applied prompts
-- `AgentSkill` - Context-triggered by description
+- `SimpleAgentSkill` - Context-triggered by description
+- `AgentSkillIO` - Complex skills with resources/files
 - `FileRule` - Triggered by file patterns
 - `AgentIgnore` - Ignore patterns
 - `ManualPrompt` - User-invoked prompts (e.g., `/command`), stored in `.cursor/skills/` or `.claude/skills/` with `disable-model-invocation: true`
