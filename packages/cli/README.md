@@ -1,5 +1,7 @@
 # a16n
 
+[![npm version](https://img.shields.io/npm/v/a16n.svg)](https://www.npmjs.com/package/a16n)
+
 Agent customization portability for AI coding tools.
 
 ## Installation
@@ -79,3 +81,7 @@ a16n convert --from cursor --to claude --dry-run .
 # List what's in a project
 a16n discover --from cursor .
 ```
+
+## Documentation
+
+Full documentation available at <https://texarkanine.github.io/a16n/cli>.

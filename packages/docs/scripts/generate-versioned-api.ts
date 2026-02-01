@@ -11,6 +11,7 @@
 import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
+import { generateCliDocsForVersion } from './generate-cli-docs.js';
 
 /** Package configuration for API doc generation */
 interface PackageConfig {
@@ -337,13 +338,47 @@ export async function main(dryRun = false): Promise<void> {
     }
   }
 
+  // Generate CLI docs separately (CLI uses different generation approach)
+  const cliTags = tagGroups.get('cli');
+  if (cliTags && cliTags.length > 0) {
+    console.log(`\nProcessing cli (${cliTags.length} versions):`);
+
+    for (const tag of cliTags) {
+      console.log(`  Generating cli@${tag.version}...`);
+      try {
+        // Get the commit SHA for this tag
+        const commit = getTagCommit(tag.fullTag);
+
+        // Check out ALL packages from this commit for consistency
+        checkoutAllPackagesFromCommit(commit);
+
+        // Generate CLI docs using the CLI-specific generator
+        const outputDir = `.generated/cli/reference/${tag.version}`;
+        await generateCliDocsForVersion(outputDir, tag.version);
+
+        results.push({ pkg: 'cli', version: tag.version, success: true });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.warn(`  ⚠️  Failed: ${message.split('\n')[0]}`);
+        results.push({ pkg: 'cli', version: tag.version, success: false, error: message });
+      } finally {
+        // Always restore ALL packages to HEAD
+        restoreAllPackagesToHead();
+      }
+    }
+  }
+
   // Generate versions manifest (only include successful versions)
   console.log('\n');
   const successfulTagGroups = new Map<string, ParsedTag[]>();
   for (const result of results.filter((r) => r.success)) {
     const existing = successfulTagGroups.get(result.pkg) || [];
+    // CLI uses different tag format (a16n@version vs @a16njs/pkg@version)
+    const fullTag = result.pkg === 'cli'
+      ? `a16n@${result.version}`
+      : `@a16njs/${result.pkg}@${result.version}`;
     existing.push({
-      fullTag: `@a16njs/${result.pkg}@${result.version}`,
+      fullTag,
       packageName: result.pkg,
       version: result.version,
     });
@@ -482,6 +517,74 @@ slug: /${pkg.name}/api/${tag.version}
             const newContent = `---
 pagination_next: ${nextValue}
 pagination_prev: ${prevValue}
+---
+
+${content}`;
+            writeFileSync(filePath, newContent);
+          }
+        }
+      }
+    }
+    
+    // Handle CLI pagination separately (uses reference/ instead of api/)
+    const cliVersions = successfulTagGroups.get('cli');
+    if (cliVersions && cliVersions.length > 0) {
+      const versions = cliVersions
+        .map(t => t.version)
+        .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+      
+      for (let vIdx = 0; vIdx < versions.length; vIdx++) {
+        const version = versions[vIdx];
+        const versionDir = join(docsDir, '.generated', 'cli', 'reference', version);
+        
+        if (!existsSync(versionDir)) continue;
+        
+        const newerVersion = vIdx > 0 ? versions[vIdx - 1] : null;
+        const olderVersion = vIdx < versions.length - 1 ? versions[vIdx + 1] : null;
+        
+        const paginationPrev = newerVersion 
+          ? `cli/reference/${newerVersion}/index`
+          : 'cli/reference';  // Link back to CLI reference landing page
+        
+        const paginationNext = olderVersion
+          ? `cli/reference/${olderVersion}/index`
+          : null;  // End of chain
+        
+        // Process CLI version files
+        const cliFiles = exec(`find "${versionDir}" -type f -name "*.md"`, docsDir)
+          .split('\n')
+          .filter(Boolean);
+        
+        for (const filePath of cliFiles) {
+          const content = readFileSync(filePath, 'utf-8');
+          const hasFrontmatter = content.startsWith('---\n');
+          
+          if (hasFrontmatter) {
+            const parts = content.split('---\n');
+            if (parts.length >= 3) {
+              const frontmatter = parts[1];
+              const restContent = parts.slice(2).join('---\n');
+              
+              const cleanedFrontmatter = frontmatter
+                .split('\n')
+                .filter(
+                  (line) =>
+                    !line.startsWith('pagination_next:') &&
+                    !line.startsWith('pagination_prev:')
+                )
+                .join('\n')
+                .trimEnd();
+              let newFrontmatter = cleanedFrontmatter;
+              newFrontmatter += `\npagination_next: ${paginationNext ?? 'null'}`;
+              newFrontmatter += `\npagination_prev: ${paginationPrev}`;
+              
+              const newContent = `---\n${newFrontmatter}\n---\n${restContent}`;
+              writeFileSync(filePath, newContent);
+            }
+          } else {
+            const newContent = `---
+pagination_next: ${paginationNext ?? 'null'}
+pagination_prev: ${paginationPrev}
 ---
 
 ${content}`;

@@ -1,5 +1,7 @@
 # @a16njs/plugin-claude
 
+[![npm version](https://img.shields.io/npm/v/@a16njs/plugin-claude.svg)](https://www.npmjs.com/package/@a16njs/plugin-claude)
+
 Claude Code plugin for a16n. Discovers and emits Claude configuration.
 
 ## Installation
@@ -83,51 +85,6 @@ FileRules are converted using `@a16njs/glob-hook` for runtime glob matching:
 }
 ```
 
-> **Note:** FileRule conversion emits an "Approximated" warning because hook-based matching may differ slightly from Cursor's native glob matching.
-
-### settings.json (AgentIgnore via permissions.deny)
-
-AgentIgnore patterns are converted to `permissions.deny` Read rules:
-
-```json
-{
-  "permissions": {
-    "deny": [
-      "Read(./dist/**)",
-      "Read(./.env)",
-      "Read(./**/*.log)",
-      "Read(./secrets/**)"
-    ]
-  }
-}
-```
-
-Pattern conversion rules:
-- `dist/` → `Read(./dist/**)`
-- `.env` → `Read(./.env)`
-- `*.log` → `Read(./**/*.log)`
-- `**/*.tmp` → `Read(./**/*.tmp)`
-
-> **Note:** AgentIgnore conversion emits an "Approximated" warning because Claude's permission system may behave slightly differently than `.cursorignore`.
-
-### SKILL.md from AgentCommand
-
-When Cursor commands are converted to Claude, they become skills:
-
-```markdown
----
-name: "review"
-description: "Invoke with /review"
----
-
-Review this code for:
-- Security vulnerabilities
-- Performance issues
-- Code style violations
-```
-
-The `description: "Invoke with /review"` enables slash command invocation in Claude, mirroring Cursor's `/review` behavior.
-
 ## Usage
 
 ```typescript
@@ -143,3 +100,7 @@ console.log(`Found ${result.items.length} items`);
 // Emit to Claude format
 await claudePlugin.emit(result.items, './my-project');
 ```
+
+## Documentation
+
+Full documentation available at <https://texarkanine.github.io/a16n/plugin-claude>.
