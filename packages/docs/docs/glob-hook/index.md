@@ -4,6 +4,12 @@ sidebar_position: 6
 
 # Glob Hook CLI
 
+:::caution Not Required for Claude Code (January 2026+)
+As of January 2026, Claude Code natively supports glob-based file rules via the `paths:` frontmatter in `.claude/rules/*.md` files. **a16n no longer uses glob-hook for Claude Code conversions** — FileRules are now emitted as native Claude rules with `paths:` frontmatter for lossless conversion.
+
+This package remains available for custom hook configurations or other use cases, but is no longer needed for standard a16n Claude conversions.
+:::
+
 The **@a16njs/glob-hook** package is a CLI tool for glob-based file path matching in Claude Code hooks. It enables pattern-based rule injection—a capability that Claude Code hooks don't natively support.
 
 ## Why This Package?
@@ -164,9 +170,18 @@ Patterns use [micromatch](https://github.com/micromatch/micromatch) syntax with 
 
 ---
 
-## Integration with a16n
+## Integration with a16n (Legacy)
 
-When a16n converts Cursor FileRules to Claude format, it automatically uses glob-hook:
+:::info Historical Context
+Prior to January 2026, a16n used glob-hook to emulate Cursor's glob-based FileRules in Claude Code. This section is preserved for reference, but **a16n no longer uses this approach**.
+
+Modern a16n versions emit FileRules as native `.claude/rules/*.md` files with `paths:` frontmatter, which Claude Code supports natively.
+:::
+
+<details>
+<summary>Legacy behavior (pre-January 2026)</summary>
+
+When a16n converted Cursor FileRules to Claude format, it used glob-hook:
 
 1. **Discovery**: a16n reads Cursor rules with glob patterns from `.cursor/rules/*.mdc`
 2. **Generation**: For each rule, a16n creates:
@@ -174,7 +189,7 @@ When a16n converts Cursor FileRules to Claude format, it automatically uses glob
    - A hook configuration in `.claude/settings.local.json` using glob-hook
 3. **Runtime**: When Claude Code triggers the hook, glob-hook matches file paths and injects context
 
-### Example Conversion
+### Example Legacy Conversion
 
 **Cursor source** (`.cursor/rules/react.mdc`):
 ```markdown
@@ -186,7 +201,7 @@ Use functional components with hooks.
 Prefer named exports over default exports.
 ```
 
-**Claude output** (`.claude/settings.local.json`):
+**Claude output (legacy)** (`.claude/settings.local.json`):
 ```json
 {
   "hooks": {
@@ -199,6 +214,36 @@ Prefer named exports over default exports.
     }]
   }
 }
+```
+
+</details>
+
+### Current Behavior
+
+a16n now converts FileRules to native Claude rules:
+
+**Cursor source** (`.cursor/rules/react.mdc`):
+```markdown
+---
+globs: **/*.tsx,**/*.jsx
+---
+
+Use functional components with hooks.
+Prefer named exports over default exports.
+```
+
+**Claude output (current)** (`.claude/rules/react.md`):
+```markdown
+---
+paths:
+  - "**/*.tsx"
+  - "**/*.jsx"
+---
+
+## From: .cursor/rules/react.mdc
+
+Use functional components with hooks.
+Prefer named exports over default exports.
 ```
 
 ---
@@ -234,5 +279,5 @@ interface HookInput {
 ## See Also
 
 - [CLI Reference](/cli) - a16n command-line interface
-- [Plugin: Claude](/plugin-claude) - Claude format details
-- [Understanding Conversions](/understanding-conversions) - How FileRules are converted
+- [Plugin: Claude](/plugin-claude) - Claude format details (now uses native rules)
+- [Understanding Conversions](/understanding-conversions) - How conversions work

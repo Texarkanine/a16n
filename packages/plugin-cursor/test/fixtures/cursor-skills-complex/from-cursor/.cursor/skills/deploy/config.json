@@ -1,0 +1,9 @@
+{
+  "environment": "production",
+  "timeout": 300,
+  "retries": 3,
+  "notifications": {
+    "slack": true,
+    "email": true
+  }
+}

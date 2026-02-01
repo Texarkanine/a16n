@@ -130,7 +130,7 @@ describe('WrittenFile', () => {
     // Test that WrittenFile with itemCount=1 has single-element sourceItems array
     const sourceItem = {
       id: 'skill-1',
-      type: CustomizationType.AgentSkill,
+      type: CustomizationType.SimpleAgentSkill,
       sourcePath: '.cursor/rules/database.mdc',
       content: 'Database operations',
       metadata: {},
@@ -138,7 +138,7 @@ describe('WrittenFile', () => {
 
     const written: WrittenFile = {
       path: '.claude/skills/database/SKILL.md',
-      type: CustomizationType.AgentSkill,
+      type: CustomizationType.SimpleAgentSkill,
       itemCount: 1,
       isNewFile: true,
       sourceItems: [sourceItem],

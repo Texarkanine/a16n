@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # Claude Code Plugin Overview
 
-The **@a16njs/plugin-claude** package implements the Claude Code format plugin for reading and writing `CLAUDE.md` files, `.claude/skills/*/SKILL.md` files, and `.claude/settings.json` permissions.
+The **@a16njs/plugin-claude** package implements the Claude Code format plugin for reading and writing `.claude/rules/*.md` files, `.claude/skills/*/SKILL.md` files, and `.claude/settings.json` permissions.
 
 ## Installation
 
@@ -22,6 +22,9 @@ npm install @a16njs/plugin-claude
 
 * [CLAUDE.md](https://docs.anthropic.com/en/docs/claude-code/memory): `CLAUDE.md`, `*/CLAUDE.md`
 	* GlobalPrompt
+* [Claude Rules](https://docs.anthropic.com/en/docs/claude-code/memory#modular-rules-with-claude%2Frules%2F): `.claude/rules/*.md` (including subdirectories)
+	* Rules without `paths:` frontmatter: GlobalPrompt
+	* Rules with `paths:` frontmatter: FileRule
 * [Claude Skills](https://docs.anthropic.com/en/docs/claude-code/skills): `.claude/skills/*/SKILL.md`
 	* Simple Skills (single SKILL.md file only)
 		* `disable-model-invocation: true`: ManualPrompt
@@ -33,8 +36,8 @@ npm install @a16njs/plugin-claude
 
 ### Emission
 
-* GlobalPrompt: `CLAUDE.md` (merged with section headers)
-* FileRule: `.a16n/rules/<name>.txt` + `.claude/settings.local.json` hook
+* GlobalPrompt: `.claude/rules/<name>.md` (individual files)
+* FileRule: `.claude/rules/<name>.md` with `paths:` YAML frontmatter (native support)
 * AgentSkill: `.claude/skills/<name>/SKILL.md`
 * AgentIgnore: `.claude/settings.json` with `permissions.deny`
 * ManualPrompt: `.claude/skills/<name>/SKILL.md` with `enable-model-invocation: false`
@@ -87,10 +90,14 @@ For complete plugin API details, see the [Plugin Claude API Reference](/plugin-c
 
 ## Emission Behavior
 
-- **GlobalPrompts** are merged into a single `CLAUDE.md` with section headers (emits "Merged" warning)
-- **FileRules** create `.a16n/rules/*.txt` content files and `.claude/settings.local.json` hook configuration (emits "Approximated" warning)
+- **GlobalPrompts** are written to individual `.claude/rules/<name>.md` files
+- **FileRules** are written to `.claude/rules/<name>.md` with native `paths:` YAML frontmatter (lossless conversion using Claude's native modular rules feature)
 - **AgentSkills** are written to `.claude/skills/<name>/SKILL.md`
 - **ManualPrompts** are emitted as skills with `description: "Invoke with /command"` to enable slash command invocation
+
+:::tip Native FileRule Support
+As of January 2026, Claude Code natively supports glob-based file rules via the `paths:` frontmatter in `.claude/rules/*.md` files. FileRules are now converted losslessly without requiring any additional tools or hooks.
+:::
 
 ---
 
@@ -98,6 +105,5 @@ For complete plugin API details, see the [Plugin Claude API Reference](/plugin-c
 
 - [Plugin Claude API Reference](/plugin-claude/api) - Complete API documentation
 - [Plugin: Cursor](/plugin-cursor) - Cursor IDE format plugin
-- [Glob Hook](/glob-hook) - File pattern matching for hooks
 - [Understanding Conversions](/understanding-conversions) - Conversion details
 - [Models](/models) - Type definitions

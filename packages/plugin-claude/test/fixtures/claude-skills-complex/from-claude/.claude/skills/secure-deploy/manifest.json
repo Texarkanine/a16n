@@ -1,0 +1,7 @@
+{
+  "name": "secure-deploy",
+  "version": "1.0.0",
+  "securityLevel": "high",
+  "requiredApprovals": 2,
+  "environments": ["staging", "production"]
+}

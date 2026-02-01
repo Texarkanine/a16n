@@ -9,6 +9,7 @@ import {
   type GlobalPrompt,
   type FileRule,
   type AgentSkill,
+  type AgentSkillIO,
   type AgentIgnore,
   type ManualPrompt,
   createId,
@@ -29,7 +30,7 @@ describe('Claude Plugin Emission', () => {
   });
 
   describe('single GlobalPrompt', () => {
-    it('should emit a single GlobalPrompt as CLAUDE.md', async () => {
+    it('should emit a single GlobalPrompt as .claude/rules/*.md', async () => {
       const models: GlobalPrompt[] = [
         {
           id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/test.mdc'),
@@ -46,9 +47,9 @@ describe('Claude Plugin Emission', () => {
       expect(result.warnings).toHaveLength(0);
       expect(result.unsupported).toHaveLength(0);
 
-      // Verify file was created
-      const claudePath = path.join(tempDir, 'CLAUDE.md');
-      const content = await fs.readFile(claudePath, 'utf-8');
+      // Verify file was created in .claude/rules/
+      const rulePath = path.join(tempDir, '.claude', 'rules', 'test.md');
+      const content = await fs.readFile(rulePath, 'utf-8');
       expect(content).toContain('Always use TypeScript.');
     });
 
@@ -65,14 +66,33 @@ describe('Claude Plugin Emission', () => {
 
       const result = await claudePlugin.emit(models, tempDir);
 
-      const claudePath = path.join(tempDir, 'CLAUDE.md');
-      const content = await fs.readFile(claudePath, 'utf-8');
+      const rulePath = path.join(tempDir, '.claude', 'rules', 'test.md');
+      const content = await fs.readFile(rulePath, 'utf-8');
       expect(content).toContain('.cursor/rules/test.mdc');
+    });
+
+    it('should NOT include frontmatter in GlobalPrompt files', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/test.mdc'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: '.cursor/rules/test.mdc',
+          content: 'Test content',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      const rulePath = path.join(tempDir, '.claude', 'rules', 'test.md');
+      const content = await fs.readFile(rulePath, 'utf-8');
+      // Should not have YAML frontmatter (no --- delimiters)
+      expect(content).not.toMatch(/^---\n/);
     });
   });
 
   describe('multiple GlobalPrompts', () => {
-    it('should merge multiple GlobalPrompts into single CLAUDE.md', async () => {
+    it('should emit multiple GlobalPrompts as separate .claude/rules/*.md files', async () => {
       const models: GlobalPrompt[] = [
         {
           id: createId(CustomizationType.GlobalPrompt, 'rule1.mdc'),
@@ -99,17 +119,24 @@ describe('Claude Plugin Emission', () => {
 
       const result = await claudePlugin.emit(models, tempDir);
 
-      expect(result.written).toHaveLength(1);
-      expect(result.written[0]?.itemCount).toBe(3);
+      // BREAKING: Each GlobalPrompt gets its own file
+      expect(result.written).toHaveLength(3);
 
-      const claudePath = path.join(tempDir, 'CLAUDE.md');
-      const content = await fs.readFile(claudePath, 'utf-8');
-      expect(content).toContain('First rule');
-      expect(content).toContain('Second rule');
-      expect(content).toContain('Third rule');
+      // Verify all three files exist with correct content
+      const rule1Path = path.join(tempDir, '.claude', 'rules', 'rule1.md');
+      const rule2Path = path.join(tempDir, '.claude', 'rules', 'rule2.md');
+      const rule3Path = path.join(tempDir, '.claude', 'rules', 'rule3.md');
+      
+      const content1 = await fs.readFile(rule1Path, 'utf-8');
+      const content2 = await fs.readFile(rule2Path, 'utf-8');
+      const content3 = await fs.readFile(rule3Path, 'utf-8');
+      
+      expect(content1).toContain('First rule');
+      expect(content2).toContain('Second rule');
+      expect(content3).toContain('Third rule');
     });
 
-    it('should emit Merged warning when combining multiple sources', async () => {
+    it('should NOT emit Merged warning (no longer merging)', async () => {
       const models: GlobalPrompt[] = [
         {
           id: createId(CustomizationType.GlobalPrompt, 'a.mdc'),
@@ -129,11 +156,59 @@ describe('Claude Plugin Emission', () => {
 
       const result = await claudePlugin.emit(models, tempDir);
 
-      expect(result.warnings).toHaveLength(1);
-      expect(result.warnings[0]?.code).toBe(WarningCode.Merged);
-      expect(result.warnings[0]?.message).toContain('2');
-      expect(result.warnings[0]?.sources).toContain('a.mdc');
-      expect(result.warnings[0]?.sources).toContain('b.mdc');
+      // BREAKING: No merge warning since each gets its own file
+      expect(result.warnings).toHaveLength(0);
+    });
+
+    it('should NOT create CLAUDE.md file', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'rule1.mdc'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: 'rule1.mdc',
+          content: 'First rule',
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      // BREAKING: CLAUDE.md should not exist
+      const claudePath = path.join(tempDir, 'CLAUDE.md');
+      await expect(fs.access(claudePath)).rejects.toThrow();
+    });
+
+    it('should handle filename collisions for GlobalPrompts', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/test.mdc'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: '.cursor/rules/test.mdc',
+          content: 'First test',
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/shared/test.mdc'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: '.cursor/rules/shared/test.mdc',
+          content: 'Second test',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+
+      // Should create test.md and test-1.md
+      const testPath = path.join(tempDir, '.claude', 'rules', 'test.md');
+      const test1Path = path.join(tempDir, '.claude', 'rules', 'test-1.md');
+      
+      const testContent = await fs.readFile(testPath, 'utf-8');
+      const test1Content = await fs.readFile(test1Path, 'utf-8');
+      
+      expect(testContent).toContain('First test');
+      expect(test1Content).toContain('Second test');
     });
   });
 
@@ -148,7 +223,7 @@ describe('Claude Plugin Emission', () => {
   });
 });
 
-describe('Claude FileRule Emission (Phase 2)', () => {
+describe('Claude FileRule Emission (Phase 8 A2)', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -158,7 +233,7 @@ describe('Claude FileRule Emission (Phase 2)', () => {
   });
 
   describe('single FileRule', () => {
-    it('should create rule content file in .a16n/rules/', async () => {
+    it('should emit FileRule as .claude/rules/*.md with paths frontmatter', async () => {
       const models: FileRule[] = [
         {
           id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
@@ -170,20 +245,29 @@ describe('Claude FileRule Emission (Phase 2)', () => {
         },
       ];
 
-      await claudePlugin.emit(models, tempDir);
+      const result = await claudePlugin.emit(models, tempDir);
 
-      const rulePath = path.join(tempDir, '.a16n', 'rules', 'react.md');
+      expect(result.written).toHaveLength(1);
+
+      // BREAKING: Now emits to .claude/rules/ instead of .a16n/rules/
+      const rulePath = path.join(tempDir, '.claude', 'rules', 'react.md');
       const content = await fs.readFile(rulePath, 'utf-8');
-      expect(content).toBe('Use React best practices.');
+      
+      // Should have YAML frontmatter with paths
+      expect(content).toContain('---');
+      expect(content).toContain('paths:');
+      expect(content).toContain('**/*.tsx');
+      expect(content).toContain('**/*.jsx');
+      expect(content).toContain('Use React best practices.');
     });
 
-    it('should create settings.local.json with hook configuration', async () => {
+    it('should format paths as YAML array in frontmatter', async () => {
       const models: FileRule[] = [
         {
           id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
           type: CustomizationType.FileRule,
           sourcePath: '.cursor/rules/react.mdc',
-          content: 'Use React best practices.',
+          content: 'React rules',
           globs: ['**/*.tsx', '**/*.jsx'],
           metadata: {},
         },
@@ -191,48 +275,59 @@ describe('Claude FileRule Emission (Phase 2)', () => {
 
       await claudePlugin.emit(models, tempDir);
 
-      const settingsPath = path.join(tempDir, '.claude', 'settings.local.json');
-      const content = await fs.readFile(settingsPath, 'utf-8');
-      const settings = JSON.parse(content);
-
-      expect(settings.hooks).toBeDefined();
-      expect(settings.hooks.PreToolUse).toBeInstanceOf(Array);
-      expect(settings.hooks.PreToolUse).toHaveLength(1);
-      expect(settings.hooks.PreToolUse[0].matcher).toBe('Read|Write|Edit');
+      const rulePath = path.join(tempDir, '.claude', 'rules', 'react.md');
+      const content = await fs.readFile(rulePath, 'utf-8');
+      
+      // Verify YAML array format
+      expect(content).toMatch(/paths:\s*\n\s*-\s+"?\*\*\/\*\.tsx"?/);
+      expect(content).toMatch(/paths:\s*\n\s*-.*\n\s*-\s+"?\*\*\/\*\.jsx"?/);
     });
 
-    it('should include glob patterns in hook command', async () => {
+    it('should NOT create settings.local.json hooks', async () => {
       const models: FileRule[] = [
         {
           id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
           type: CustomizationType.FileRule,
           sourcePath: '.cursor/rules/react.mdc',
-          content: 'Use React best practices.',
-          globs: ['**/*.tsx', '**/*.jsx'],
+          content: 'React rules',
+          globs: ['**/*.tsx'],
           metadata: {},
         },
       ];
 
       await claudePlugin.emit(models, tempDir);
 
+      // BREAKING: settings.local.json should not exist
       const settingsPath = path.join(tempDir, '.claude', 'settings.local.json');
-      const content = await fs.readFile(settingsPath, 'utf-8');
-      const settings = JSON.parse(content);
-
-      const command = settings.hooks.PreToolUse[0].hooks[0].command;
-      expect(command).toContain('@a16njs/glob-hook');
-      expect(command).toContain('**/*.tsx');
-      expect(command).toContain('**/*.jsx');
-      expect(command).toContain('.a16n/rules/react.md');
+      await expect(fs.access(settingsPath)).rejects.toThrow();
     });
 
-    it('should emit approximation warning for FileRule', async () => {
+    it('should NOT create .a16n/rules/ directory', async () => {
       const models: FileRule[] = [
         {
           id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
           type: CustomizationType.FileRule,
           sourcePath: '.cursor/rules/react.mdc',
-          content: 'Use React best practices.',
+          content: 'React rules',
+          globs: ['**/*.tsx'],
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      // BREAKING: .a16n directory should not exist
+      const a16nPath = path.join(tempDir, '.a16n');
+      await expect(fs.access(a16nPath)).rejects.toThrow();
+    });
+
+    it('should NOT emit approximation warning for FileRule', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: '.cursor/rules/react.mdc',
+          content: 'React rules',
           globs: ['**/*.tsx'],
           metadata: {},
         },
@@ -240,14 +335,14 @@ describe('Claude FileRule Emission (Phase 2)', () => {
 
       const result = await claudePlugin.emit(models, tempDir);
 
+      // BREAKING: No approximation warning (native support now)
       const approxWarning = result.warnings.find(w => w.code === WarningCode.Approximated);
-      expect(approxWarning).toBeDefined();
-      expect(approxWarning?.message).toContain('glob-hook');
+      expect(approxWarning).toBeUndefined();
     });
   });
 
   describe('multiple FileRules', () => {
-    it('should create multiple rule files and combine hooks', async () => {
+    it('should emit multiple FileRules as separate .claude/rules/*.md files', async () => {
       const models: FileRule[] = [
         {
           id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
@@ -267,18 +362,56 @@ describe('Claude FileRule Emission (Phase 2)', () => {
         },
       ];
 
-      await claudePlugin.emit(models, tempDir);
+      const result = await claudePlugin.emit(models, tempDir);
 
-      // Check both rule files exist
-      const reactRule = await fs.readFile(path.join(tempDir, '.a16n', 'rules', 'react.md'), 'utf-8');
-      const tsRule = await fs.readFile(path.join(tempDir, '.a16n', 'rules', 'typescript.md'), 'utf-8');
-      expect(reactRule).toBe('React rules');
-      expect(tsRule).toBe('TypeScript rules');
+      expect(result.written).toHaveLength(2);
 
-      // Check settings has both hooks
-      const settingsPath = path.join(tempDir, '.claude', 'settings.local.json');
-      const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
-      expect(settings.hooks.PreToolUse).toHaveLength(2);
+      // Check both rule files exist in .claude/rules/
+      const reactPath = path.join(tempDir, '.claude', 'rules', 'react.md');
+      const tsPath = path.join(tempDir, '.claude', 'rules', 'typescript.md');
+      
+      const reactContent = await fs.readFile(reactPath, 'utf-8');
+      const tsContent = await fs.readFile(tsPath, 'utf-8');
+      
+      expect(reactContent).toContain('React rules');
+      expect(reactContent).toContain('paths:');
+      expect(tsContent).toContain('TypeScript rules');
+      expect(tsContent).toContain('paths:');
+    });
+
+    it('should handle filename collisions for FileRules', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, '.cursor/rules/api.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: '.cursor/rules/api.mdc',
+          content: 'First API rules',
+          globs: ['**/api/*.ts'],
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.FileRule, '.cursor/rules/backend/api.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: '.cursor/rules/backend/api.mdc',
+          content: 'Second API rules',
+          globs: ['**/backend/api/*.ts'],
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+
+      // Should create api.md and api-1.md
+      const apiPath = path.join(tempDir, '.claude', 'rules', 'api.md');
+      const api1Path = path.join(tempDir, '.claude', 'rules', 'api-1.md');
+      
+      const apiContent = await fs.readFile(apiPath, 'utf-8');
+      const api1Content = await fs.readFile(api1Path, 'utf-8');
+      
+      expect(apiContent).toContain('First API rules');
+      expect(api1Content).toContain('Second API rules');
     });
   });
 });
@@ -296,8 +429,8 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
     it('should create skill directory and SKILL.md file', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/auth.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -315,8 +448,8 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
     it('should include description in skill frontmatter', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/auth.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -338,16 +471,16 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
     it('should create separate skill directories for each', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/auth.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Auth content',
           description: 'Auth patterns',
           metadata: {},
         },
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/database.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/database.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/database.mdc',
           content: 'Database content',
           description: 'Database patterns',
@@ -372,8 +505,8 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
     it('should include name from metadata in skill frontmatter', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/auth.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -392,8 +525,8 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
     it('should omit name if not present in metadata', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/auth.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -437,8 +570,8 @@ describe('Claude FileRule Empty Globs Validation', () => {
     // Should not write any files (no valid FileRules)
     expect(result.written).toHaveLength(0);
     
-    // .a16n/rules directory should not exist
-    await expect(fs.access(path.join(tempDir, '.a16n', 'rules'))).rejects.toThrow();
+    // .claude/rules directory should not exist
+    await expect(fs.access(path.join(tempDir, '.claude', 'rules'))).rejects.toThrow();
   });
 
   it('should skip FileRule with globs containing only empty strings', async () => {
@@ -492,13 +625,14 @@ describe('Claude FileRule Empty Globs Validation', () => {
 
     const result = await claudePlugin.emit(models, tempDir);
 
-    // Should write rule file and settings
-    expect(result.written).toHaveLength(2);
+    // Should write single rule file to .claude/rules/
+    expect(result.written).toHaveLength(1);
     
-    // Verify file was created
-    const rulePath = path.join(tempDir, '.a16n', 'rules', 'valid.md');
+    // Verify file was created in .claude/rules/
+    const rulePath = path.join(tempDir, '.claude', 'rules', 'valid.md');
     const content = await fs.readFile(rulePath, 'utf-8');
-    expect(content).toBe('Valid content.');
+    expect(content).toContain('Valid content.');
+    expect(content).toContain('paths:');
   });
 
   it('should filter empty globs but keep valid ones in mixed array', async () => {
@@ -515,131 +649,22 @@ describe('Claude FileRule Empty Globs Validation', () => {
 
     const result = await claudePlugin.emit(models, tempDir);
 
-    // Should write files (has valid globs)
-    expect(result.written).toHaveLength(2);
+    // Should write single rule file
+    expect(result.written).toHaveLength(1);
     
-    // Check hook command contains only valid globs
-    const settingsPath = path.join(tempDir, '.claude', 'settings.local.json');
-    const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
-    const command = settings.hooks.PreToolUse[0].hooks[0].command;
+    // Check file contains only valid globs in paths frontmatter
+    const rulePath = path.join(tempDir, '.claude', 'rules', 'mixed.md');
+    const content = await fs.readFile(rulePath, 'utf-8');
     
-    expect(command).toContain('**/*.ts');
-    expect(command).toContain('**/*.tsx');
-    // Should not contain empty globs in the command
-    expect(command).not.toContain('--globs ""');
-    expect(command).not.toContain('--globs ","');
+    expect(content).toContain('**/*.ts');
+    expect(content).toContain('**/*.tsx');
+    expect(content).toContain('Mixed globs content.');
   });
 });
 
-describe('Claude Settings Merge Behavior (Phase 2)', () => {
-  beforeEach(async () => {
-    await fs.mkdir(tempDir, { recursive: true });
-  });
+// Settings merge behavior tests removed in Phase 8 A3 (no longer using settings.local.json)
 
-  afterEach(async () => {
-    await fs.rm(tempDir, { recursive: true, force: true });
-  });
-
-  it('should merge with existing settings.local.json', async () => {
-    // Create pre-existing settings
-    const claudeDir = path.join(tempDir, '.claude');
-    await fs.mkdir(claudeDir, { recursive: true });
-    const existingSettings = {
-      userPreference: 'keep-me',
-      hooks: {
-        PreToolUse: [{ matcher: 'existing', hooks: [{ type: 'command', command: 'existing-cmd' }] }],
-        PostToolUse: [{ matcher: 'post', hooks: [] }],
-      },
-    };
-    await fs.writeFile(
-      path.join(claudeDir, 'settings.local.json'),
-      JSON.stringify(existingSettings, null, 2),
-      'utf-8'
-    );
-
-    // Emit FileRule
-    const models: FileRule[] = [
-      {
-        id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
-        type: CustomizationType.FileRule,
-        sourcePath: '.cursor/rules/react.mdc',
-        content: 'React rules',
-        globs: ['**/*.tsx'],
-        metadata: {},
-      },
-    ];
-
-    await claudePlugin.emit(models, tempDir);
-
-    // Verify merge
-    const settingsPath = path.join(tempDir, '.claude', 'settings.local.json');
-    const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
-    
-    // Existing settings preserved
-    expect(settings.userPreference).toBe('keep-me');
-    expect(settings.hooks.PostToolUse).toHaveLength(1);
-    
-    // PreToolUse hooks merged (existing + new)
-    expect(settings.hooks.PreToolUse).toHaveLength(2);
-    expect(settings.hooks.PreToolUse[0].matcher).toBe('existing');
-    expect(settings.hooks.PreToolUse[1].matcher).toBe('Read|Write|Edit');
-  });
-
-  it('should create fresh settings if file does not exist', async () => {
-    const models: FileRule[] = [
-      {
-        id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
-        type: CustomizationType.FileRule,
-        sourcePath: '.cursor/rules/react.mdc',
-        content: 'React rules',
-        globs: ['**/*.tsx'],
-        metadata: {},
-      },
-    ];
-
-    await claudePlugin.emit(models, tempDir);
-
-    const settingsPath = path.join(tempDir, '.claude', 'settings.local.json');
-    const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
-    
-    expect(settings.hooks.PreToolUse).toHaveLength(1);
-  });
-
-  it('should warn and overwrite if existing settings is invalid JSON', async () => {
-    const claudeDir = path.join(tempDir, '.claude');
-    await fs.mkdir(claudeDir, { recursive: true });
-    await fs.writeFile(
-      path.join(claudeDir, 'settings.local.json'),
-      'not valid json {{{',
-      'utf-8'
-    );
-
-    const models: FileRule[] = [
-      {
-        id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
-        type: CustomizationType.FileRule,
-        sourcePath: '.cursor/rules/react.mdc',
-        content: 'React rules',
-        globs: ['**/*.tsx'],
-        metadata: {},
-      },
-    ];
-
-    const result = await claudePlugin.emit(models, tempDir);
-
-    // Should have a warning about the invalid JSON
-    const skipWarning = result.warnings.find(w => w.code === WarningCode.Skipped);
-    expect(skipWarning).toBeDefined();
-    expect(skipWarning?.message).toContain('Could not parse existing settings.local.json');
-
-    // But should still write valid settings
-    const settingsPath = path.join(tempDir, '.claude', 'settings.local.json');
-    const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
-    expect(settings.hooks.PreToolUse).toHaveLength(1);
-  });
-});
-
-describe('Mixed Model Emission (Phase 2)', () => {
+describe('Mixed Model Emission (Phase 8 A2)', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -666,8 +691,8 @@ describe('Mixed Model Emission (Phase 2)', () => {
         metadata: {},
       } as FileRule,
       {
-        id: createId(CustomizationType.AgentSkill, 'auth.mdc'),
-        type: CustomizationType.AgentSkill,
+        id: createId(CustomizationType.SimpleAgentSkill, 'auth.mdc'),
+        type: CustomizationType.SimpleAgentSkill,
         sourcePath: 'auth.mdc',
         content: 'Auth content',
         description: 'Auth patterns',
@@ -677,22 +702,29 @@ describe('Mixed Model Emission (Phase 2)', () => {
 
     const result = await claudePlugin.emit(models, tempDir);
 
-    // Should have written all three types
-    expect(result.written.length).toBeGreaterThanOrEqual(3);
+    // Should have written all three types (3 files total)
+    expect(result.written).toHaveLength(3);
 
-    // Check GlobalPrompt → CLAUDE.md
-    const claudeMd = await fs.readFile(path.join(tempDir, 'CLAUDE.md'), 'utf-8');
-    expect(claudeMd).toContain('Global content');
+    // Check GlobalPrompt → .claude/rules/global.md (no frontmatter)
+    const globalRule = await fs.readFile(path.join(tempDir, '.claude', 'rules', 'global.md'), 'utf-8');
+    expect(globalRule).toContain('Global content');
+    expect(globalRule).not.toMatch(/^---\n.*paths:/s);
 
-    // Check FileRule → .a16n/rules/ + .claude/settings.local.json
-    const reactRule = await fs.readFile(path.join(tempDir, '.a16n', 'rules', 'react.md'), 'utf-8');
-    expect(reactRule).toBe('React content');
-    const settings = JSON.parse(await fs.readFile(path.join(tempDir, '.claude', 'settings.local.json'), 'utf-8'));
-    expect(settings.hooks).toBeDefined();
+    // Check FileRule → .claude/rules/react.md (with paths frontmatter)
+    const reactRule = await fs.readFile(path.join(tempDir, '.claude', 'rules', 'react.md'), 'utf-8');
+    expect(reactRule).toContain('React content');
+    expect(reactRule).toContain('paths:');
+    expect(reactRule).toContain('**/*.tsx');
 
-    // Check AgentSkill → .claude/skills/
+    // Check AgentSkill → .claude/skills/auth/SKILL.md
     const authSkill = await fs.readFile(path.join(tempDir, '.claude', 'skills', 'auth', 'SKILL.md'), 'utf-8');
     expect(authSkill).toContain('Auth content');
+
+    // Verify NO settings.local.json created
+    await expect(fs.access(path.join(tempDir, '.claude', 'settings.local.json'))).rejects.toThrow();
+
+    // Verify NO .a16n directory created
+    await expect(fs.access(path.join(tempDir, '.a16n'))).rejects.toThrow();
   });
 });
 
@@ -943,10 +975,11 @@ describe('Claude AgentIgnore Emission (Phase 3)', () => {
 
       expect(result.written).toHaveLength(2);
 
-      // Verify both files exist
-      const claudeMd = await fs.readFile(path.join(tempDir, 'CLAUDE.md'), 'utf-8');
-      expect(claudeMd).toContain('Use TypeScript.');
+      // Verify GlobalPrompt → .claude/rules/global.md
+      const globalRule = await fs.readFile(path.join(tempDir, '.claude', 'rules', 'global.md'), 'utf-8');
+      expect(globalRule).toContain('Use TypeScript.');
 
+      // Verify AgentIgnore → .claude/settings.json
       const settingsPath = path.join(tempDir, '.claude', 'settings.json');
       const settings = JSON.parse(await fs.readFile(settingsPath, 'utf-8'));
       expect(settings.permissions.deny).toContain('Read(./dist/**)');
@@ -1145,10 +1178,11 @@ describe('Claude ManualPrompt Emission (Phase 4)', () => {
 
       expect(result.written).toHaveLength(2);
 
-      // Verify both exist
-      const claudeMd = await fs.readFile(path.join(tempDir, 'CLAUDE.md'), 'utf-8');
-      expect(claudeMd).toContain('Use TypeScript.');
+      // Verify GlobalPrompt → .claude/rules/global.md
+      const globalRule = await fs.readFile(path.join(tempDir, '.claude', 'rules', 'global.md'), 'utf-8');
+      expect(globalRule).toContain('Use TypeScript.');
 
+      // Verify ManualPrompt → .claude/skills/review/SKILL.md
       const skillPath = path.join(tempDir, '.claude', 'skills', 'review', 'SKILL.md');
       const skillContent = await fs.readFile(skillPath, 'utf-8');
       expect(skillContent).toContain('Review code.');
@@ -1159,8 +1193,8 @@ describe('Claude ManualPrompt Emission (Phase 4)', () => {
     it('should prevent collisions when AgentSkill and ManualPrompt have same name', async () => {
       const models = [
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/review.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/review.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/review.mdc',
           content: 'Skill content for review',
           description: 'Review skill',
@@ -1275,7 +1309,7 @@ describe('Claude ManualPrompt Emission (Phase 4)', () => {
   });
 });
 
-describe('Claude Plugin - sourceItems tracking (CR-10)', () => {
+describe('Claude Plugin - sourceItems tracking (Phase 8 A2)', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -1284,9 +1318,9 @@ describe('Claude Plugin - sourceItems tracking (CR-10)', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it('should populate sourceItems for GlobalPrompts merged into CLAUDE.md', async () => {
-    // Test that WrittenFile for CLAUDE.md includes sourceItems array
-    // containing all GlobalPrompts that were merged
+  it('should populate sourceItems for each GlobalPrompt → .claude/rules/*.md (1:1)', async () => {
+    // Test that WrittenFile for each .claude/rules/*.md includes
+    // sourceItems array with single GlobalPrompt
     const gp1: GlobalPrompt = {
       id: createId(CustomizationType.GlobalPrompt, 'rule1.mdc'),
       type: CustomizationType.GlobalPrompt,
@@ -1311,19 +1345,26 @@ describe('Claude Plugin - sourceItems tracking (CR-10)', () => {
 
     const result = await claudePlugin.emit([gp1, gp2, gp3], tempDir);
 
-    expect(result.written).toHaveLength(1);
-    const written = result.written[0];
-    expect(written?.type).toBe(CustomizationType.GlobalPrompt);
-    expect(written?.itemCount).toBe(3);
-    expect(written?.sourceItems).toBeDefined();
-    expect(written?.sourceItems).toHaveLength(3);
-    expect(written?.sourceItems).toContain(gp1);
-    expect(written?.sourceItems).toContain(gp2);
-    expect(written?.sourceItems).toContain(gp3);
+    // BREAKING: Each GlobalPrompt gets its own file
+    expect(result.written).toHaveLength(3);
+    
+    // Each written file should have 1:1 sourceItems mapping
+    result.written.forEach(written => {
+      expect(written.type).toBe(CustomizationType.GlobalPrompt);
+      expect(written.itemCount).toBe(1);
+      expect(written.sourceItems).toBeDefined();
+      expect(written.sourceItems).toHaveLength(1);
+    });
+
+    // Verify each sourceItem is one of the original items
+    const sourceItems = result.written.flatMap(w => w.sourceItems || []);
+    expect(sourceItems).toContain(gp1);
+    expect(sourceItems).toContain(gp2);
+    expect(sourceItems).toContain(gp3);
   });
 
-  it('should populate sourceItems for FileRule → .a16n/rules/*.md (1:1)', async () => {
-    // Test that WrittenFile for each .a16n/rules/*.md includes
+  it('should populate sourceItems for FileRule → .claude/rules/*.md (1:1)', async () => {
+    // Test that WrittenFile for each .claude/rules/*.md includes
     // sourceItems array with single FileRule
     const rule: FileRule = {
       id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
@@ -1336,12 +1377,10 @@ describe('Claude Plugin - sourceItems tracking (CR-10)', () => {
 
     const result = await claudePlugin.emit([rule], tempDir);
 
-    // Should have 2 written files: .a16n/rules/react.md and settings.local.json
-    expect(result.written).toHaveLength(2);
+    // BREAKING: Should have 1 written file (no settings.local.json)
+    expect(result.written).toHaveLength(1);
     
-    // Find the .a16n/rules/*.md file (use path.join for cross-platform compatibility)
-    const rulesDirFragment = path.join('.a16n', 'rules');
-    const ruleFile = result.written.find(w => w.path.includes(rulesDirFragment));
+    const ruleFile = result.written[0];
     expect(ruleFile).toBeDefined();
     expect(ruleFile?.type).toBe(CustomizationType.FileRule);
     expect(ruleFile?.itemCount).toBe(1);
@@ -1350,9 +1389,8 @@ describe('Claude Plugin - sourceItems tracking (CR-10)', () => {
     expect(ruleFile?.sourceItems?.[0]).toBe(rule);
   });
 
-  it('should populate sourceItems for FileRules → settings.local.json (merged)', async () => {
-    // Test that WrittenFile for settings.local.json includes sourceItems
-    // array containing all FileRules that were processed
+  it('should populate sourceItems for each FileRule → .claude/rules/*.md (multiple)', async () => {
+    // Test that each FileRule gets its own file with 1:1 sourceItems mapping
     const rule1: FileRule = {
       id: createId(CustomizationType.FileRule, 'rule1.mdc'),
       type: CustomizationType.FileRule,
@@ -1372,26 +1410,29 @@ describe('Claude Plugin - sourceItems tracking (CR-10)', () => {
 
     const result = await claudePlugin.emit([rule1, rule2], tempDir);
 
-    // Should have 3 written files: 2 .a16n/rules/*.md + 1 settings.local.json
-    expect(result.written).toHaveLength(3);
+    // BREAKING: Should have 2 written files (no settings.local.json)
+    expect(result.written).toHaveLength(2);
     
-    // Find the settings.local.json file
-    const settingsFile = result.written.find(w => w.path.includes('settings.local.json'));
-    expect(settingsFile).toBeDefined();
-    expect(settingsFile?.type).toBe(CustomizationType.FileRule);
-    expect(settingsFile?.itemCount).toBe(2);
-    expect(settingsFile?.sourceItems).toBeDefined();
-    expect(settingsFile?.sourceItems).toHaveLength(2);
-    expect(settingsFile?.sourceItems).toContain(rule1);
-    expect(settingsFile?.sourceItems).toContain(rule2);
+    // Each file should have 1:1 sourceItems mapping
+    result.written.forEach(written => {
+      expect(written.type).toBe(CustomizationType.FileRule);
+      expect(written.itemCount).toBe(1);
+      expect(written.sourceItems).toBeDefined();
+      expect(written.sourceItems).toHaveLength(1);
+    });
+
+    // Verify each sourceItem is one of the original items
+    const sourceItems = result.written.flatMap(w => w.sourceItems || []);
+    expect(sourceItems).toContain(rule1);
+    expect(sourceItems).toContain(rule2);
   });
 
   it('should populate sourceItems for AgentSkill → .claude/skills/*/SKILL.md (1:1)', async () => {
     // Test that WrittenFile for each skill SKILL.md includes
     // sourceItems array with single AgentSkill
     const skill: AgentSkill = {
-      id: createId(CustomizationType.AgentSkill, '.cursor/rules/database.mdc'),
-      type: CustomizationType.AgentSkill,
+      id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/database.mdc'),
+      type: CustomizationType.SimpleAgentSkill,
       sourcePath: '.cursor/rules/database.mdc',
       content: 'Database operations',
       description: 'Database helper',
@@ -1402,7 +1443,7 @@ describe('Claude Plugin - sourceItems tracking (CR-10)', () => {
 
     expect(result.written).toHaveLength(1);
     const written = result.written[0];
-    expect(written?.type).toBe(CustomizationType.AgentSkill);
+    expect(written?.type).toBe(CustomizationType.SimpleAgentSkill);
     expect(written?.itemCount).toBe(1);
     expect(written?.sourceItems).toBeDefined();
     expect(written?.sourceItems).toHaveLength(1);
@@ -1462,5 +1503,147 @@ describe('Claude Plugin - sourceItems tracking (CR-10)', () => {
     expect(written?.sourceItems).toBeDefined();
     expect(written?.sourceItems).toHaveLength(1);
     expect(written?.sourceItems?.[0]).toBe(prompt);
+  });
+});
+
+describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('simple AgentSkillIO (no hooks, no files)', () => {
+    it('should emit simple AgentSkillIO as .claude/skills/*/SKILL.md', async () => {
+      // Simple skill should emit as Claude skill directory
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/rules/deploy.mdc'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/rules/deploy.mdc',
+          content: 'Deployment guidelines',
+          name: 'deploy',
+          description: 'Help with deployments',
+          files: {},
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      
+      // Should emit to .claude/skills/deploy/SKILL.md
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'deploy', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('name:');
+      expect(content).toContain('deploy');
+      expect(content).toContain('description:');
+      expect(content).toContain('Help with deployments');
+      expect(content).toContain('Deployment guidelines');
+    });
+
+    it('should emit simple AgentSkillIO with disable as .claude/skills/*/SKILL.md', async () => {
+      // Simple skill with disable-model-invocation should emit as skill with flag
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/review/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/review/SKILL.md',
+          content: 'Review code for security',
+          name: 'review',
+          description: 'Code review helper',
+          disableModelInvocation: true,
+          files: {},
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      
+      // Should include disable flag in frontmatter
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'review', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('disable-model-invocation: true');
+      expect(content).toContain('Review code for security');
+    });
+  });
+
+  describe('complex AgentSkillIO (with hooks or files)', () => {
+    it('should emit complex AgentSkillIO to .claude/skills/ with all files', async () => {
+      // Complex skill should emit full directory with SKILL.md + resource files
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/deploy/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/deploy/SKILL.md',
+          content: 'Deployment process',
+          name: 'deploy',
+          description: 'Deployment helper',
+          files: {
+            'checklist.md': '- [ ] Run tests\n- [ ] Build\n- [ ] Deploy',
+            'config.json': '{"env":"production"}',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      // Should write 3 files: SKILL.md + 2 resource files
+      expect(result.written.length).toBeGreaterThanOrEqual(1);
+      
+      // Verify SKILL.md exists
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'deploy', 'SKILL.md');
+      const skillContent = await fs.readFile(skillPath, 'utf-8');
+      expect(skillContent).toContain('Deployment process');
+
+      // Verify resource files exist
+      const checklistPath = path.join(tempDir, '.claude', 'skills', 'deploy', 'checklist.md');
+      const checklistContent = await fs.readFile(checklistPath, 'utf-8');
+      expect(checklistContent).toContain('Run tests');
+
+      const configPath = path.join(tempDir, '.claude', 'skills', 'deploy', 'config.json');
+      const configContent = await fs.readFile(configPath, 'utf-8');
+      expect(configContent).toContain('production');
+    });
+
+    it('should include all resource files from files map', async () => {
+      // Verify all files in AgentSkillIO.files are written
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/multi/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/multi/SKILL.md',
+          content: 'Multi-file skill',
+          name: 'multi',
+          description: 'Multi-file test',
+          files: {
+            'file1.txt': 'Content 1',
+            'file2.txt': 'Content 2',
+            'file3.txt': 'Content 3',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      // Verify all 3 files + SKILL.md exist
+      const skillDir = path.join(tempDir, '.claude', 'skills', 'multi');
+      const files = await fs.readdir(skillDir);
+      expect(files).toContain('SKILL.md');
+      expect(files).toContain('file1.txt');
+      expect(files).toContain('file2.txt');
+      expect(files).toContain('file3.txt');
+
+      // Verify content
+      const file1 = await fs.readFile(path.join(skillDir, 'file1.txt'), 'utf-8');
+      expect(file1).toBe('Content 1');
+    });
   });
 });

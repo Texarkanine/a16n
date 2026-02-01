@@ -103,21 +103,26 @@ describe('A16nEngine', () => {
 
       expect(result.discovered).toHaveLength(1);
       expect(result.written).toHaveLength(1);
-      expect(result.written[0]?.path).toContain('CLAUDE.md');
+      expect(result.written[0]?.path).toContain('.claude/rules/');
 
-      // Verify file was created
+      // Verify file was created in .claude/rules/
+      const claudeRulesDir = path.join(tempDir, '.claude', 'rules');
+      const files = await fs.readdir(claudeRulesDir);
+      expect(files.length).toBeGreaterThan(0);
+      
       const claudeContent = await fs.readFile(
-        path.join(tempDir, 'CLAUDE.md'),
+        path.join(claudeRulesDir, files[0]!),
         'utf-8'
       );
       expect(claudeContent).toContain('Test rule content');
     });
 
     it('should convert from claude to cursor', async () => {
-      // Create CLAUDE.md
+      // Create .claude/rules/test.md
+      await fs.mkdir(path.join(tempDir, '.claude', 'rules'), { recursive: true });
       await fs.writeFile(
-        path.join(tempDir, 'CLAUDE.md'),
-        'Claude guidelines content'
+        path.join(tempDir, '.claude/rules/test.md'),
+        '## From: test\n\nClaude guidelines content'
       );
 
       const engine = new A16nEngine([cursorPlugin, claudePlugin]);
@@ -155,9 +160,9 @@ describe('A16nEngine', () => {
       expect(result.discovered).toHaveLength(1);
       expect(result.written).toHaveLength(1); // Now returns what WOULD be written (without actually writing)
 
-      // Verify CLAUDE.md was NOT actually created (dry-run doesn't write files)
+      // Verify .claude/rules/ was NOT actually created (dry-run doesn't write files)
       await expect(
-        fs.access(path.join(tempDir, 'CLAUDE.md'))
+        fs.access(path.join(tempDir, '.claude', 'rules'))
       ).rejects.toThrow();
     });
 
@@ -186,7 +191,7 @@ describe('A16nEngine', () => {
     });
 
     it('should collect warnings from both discovery and emission', async () => {
-      // Create multiple cursor rules to trigger merge warning
+      // Create multiple cursor rules (each emits to separate file, no merge warning)
       await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
       await fs.writeFile(
         path.join(tempDir, '.cursor/rules/a.mdc'),
@@ -205,9 +210,11 @@ describe('A16nEngine', () => {
       });
 
       expect(result.discovered).toHaveLength(2);
-      expect(result.written).toHaveLength(1);
+      // BREAKING: Each GlobalPrompt gets its own file now
+      expect(result.written).toHaveLength(2);
+      // BREAKING: No merge warning (no longer merging)
       expect(result.warnings.some((w) => w.code === WarningCode.Merged)).toBe(
-        true
+        false
       );
     });
   });
