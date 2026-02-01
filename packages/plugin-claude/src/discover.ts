@@ -4,6 +4,7 @@ import {
   type AgentCustomization,
   type AgentIgnore,
   type AgentSkill,
+  type FileRule,
   type ManualPrompt,
   type DiscoveryResult,
   type Warning,
@@ -11,6 +12,179 @@ import {
   WarningCode,
   createId,
 } from '@a16njs/models';
+
+/**
+ * Frontmatter structure for Claude rules files.
+ * Contains paths field for conditional file-based activation.
+ */
+interface ClaudeRuleFrontmatter {
+  paths?: string | string[];
+  [key: string]: unknown;
+}
+
+/**
+ * Parsed Claude rule with frontmatter and body content.
+ */
+interface ParsedClaudeRule {
+  frontmatter: ClaudeRuleFrontmatter;
+  body: string;
+}
+
+/**
+ * Recursively find all .md files in .claude/rules/ directory.
+ * Returns relative paths like ".claude/rules/style.md" or ".claude/rules/frontend/react.md"
+ * 
+ * @param root - Project root directory
+ * @returns Array of relative paths to rule files
+ */
+async function findClaudeRules(root: string): Promise<string[]> {
+  const results: string[] = [];
+  const rulesDir = path.join(root, '.claude', 'rules');
+
+  async function traverse(currentDir: string, relativePath: string): Promise<void> {
+    try {
+      const entries = await fs.readdir(currentDir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        // Skip hidden directories (like .git)
+        if (entry.name.startsWith('.')) {
+          continue;
+        }
+
+        const entryRelativePath = relativePath
+          ? `${relativePath}/${entry.name}`
+          : entry.name;
+        const entryFullPath = path.join(currentDir, entry.name);
+
+        if (entry.isFile() && entry.name.endsWith('.md')) {
+          // Found a rule file
+          results.push(`.claude/rules/${entryRelativePath}`);
+        } else if (entry.isDirectory()) {
+          // Recurse into subdirectory
+          await traverse(entryFullPath, entryRelativePath);
+        }
+      }
+    } catch {
+      // Directory doesn't exist or can't be read - that's okay
+    }
+  }
+
+  await traverse(rulesDir, '');
+  return results;
+}
+
+/**
+ * Parse YAML frontmatter from a Claude rule file.
+ * Extracts the paths field and other frontmatter metadata.
+ * 
+ * @param content - Full file content including frontmatter
+ * @returns Parsed frontmatter and body content
+ */
+function parseClaudeRuleFrontmatter(content: string): ParsedClaudeRule {
+  const lines = content.split('\n');
+  
+  let frontmatterStart = -1;
+  let frontmatterEnd = -1;
+  
+  // Find frontmatter delimiters (---)
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]?.trim();
+    if (line === '---') {
+      if (frontmatterStart === -1) {
+        frontmatterStart = i;
+      } else {
+        frontmatterEnd = i;
+        break;
+      }
+    }
+  }
+  
+  // No frontmatter found
+  if (frontmatterStart === -1 || frontmatterEnd === -1) {
+    return {
+      frontmatter: {},
+      body: content.trim(),
+    };
+  }
+  
+  const frontmatter: ClaudeRuleFrontmatter = {};
+  
+  // Parse frontmatter lines
+  let i = frontmatterStart + 1;
+  while (i < frontmatterEnd) {
+    const line = lines[i];
+    if (!line) {
+      i++;
+      continue;
+    }
+    
+    // Check for paths: field
+    const pathsMatch = line.match(/^paths:\s*$/);
+    if (pathsMatch) {
+      // Multi-line array format
+      const paths: string[] = [];
+      i++;
+      while (i < frontmatterEnd) {
+        const pathLine = lines[i];
+        if (!pathLine) {
+          i++;
+          continue;
+        }
+        const arrayItemMatch = pathLine.match(/^\s*-\s*["']?(.+?)["']?\s*$/);
+        if (arrayItemMatch) {
+          paths.push(arrayItemMatch[1]!);
+          i++;
+        } else {
+          // End of array
+          break;
+        }
+      }
+      if (paths.length > 0) {
+        frontmatter.paths = paths;
+      }
+      continue;
+    }
+    
+    // Check for paths: "value" or paths: ["value1", "value2"] (inline format)
+    const pathsInlineMatch = line.match(/^paths:\s*(.+)$/);
+    if (pathsInlineMatch) {
+      const value = pathsInlineMatch[1]!.trim();
+      // Try to parse as JSON array
+      if (value.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(value) as unknown;
+          if (Array.isArray(parsed)) {
+            frontmatter.paths = parsed.filter((p): p is string => typeof p === 'string');
+          }
+        } catch {
+          // Not valid JSON, treat as single string
+          frontmatter.paths = [value.replace(/^["']|["']$/g, '')];
+        }
+      } else {
+        // Single string value
+        frontmatter.paths = [value.replace(/^["']|["']$/g, '')];
+      }
+      i++;
+      continue;
+    }
+    
+    // Store other frontmatter fields generically
+    const keyValueMatch = line.match(/^(\w+):\s*(.+)$/);
+    if (keyValueMatch) {
+      const key = keyValueMatch[1]!;
+      const value = keyValueMatch[2]!.trim().replace(/^["']|["']$/g, '');
+      frontmatter[key] = value;
+    }
+    
+    i++;
+  }
+  
+  // Extract body (everything after second ---)
+  const bodyLines = lines.slice(frontmatterEnd + 1);
+  const body = bodyLines.join('\n').trim();
+  
+  return { frontmatter, body };
+}
 
 /**
  * Convert a Claude Read() permission rule to a gitignore-style pattern.
@@ -327,6 +501,69 @@ export async function discover(root: string): Promise<DiscoveryResult> {
   const agentIgnore = await discoverAgentIgnore(root);
   if (agentIgnore) {
     items.push(agentIgnore);
+  }
+
+  // Find all .claude/rules/*.md files (Phase 8 A1)
+  const ruleFiles = await findClaudeRules(root);
+  
+  for (const rulePath of ruleFiles) {
+    const fullPath = path.join(root, rulePath);
+    
+    // Normalize path separators for cross-platform consistency
+    const normalizedPath = rulePath.split(path.sep).join('/');
+    
+    try {
+      const content = await fs.readFile(fullPath, 'utf-8');
+      const { frontmatter, body } = parseClaudeRuleFrontmatter(content);
+      
+      // Normalize paths to array
+      let paths: string[] = [];
+      if (frontmatter.paths) {
+        if (typeof frontmatter.paths === 'string') {
+          paths = [frontmatter.paths];
+        } else if (Array.isArray(frontmatter.paths)) {
+          paths = frontmatter.paths;
+        }
+      }
+      
+      // Classification:
+      // - No paths or empty paths -> GlobalPrompt
+      // - paths present -> FileRule with globs
+      if (paths.length === 0) {
+        // GlobalPrompt
+        items.push({
+          id: createId(CustomizationType.GlobalPrompt, normalizedPath),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: normalizedPath,
+          content: body,
+          metadata: {
+            nested: false,
+            depth: 0,
+            ...frontmatter,
+          },
+        });
+      } else {
+        // FileRule
+        const fileRule: FileRule = {
+          id: createId(CustomizationType.FileRule, normalizedPath),
+          type: CustomizationType.FileRule,
+          sourcePath: normalizedPath,
+          content: body,
+          globs: paths,
+          metadata: {
+            ...frontmatter,
+          },
+        };
+        items.push(fileRule);
+      }
+      
+    } catch (error) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Could not read ${rulePath}: ${(error as Error).message}`,
+        sources: [rulePath],
+      });
+    }
   }
 
   return { items, warnings };
