@@ -18,8 +18,8 @@ This plugin supports five customization types:
 
 | Type | Claude Format | Description |
 |------|---------------|-------------|
-| **GlobalPrompt** | `CLAUDE.md` | Always-active instructions |
-| **FileRule** | `.claude/settings.local.json` + `.a16n/rules/` | Glob-triggered via hooks |
+| **GlobalPrompt** | `.claude/rules/*.md` | Always-active instructions |
+| **FileRule** | `.claude/rules/*.md` with `paths:` frontmatter | Glob-triggered via native paths |
 | **AgentSkill** | `.claude/skills/*/SKILL.md` | Description-triggered skills |
 | **AgentIgnore** | `.claude/settings.json` `permissions.deny` | Files to exclude |
 | **AgentCommand** | *Emitted only* | Cursor commands become skills |
@@ -32,6 +32,7 @@ This plugin supports five customization types:
 
 - `CLAUDE.md` - Root Claude configuration (GlobalPrompt)
 - `*/CLAUDE.md` - Nested Claude configuration files (GlobalPrompt)
+- `.claude/rules/*.md` - Native Claude rules (GlobalPrompt if no `paths:`, FileRule if `paths:` present)
 - `.claude/skills/*/SKILL.md` - Skills with description frontmatter (AgentSkill)
 - `.claude/settings.json` - Permissions deny rules (AgentIgnore)
 
@@ -40,20 +41,38 @@ This plugin supports five customization types:
 
 ### Emission
 
-- **GlobalPrompt** → `CLAUDE.md` (merged with section headers)
-- **FileRule** → `.a16n/rules/<name>.txt` + `.claude/settings.local.json` with hooks
+- **GlobalPrompt** → `.claude/rules/<name>.md` (individual files)
+- **FileRule** → `.claude/rules/<name>.md` with `paths:` YAML frontmatter
 - **AgentSkill** → `.claude/skills/<name>/SKILL.md` with description frontmatter
 - **AgentIgnore** → `.claude/settings.json` with `permissions.deny` Read rules
 - **AgentCommand** → `.claude/skills/<commandName>/SKILL.md` with `Invoke with /command` description
 
 ## File Formats
 
-### CLAUDE.md (GlobalPrompt)
+### .claude/rules/*.md (GlobalPrompt)
+
+Rules without `paths:` frontmatter apply to all files:
 
 ```markdown
-# Project Guidelines
+## From: .cursor/rules/general.mdc
 
 Your instructions for Claude here.
+```
+
+### .claude/rules/*.md (FileRule)
+
+Rules with `paths:` frontmatter apply only when working with matching files:
+
+```markdown
+---
+paths:
+  - "**/*.tsx"
+  - "**/*.jsx"
+---
+
+## From: .cursor/rules/react.mdc
+
+Use functional components with hooks.
 ```
 
 ### SKILL.md (AgentSkill)
@@ -65,24 +84,6 @@ description: Testing best practices
 
 Write unit tests first.
 Aim for 80% code coverage.
-```
-
-### settings.local.json (FileRule via hooks)
-
-FileRules are converted using `@a16njs/glob-hook` for runtime glob matching:
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [{
-      "matcher": "Read|Write|Edit",
-      "hooks": [{
-        "type": "command",
-        "command": "npx @a16njs/glob-hook --globs \"**/*.tsx\" --context-file \".a16n/rules/react.txt\""
-      }]
-    }]
-  }
-}
 ```
 
 ## Usage

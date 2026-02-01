@@ -36,10 +36,16 @@ Some concepts map cleanly between tools, including but not necessarily limited t
 
 | Concept               | Cursor                                       | Claude Code                                  |
 |-----------------------|----------------------------------------------|----------------------------------------------|
+| Global Prompts        | `alwaysApply: true` rules                    | `.claude/rules/*.md` (no `paths:`)           |
+| File Rules            | `globs: [...]` rules                         | `.claude/rules/*.md` with `paths:` frontmatter |
 | Skills                | `description: ...` rules                     | Skills                                       |
 | AgentSkills.io Skills | `.cursor/skills/*/SKILL.md`                  | `.claude/skills/*/SKILL.md`                  |
 | Manual Prompts        | Commands in `.cursor/commands/*.md`          | Skills with `disable-model-invocation: true` |
 | Ignore patterns       | `.cursorignore`                              | `permissions.deny` Read rules                |
+
+:::tip Lossless FileRule Conversion
+As of January 2026, Claude Code natively supports glob-based file rules via the `paths:` frontmatter. FileRules now convert losslessly between Cursor and Claude Code.
+:::
 
 ## What Gets Approximated
 
@@ -49,7 +55,6 @@ Some lossy conversions include, but are not necessarily limited to:
 
 | Feature                     | From   | To     | Behavior                                      |
 |-----------------------------|--------|--------|-----------------------------------------------|
-| Multiple `alwaysApply` rules| Cursor | Claude | ⚠️ Merged into one `CLAUDE.md`               |
 | Ignore patterns             | Cursor | Claude | ≈ Converted to Read permission denials        |
 
 ## What Gets Skipped
@@ -67,11 +72,7 @@ Some impossible conversions include, but are not necessarily limited to:
 
 a16n *translates* from one toolchain to another, and like all translations, running it back-and-forth, or through several iterations, does not always result in the original input.
 
-For example, if you convert three Cursor Rules with `alwaysApply: true` to Claude, you'll get a single `CLAUDE.md` file (with a warning).
-If you then convert from Claude back to Cursor, you'll get a single `.mdc` file with `alwaysApply: true`, with no Warning.
-You'll never get the original 3 rules back.
-
-For another example, Cursor Commands convert from `.cursor/commands/*.md` into Claude as AgentSkills with `disable-model-invocation: true`.
+For example, Cursor Commands convert from `.cursor/commands/*.md` into Claude as AgentSkills with `disable-model-invocation: true`.
 Converting from Claude back to Cursor will just move the AgentSkill file, as Cursor does understand AgentSkills.
 You'll never get the original `.cursor/commands/*.md` file back.
 
@@ -81,17 +82,15 @@ Since a16n doesn't know what conversions you may attempt after the first, it can
 When you run a conversion, a16n shows you exactly what happened:
 
 ```text
-⚠ Merged 3 Cursor rules with alwaysApply:true into single CLAUDE.md
-  Sources: general.mdc, style.mdc, testing.mdc
-  Hint: Converting back will produce 1 file, not the original count
-
 ≈ AgentIgnore approximated as permissions.deny (behavior may differ slightly)
   Sources: .cursorignore
   Hint: Behavior may differ slightly between tools
 
-✓ Wrote CLAUDE.md (3 sections, 127 lines)
+✓ Wrote .claude/rules/general.md
+✓ Wrote .claude/rules/style.md
+✓ Wrote .claude/rules/testing.md
 ✓ Wrote .claude/settings.json (4 deny rules)
-Summary: 4 discovered, 2 written, 2 warnings
+Summary: 4 discovered, 4 written, 1 warning
 ```
 
 ## Warning Codes
@@ -117,7 +116,7 @@ With `--json`, warnings appear in the output:
   "warnings": [
     {
       "code": "approximated",
-      "message": "FileRule converted via hook (may differ slightly)"
+      "message": "AgentIgnore approximated as permissions.deny (behavior may differ slightly)"
     }
   ]
 }

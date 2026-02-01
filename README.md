@@ -54,7 +54,7 @@ Full documentation is available at <https://texarkanine.github.io/a16n/>:
 | [@a16njs/models](https://www.npmjs.com/package/@a16njs/models) | Type definitions |
 | [@a16njs/plugin-cursor](https://www.npmjs.com/package/@a16njs/plugin-cursor) | Cursor IDE support |
 | [@a16njs/plugin-claude](https://www.npmjs.com/package/@a16njs/plugin-claude) | Claude Code support |
-| [@a16njs/glob-hook](https://www.npmjs.com/package/@a16njs/glob-hook) | Glob-based hook for Claude |
+| [@a16njs/glob-hook](https://www.npmjs.com/package/@a16njs/glob-hook) | Helper CLI for custom glob-based hooks (optional) |
 
 ## Contributing
 

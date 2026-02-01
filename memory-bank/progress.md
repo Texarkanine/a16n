@@ -1,10 +1,10 @@
 # Memory Bank: Progress
 
-## Phase 8 Milestones A2 & A3: Claude Rules Emission + Remove glob-hook
+## Phase 8 Part A: Claude Native Rules Support
 
-**Status**: ✅ COMPLETE
-**Last Updated**: 2026-01-31
-**Completion Time**: ~3 hours
+**Status**: ✅ COMPLETE (All A1-A4 Milestones)
+**Last Updated**: 2026-02-01
+**Total Time**: ~4.5 hours
 
 ---
 
@@ -12,7 +12,7 @@
 
 ### Milestone A1: Claude Rules Discovery
 **Status**: ✅ Complete
-- Reflection document created
+- Reflection document: `memory-bank/reflection/reflection-phase8-milestone-a1.md`
 - All acceptance criteria met
 
 ### Milestone A2: Claude Rules Emission
@@ -30,6 +30,16 @@
 - Removed `settings.local.json` hook writing
 - Removed approximation warnings for FileRules
 - All acceptance criteria met
+- Reflection document: `memory-bank/reflection/reflection-phase8-milestone-a2-a3.md`
+
+### Milestone A4: Documentation Cleanup
+**Status**: ✅ Complete
+- Updated 6 documentation files
+- Removed glob-hook references from Claude plugin docs
+- Added deprecation notes to glob-hook docs
+- Updated conversion tables and behavior descriptions
+- Verified docs build and full test suite (416 tests passing)
+- Reflection document: `memory-bank/reflection/reflection-phase8-milestone-a4.md`
 
 ---
 
