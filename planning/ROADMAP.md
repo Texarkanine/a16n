@@ -255,9 +255,37 @@ gantt
 
 ---
 
-## Future: Full AgentSkills.io Standard Support
+## Phase 8: Claude Native Rules + Full AgentSkills.io Support
 
-**Goal**: Support the complete AgentSkills.io specification, not just simple single-file skills.
+**Status**: Planned
+
+**Goals**:
+
+1. **Claude Native Rules Support**: Leverage Claude Code's new `.claude/rules/` directory with `paths` frontmatter for native glob-based file rules, eliminating the glob-hook workaround.
+
+2. **Full AgentSkills.io Support**: Support the complete AgentSkills.io specification, not just simple single-file skills.
+
+### Part A: Claude Native Rules (New Feature!)
+
+As of January 2026, Claude Code supports modular rules via `.claude/rules/*.md` files with optional `paths` frontmatter:
+
+```markdown
+---
+paths:
+  - "src/api/**/*.ts"
+---
+
+# API Development Rules
+```
+
+**Key Changes**:
+- **Discovery**: `.claude/rules/*.md` without `paths` → GlobalPrompt; with `paths` → FileRule
+- **Emission**: GlobalPrompt/FileRule → native `.claude/rules/*.md` files (no more glob-hook!)
+- **Simplification**: Remove glob-hook integration from Claude plugin; FileRule conversion is now lossless
+
+**Impact**: This is a major simplification that removes translation fuzziness between Cursor and Claude.
+
+### Part B: Full AgentSkills.io Support
 
 **Background**: Our current `AgentSkill` type only handles "simple skills" — a single `SKILL.md` file with description frontmatter. The full [AgentSkills.io standard](https://agentskills.io) supports:
 - Multiple files per skill (SKILL.md + additional resources)
@@ -265,38 +293,25 @@ gantt
 - Resource references
 - Complex activation patterns
 
-**Current Limitation**: We skip any skill that isn't a simple single-file skill, which loses information during conversion.
+**Key Changes**:
+- Rename `AgentSkill` → `SimpleAgentSkill` (clarify limited scope)
+- Define `AgentSkillIO` type for full standard
+- Discovery: Read entire skill directories with resources
+- Emission: Smart routing based on skill complexity
 
-**Proposed Scope**:
+### 7 Milestones
 
-### Rename and Clarify
-1. Rename `AgentSkill` → `SimpleAgentSkill` in `@a16njs/models`
+1. **Claude Rules Discovery** — Discover `.claude/rules/*.md` with classification
+2. **Claude Rules Emission** — Emit natively, remove glob-hook
+3. **Documentation Cleanup** — Update docs for native rules
+4. **Type System Updates** — Rename + new AgentSkillIO type
+5. **AgentSkillIO Discovery** — Full skill directory discovery
+6. **AgentSkillIO Emission** — Smart routing logic
+7. **Integration & Polish** — E2E tests, final polish
 
-### Full Support with AgentSkillIO
-1. Define `AgentSkillIO` type for full AgentSkills.io standard
-2. Discovery: Read entire skill directories (SKILL.md + resources)
-3. Emission: Smart routing based on skill complexity
+**Spec**: [PHASE_8_SPEC.md](./PHASE_8_SPEC.md)
 
-**Emission Logic for Cursor (AgentSkillIO)**:
-```
-if skill has only: name, description, optional disable-model-invocation
-  if disable-model-invocation: true
-    → emit as Cursor Command (.cursor/commands/<name>.md)
-  else
-    → emit as Cursor Rule (.cursor/rules/<name>.mdc with description:)
-else (has hooks, resources, multiple files, extra frontmatter fields, etc)
-  → emit as full AgentSkillIO (.cursor/skills/<name>/SKILL.md + resources)
-```
-
-**Rationale**: Simple skills don't need the full skill directory structure. Emitting them as rules/commands is more idiomatic for Cursor users who may not be familiar with the AgentSkills.io standard.
-
-**Key Decisions Needed**:
-- How do we handle skill resources (images, data files) during copy?
-  - as any other file in the AgentSkill.io directory. AgentSkillIO to AgentSkillIO is an easy copy.
-- Should we validate hooks are tool-compatible, or just copy them verbatim?
-  - verbatim copy, agentskillsio doesn't support hooks. Claude code skills DO; those are already skipped on ingest. general rule: if we can't represent it in the Model IR, we don't ingest - we skip w/ warning.
-
-**Estimated Scope**: ~16-24 hours
+**Estimated Scope**: ~24 hours
 
 ---
 
