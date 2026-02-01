@@ -25,4 +25,4 @@ All 5 phases completed successfully:
 
 ## Next Steps
 
-Ready for `/reflect` to archive this task.
+Reflection complete. Ready for `/archive` to finalize task documentation.
