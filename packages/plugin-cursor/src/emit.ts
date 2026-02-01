@@ -553,15 +553,6 @@ export async function emit(
     });
   }
 
-  // Emit warning if any collisions occurred
-  if (collisionSources.length > 0) {
-    warnings.push({
-      code: WarningCode.FileRenamed,
-      message: `Filename collision: ${collisionSources.length} file(s) renamed to avoid overwrite`,
-      sources: collisionSources,
-    });
-  }
-
   // === Emit AgentIgnores as .cursorignore ===
   if (agentIgnores.length > 0) {
     const allPatterns = agentIgnores.flatMap(ai => ai.patterns);
@@ -649,6 +640,15 @@ export async function emit(
   for (const skillIO of agentSkillIOs) {
     const skillIOWritten = await emitAgentSkillIO(skillIO, root, dryRun, warnings, usedSkillNames, usedFilenames, collisionSources);
     written.push(...skillIOWritten);
+  }
+
+  // Emit warning if any collisions occurred (after all emitters complete)
+  if (collisionSources.length > 0) {
+    warnings.push({
+      code: WarningCode.FileRenamed,
+      message: `Filename collision: ${collisionSources.length} file(s) renamed to avoid overwrite`,
+      sources: collisionSources,
+    });
   }
 
   return { written, warnings, unsupported };

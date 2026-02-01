@@ -21,6 +21,10 @@
 - [x] ID: emit-collision-param - Pass collisionSources parameter to emitAgentSkillIO (packages/plugin-cursor/src/emit.ts:650) - FIXED
 - [x] ID: cli-test-comment - Fix contradictory test name/comments about "skips" vs "silently ignored" (packages/cli/test/cli.test.ts:521-542) - FIXED
 
+### Actionable Items (Round 3)
+
+- [x] ID: emit-collision-order - Move collision warning emission after AgentSkillIO loop (packages/plugin-cursor/src/emit.ts:556-563) - FIXED
+
 ### Requires Human Decision
 
 None
