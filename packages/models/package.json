@@ -1,6 +1,6 @@
 {
   "name": "@a16njs/models",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Type definitions and plugin interface for a16n",
   "license": "AGPL-3.0",
   "author": "Texarkanine",
