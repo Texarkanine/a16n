@@ -23,8 +23,9 @@ a16n is a CLI tool and library that translates agent customization between codin
 - **Language**: TypeScript
 - **Package Manager**: pnpm (workspaces)
 - **Build Orchestration**: Turborepo
-- **Versioning**: Changesets
-- **Testing**: Vitest (planned)
+- **Versioning**: Release-Please
+- **Testing**: Vitest
+- **Documentation**: Docusaurus
 
 ## Project Structure (Planned)
 ```

@@ -627,4 +627,89 @@ Write unit tests first.
       ).rejects.toThrow();
     });
   });
+
+  describe('cursor-to-claude-complex-skill', () => {
+    it('should convert complex Cursor skill with resources to Claude', async () => {
+      const fixturePath = path.join(fixturesDir, 'cursor-to-claude-complex-skill');
+      const fromDir = path.join(fixturePath, 'from-cursor');
+      const toDir = path.join(fixturePath, 'to-claude');
+      
+      // Copy input to temp
+      await copyDir(fromDir, tempDir);
+      
+      // Run conversion
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+      
+      // Verify conversion succeeded
+      expect(result.discovered.length).toBe(1);
+      expect(result.discovered[0].type).toBe('agent-skill-io');
+      expect(result.written.length).toBeGreaterThan(0);
+      
+      // Read actual and expected outputs
+      const actualSkillDir = path.join(tempDir, '.claude', 'skills', 'deploy');
+      const expectedSkillDir = path.join(toDir, '.claude', 'skills', 'deploy');
+      
+      const actualFiles = await readDirFiles(actualSkillDir);
+      const expectedFiles = await readDirFiles(expectedSkillDir);
+      
+      // Verify all files were created
+      compareOutputs(actualFiles, expectedFiles);
+      
+      // Verify resource files exist
+      expect(actualFiles.has('SKILL.md')).toBe(true);
+      expect(actualFiles.has('checklist.md')).toBe(true);
+      expect(actualFiles.has('config.json')).toBe(true);
+    });
+  });
+
+  describe('roundtrip-cursor-complex', () => {
+    it('should preserve complex Cursor skill through round-trip conversion', async () => {
+      const fixturePath = path.join(fixturesDir, 'roundtrip-cursor-complex');
+      const fromDir = path.join(fixturePath, 'from-cursor');
+      const toDir = path.join(fixturePath, 'to-cursor');
+      
+      // Copy input to temp
+      await copyDir(fromDir, tempDir);
+      
+      // Convert Cursor → Claude
+      const result1 = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+      
+      expect(result1.discovered.length).toBe(1);
+      expect(result1.discovered[0].type).toBe('agent-skill-io');
+      
+      // Convert Claude → Cursor (back)
+      const result2 = await engine.convert({
+        source: 'claude',
+        target: 'cursor',
+        root: tempDir,
+      });
+      
+      expect(result2.discovered.length).toBe(1);
+      expect(result2.discovered[0].type).toBe('agent-skill-io');
+      
+      // Read actual and expected outputs
+      const actualSkillDir = path.join(tempDir, '.cursor', 'skills', 'database');
+      const expectedSkillDir = path.join(toDir, '.cursor', 'skills', 'database');
+      
+      const actualFiles = await readDirFiles(actualSkillDir);
+      const expectedFiles = await readDirFiles(expectedSkillDir);
+      
+      // Verify all files preserved through round-trip
+      compareOutputs(actualFiles, expectedFiles);
+      
+      // Verify all resource files exist
+      expect(actualFiles.has('SKILL.md')).toBe(true);
+      expect(actualFiles.has('schema.sql')).toBe(true);
+      expect(actualFiles.has('migrations.md')).toBe(true);
+    });
+  });
+
 });

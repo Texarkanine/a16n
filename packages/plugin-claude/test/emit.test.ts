@@ -1612,37 +1612,6 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
       expect(configContent).toContain('production');
     });
 
-    it('should preserve hooks in frontmatter (Claude supports them)', async () => {
-      // Skills with hooks should include them in YAML frontmatter
-      const models: AgentSkillIO[] = [
-        {
-          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/git-commit/SKILL.md'),
-          type: CustomizationType.AgentSkillIO,
-          sourcePath: '.cursor/skills/git-commit/SKILL.md',
-          content: 'Git commit helper',
-          name: 'git-commit',
-          description: 'Help with git commits',
-          hooks: {
-            'pre-commit': 'lint',
-            'post-commit': 'push',
-          },
-          files: {},
-          metadata: {},
-        },
-      ];
-
-      const result = await claudePlugin.emit(models, tempDir);
-
-      expect(result.written).toHaveLength(1);
-      
-      // Should include hooks in frontmatter
-      const skillPath = path.join(tempDir, '.claude', 'skills', 'git-commit', 'SKILL.md');
-      const content = await fs.readFile(skillPath, 'utf-8');
-      expect(content).toContain('hooks:');
-      expect(content).toContain('pre-commit');
-      expect(content).toContain('lint');
-    });
-
     it('should include all resource files from files map', async () => {
       // Verify all files in AgentSkillIO.files are written
       const models: AgentSkillIO[] = [

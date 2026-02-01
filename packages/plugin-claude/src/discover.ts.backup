@@ -565,6 +565,7 @@ export async function discover(root: string): Promise<DiscoveryResult> {
           content: body,
           name: skillName,
           description: frontmatter.description,
+          hooks: frontmatter.hooks,
           disableModelInvocation: frontmatter.disableModelInvocation,
           resources: Object.keys(files),
           files,

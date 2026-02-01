@@ -293,20 +293,6 @@ describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
       expect(agentSkillIO?.type).toBe(CustomizationType.AgentSkillIO);
     });
 
-    it('should preserve hooks structure in AgentSkillIO.hooks', async () => {
-      const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
-      const result = await claudePlugin.discover(root);
-
-      const skill = result.items.find(
-        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
-      ) as AgentSkillIO;
-      
-      expect(skill).toBeDefined();
-      expect(skill.hooks).toBeDefined();
-      expect(skill.hooks).toHaveProperty('pre-commit');
-      expect(skill.hooks).toHaveProperty('post-deploy');
-    });
-
     it('should include all extra files in AgentSkillIO.files map', async () => {
       const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
       const result = await claudePlugin.discover(root);

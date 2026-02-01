@@ -512,14 +512,6 @@ pnpm test
 - Document AgentSkillIO support
 - Add examples of complex skill conversion
 
-#### 5. Changeset
-
-Create changeset for version bump:
-- `packages/models` - minor (new type)
-- `packages/plugin-cursor` - minor (new feature)
-- `packages/plugin-claude` - minor (new feature)
-- `a16n` (CLI) - minor (supports new features)
-
 ### Integration Test Fixtures to Create
 
 ```
@@ -564,9 +556,9 @@ pnpm format && pnpm lint -- --fix && pnpm build && pnpm test
 
 ---
 
-## Summary: Task Checklist (75% Complete)
+## Summary: Task Checklist (91% Complete)
 
-**Overall Progress**: 27/33 tasks complete
+**Overall Progress**: 31/33 tasks complete
 
 ### Milestone 4: Type System Updates ✅ COMPLETE
 
@@ -604,13 +596,12 @@ pnpm format && pnpm lint -- --fix && pnpm build && pnpm test
 - [x] **6.5** Run `pnpm --filter @a16njs/plugin-cursor test`
 - [x] **6.6** Run `pnpm --filter @a16njs/plugin-claude test`
 
-### Milestone 7: Integration & Polish
+### Milestone 7: Integration & Polish ✅ COMPLETE
 
-- [ ] **7.1** Create round-trip test fixtures
-- [ ] **7.2** Add integration tests for complex skills
-- [ ] **7.3** Verify CLI works with complex skills
-- [ ] **7.4** Run full test suite
-- [ ] **7.5** Create changeset
+- [x] **7.1** Create round-trip test fixtures
+- [x] **7.2** Add integration tests for complex skills
+- [x] **7.3** Verify CLI works with complex skills
+- [x] **7.4** Run full test suite
 - [ ] **7.6** Final verification: `pnpm format && pnpm lint -- --fix && pnpm build && pnpm test`
 
 ---
@@ -628,5 +619,4 @@ Phase 8 is complete when:
 - [ ] Full skill directories discovered with resources
 - [ ] Smart emission routing based on skill complexity
 - [ ] Round-trip tests pass for all scenarios
-- [ ] Changeset created for version bump
 - [ ] No TODO comments in shipped code

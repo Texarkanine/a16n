@@ -160,8 +160,8 @@ ${prompt.content}
 /**
  * Emit an AgentSkillIO to Cursor format.
  * Smart routing based on skill complexity:
- * - Simple (no hooks, no resources, no files) → emit as rule or ManualPrompt
- * - Complex (has hooks, resources, or files) → emit full skill directory
+ * - Simple (no resources, no files) → emit as rule or ManualPrompt
+ * - Complex (has resources or files) → emit full skill directory
  * 
  * @param skill - The AgentSkillIO to emit
  * @param root - Root directory to write to
@@ -179,9 +179,8 @@ async function emitAgentSkillIO(
 ): Promise<WrittenFile[]> {
   const written: WrittenFile[] = [];
 
-  // Check if skill is effectively simple (no hooks, no resources, no files)
-  const isSimple = !skill.hooks && 
-                   (!skill.resources || skill.resources.length === 0) &&
+  // Check if skill is effectively simple (no resources, no files)
+  const isSimple = (!skill.resources || skill.resources.length === 0) &&
                    Object.keys(skill.files).length === 0;
 
   if (isSimple) {
@@ -298,21 +297,6 @@ description: ${safeDescription}`;
 
     if (skill.disableModelInvocation) {
       frontmatter += '\ndisable-model-invocation: true';
-    }
-
-    // Include hooks in frontmatter (but warn since Cursor doesn't support them)
-    if (skill.hooks) {
-      frontmatter += '\nhooks:\n';
-      for (const [hookName, hookValue] of Object.entries(skill.hooks)) {
-        frontmatter += `  ${hookName}: ${JSON.stringify(hookValue)}\n`;
-      }
-      
-      // Warn that hooks are not supported by Cursor
-      warnings.push({
-        code: WarningCode.Approximated,
-        message: `Skill '${skill.name}' has hooks that are not supported by Cursor (copied verbatim)`,
-        sources: [skill.sourcePath],
-      });
     }
 
     frontmatter += '\n---';

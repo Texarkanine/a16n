@@ -5,9 +5,9 @@
 export enum CustomizationType {
   /** Always-applied prompts (CLAUDE.md, alwaysApply rules) */
   GlobalPrompt = 'global-prompt',
-  /** Simple skill triggered by description matching (no hooks, resources, or extra files) */
+  /** Simple skill triggered by description matching (no resources or extra files) */
   SimpleAgentSkill = 'simple-agent-skill',
-  /** Full AgentSkills.io standard skill with hooks, resources, and multiple files */
+  /** Full AgentSkills.io standard skill with resources and multiple files (NO hooks) */
   AgentSkillIO = 'agent-skill-io',
   /** Triggered by file glob patterns */
   FileRule = 'file-rule',
@@ -46,7 +46,7 @@ export interface GlobalPrompt extends AgentCustomization {
  * A simple skill that is activated by description matching.
  * Examples: Cursor rules with description but no globs, simple SKILL.md files
  *
- * For full AgentSkills.io standard skills with hooks, resources, and files,
+ * For full AgentSkills.io standard skills with resources and files,
  * use AgentSkillIO instead.
  */
 export interface SimpleAgentSkill extends AgentCustomization {
@@ -63,10 +63,12 @@ export type AgentSkill = SimpleAgentSkill;
 
 /**
  * Full AgentSkills.io standard skill.
- * Supports multiple files, hooks, resources, and complex activation.
+ * Supports multiple resource files in the skill directory.
+ *
+ * NOTE: Hooks are NOT part of AgentSkills.io and are not supported.
+ * Skills with hooks should be skipped during discovery with a warning.
  *
  * Use this type for skills that include:
- * - Hooks (pre-commit, post-deploy, etc.)
  * - Resource files (checklists, configs, scripts)
  * - Multiple files in a skill directory
  */
@@ -78,9 +80,6 @@ export interface AgentSkillIO extends AgentCustomization {
 
   /** Description for activation matching (required) */
   description: string;
-
-  /** Optional: Hooks defined in frontmatter */
-  hooks?: Record<string, unknown>;
 
   /** Optional: Resource file paths relative to skill directory */
   resources?: string[];

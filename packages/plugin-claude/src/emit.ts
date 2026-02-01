@@ -161,7 +161,7 @@ ${prompt.content}
  * Emit an AgentSkillIO to Claude format.
  * Claude natively supports the full AgentSkills.io standard.
  * Always emits to .claude/skills/<name>/ with:
- * - SKILL.md with full frontmatter (including hooks if present)
+ * - SKILL.md with full frontmatter
  * - All resource files from the files map
  * 
  * @param skill - The AgentSkillIO to emit
@@ -198,14 +198,6 @@ description: ${safeDescription}`;
 
   if (skill.disableModelInvocation) {
     frontmatter += '\ndisable-model-invocation: true';
-  }
-
-  // Include hooks in frontmatter (Claude supports them natively)
-  if (skill.hooks) {
-    frontmatter += '\nhooks:\n';
-    for (const [hookName, hookValue] of Object.entries(skill.hooks)) {
-      frontmatter += `  ${hookName}: ${JSON.stringify(hookValue)}\n`;
-    }
   }
 
   frontmatter += '\n---';

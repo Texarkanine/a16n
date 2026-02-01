@@ -1262,32 +1262,6 @@ describe('Cursor AgentSkillIO Emission (Phase 8 B4)', () => {
       expect(configContent).toContain('production');
     });
 
-    it('should warn when hooks are present (not supported by Cursor)', async () => {
-      // Skills with hooks should emit warning
-      const models: AgentSkillIO[] = [
-        {
-          id: createId(CustomizationType.AgentSkillIO, '.claude/skills/git-commit/SKILL.md'),
-          type: CustomizationType.AgentSkillIO,
-          sourcePath: '.claude/skills/git-commit/SKILL.md',
-          content: 'Git commit helper',
-          name: 'git-commit',
-          description: 'Help with git commits',
-          hooks: {
-            'pre-commit': 'lint',
-          },
-          files: {},
-          metadata: {},
-        },
-      ];
-
-      const result = await cursorPlugin.emit(models, tempDir);
-
-      // Should emit warning about hooks
-      expect(result.warnings.length).toBeGreaterThan(0);
-      const hooksWarning = result.warnings.find(w => w.message?.includes('hooks'));
-      expect(hooksWarning).toBeDefined();
-    });
-
     it('should include all resource files from files map', async () => {
       // Verify all files in AgentSkillIO.files are written
       const models: AgentSkillIO[] = [

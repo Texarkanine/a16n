@@ -1,0 +1,9 @@
+{
+  "environment": "production",
+  "region": "us-east-1",
+  "replicas": 3,
+  "healthCheck": {
+    "path": "/health",
+    "interval": 30
+  }
+}

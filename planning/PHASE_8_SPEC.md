@@ -401,7 +401,10 @@ export const AgentSkillType = CustomizationType.SimpleAgentSkill;
 ```typescript
 /**
  * Full AgentSkills.io standard skill.
- * Supports multiple files, hooks, resources, and complex activation.
+ * Supports multiple resource files in the skill directory.
+ * 
+ * NOTE: Hooks are NOT part of AgentSkills.io and are not supported.
+ * Skills with hooks should be skipped with a warning.
  */
 export interface AgentSkillIO extends AgentCustomization {
   type: CustomizationType.AgentSkillIO;
@@ -411,9 +414,6 @@ export interface AgentSkillIO extends AgentCustomization {
   
   /** Description for activation matching (required) */
   description: string;
-  
-  /** Optional: Hooks defined in frontmatter */
-  hooks?: Record<string, unknown>;
   
   /** Optional: Resource file paths relative to skill directory */
   resources?: string[];
@@ -512,7 +512,7 @@ SKILL.md found?
 ├── No → Skip directory
 └── Yes → Parse frontmatter
     ├── Has hooks: in frontmatter?
-    │   └── Yes → AgentSkillIO (preserve hooks, may warn on emit)
+    │   └── Yes → SKIP (hooks not supported by AgentSkills.io)
     ├── Has additional files in directory?
     │   └── Yes → AgentSkillIO (include in files map)
     ├── Has disable-model-invocation: true?
@@ -624,13 +624,14 @@ Input: AgentSkillIO
 | ID | Criteria |
 |----|----------|
 | AC-B1-1 | SimpleAgentSkill type exists, AgentSkill is deprecated alias |
-| AC-B2-1 | AgentSkillIO type supports hooks, resources, files |
+| AC-B2-1 | AgentSkillIO type supports resources, files (NO hooks) |
 | AC-B3-1 | Discovery reads entire skill directories |
-| AC-B3-2 | Simple skills classified as SimpleAgentSkill/ManualPrompt |
-| AC-B3-3 | Complex skills classified as AgentSkillIO |
+| AC-B3-2 | Skills with hooks are SKIPPED with warning |
+| AC-B3-3 | Simple skills classified as SimpleAgentSkill/ManualPrompt |
+| AC-B3-4 | Skills with resource files classified as AgentSkillIO |
 | AC-B4-1 | Simple AgentSkillIO emits as Cursor rule (idiomatic) |
 | AC-B4-2 | Complex AgentSkillIO emits to .cursor/skills/ with resources |
-| AC-B4-3 | Hooks copied verbatim with warning |
+| AC-B4-3 | AgentSkillIO has no hooks field (not supported) |
 
 ---
 
