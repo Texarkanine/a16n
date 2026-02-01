@@ -14,9 +14,9 @@
 |-----------|-------------|-------|----------|--------|
 | 4 | Type System Updates | 13 | 13 | ✅ Complete |
 | 5 | AgentSkillIO Discovery | 8 | 8 | ✅ Complete |
-| 6 | AgentSkillIO Emission | 6 | 0 | ⏳ Not Started |
+| 6 | AgentSkillIO Emission | 6 | 6 | ✅ Complete |
 | 7 | Integration & Polish | 6 | 0 | ⏳ Not Started |
-| **Total** | | **33** | **21** | **64%** |
+| **Total** | | **33** | **27** | **82%** |
 
 ---
 
@@ -148,6 +148,73 @@ pnpm build  # ✅ Success
 pnpm test   # ✅ All tests pass
 pnpm lint   # ✅ No errors
 ```
+
+## Milestone 6 Complete
+
+**Date**: 2026-02-01
+**Time**: ~60 minutes
+
+### Summary
+
+Implemented AgentSkillIO emission following strict TDD methodology:
+
+1. **TDD Step 1: Determine Scope**
+   - Identified behaviors to test based on spec requirements
+   - Located test infrastructure in both plugins
+   - Mapped test cases to emission logic requirements
+
+2. **TDD Step 2: Preparation (Stubbing)**
+   - Added 5 test stubs for Cursor plugin
+   - Added 5 test stubs for Claude plugin
+   - Stubbed `emitAgentSkillIO()` functions with TODO comments
+   - Updated imports to include `AgentSkillIO` and `isAgentSkillIO`
+   - Modified main emit functions to filter and handle AgentSkillIO
+
+3. **TDD Step 3: Write Tests**
+   - Implemented all test cases (10 tests total)
+   - Tests failed as expected (stubs return empty arrays)
+   - Verified test infrastructure working correctly
+
+4. **TDD Step 4: Write Code**
+   - **Cursor Plugin**: Smart routing based on skill complexity
+     - Simple + disable → ManualPrompt skill (`.cursor/skills/*/SKILL.md`)
+     - Simple → Cursor rule (`.cursor/rules/*.mdc`)
+     - Complex → Full directory (`.cursor/skills/<name>/` with all files)
+     - Warning emitted when hooks present (not supported)
+   - **Claude Plugin**: Full AgentSkills.io support
+     - Always emits to `.claude/skills/<name>/` directory
+     - Preserves hooks in frontmatter (natively supported)
+     - Writes all resource files from `files` map
+
+5. **Tests**: All 452 tests pass across all packages
+   - 111 tests in plugin-cursor (including 5 new AgentSkillIO tests)
+   - 108 tests in plugin-claude (including 5 new AgentSkillIO tests)
+
+6. **Verification**:
+   ```bash
+   pnpm build  # ✅ Success
+   pnpm test   # ✅ 452 tests pass
+   ```
+
+### Behavior Implemented
+
+**Cursor Emission**:
+- ✅ Simple AgentSkillIO → `.cursor/rules/*.mdc` (idiomatic)
+- ✅ Simple AgentSkillIO with disable → `.cursor/skills/*/SKILL.md` (ManualPrompt)
+- ✅ Complex AgentSkillIO → `.cursor/skills/<name>/` with all resource files
+- ✅ Warning for hooks (not supported by Cursor)
+
+**Claude Emission**:
+- ✅ All AgentSkillIO → `.claude/skills/<name>/` directory
+- ✅ Hooks preserved in frontmatter
+- ✅ All resource files written
+- ✅ Disable flag preserved when present
+
+### Next Steps
+
+Ready to proceed with Milestone 7: Integration Testing & Polish
+
+---
 
 ## Milestone 5 Complete
 

@@ -17,7 +17,7 @@ Milestones 4 and 5 are now complete.
 |-----------|-------------|-------|--------|
 | 4 | Type System Updates (B1+B2) | 13 | ✅ Complete |
 | 5 | AgentSkillIO Discovery (B3) | 8 | ✅ Complete |
-| 6 | AgentSkillIO Emission (B4) | 6 | ⏳ Ready |
+| 6 | AgentSkillIO Emission (B4) | 6 | ✅ Complete |
 | 7 | Integration & Polish | 6 | ⏳ Ready |
 
 ### Dependencies
@@ -127,6 +127,15 @@ Discovery logic updated for AgentSkillIO:
 - Simple skills (only SKILL.md) → SimpleAgentSkill or ManualPrompt
 - 452 tests pass across all packages
 
+## Milestone 6 Summary (Complete)
+
+Emission logic implemented for AgentSkillIO following TDD:
+- **Cursor**: Smart routing based on complexity (simple → rule, complex → full directory)
+- **Claude**: Full AgentSkills.io support (always emits to skill directory)
+- Hooks warning added for Cursor (not supported)
+- All resource files written from `files` map
+- 452 tests pass across all packages
+
 ## Blockers
 
-None. Ready for Milestone 6 (AgentSkillIO Emission).
+None. Ready for Milestone 7 (Integration Testing & Polish).

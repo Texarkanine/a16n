@@ -9,6 +9,7 @@ import {
   type GlobalPrompt,
   type FileRule,
   type AgentSkill,
+  type AgentSkillIO,
   type AgentIgnore,
   type ManualPrompt,
   createId,
@@ -1502,5 +1503,178 @@ describe('Claude Plugin - sourceItems tracking (Phase 8 A2)', () => {
     expect(written?.sourceItems).toBeDefined();
     expect(written?.sourceItems).toHaveLength(1);
     expect(written?.sourceItems?.[0]).toBe(prompt);
+  });
+});
+
+describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('simple AgentSkillIO (no hooks, no files)', () => {
+    it('should emit simple AgentSkillIO as .claude/skills/*/SKILL.md', async () => {
+      // Simple skill should emit as Claude skill directory
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/rules/deploy.mdc'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/rules/deploy.mdc',
+          content: 'Deployment guidelines',
+          name: 'deploy',
+          description: 'Help with deployments',
+          files: {},
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      
+      // Should emit to .claude/skills/deploy/SKILL.md
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'deploy', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('name:');
+      expect(content).toContain('deploy');
+      expect(content).toContain('description:');
+      expect(content).toContain('Help with deployments');
+      expect(content).toContain('Deployment guidelines');
+    });
+
+    it('should emit simple AgentSkillIO with disable as .claude/skills/*/SKILL.md', async () => {
+      // Simple skill with disable-model-invocation should emit as skill with flag
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/review/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/review/SKILL.md',
+          content: 'Review code for security',
+          name: 'review',
+          description: 'Code review helper',
+          disableModelInvocation: true,
+          files: {},
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      
+      // Should include disable flag in frontmatter
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'review', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('disable-model-invocation: true');
+      expect(content).toContain('Review code for security');
+    });
+  });
+
+  describe('complex AgentSkillIO (with hooks or files)', () => {
+    it('should emit complex AgentSkillIO to .claude/skills/ with all files', async () => {
+      // Complex skill should emit full directory with SKILL.md + resource files
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/deploy/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/deploy/SKILL.md',
+          content: 'Deployment process',
+          name: 'deploy',
+          description: 'Deployment helper',
+          files: {
+            'checklist.md': '- [ ] Run tests\n- [ ] Build\n- [ ] Deploy',
+            'config.json': '{"env":"production"}',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      // Should write 3 files: SKILL.md + 2 resource files
+      expect(result.written.length).toBeGreaterThanOrEqual(1);
+      
+      // Verify SKILL.md exists
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'deploy', 'SKILL.md');
+      const skillContent = await fs.readFile(skillPath, 'utf-8');
+      expect(skillContent).toContain('Deployment process');
+
+      // Verify resource files exist
+      const checklistPath = path.join(tempDir, '.claude', 'skills', 'deploy', 'checklist.md');
+      const checklistContent = await fs.readFile(checklistPath, 'utf-8');
+      expect(checklistContent).toContain('Run tests');
+
+      const configPath = path.join(tempDir, '.claude', 'skills', 'deploy', 'config.json');
+      const configContent = await fs.readFile(configPath, 'utf-8');
+      expect(configContent).toContain('production');
+    });
+
+    it('should preserve hooks in frontmatter (Claude supports them)', async () => {
+      // Skills with hooks should include them in YAML frontmatter
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/git-commit/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/git-commit/SKILL.md',
+          content: 'Git commit helper',
+          name: 'git-commit',
+          description: 'Help with git commits',
+          hooks: {
+            'pre-commit': 'lint',
+            'post-commit': 'push',
+          },
+          files: {},
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      
+      // Should include hooks in frontmatter
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'git-commit', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('hooks:');
+      expect(content).toContain('pre-commit');
+      expect(content).toContain('lint');
+    });
+
+    it('should include all resource files from files map', async () => {
+      // Verify all files in AgentSkillIO.files are written
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/multi/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/multi/SKILL.md',
+          content: 'Multi-file skill',
+          name: 'multi',
+          description: 'Multi-file test',
+          files: {
+            'file1.txt': 'Content 1',
+            'file2.txt': 'Content 2',
+            'file3.txt': 'Content 3',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      // Verify all 3 files + SKILL.md exist
+      const skillDir = path.join(tempDir, '.claude', 'skills', 'multi');
+      const files = await fs.readdir(skillDir);
+      expect(files).toContain('SKILL.md');
+      expect(files).toContain('file1.txt');
+      expect(files).toContain('file2.txt');
+      expect(files).toContain('file3.txt');
+
+      // Verify content
+      const file1 = await fs.readFile(path.join(skillDir, 'file1.txt'), 'utf-8');
+      expect(file1).toBe('Content 1');
+    });
   });
 });

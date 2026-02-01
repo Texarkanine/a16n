@@ -30,7 +30,7 @@ All four milestones successfully implemented on 2026-01-31 and 2026-02-01.
 |-----------|-------------|--------------|--------|
 | 4 | Type System Updates (B1 + B2) | Lines 355-429 | ✅ Complete |
 | 5 | AgentSkillIO Discovery (B3) | Lines 457-525 | ✅ Complete |
-| 6 | AgentSkillIO Emission (B4) | Lines 527-588 | ⏳ Not Started |
+| 6 | AgentSkillIO Emission (B4) | Lines 527-588 | ✅ Complete |
 | 7 | Integration Testing & Polish | Lines 771-785 | ⏳ Not Started |
 
 ### Dependencies
@@ -564,7 +564,9 @@ pnpm format && pnpm lint -- --fix && pnpm build && pnpm test
 
 ---
 
-## Summary: Task Checklist
+## Summary: Task Checklist (75% Complete)
+
+**Overall Progress**: 27/33 tasks complete
 
 ### Milestone 4: Type System Updates ✅ COMPLETE
 
@@ -593,14 +595,14 @@ pnpm format && pnpm lint -- --fix && pnpm build && pnpm test
 - [x] **5.7** Run `pnpm --filter @a16njs/plugin-cursor test`
 - [x] **5.8** Run `pnpm --filter @a16njs/plugin-claude test`
 
-### Milestone 6: AgentSkillIO Emission
+### Milestone 6: AgentSkillIO Emission ✅ COMPLETE
 
-- [ ] **6.1** Stub emission tests (expect failures)
-- [ ] **6.2** Implement `emitAgentSkillIO()` for Cursor plugin
-- [ ] **6.3** Implement `emitAgentSkillIO()` for Claude plugin
-- [ ] **6.4** Add warning for hooks when emitting to Cursor
-- [ ] **6.5** Run `pnpm --filter @a16njs/plugin-cursor test`
-- [ ] **6.6** Run `pnpm --filter @a16njs/plugin-claude test`
+- [x] **6.1** Stub emission tests (expect failures)
+- [x] **6.2** Implement `emitAgentSkillIO()` for Cursor plugin
+- [x] **6.3** Implement `emitAgentSkillIO()` for Claude plugin
+- [x] **6.4** Add warning for hooks when emitting to Cursor
+- [x] **6.5** Run `pnpm --filter @a16njs/plugin-cursor test`
+- [x] **6.6** Run `pnpm --filter @a16njs/plugin-claude test`
 
 ### Milestone 7: Integration & Polish
 

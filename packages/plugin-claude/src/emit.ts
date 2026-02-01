@@ -10,11 +10,13 @@ import {
   type FileRule,
   type GlobalPrompt,
   type SimpleAgentSkill,
+  type AgentSkillIO,
   CustomizationType,
   WarningCode,
   isGlobalPrompt,
   isFileRule,
   isSimpleAgentSkill,
+  isAgentSkillIO,
   isAgentIgnore,
   isManualPrompt,
   getUniqueFilename,
@@ -156,6 +158,109 @@ ${prompt.content}
 }
 
 /**
+ * Emit an AgentSkillIO to Claude format.
+ * Claude natively supports the full AgentSkills.io standard.
+ * Always emits to .claude/skills/<name>/ with:
+ * - SKILL.md with full frontmatter (including hooks if present)
+ * - All resource files from the files map
+ * 
+ * @param skill - The AgentSkillIO to emit
+ * @param root - Root directory to write to
+ * @param dryRun - If true, don't write files
+ * @param usedSkillNames - Set of used skill directory names (for collision detection)
+ * @returns Array of written files
+ */
+async function emitAgentSkillIO(
+  skill: AgentSkillIO,
+  root: string,
+  dryRun: boolean,
+  usedSkillNames: Set<string>
+): Promise<WrittenFile[]> {
+  const written: WrittenFile[] = [];
+
+  // Get unique skill name to avoid directory collisions
+  const baseName = sanitizeFilename(skill.name);
+  const skillName = getUniqueFilename(baseName, usedSkillNames);
+
+  const skillDir = path.join(root, '.claude', 'skills', skillName);
+  if (!dryRun) {
+    await fs.mkdir(skillDir, { recursive: true });
+  }
+
+  // Write SKILL.md with full frontmatter
+  const skillPath = path.join(skillDir, 'SKILL.md');
+  const safeName = JSON.stringify(skill.name);
+  const safeDescription = JSON.stringify(skill.description);
+  
+  let frontmatter = `---
+name: ${safeName}
+description: ${safeDescription}`;
+
+  if (skill.disableModelInvocation) {
+    frontmatter += '\ndisable-model-invocation: true';
+  }
+
+  // Include hooks in frontmatter (Claude supports them natively)
+  if (skill.hooks) {
+    frontmatter += '\nhooks:\n';
+    for (const [hookName, hookValue] of Object.entries(skill.hooks)) {
+      frontmatter += `  ${hookName}: ${JSON.stringify(hookValue)}\n`;
+    }
+  }
+
+  frontmatter += '\n---';
+
+  const skillContent = `${frontmatter}\n\n${skill.content}\n`;
+
+  let isNewFile = true;
+  try {
+    await fs.access(skillPath);
+    isNewFile = false;
+  } catch {
+    isNewFile = true;
+  }
+
+  if (!dryRun) {
+    await fs.writeFile(skillPath, skillContent, 'utf-8');
+  }
+
+  written.push({
+    path: skillPath,
+    type: CustomizationType.AgentSkillIO,
+    itemCount: 1,
+    isNewFile,
+    sourceItems: [skill],
+  });
+
+  // Write all resource files
+  for (const [filename, content] of Object.entries(skill.files)) {
+    const filePath = path.join(skillDir, filename);
+    
+    let isResourceNewFile = true;
+    try {
+      await fs.access(filePath);
+      isResourceNewFile = false;
+    } catch {
+      isResourceNewFile = true;
+    }
+
+    if (!dryRun) {
+      await fs.writeFile(filePath, content, 'utf-8');
+    }
+
+    written.push({
+      path: filePath,
+      type: CustomizationType.AgentSkillIO,
+      itemCount: 1,
+      isNewFile: isResourceNewFile,
+      sourceItems: [skill],
+    });
+  }
+
+  return written;
+}
+
+/**
  * Emit agent customizations to Claude format.
  * - GlobalPrompts → CLAUDE.md
  * - FileRules → .a16n/rules/ + .claude/settings.local.json
@@ -179,12 +284,13 @@ export async function emit(
   const globalPrompts = models.filter(isGlobalPrompt);
   const fileRules = models.filter(isFileRule);
   const agentSkills = models.filter(isSimpleAgentSkill);
+  const agentSkillIOs = models.filter(isAgentSkillIO);
   const agentIgnores = models.filter(isAgentIgnore);
   const manualPrompts = models.filter(isManualPrompt);
 
   // Track unsupported types (future types)
   for (const model of models) {
-    if (!isGlobalPrompt(model) && !isFileRule(model) && !isSimpleAgentSkill(model) && !isAgentIgnore(model) && !isManualPrompt(model)) {
+    if (!isGlobalPrompt(model) && !isFileRule(model) && !isSimpleAgentSkill(model) && !isAgentSkillIO(model) && !isAgentIgnore(model) && !isManualPrompt(model)) {
       unsupported.push(model);
     }
   }
@@ -447,6 +553,14 @@ export async function emit(
         isNewFile,
         sourceItems: [prompt],
       });
+    }
+  }
+
+  // === Emit AgentSkillIOs (Phase 8 B4) ===
+  if (agentSkillIOs.length > 0) {
+    for (const skillIO of agentSkillIOs) {
+      const skillIOWritten = await emitAgentSkillIO(skillIO, root, dryRun, usedSkillNames);
+      written.push(...skillIOWritten);
     }
   }
 
