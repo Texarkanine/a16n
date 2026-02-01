@@ -3,33 +3,26 @@
 ## Current Focus
 
 **Task**: DOCS-CLEANUP-R2 - Documentation Cleanup Round 2
-**Phase**: Planning Complete → Ready for Implementation
+**Phase**: Complete
 **Complexity**: Level 2
 
-## Problem Statement
+## Summary
 
-Post-review feedback identified several issues:
-1. CLI versioned docs not generating (warning: "No docs found in cli/reference")
-2. Plugin-to-plugin conversion tables don't scale
-3. Models page has tool-specific info that belongs elsewhere
-4. Plugin pages replicate canonical tool documentation
+All 5 phases completed successfully:
 
-## Key Decisions
+1. **CLI Versioned Docs** - Integrated into versioned pipeline, now generating for `a16n@0.3.0` and `a16n@0.4.0`
+2. **Conversion Tables Removed** - Removed N×N scaling burden from plugin pages
+3. **Models Page Cleaned** - Removed tool-specific implementation details
+4. **Plugin Pages Simplified** - Added canonical doc links, removed verbose format replication
+5. **Verification Passed** - All 395 tests pass, build succeeds
 
-1. **CLI Docs**: Add CLI to versioned generation pipeline using `generateCliDocsForVersion()`
-2. **Conversion Tables**: Remove - they create N×N documentation burden
-3. **API Linking**: Punt on version-specific linking - too complex to maintain
-4. **Plugin Pages**: Link to canonical docs (cursor.com, anthropic.com) instead of replicating
+## Key Outcomes
 
-## Guiding Principle
-
-Document internal IR types (GlobalPrompt, AgentSkill, etc.) as the stable reference point. Avoid documenting plugin-to-plugin conversion details since:
-- With 2 plugins: 4 conversion paths (N×N)
-- With 3 plugins: 9 conversion paths
-- This doesn't scale
-
-Instead, users should use `--dry-run` to understand specific conversions.
+- CLI docs now appear in versions.json: `"cli": ["0.4.0", "0.3.0"]`
+- Plugin pages link to official Cursor and Claude documentation
+- Models page focuses on IR types, not tool-specific mappings
+- Documentation is more maintainable and won't require N×N updates as plugins are added
 
 ## Next Steps
 
-Ready to begin Phase 1: CLI Versioned Docs
+Ready for `/reflect` to archive this task.

@@ -2,7 +2,7 @@
 sidebar_position: 3
 ---
 
-# Models
+# Models Overview
 
 The **@a16njs/models** package defines shared TypeScript types and interfaces used across the a16n toolkit. It provides the foundation for the plugin system and the intermediate representation (IR) used during conversions.
 
@@ -27,7 +27,6 @@ This package provides:
 
 a16n uses a unified taxonomy to represent agent customizations across different tools. Understanding these types is key to working with the toolkit.
 
-### The Five Types
 
 | Type | Description | Example Use Case |
 |------|-------------|------------------|
@@ -36,16 +35,6 @@ a16n uses a unified taxonomy to represent agent customizations across different 
 | **FileRule** | Triggered by file patterns | React rules for `*.tsx` files |
 | **AgentIgnore** | Files to exclude | Build outputs, secrets, node_modules |
 | **ManualPrompt** | Explicitly invoked commands | `/review`, `/test` slash commands |
-
-### How Each Tool Implements Them
-
-| Type | Cursor | Claude |
-|------|--------|--------|
-| **GlobalPrompt** | `.cursor/rules/*.mdc` with `alwaysApply: true` | `CLAUDE.md` |
-| **AgentSkill** | `.cursor/rules/*.mdc` with `description:` | `.claude/skills/*/SKILL.md` |
-| **FileRule** | `.cursor/rules/*.mdc` with `globs:` | Hook + glob-hook |
-| **AgentIgnore** | `.cursorignore` | `.claude/settings.json` deny |
-| **ManualPrompt** | `.cursor/commands/*.md` | Skill with invoke description |
 
 ### Conceptual Distinctions
 
@@ -58,8 +47,7 @@ a16n uses a unified taxonomy to represent agent customizations across different 
 - AgentSkill: Triggers based on *what the agent understands* about the task (semantic)
 
 **ManualPrompt**
-- Cursor: Native command files (`.cursor/commands/*.md`) with `/command` invocation
-- Claude: Emulated via skills with "Invoke with /command" descriptions
+- User-invoked commands (e.g., `/review`, `/test`) that run on demand rather than automatically
 
 ---
 
@@ -121,30 +109,6 @@ Plugins implement discovery (finding customizations) and emission (writing them)
 - `emit(models, root, options)` - Write customizations to disk
 
 See the [Models API Reference](/models/api) for complete interface definitions, or [Plugin Development](/plugin-development) for implementation guidance.
-
----
-
-## Quick Reference
-
-```typescript
-import {
-  CustomizationType,
-  type AgentCustomization,
-  type A16nPlugin,
-  isGlobalPrompt,
-  isFileRule,
-  createId,
-} from '@a16njs/models';
-
-// Create an ID
-const id = createId(CustomizationType.GlobalPrompt, 'rules.mdc');
-// → "global-prompt::rules.mdc"
-
-// Type guard usage
-if (isFileRule(item)) {
-  console.log(item.globs);  // TypeScript-safe access
-}
-```
 
 ---
 

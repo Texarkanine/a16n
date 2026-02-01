@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# Engine
+# Engine Overview
 
 The **@a16njs/engine** package provides the core conversion engine that orchestrates the translation between AI agent configuration formats. Use this for programmatic integrations or building custom tools.
 

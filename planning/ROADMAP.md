@@ -255,6 +255,51 @@ gantt
 
 ---
 
+## Future: Full AgentSkills.io Standard Support
+
+**Goal**: Support the complete AgentSkills.io specification, not just simple single-file skills.
+
+**Background**: Our current `AgentSkill` type only handles "simple skills" — a single `SKILL.md` file with description frontmatter. The full [AgentSkills.io standard](https://agentskills.io) supports:
+- Multiple files per skill (SKILL.md + additional resources)
+- Hook definitions in skill frontmatter
+- Resource references
+- Complex activation patterns
+
+**Current Limitation**: We skip any skill that isn't a simple single-file skill, which loses information during conversion.
+
+**Proposed Scope**:
+
+### Rename and Clarify
+1. Rename `AgentSkill` → `SimpleAgentSkill` in `@a16njs/models`
+
+### Full Support with AgentSkillIO
+1. Define `AgentSkillIO` type for full AgentSkills.io standard
+2. Discovery: Read entire skill directories (SKILL.md + resources)
+3. Emission: Smart routing based on skill complexity
+
+**Emission Logic for Cursor (AgentSkillIO)**:
+```
+if skill has only: name, description, optional disable-model-invocation
+  if disable-model-invocation: true
+    → emit as Cursor Command (.cursor/commands/<name>.md)
+  else
+    → emit as Cursor Rule (.cursor/rules/<name>.mdc with description:)
+else (has hooks, resources, multiple files, extra frontmatter fields, etc)
+  → emit as full AgentSkillIO (.cursor/skills/<name>/SKILL.md + resources)
+```
+
+**Rationale**: Simple skills don't need the full skill directory structure. Emitting them as rules/commands is more idiomatic for Cursor users who may not be familiar with the AgentSkills.io standard.
+
+**Key Decisions Needed**:
+- How do we handle skill resources (images, data files) during copy?
+  - as any other file in the AgentSkill.io directory. AgentSkillIO to AgentSkillIO is an easy copy.
+- Should we validate hooks are tool-compatible, or just copy them verbatim?
+  - verbatim copy, agentskillsio doesn't suport hooks. Claude code skills DO; those are already skipped on ingest. general rule: if we can't represent it in the Model IR, we don't ingest - we skip w/ warning.
+
+**Estimated Scope**: ~16-24 hours
+
+---
+
 ## Future: Output File Strategy (Overwrite vs Merge)
 
 **Goal**: Define and implement consistent behavior for how output files are written when they already exist.

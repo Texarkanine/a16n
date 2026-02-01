@@ -2,7 +2,7 @@
 sidebar_position: 6
 ---
 
-# Glob Hook
+# Glob Hook CLI
 
 The **@a16njs/glob-hook** package is a CLI tool for glob-based file path matching in Claude Code hooks. It enables pattern-based rule injection—a capability that Claude Code hooks don't natively support.
 
