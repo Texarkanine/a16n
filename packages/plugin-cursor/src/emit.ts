@@ -162,12 +162,13 @@ ${prompt.content}
  * Smart routing based on skill complexity:
  * - Simple (no resources, no files) → emit as rule or ManualPrompt
  * - Complex (has resources or files) → emit full skill directory
- * 
+ *
  * @param skill - The AgentSkillIO to emit
  * @param root - Root directory to write to
  * @param dryRun - If true, don't write files
  * @param warnings - Array to append warnings to
  * @param usedSkillNames - Set of used skill directory names (for collision detection)
+ * @param usedFilenames - Set of used rule filenames (for collision detection with GlobalPrompt/FileRule)
  * @returns Array of written files
  */
 async function emitAgentSkillIO(
@@ -175,7 +176,8 @@ async function emitAgentSkillIO(
   root: string,
   dryRun: boolean,
   warnings: Warning[],
-  usedSkillNames: Set<string>
+  usedSkillNames: Set<string>,
+  usedFilenames: Set<string>
 ): Promise<WrittenFile[]> {
   const written: WrittenFile[] = [];
 
@@ -242,7 +244,6 @@ ${skill.content}
       }
 
       const baseName = sanitizeFilename(skill.name) + '.mdc';
-      const usedFilenames = new Set<string>();
       const { filename } = getUniqueFilename(baseName, usedFilenames);
 
       const filepath = path.join(rulesDir, filename);
@@ -616,7 +617,7 @@ export async function emit(
 
   // === Emit AgentSkillIOs (Phase 8 B4) ===
   for (const skillIO of agentSkillIOs) {
-    const skillIOWritten = await emitAgentSkillIO(skillIO, root, dryRun, warnings, usedSkillNames);
+    const skillIOWritten = await emitAgentSkillIO(skillIO, root, dryRun, warnings, usedSkillNames, usedFilenames);
     written.push(...skillIOWritten);
   }
 

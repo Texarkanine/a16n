@@ -102,23 +102,28 @@ describe('Claude AgentSkill Discovery (Phase 2)', () => {
     });
   });
 
-  describe('skills with hooks → AgentSkillIO (Phase 8 B3)', () => {
-    it('should discover skills with hooks as AgentSkillIO', async () => {
+  describe('skills with hooks → SKIPPED (Phase 8 B3)', () => {
+    it('should skip skills with hooks and emit warning', async () => {
       const root = path.join(fixturesDir, 'claude-skills-with-hooks/from-claude');
       const result = await claudePlugin.discover(root);
 
-      // Skills with hooks should now be discovered as AgentSkillIO
+      // Skills with hooks should be SKIPPED (hooks not supported by AgentSkills.io)
       const agentSkillIO = result.items.filter(i => i.type === CustomizationType.AgentSkillIO);
-      expect(agentSkillIO).toHaveLength(1);
+      expect(agentSkillIO).toHaveLength(0);
+
+      // Should have a warning about hooks not being supported
+      const hooksWarning = result.warnings.find(w => w.message.toLowerCase().includes('hooks'));
+      expect(hooksWarning).toBeDefined();
+      expect(hooksWarning?.message).toContain('Hooks are not supported');
     });
 
-    it('should NOT emit warning for skills with hooks (they become AgentSkillIO)', async () => {
+    it('should emit warning for skills with hooks', async () => {
       const root = path.join(fixturesDir, 'claude-skills-with-hooks/from-claude');
       const result = await claudePlugin.discover(root);
 
-      // No warnings should be emitted - hooks are now supported
-      const hooksWarning = result.warnings.find(w => w.message.includes('hooks'));
-      expect(hooksWarning).toBeUndefined();
+      // Warning should be emitted - hooks are not supported
+      const hooksWarning = result.warnings.find(w => w.message.toLowerCase().includes('hooks'));
+      expect(hooksWarning).toBeDefined();
     });
   });
 });
@@ -278,16 +283,37 @@ describe('Claude Plugin Never Discovers ManualPrompt (Phase 4)', () => {
 
 describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
   /**
-   * Tests for discovering complex skills that have hooks and/or extra files.
-   * Skills with hooks or additional resources should be classified as AgentSkillIO.
+   * Tests for discovering complex skills that have extra files (no hooks).
+   * Skills with hooks are SKIPPED (not supported by AgentSkills.io).
+   * Skills with extra files but no hooks should be classified as AgentSkillIO.
    */
-  describe('complex skills with hooks → AgentSkillIO', () => {
-    it('should discover AgentSkillIO from skill with hooks in frontmatter', async () => {
+  describe('skills with hooks → SKIPPED (not supported)', () => {
+    it('should skip skills with hooks and emit warning', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      // secure-deploy has hooks, so it should be skipped
+      const secureDeploySkill = result.items.find(
+        i => i.sourcePath.includes('secure-deploy')
+      );
+      expect(secureDeploySkill).toBeUndefined();
+
+      // Should have a warning about hooks not being supported
+      const hooksWarning = result.warnings.find(w =>
+        w.message.toLowerCase().includes('hooks') && w.message.includes('secure-deploy')
+      );
+      expect(hooksWarning).toBeDefined();
+      expect(hooksWarning?.message).toContain('Hooks are not supported');
+    });
+  });
+
+  describe('complex skills with extra files (no hooks) → AgentSkillIO', () => {
+    it('should discover AgentSkillIO from skill with extra files but no hooks', async () => {
       const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
       const result = await claudePlugin.discover(root);
 
       const agentSkillIO = result.items.find(
-        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('database-migrations')
       );
       expect(agentSkillIO).toBeDefined();
       expect(agentSkillIO?.type).toBe(CustomizationType.AgentSkillIO);
@@ -298,15 +324,15 @@ describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
       const result = await claudePlugin.discover(root);
 
       const skill = result.items.find(
-        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('database-migrations')
       ) as AgentSkillIO;
-      
+
       expect(skill).toBeDefined();
       expect(skill.files).toBeDefined();
-      expect(Object.keys(skill.files)).toContain('pre-check.sh');
-      expect(Object.keys(skill.files)).toContain('manifest.json');
-      expect(skill.files['pre-check.sh']).toContain('Running security checks');
-      expect(skill.files['manifest.json']).toContain('"securityLevel": "high"');
+      expect(Object.keys(skill.files)).toContain('schema.sql');
+      expect(Object.keys(skill.files)).toContain('migration-guide.md');
+      expect(skill.files['schema.sql']).toContain('CREATE TABLE');
+      expect(skill.files['migration-guide.md']).toContain('Migration Guide');
     });
 
     it('should extract skill name from frontmatter', async () => {
@@ -314,11 +340,11 @@ describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
       const result = await claudePlugin.discover(root);
 
       const skill = result.items.find(
-        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('database-migrations')
       ) as AgentSkillIO;
-      
+
       expect(skill).toBeDefined();
-      expect(skill.name).toBe('secure-deploy');
+      expect(skill.name).toBe('database-migrations');
     });
 
     it('should extract description from frontmatter', async () => {
@@ -326,11 +352,11 @@ describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
       const result = await claudePlugin.discover(root);
 
       const skill = result.items.find(
-        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('database-migrations')
       ) as AgentSkillIO;
-      
+
       expect(skill).toBeDefined();
-      expect(skill.description).toBe('Secure deployment workflow with pre-commit verification');
+      expect(skill.description).toBe('Database migration workflows and schema management');
     });
 
     it('should include SKILL.md content in AgentSkillIO.content', async () => {
@@ -338,12 +364,12 @@ describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
       const result = await claudePlugin.discover(root);
 
       const skill = result.items.find(
-        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('database-migrations')
       ) as AgentSkillIO;
-      
+
       expect(skill).toBeDefined();
-      expect(skill.content).toContain('Secure Deploy Skill');
-      expect(skill.content).toContain('secure deployment workflow with automated checks');
+      expect(skill.content).toContain('Database Migrations Skill');
+      expect(skill.content).toContain('database migration workflows');
     });
 
     it('should list resource filenames in AgentSkillIO.resources', async () => {
@@ -351,13 +377,13 @@ describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
       const result = await claudePlugin.discover(root);
 
       const skill = result.items.find(
-        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('secure-deploy')
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('database-migrations')
       ) as AgentSkillIO;
-      
+
       expect(skill).toBeDefined();
       expect(skill.resources).toBeDefined();
-      expect(skill.resources).toContain('pre-check.sh');
-      expect(skill.resources).toContain('manifest.json');
+      expect(skill.resources).toContain('schema.sql');
+      expect(skill.resources).toContain('migration-guide.md');
     });
   });
 
@@ -375,37 +401,39 @@ describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
   });
 
   describe('mixed simple and complex skills', () => {
-    it('should correctly classify both simple and complex skills', async () => {
+    it('should correctly classify simple skills and AgentSkillIO (skip hooks)', async () => {
       const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
       const result = await claudePlugin.discover(root);
 
-      // Should have one AgentSkillIO (secure-deploy) and one SimpleAgentSkill (simple-testing)
+      // Should have one AgentSkillIO (database-migrations) and one SimpleAgentSkill (simple-testing)
+      // secure-deploy should be SKIPPED (has hooks)
       const agentSkillIO = result.items.filter(i => i.type === CustomizationType.AgentSkillIO);
       const simpleSkills = result.items.filter(i => i.type === CustomizationType.SimpleAgentSkill);
 
       expect(agentSkillIO).toHaveLength(1);
       expect(simpleSkills).toHaveLength(1);
-      expect(agentSkillIO[0]?.sourcePath).toContain('secure-deploy');
+      expect(agentSkillIO[0]?.sourcePath).toContain('database-migrations');
       expect(simpleSkills[0]?.sourcePath).toContain('simple-testing');
     });
   });
 
   describe('backward compatibility', () => {
-    it('should no longer skip skills with hooks (they become AgentSkillIO)', async () => {
-      // Previously, the claude-skills-with-hooks fixture would cause a warning
-      // Now it should be discovered as AgentSkillIO instead
+    it('should skip skills with hooks and emit warning', async () => {
+      // Skills with hooks are NOT supported by AgentSkills.io
+      // They should be skipped with a warning
       const root = path.join(fixturesDir, 'claude-skills-with-hooks/from-claude');
       const result = await claudePlugin.discover(root);
 
-      // The skill with hooks should now be discovered as AgentSkillIO, not skipped
+      // The skill with hooks should be skipped, not discovered
       const agentSkillIO = result.items.find(
         i => i.type === CustomizationType.AgentSkillIO
       );
-      expect(agentSkillIO).toBeDefined();
-      
-      // Should no longer have a warning about hooks
-      const hooksWarning = result.warnings.find(w => w.message.includes('hooks'));
-      expect(hooksWarning).toBeUndefined();
+      expect(agentSkillIO).toBeUndefined();
+
+      // Should have a warning about hooks not being supported
+      const hooksWarning = result.warnings.find(w => w.message.toLowerCase().includes('hooks'));
+      expect(hooksWarning).toBeDefined();
+      expect(hooksWarning?.message).toContain('Hooks are not supported');
     });
   });
 });

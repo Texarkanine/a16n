@@ -169,8 +169,8 @@ function parseClaudeRuleFrontmatter(content: string): ParsedClaudeRule {
       continue;
     }
     
-    // Store other frontmatter fields generically
-    const keyValueMatch = line.match(/^(\w+):\s*(.+)$/);
+    // Store other frontmatter fields generically (allow hyphenated keys like disable-model-invocation)
+    const keyValueMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.+)$/);
     if (keyValueMatch) {
       const key = keyValueMatch[1]!;
       const value = keyValueMatch[2]!.trim().replace(/^["']|["']$/g, '');
@@ -542,22 +542,33 @@ export async function discover(root: string): Promise<DiscoveryResult> {
       const hasHooks = frontmatter.hooks && Object.keys(frontmatter.hooks).length > 0;
       
       // Classification priority:
-      // 1. Has hooks or extra files → AgentSkillIO (with description required)
-      // 2. disable-model-invocation: true → ManualPrompt
-      // 3. description present → SimpleAgentSkill
-      
-      if (hasHooks || hasExtraFiles) {
-        // AgentSkillIO - complex skill with hooks or resources
+      // 1. Has hooks → SKIP (hooks are not supported by AgentSkills.io)
+      // 2. Has extra files → AgentSkillIO (with description required)
+      // 3. disable-model-invocation: true → ManualPrompt
+      // 4. description present → SimpleAgentSkill
+
+      if (hasHooks) {
+        // Skills with hooks are not supported - skip with warning
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Skipped skill '${skillName}': Hooks are not supported by AgentSkills.io`,
+          sources: [skillPath],
+        });
+        continue;
+      }
+
+      if (hasExtraFiles) {
+        // AgentSkillIO - complex skill with resource files
         if (!frontmatter.description) {
           // AgentSkillIO requires description
           warnings.push({
             code: WarningCode.Skipped,
-            message: `Skipped skill '${skillName}': Has hooks or resource files but missing description`,
+            message: `Skipped skill '${skillName}': Has resource files but missing description`,
             sources: [skillPath],
           });
           continue;
         }
-        
+
         const agentSkillIO: AgentSkillIO = {
           id: createId(CustomizationType.AgentSkillIO, skillPath),
           type: CustomizationType.AgentSkillIO,

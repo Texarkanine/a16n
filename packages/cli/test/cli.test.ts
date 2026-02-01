@@ -99,7 +99,9 @@ describe('CLI', () => {
       const { stdout, exitCode } = runCli('convert --from cursor --to claude');
 
       expect(exitCode).toBe(0);
-      expect(stdout).toContain('.claude/rules/test.md');
+      // Normalize paths for OS-agnostic assertions
+      const normalizedStdout = stdout.replaceAll('\\', '/');
+      expect(normalizedStdout).toContain('.claude/rules/test.md');
 
       // Verify file was created in .claude/rules/
       const claudeRulesDir = path.join(tempDir, '.claude', 'rules');
@@ -286,12 +288,14 @@ describe('CLI', () => {
       );
 
       const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run --gitignore-output-with match');
-      
+
       expect(exitCode).toBe(0);
       // Should show per-file details in match mode
       // Format: "  <filename> → <destination>"
-      expect(stdout).toContain('Would update .gitignore');
-      expect(stdout).toMatch(/\.claude\/rules\/secret\.md.*→.*\.gitignore/);
+      // Normalize paths for OS-agnostic assertions
+      const normalizedStdout = stdout.replaceAll('\\', '/');
+      expect(normalizedStdout).toContain('Would update .gitignore');
+      expect(normalizedStdout).toMatch(/\.claude\/rules\/secret\.md.*→.*\.gitignore/);
     });
 
     it('should route outputs to .git/info/exclude when source is ignored via exclude', async () => {
