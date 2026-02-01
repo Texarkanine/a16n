@@ -3,7 +3,7 @@
 ## Current Task: CodeRabbit PR #27 Fixes
 
 **Status:** COMPLETE
-**PR URL:** https://github.com/Texarkanine/a16n/pull/27
+**PR URL:** <https://github.com/Texarkanine/a16n/pull/27>
 **Rate Limit Until:**
 **Last Updated:** 2026-02-01T19:40:00Z
 
