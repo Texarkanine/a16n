@@ -1,7 +1,8 @@
 import {
   type AgentCustomization,
   type GlobalPrompt,
-  type AgentSkill,
+  type SimpleAgentSkill,
+  type AgentSkillIO,
   type FileRule,
   type AgentIgnore,
   type ManualPrompt,
@@ -16,10 +17,23 @@ export function isGlobalPrompt(item: AgentCustomization): item is GlobalPrompt {
 }
 
 /**
- * Type guard to check if an item is an AgentSkill.
+ * Type guard to check if an item is a SimpleAgentSkill.
  */
-export function isAgentSkill(item: AgentCustomization): item is AgentSkill {
-  return item.type === CustomizationType.AgentSkill;
+export function isSimpleAgentSkill(item: AgentCustomization): item is SimpleAgentSkill {
+  return item.type === CustomizationType.SimpleAgentSkill;
+}
+
+/**
+ * @deprecated Use isSimpleAgentSkill instead.
+ * This alias is provided for backward compatibility.
+ */
+export const isAgentSkill = isSimpleAgentSkill;
+
+/**
+ * Type guard to check if an item is an AgentSkillIO (full AgentSkills.io skill).
+ */
+export function isAgentSkillIO(item: AgentCustomization): item is AgentSkillIO {
+  return item.type === CustomizationType.AgentSkillIO;
 }
 
 /**

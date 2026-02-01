@@ -12,7 +12,7 @@ const cursorPlugin: A16nPlugin = {
   supports: [
     CustomizationType.GlobalPrompt,
     CustomizationType.FileRule,
-    CustomizationType.AgentSkill,
+    CustomizationType.SimpleAgentSkill,
     CustomizationType.ManualPrompt,
   ],
 

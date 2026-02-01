@@ -310,7 +310,7 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
       });
       
       // Verify AgentSkill was discovered
-      const agentSkills = result.discovered.filter(d => d.type === 'agent-skill');
+      const agentSkills = result.discovered.filter(d => d.type === 'simple-agent-skill');
       expect(agentSkills).toHaveLength(1);
       
       // Verify skill file was created
@@ -340,7 +340,7 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
       });
       
       // Verify AgentSkill was discovered
-      const agentSkills = result.discovered.filter(d => d.type === 'agent-skill');
+      const agentSkills = result.discovered.filter(d => d.type === 'simple-agent-skill');
       expect(agentSkills).toHaveLength(1);
       
       // Read the output skill files (Phase 7: AgentSkill → .cursor/skills/)

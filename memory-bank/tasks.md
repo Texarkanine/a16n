@@ -28,7 +28,7 @@ All four milestones successfully implemented on 2026-01-31 and 2026-02-01.
 
 | Milestone | Description | Spec Section | Status |
 |-----------|-------------|--------------|--------|
-| 4 | Type System Updates (B1 + B2) | Lines 355-429 | ⏳ Not Started |
+| 4 | Type System Updates (B1 + B2) | Lines 355-429 | ✅ Complete |
 | 5 | AgentSkillIO Discovery (B3) | Lines 457-525 | ⏳ Not Started |
 | 6 | AgentSkillIO Emission (B4) | Lines 527-588 | ⏳ Not Started |
 | 7 | Integration Testing & Polish | Lines 771-785 | ⏳ Not Started |
@@ -566,21 +566,21 @@ pnpm format && pnpm lint -- --fix && pnpm build && pnpm test
 
 ## Summary: Task Checklist
 
-### Milestone 4: Type System Updates
+### Milestone 4: Type System Updates ✅ COMPLETE
 
-- [ ] **4.1** Add `CustomizationType.SimpleAgentSkill` enum value
-- [ ] **4.2** Rename `AgentSkill` interface → `SimpleAgentSkill`
-- [ ] **4.3** Add deprecated `AgentSkill` type alias
-- [ ] **4.4** Add `CustomizationType.AgentSkillIO` enum value
-- [ ] **4.5** Define `AgentSkillIO` interface
-- [ ] **4.6** Add `isSimpleAgentSkill()` type guard
-- [ ] **4.7** Add `isAgentSkillIO()` type guard
-- [ ] **4.8** Add deprecated `isAgentSkill` alias
-- [ ] **4.9** Update `packages/models/src/index.ts` exports
-- [ ] **4.10** Update all imports in plugin-cursor
-- [ ] **4.11** Update all imports in plugin-claude
-- [ ] **4.12** Update models tests
-- [ ] **4.13** Run `pnpm build && pnpm test`
+- [x] **4.1** Add `CustomizationType.SimpleAgentSkill` enum value
+- [x] **4.2** Rename `AgentSkill` interface → `SimpleAgentSkill`
+- [x] **4.3** Add deprecated `AgentSkill` type alias
+- [x] **4.4** Add `CustomizationType.AgentSkillIO` enum value
+- [x] **4.5** Define `AgentSkillIO` interface
+- [x] **4.6** Add `isSimpleAgentSkill()` type guard
+- [x] **4.7** Add `isAgentSkillIO()` type guard
+- [x] **4.8** Add deprecated `isAgentSkill` alias
+- [x] **4.9** Update `packages/models/src/index.ts` exports
+- [x] **4.10** Update all imports in plugin-cursor
+- [x] **4.11** Update all imports in plugin-claude
+- [x] **4.12** Update models tests
+- [x] **4.13** Run `pnpm build && pnpm test`
 
 ### Milestone 5: AgentSkillIO Discovery
 

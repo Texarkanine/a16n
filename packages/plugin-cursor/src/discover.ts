@@ -7,7 +7,7 @@ import {
   type DiscoveryResult,
   type Warning,
   type FileRule,
-  type AgentSkill,
+  type SimpleAgentSkill,
   type GlobalPrompt,
   CustomizationType,
   WarningCode,
@@ -99,16 +99,16 @@ function classifyRule(
     // Fall through to next priority if globs is empty after parsing
   }
 
-  // Priority 3: description present → AgentSkill
+  // Priority 3: description present → SimpleAgentSkill
   if (frontmatter.description) {
     return {
-      id: createId(CustomizationType.AgentSkill, sourcePath),
-      type: CustomizationType.AgentSkill,
+      id: createId(CustomizationType.SimpleAgentSkill, sourcePath),
+      type: CustomizationType.SimpleAgentSkill,
       sourcePath,
       content: body,
       description: frontmatter.description,
       metadata: { ...frontmatter },
-    } as AgentSkill;
+    } as SimpleAgentSkill;
   }
 
   // Priority 4: No activation criteria → ManualPrompt (Phase 7)
@@ -345,7 +345,7 @@ async function findSkillFiles(root: string): Promise<string[]> {
 
 /**
  * Discover skills from .cursor/skills/*\/SKILL.md
- * - Skills with description -> AgentSkill
+ * - Skills with description -> SimpleAgentSkill
  * - Skills with disable-model-invocation: true -> ManualPrompt
  * - Skills without either -> Skip with warning
  */
@@ -371,7 +371,7 @@ async function discoverSkills(root: string): Promise<{
       
       // Classification priority:
       // 1. disable-model-invocation: true → ManualPrompt
-      // 2. description present → AgentSkill
+      // 2. description present → SimpleAgentSkill
       // 3. Neither → Skip with warning
       
       if (frontmatter.disableModelInvocation === true) {
@@ -385,15 +385,15 @@ async function discoverSkills(root: string): Promise<{
           metadata: { name: frontmatter.name },
         } as ManualPrompt);
       } else if (frontmatter.description) {
-        // AgentSkill
+        // SimpleAgentSkill
         items.push({
-          id: createId(CustomizationType.AgentSkill, skillPath),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, skillPath),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: skillPath,
           content: body,
           description: frontmatter.description,
           metadata: { name: frontmatter.name },
-        } as AgentSkill);
+        } as SimpleAgentSkill);
       } else {
         // Skip with warning
         warnings.push({

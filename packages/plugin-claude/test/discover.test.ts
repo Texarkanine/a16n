@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import claudePlugin from '../src/index.js';
-import { CustomizationType, WarningCode, type AgentSkill, type AgentIgnore, type ManualPrompt } from '@a16njs/models';
+import { CustomizationType, WarningCode, type SimpleAgentSkill, type AgentIgnore, type ManualPrompt } from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
@@ -79,7 +79,7 @@ describe('Claude AgentSkill Discovery (Phase 2)', () => {
       const root = path.join(fixturesDir, 'claude-skills/from-claude');
       const result = await claudePlugin.discover(root);
 
-      const skills = result.items.filter(i => i.type === CustomizationType.AgentSkill);
+      const skills = result.items.filter(i => i.type === CustomizationType.SimpleAgentSkill);
       expect(skills).toHaveLength(1);
       expect(skills[0]?.sourcePath).toBe('.claude/skills/testing/SKILL.md');
     });
@@ -88,7 +88,7 @@ describe('Claude AgentSkill Discovery (Phase 2)', () => {
       const root = path.join(fixturesDir, 'claude-skills/from-claude');
       const result = await claudePlugin.discover(root);
 
-      const skill = result.items.find(i => i.type === CustomizationType.AgentSkill) as AgentSkill;
+      const skill = result.items.find(i => i.type === CustomizationType.SimpleAgentSkill) as SimpleAgentSkill;
       expect(skill).toBeDefined();
       expect(skill.description).toBe('Testing best practices');
     });
@@ -97,7 +97,7 @@ describe('Claude AgentSkill Discovery (Phase 2)', () => {
       const root = path.join(fixturesDir, 'claude-skills/from-claude');
       const result = await claudePlugin.discover(root);
 
-      const skill = result.items.find(i => i.type === CustomizationType.AgentSkill);
+      const skill = result.items.find(i => i.type === CustomizationType.SimpleAgentSkill);
       expect(skill?.content).toContain('Write unit tests first');
     });
   });
@@ -108,7 +108,7 @@ describe('Claude AgentSkill Discovery (Phase 2)', () => {
       const result = await claudePlugin.discover(root);
 
       // No skills should be discovered (the one skill has hooks)
-      const skills = result.items.filter(i => i.type === CustomizationType.AgentSkill);
+      const skills = result.items.filter(i => i.type === CustomizationType.SimpleAgentSkill);
       expect(skills).toHaveLength(0);
     });
 
@@ -233,7 +233,7 @@ describe('Claude ManualPrompt Discovery (Phase 7)', () => {
       const root = path.join(fixturesDir, 'claude-skills/from-claude');
       const result = await claudePlugin.discover(root);
 
-      const skills = result.items.filter(i => i.type === CustomizationType.AgentSkill);
+      const skills = result.items.filter(i => i.type === CustomizationType.SimpleAgentSkill);
       expect(skills).toHaveLength(1);
     });
   });
@@ -265,7 +265,7 @@ describe('Claude Plugin Never Discovers ManualPrompt (Phase 4)', () => {
 
     const validTypes = [
       CustomizationType.GlobalPrompt,
-      CustomizationType.AgentSkill,
+      CustomizationType.SimpleAgentSkill,
       CustomizationType.FileRule,
       CustomizationType.AgentIgnore,
     ];
@@ -503,7 +503,7 @@ describe('Claude Rules Discovery (Phase 8 A1)', () => {
       const result = await claudePlugin.discover(root);
 
       const skill = result.items.find(i => 
-        i.type === CustomizationType.AgentSkill
+        i.type === CustomizationType.SimpleAgentSkill
       );
       const rule = result.items.find(i => 
         i.sourcePath === '.claude/rules/security.md'

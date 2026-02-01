@@ -9,12 +9,12 @@ import {
   type Warning,
   type FileRule,
   type GlobalPrompt,
-  type AgentSkill,
+  type SimpleAgentSkill,
   CustomizationType,
   WarningCode,
   isGlobalPrompt,
   isFileRule,
-  isAgentSkill,
+  isSimpleAgentSkill,
   isAgentIgnore,
   isManualPrompt,
   getUniqueFilename,
@@ -110,7 +110,7 @@ ${pathsArray}
  * Format a skill file with YAML frontmatter.
  * Name and description are quoted to handle YAML special characters.
  */
-function formatSkill(skill: AgentSkill): string {
+function formatSkill(skill: SimpleAgentSkill): string {
   // Quote values to handle YAML special characters (: # { } etc.)
   const safeDescription = JSON.stringify(skill.description);
   const skillName = skill.metadata?.name as string | undefined;
@@ -178,13 +178,13 @@ export async function emit(
   // Separate by type
   const globalPrompts = models.filter(isGlobalPrompt);
   const fileRules = models.filter(isFileRule);
-  const agentSkills = models.filter(isAgentSkill);
+  const agentSkills = models.filter(isSimpleAgentSkill);
   const agentIgnores = models.filter(isAgentIgnore);
   const manualPrompts = models.filter(isManualPrompt);
 
   // Track unsupported types (future types)
   for (const model of models) {
-    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model) && !isManualPrompt(model)) {
+    if (!isGlobalPrompt(model) && !isFileRule(model) && !isSimpleAgentSkill(model) && !isAgentIgnore(model) && !isManualPrompt(model)) {
       unsupported.push(model);
     }
   }
@@ -292,7 +292,7 @@ export async function emit(
   // Track .claude/skills directory names across skills + commands to prevent collisions
   const usedSkillNames = new Set<string>();
 
-  // === Emit AgentSkills as .claude/skills/*/SKILL.md ===
+  // === Emit SimpleAgentSkills as .claude/skills/*/SKILL.md ===
   if (agentSkills.length > 0) {
     for (const skill of agentSkills) {
       // Get unique skill name to avoid directory collisions
@@ -322,7 +322,7 @@ export async function emit(
 
       written.push({
         path: skillPath,
-        type: CustomizationType.AgentSkill,
+        type: CustomizationType.SimpleAgentSkill,
         itemCount: 1,
         isNewFile,
         sourceItems: [skill],

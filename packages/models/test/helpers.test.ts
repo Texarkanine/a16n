@@ -3,6 +3,8 @@ import {
   CustomizationType,
   isGlobalPrompt,
   isAgentSkill,
+  isSimpleAgentSkill,
+  isAgentSkillIO,
   isFileRule,
   isAgentIgnore,
   isManualPrompt,
@@ -11,6 +13,8 @@ import {
   type AgentCustomization,
   type GlobalPrompt,
   type AgentSkill,
+  type SimpleAgentSkill,
+  type AgentSkillIO,
   type FileRule,
   type AgentIgnore,
   type ManualPrompt,
@@ -32,7 +36,7 @@ describe('isGlobalPrompt', () => {
   it('should return false for other types', () => {
     const item: AgentCustomization = {
       id: 'test',
-      type: CustomizationType.AgentSkill,
+      type: CustomizationType.SimpleAgentSkill,
       sourcePath: 'test.md',
       content: 'content',
       metadata: {},
@@ -42,17 +46,18 @@ describe('isGlobalPrompt', () => {
   });
 });
 
-describe('isAgentSkill', () => {
-  it('should return true for AgentSkill', () => {
-    const item: AgentSkill = {
+describe('isAgentSkill (original tests - updated to use SimpleAgentSkill)', () => {
+  it('should return true for SimpleAgentSkill', () => {
+    const item: SimpleAgentSkill = {
       id: 'test',
-      type: CustomizationType.AgentSkill,
+      type: CustomizationType.SimpleAgentSkill,
       sourcePath: 'test.md',
       content: 'content',
       description: 'Test skill',
       metadata: {},
     };
 
+    // isAgentSkill is deprecated alias for isSimpleAgentSkill
     expect(isAgentSkill(item)).toBe(true);
   });
 
@@ -209,9 +214,121 @@ describe('createId', () => {
   });
 
   it('should work with different types', () => {
-    expect(createId(CustomizationType.AgentSkill, 'skill.md')).toBe('agent-skill:skill.md');
+    expect(createId(CustomizationType.SimpleAgentSkill, 'skill.md')).toBe(
+      'simple-agent-skill:skill.md'
+    );
     expect(createId(CustomizationType.FileRule, 'rule.mdc')).toBe('file-rule:rule.mdc');
     expect(createId(CustomizationType.AgentIgnore, '.ignore')).toBe('agent-ignore:.ignore');
     expect(createId(CustomizationType.ManualPrompt, 'prompt.md')).toBe('manual-prompt:prompt.md');
+  });
+
+  it('should work with SimpleAgentSkill type', () => {
+    expect(createId(CustomizationType.SimpleAgentSkill, 'skill.md')).toBe(
+      'simple-agent-skill:skill.md'
+    );
+  });
+
+  it('should work with AgentSkillIO type', () => {
+    expect(createId(CustomizationType.AgentSkillIO, 'skill-io/SKILL.md')).toBe(
+      'agent-skill-io:skill-io/SKILL.md'
+    );
+  });
+});
+
+describe('isSimpleAgentSkill', () => {
+  /**
+   * Type guard for SimpleAgentSkill (renamed from isAgentSkill).
+   */
+
+  it('should return true for SimpleAgentSkill', () => {
+    const item: SimpleAgentSkill = {
+      id: 'test',
+      type: CustomizationType.SimpleAgentSkill,
+      sourcePath: 'test.md',
+      content: 'content',
+      description: 'Test skill',
+      metadata: {},
+    };
+
+    expect(isSimpleAgentSkill(item)).toBe(true);
+  });
+
+  it('should return false for other types', () => {
+    const item: GlobalPrompt = {
+      id: 'test',
+      type: CustomizationType.GlobalPrompt,
+      sourcePath: 'test.md',
+      content: 'content',
+      metadata: {},
+    };
+
+    expect(isSimpleAgentSkill(item)).toBe(false);
+  });
+});
+
+describe('isAgentSkill (deprecated alias)', () => {
+  /**
+   * Backward compatibility: isAgentSkill should work as alias for isSimpleAgentSkill.
+   */
+
+  it('should work as alias for isSimpleAgentSkill', () => {
+    const item: SimpleAgentSkill = {
+      id: 'test',
+      type: CustomizationType.SimpleAgentSkill,
+      sourcePath: 'test.md',
+      content: 'content',
+      description: 'Test skill',
+      metadata: {},
+    };
+
+    // isAgentSkill is the deprecated alias, should return same result
+    expect(isAgentSkill(item)).toBe(true);
+    expect(isAgentSkill(item)).toBe(isSimpleAgentSkill(item));
+  });
+});
+
+describe('isAgentSkillIO', () => {
+  /**
+   * Type guard for the new AgentSkillIO type.
+   */
+
+  it('should return true for AgentSkillIO', () => {
+    const item: AgentSkillIO = {
+      id: 'test',
+      type: CustomizationType.AgentSkillIO,
+      sourcePath: '.cursor/skills/deploy/SKILL.md',
+      content: 'Deploy content',
+      name: 'deploy',
+      description: 'Deploy skill',
+      files: {},
+      metadata: {},
+    };
+
+    expect(isAgentSkillIO(item)).toBe(true);
+  });
+
+  it('should return false for SimpleAgentSkill', () => {
+    const item: SimpleAgentSkill = {
+      id: 'test',
+      type: CustomizationType.SimpleAgentSkill,
+      sourcePath: 'test.md',
+      content: 'content',
+      description: 'Test skill',
+      metadata: {},
+    };
+
+    expect(isAgentSkillIO(item)).toBe(false);
+  });
+
+  it('should return false for other types', () => {
+    const item: GlobalPrompt = {
+      id: 'test',
+      type: CustomizationType.GlobalPrompt,
+      sourcePath: 'test.md',
+      content: 'content',
+      metadata: {},
+    };
+
+    expect(isAgentSkillIO(item)).toBe(false);
   });
 });

@@ -12,7 +12,7 @@ const claudePlugin: A16nPlugin = {
   supports: [
     CustomizationType.GlobalPrompt,
     CustomizationType.FileRule,
-    CustomizationType.AgentSkill,
+    CustomizationType.SimpleAgentSkill,
   ],
 
   discover,

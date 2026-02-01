@@ -7,12 +7,12 @@ import {
   type WrittenFile,
   type Warning,
   type FileRule,
-  type AgentSkill,
+  type SimpleAgentSkill,
   CustomizationType,
   WarningCode,
   isGlobalPrompt,
   isFileRule,
-  isAgentSkill,
+  isSimpleAgentSkill,
   isAgentIgnore,
   isManualPrompt,
 } from '@a16njs/models';
@@ -103,7 +103,7 @@ ${content}
 }
 
 /**
- * Format content as MDC with AgentSkill frontmatter (description).
+ * Format content as MDC with SimpleAgentSkill frontmatter (description).
  * Used for legacy .cursor/rules/*.mdc emission.
  */
 function formatAgentSkillMdc(content: string, description: string): string {
@@ -119,10 +119,10 @@ ${content}
 }
 
 /**
- * Format AgentSkill as a SKILL.md file.
+ * Format SimpleAgentSkill as a SKILL.md file.
  * Used for .cursor/skills/ emission (Phase 7).
  */
-function formatAgentSkillMd(skill: import('@a16njs/models').AgentSkill): string {
+function formatAgentSkillMd(skill: import('@a16njs/models').SimpleAgentSkill): string {
   const skillName = (skill.metadata?.name as string) || sanitizeFilename(skill.sourcePath);
   const safeName = JSON.stringify(skillName);
   const safeDescription = JSON.stringify(skill.description);
@@ -175,13 +175,13 @@ export async function emit(
   // Separate by type
   const globalPrompts = models.filter(isGlobalPrompt);
   const fileRules = models.filter(isFileRule);
-  const agentSkills = models.filter(isAgentSkill);
+  const agentSkills = models.filter(isSimpleAgentSkill);
   const agentIgnores = models.filter(isAgentIgnore);
   const manualPrompts = models.filter(isManualPrompt);
   
   // Track unsupported types (future types)
   for (const model of models) {
-    if (!isGlobalPrompt(model) && !isFileRule(model) && !isAgentSkill(model) && !isAgentIgnore(model) && !isManualPrompt(model)) {
+    if (!isGlobalPrompt(model) && !isFileRule(model) && !isSimpleAgentSkill(model) && !isAgentIgnore(model) && !isManualPrompt(model)) {
       unsupported.push(model);
     }
   }
@@ -276,7 +276,7 @@ export async function emit(
     });
   }
 
-  // === Emit AgentSkills as .cursor/skills/*/SKILL.md (Phase 7) ===
+  // === Emit SimpleAgentSkills as .cursor/skills/*/SKILL.md (Phase 7) ===
   for (const skill of agentSkills) {
     // Get skill name from metadata or sourcePath
     const skillName = (skill.metadata?.name as string) || sanitizeFilename(skill.sourcePath);
@@ -317,7 +317,7 @@ export async function emit(
 
     written.push({
       path: filepath,
-      type: CustomizationType.AgentSkill,
+      type: CustomizationType.SimpleAgentSkill,
       itemCount: 1,
       isNewFile,
       sourceItems: [skill],

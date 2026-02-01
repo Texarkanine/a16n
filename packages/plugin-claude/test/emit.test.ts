@@ -428,8 +428,8 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
     it('should create skill directory and SKILL.md file', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/auth.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -447,8 +447,8 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
     it('should include description in skill frontmatter', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/auth.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -470,16 +470,16 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
     it('should create separate skill directories for each', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/auth.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Auth content',
           description: 'Auth patterns',
           metadata: {},
         },
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/database.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/database.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/database.mdc',
           content: 'Database content',
           description: 'Database patterns',
@@ -504,8 +504,8 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
     it('should include name from metadata in skill frontmatter', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/auth.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -524,8 +524,8 @@ describe('Claude AgentSkill Emission (Phase 2)', () => {
     it('should omit name if not present in metadata', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/auth.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -690,8 +690,8 @@ describe('Mixed Model Emission (Phase 8 A2)', () => {
         metadata: {},
       } as FileRule,
       {
-        id: createId(CustomizationType.AgentSkill, 'auth.mdc'),
-        type: CustomizationType.AgentSkill,
+        id: createId(CustomizationType.SimpleAgentSkill, 'auth.mdc'),
+        type: CustomizationType.SimpleAgentSkill,
         sourcePath: 'auth.mdc',
         content: 'Auth content',
         description: 'Auth patterns',
@@ -1192,8 +1192,8 @@ describe('Claude ManualPrompt Emission (Phase 4)', () => {
     it('should prevent collisions when AgentSkill and ManualPrompt have same name', async () => {
       const models = [
         {
-          id: createId(CustomizationType.AgentSkill, '.cursor/rules/review.mdc'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/review.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/review.mdc',
           content: 'Skill content for review',
           description: 'Review skill',
@@ -1430,8 +1430,8 @@ describe('Claude Plugin - sourceItems tracking (Phase 8 A2)', () => {
     // Test that WrittenFile for each skill SKILL.md includes
     // sourceItems array with single AgentSkill
     const skill: AgentSkill = {
-      id: createId(CustomizationType.AgentSkill, '.cursor/rules/database.mdc'),
-      type: CustomizationType.AgentSkill,
+      id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/database.mdc'),
+      type: CustomizationType.SimpleAgentSkill,
       sourcePath: '.cursor/rules/database.mdc',
       content: 'Database operations',
       description: 'Database helper',
@@ -1442,7 +1442,7 @@ describe('Claude Plugin - sourceItems tracking (Phase 8 A2)', () => {
 
     expect(result.written).toHaveLength(1);
     const written = result.written[0];
-    expect(written?.type).toBe(CustomizationType.AgentSkill);
+    expect(written?.type).toBe(CustomizationType.SimpleAgentSkill);
     expect(written?.itemCount).toBe(1);
     expect(written?.sourceItems).toBeDefined();
     expect(written?.sourceItems).toHaveLength(1);

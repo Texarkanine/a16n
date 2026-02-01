@@ -334,8 +334,8 @@ describe('Cursor AgentSkill Emission (Phase 2)', () => {
     it('should emit AgentSkill as .mdc with description: frontmatter', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.claude/skills/auth/SKILL.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/auth/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.claude/skills/auth/SKILL.md',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -356,8 +356,8 @@ describe('Cursor AgentSkill Emission (Phase 2)', () => {
     it('should include skill content after frontmatter', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, 'auth.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, 'auth.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: 'auth.md',
           content: 'Use JWT for authentication.',
           description: 'Auth patterns',
@@ -374,8 +374,8 @@ describe('Cursor AgentSkill Emission (Phase 2)', () => {
     it('should quote description with special characters', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, 'test.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, 'test.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: 'test.md',
           content: 'Content',
           description: 'Auth: patterns & guidelines',
@@ -420,8 +420,8 @@ describe('Cursor Mixed Emission (Phase 2 - Updated for Phase 7)', () => {
         metadata: {},
       } as FileRule,
       {
-        id: createId(CustomizationType.AgentSkill, 'auth.md'),
-        type: CustomizationType.AgentSkill,
+        id: createId(CustomizationType.SimpleAgentSkill, 'auth.md'),
+        type: CustomizationType.SimpleAgentSkill,
         sourcePath: 'auth.md',
         content: 'Auth content',
         description: 'Auth patterns',
@@ -871,8 +871,8 @@ describe('Cursor Skills Emission (Phase 7)', () => {
     it('should emit AgentSkill to .cursor/skills/<name>/SKILL.md', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.claude/skills/auth/SKILL.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/auth/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.claude/skills/auth/SKILL.md',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -883,7 +883,7 @@ describe('Cursor Skills Emission (Phase 7)', () => {
       const result = await cursorPlugin.emit(models, tempDir);
 
       expect(result.written).toHaveLength(1);
-      expect(result.written[0]?.type).toBe(CustomizationType.AgentSkill);
+      expect(result.written[0]?.type).toBe(CustomizationType.SimpleAgentSkill);
 
       // Verify skill directory structure
       const skillPath = path.join(tempDir, '.cursor', 'skills', 'auth-helper', 'SKILL.md');
@@ -894,8 +894,8 @@ describe('Cursor Skills Emission (Phase 7)', () => {
     it('should include name and description in skill frontmatter', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.claude/skills/db/SKILL.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/db/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.claude/skills/db/SKILL.md',
           content: 'Database operations',
           description: 'Database helper',
@@ -915,8 +915,8 @@ describe('Cursor Skills Emission (Phase 7)', () => {
     it('should sanitize skill names for directory creation', async () => {
       const models: AgentSkill[] = [
         {
-          id: createId(CustomizationType.AgentSkill, '.claude/skills/weird/SKILL.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/weird/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.claude/skills/weird/SKILL.md',
           content: 'Content',
           description: 'Test',
@@ -985,8 +985,8 @@ describe('Cursor Skills Emission (Phase 7)', () => {
     it('should handle collisions between AgentSkill and ManualPrompt with same name', async () => {
       const models = [
         {
-          id: createId(CustomizationType.AgentSkill, '.claude/skills/review/SKILL.md'),
-          type: CustomizationType.AgentSkill,
+          id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/review/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.claude/skills/review/SKILL.md',
           content: 'Skill content',
           description: 'Review skill',
@@ -1073,8 +1073,8 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
     // Test that WrittenFile for each AgentSkill SKILL.md includes
     // sourceItems array with single AgentSkill
     const skill: AgentSkill = {
-      id: createId(CustomizationType.AgentSkill, '.cursor/rules/database.mdc'),
-      type: CustomizationType.AgentSkill,
+      id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/database.mdc'),
+      type: CustomizationType.SimpleAgentSkill,
       sourcePath: '.cursor/rules/database.mdc',
       content: 'Database operations',
       description: 'Database helper',
@@ -1085,7 +1085,7 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
 
     expect(result.written).toHaveLength(1);
     const written = result.written[0];
-    expect(written?.type).toBe(CustomizationType.AgentSkill);
+    expect(written?.type).toBe(CustomizationType.SimpleAgentSkill);
     expect(written?.itemCount).toBe(1);
     expect(written?.sourceItems).toBeDefined();
     expect(written?.sourceItems).toHaveLength(1);

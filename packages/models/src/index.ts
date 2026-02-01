@@ -5,7 +5,9 @@ export {
   CustomizationType,
   type AgentCustomization,
   type GlobalPrompt,
-  type AgentSkill,
+  type SimpleAgentSkill,
+  type AgentSkill, // Deprecated alias for SimpleAgentSkill
+  type AgentSkillIO,
   type FileRule,
   type AgentIgnore,
   type ManualPrompt,
@@ -26,7 +28,9 @@ export { WarningCode, type Warning } from './warnings.js';
 // Helpers
 export {
   isGlobalPrompt,
-  isAgentSkill,
+  isSimpleAgentSkill,
+  isAgentSkill, // Deprecated alias for isSimpleAgentSkill
+  isAgentSkillIO,
   isFileRule,
   isAgentIgnore,
   isManualPrompt,

@@ -3,7 +3,7 @@ import * as path from 'path';
 import {
   type AgentCustomization,
   type AgentIgnore,
-  type AgentSkill,
+  type SimpleAgentSkill,
   type FileRule,
   type ManualPrompt,
   type DiscoveryResult,
@@ -462,7 +462,7 @@ export async function discover(root: string): Promise<DiscoveryResult> {
       
       // Classification priority:
       // 1. disable-model-invocation: true -> ManualPrompt
-      // 2. description present -> AgentSkill
+      // 2. description present -> SimpleAgentSkill
       if (frontmatter.disableModelInvocation === true) {
         const prompt: ManualPrompt = {
           id: createId(CustomizationType.ManualPrompt, skillPath),
@@ -476,9 +476,9 @@ export async function discover(root: string): Promise<DiscoveryResult> {
         };
         items.push(prompt);
       } else if (frontmatter.description) {
-        const skill: AgentSkill = {
-          id: createId(CustomizationType.AgentSkill, skillPath),
-          type: CustomizationType.AgentSkill,
+        const skill: SimpleAgentSkill = {
+          id: createId(CustomizationType.SimpleAgentSkill, skillPath),
+          type: CustomizationType.SimpleAgentSkill,
           sourcePath: skillPath,
           content: body,
           description: frontmatter.description,
