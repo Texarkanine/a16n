@@ -45,6 +45,7 @@ A SimpleAgentSkill is *just* a text file with prompt contents.
 
 Examples include:
 - Cursor rules with `description: ...`
+- Claude Code skills that contain only a single `SKILL.md` file
 
 #### AgentSkillIO
 
@@ -86,7 +87,7 @@ During conversion, all customizations are normalized into a common format (IR) b
 
 ```mermaid
 flowchart LR
-  A[Source Files] --> B[IR<br/>(AgentCustomization[])]
+  A[Source Files] --> B["IR<br/>(AgentCustomization[])"]
   B --> C[Target Files]
 ```
 

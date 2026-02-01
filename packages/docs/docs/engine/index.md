@@ -39,24 +39,25 @@ console.log(`Warnings: ${result.warnings.length}`);
 
 ## Architecture
 
-The engine uses a plugin-based architecture with a three-stage pipeline:
+The engine uses a plugin-based architecture and a sequential pipeline.
 
 ```mermaid
-flowchart LR
-    subgraph Engine["A16nEngine"]
-        direction TB
-        P[Plugins] --> D[Discover]
-        D --> IR[Internal Model]
-        IR --> E[Emit]
-        E --> FS[File System]
-    end
+sequenceDiagram
+    participant User
+    participant Engine as A16nEngine
+    participant Source as Source Plugin
+    participant Target as Target Plugin
+
+    User->>Engine: convert({ source, target, root })
+    Engine->>Source: discover(root)
+    Source->>Source: Scan and parse config files
+    Source->>Source: Normalize to IR (AgentCustomization[])
+    Source-->>Engine: AgentCustomization[]
+    Engine->>Target: emit(AgentCustomization[], root)
+    Note over Target: Write Files
+    Target-->>Engine: EmitResult (written files, warnings)
+    Engine-->>User: Conversion result
 ```
-
-### Pipeline Stages
-
-1. **Discovery** - Source plugin finds and parses configuration files
-2. **Intermediate Representation** - Config is converted to tool-agnostic format
-3. **Emission** - Target plugin writes configuration in its format
 
 ---
 
