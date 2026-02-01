@@ -50,7 +50,8 @@ import {
 ### Helpers
 
 - `isGlobalPrompt(item)` - Type guard for GlobalPrompt
-- `isAgentSkill(item)` - Type guard for AgentSkill
+- `isSimpleAgentSkill(item)` - Type guard for SimpleAgentSkill
+- `isAgentSkillIO(item)` - Type guard for AgentSkillIO
 - `isFileRule(item)` - Type guard for FileRule
 - `isAgentIgnore(item)` - Type guard for AgentIgnore
 - `isManualPrompt(item)` - Type guard for ManualPrompt
