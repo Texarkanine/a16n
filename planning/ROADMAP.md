@@ -13,12 +13,18 @@ gantt
     section Completed
         Phase 1-8                :done, p1to8, 2026-01-21, 2w
     section Defined
-        IR Serialization Plugin  :active, p9, 2026-02-05, 2w
+        IR Serialization Plugin  :p9, after p1to8, 2w
         MCP Config Support       :p10, after p9, 2w
     section Future
         Output File Strategy     :pOFS, after p10, 1w
         Ecosystem + Tooling      :pEco, after pOFS, 4w
 ```
+
+| Phase | Name | Key Deliverables | Spec |
+|-------|------|------------------|------|
+| 9 | IR Serialization Plugin | `.a16n/` directory structure; IR round-trip support (`@a16njs/plugin-a16n-ir`); versioned YAML frontmatter; version compatibility checks; IR migration warnings; plugin documentation | [PHASE_9_SPEC.md](./PHASE_9_SPEC.md) |
+| 10 | MCP Config Support | MCPConfig IR type; Claude & Cursor MCP config round-trip support | - |
+
 
 ---
 
