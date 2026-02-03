@@ -42,6 +42,8 @@ enum CustomizationType {
 
 ### Cursor Sources/Targets
 
+Refer to [../packages/docs/docs/plugin-cursor/index.md](../packages/docs/docs/plugin-cursor/index.md) for more details.
+
 | IR Type | Cursor Location | Notes |
 |---------|-----------------|-------|
 | GlobalPrompt | `.cursor/rules/*.mdc` | `alwaysApply: true` |
@@ -52,6 +54,8 @@ enum CustomizationType {
 | ManualPrompt | `.cursor/commands/**/*.md` | Simple commands only |
 
 ### Claude Sources/Targets
+
+Refer to [../packages/docs/docs/plugin-claude/index.md](../packages/docs/docs/plugin-claude/index.md) for more details.
 
 | IR Type | Claude Location | Notes |
 |---------|-----------------|-------|
