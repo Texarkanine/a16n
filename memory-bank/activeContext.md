@@ -1,14 +1,9 @@
-# Active Context
+# Memory Bank: Active Context
 
-No active task. Use `/niko` to start a new task.
+*No active context. Use `/niko` to initialize a new task.*
 
 ---
 
-## Template
+## Recent Activity
 
-When working on a task, this file captures:
-
-- Current focus and objectives
-- Recent decisions
-- Immediate next steps
-- Session notes
+- **2026-02-03**: Archived Phase 9 planning work, re-initialized memory bank metadata

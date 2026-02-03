@@ -1,15 +1,9 @@
-# Progress Tracking
+# Memory Bank: Progress
 
-No active task. Use `/niko` to start a new task.
+*No active task in progress. Use `/niko` to start a new task.*
 
 ---
 
-## Template
+## Recent Completions
 
-When a task is in progress, this file tracks:
-
-- Current milestone status
-- Implementation progress
-- Blockers and resolutions
-- Test results
-- Verification outcomes
+- **2026-02-03**: Phase 9 planning archived → `memory-bank/archive/features/20260203-PHASE9-PLANNING.md`
