@@ -43,9 +43,6 @@ Some concepts map cleanly between tools, including but not necessarily limited t
 | Manual Prompts        | Commands in `.cursor/commands/*.md`          | Skills with `disable-model-invocation: true` |
 | Ignore patterns       | `.cursorignore`                              | `permissions.deny` Read rules                |
 
-:::tip Lossless FileRule Conversion
-As of January 2026, Claude Code natively supports glob-based file rules via the `paths:` frontmatter. FileRules now convert losslessly between Cursor and Claude Code.
-:::
 
 ## What Gets Approximated
 
@@ -72,11 +69,11 @@ Some impossible conversions include, but are not necessarily limited to:
 
 a16n *translates* from one toolchain to another, and like all translations, running it back-and-forth, or through several iterations, does not always result in the original input.
 
-For example, Cursor Commands convert from `.cursor/commands/*.md` into Claude as AgentSkills with `disable-model-invocation: true`.
-Converting from Claude back to Cursor will just move the AgentSkill file, as Cursor does understand AgentSkills.
-You'll never get the original `.cursor/commands/*.md` file back.
+For example, `CLAUDE.md` converts into a Cursor Rule with `alwaysApply: true`. But, converting a Cursor `alwaysApply: true` rule back into Claude will produce 
+`.claude/rules/*.md` file, rather than appending or creating a `CLAUDE.md` file.
 
 Since a16n doesn't know what conversions you may attempt after the first, it cannot warn you about such non-invertible (or multi-step) lossiness like this.
+
 ## Example Warning Output
 
 When you run a conversion, a16n shows you exactly what happened:
