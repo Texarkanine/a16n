@@ -4,314 +4,191 @@
 
 ## Phase Overview
 
+"Dates merely representative, order subject to change."
+
 ```mermaid
 gantt
     title a16n Development Phases
     dateFormat  YYYY-MM-DD
-    section Phase 1
-        GlobalPrompt MVP           :done, p1, 2025-01-20, 2w
-        Phase 1 Spec               :done, p1spec, 2025-01-19, 1d
-    section Phase 2
-        AgentSkill + FileRule      :done, p2, after p1, 2w
-        Phase 2 Spec               :done, p2spec, after p1, 2d
-    section Phase 3
-        AgentIgnore + Polish       :done, p3, after p2, 1w
-        Phase 3 Spec               :done, p3spec, after p2, 1d
-    section Phase 4
-        AgentCommand               :done, p4, after p3, 1w
-        Phase 4 Spec               :done, p4spec, after p3, 1d
-    section Phase 5
-        Git Ignore Management      :done, p5, after p4, 2w
-        Phase 5 Spec               :done, p5spec, after p4, 1d
-    section Phase 6
-        CLI Polish                 :p6, after p5, 1w
-        Phase 6 Spec               :p6spec, after p5, 1d
-    section Phase 7
-        AgentSkills Standard       :p7, after p6, 2w
-        Phase 7 Spec               :p7spec, after p6, 1d
+    section Completed
+        Phase 1-8                :done, p1to8, 2026-01-21, 2w
+    section Defined
+        IR Serialization Plugin  :active, p9, 2026-02-05, 2w
+        MCP Config Support       :p10, after p9, 2w
     section Future
-        Ecosystem + Tooling        :p8, after p7, 4w
+        Output File Strategy     :pOFS, after p10, 1w
+        Ecosystem + Tooling      :pEco, after pOFS, 4w
 ```
 
 ---
 
-## Phase 1: GlobalPrompt MVP ✅ Complete
+## Completed Phases (Summary)
 
-**Goal**: Validate architecture with simplest customization type.
-
-**Scope**:
-- Monorepo infrastructure (pnpm, Turborepo, Changesets)
-- `@a16njs/models` with GlobalPrompt type and plugin interface
-- `@a16njs/engine` with conversion orchestration
-- `@a16njs/plugin-cursor` (GlobalPrompt only)
-- `@a16njs/plugin-claude` (GlobalPrompt only)
-- `a16n` CLI with `convert`, `discover`, `plugins` commands
-- Warning system for merged files
-
-**Spec**: [PHASE_1_SPEC.md](./PHASE_1_SPEC.md)
-
-**Exit Criteria**:
-- [x] `a16n convert --from cursor --to claude .` works end-to-end
-- [x] `a16n convert --from claude --to cursor .` works end-to-end
-- [x] All 10 acceptance criteria pass
-- [ ] Published to npm as `a16n@0.1.0`
+| Phase | Name | Key Deliverables | Spec |
+|-------|------|------------------|------|
+| 1 | GlobalPrompt MVP | Monorepo infrastructure, `@a16njs/models`, `@a16njs/engine`, Cursor/Claude plugins, CLI | [PHASE_1_SPEC.md](./PHASE_1_SPEC.md) |
+| 2 | AgentSkill + FileRule | Activation-criteria rules, `@a16njs/glob-hook`, skills directory handling | — |
+| 3 | AgentIgnore + Polish | `.cursorignore` ↔ `permissions.deny`, verbose flag, improved warnings | [PHASE_3_SPEC.md](./PHASE_3_SPEC.md) |
+| 4 | AgentCommand | Cursor commands → Claude skills (simple commands only) | — |
+| 5 | Git Ignore Management | `--gitignore-output-with` flag (ignore/exclude/hook/match styles) | [PHASE_5_SPEC.md](./PHASE_5_SPEC.md) |
+| 6 | CLI Polish | Dry-run "Would" prefix, `--delete-source` flag | [PHASE_6_SPEC.md](./PHASE_6_SPEC.md) |
+| 7 | AgentSkills Standard | AgentCommand → ManualPrompt rename, `.cursor/skills/` emission, bidirectional support | [PHASE_7_SPEC.md](./PHASE_7_SPEC.md) |
+| 8 | Claude Native Rules | `.claude/rules/` with `paths` frontmatter, full AgentSkills.io support | [PHASE_8_SPEC.md](./PHASE_8_SPEC.md) |
 
 ---
 
-## Phase 2: AgentSkill + FileRule ✅ Complete
-
-**Goal**: Support activation-criteria-based rules (the most common customization pattern).
-
-**Scope**:
-- Add `AgentSkill` type (description-triggered)
-- Add `FileRule` type (glob-triggered)
-- Extend Cursor plugin: parse `description` and `globs` frontmatter
-- Extend Claude plugin: map to/from skills and tool hooks
-- Handle mixed-type conversions (some translate, some don't)
-- **Detect and skip Claude skills with embedded hooks** (unsupported)
-
-**Completed**:
-- ✅ `@a16njs/glob-hook` package (PR #2)
-- ✅ AgentSkill + FileRule support (PR #3)
-- ✅ Claude skills directory structure handling
-- ✅ Skills with hooks detection and warning
-
-**Out of Scope (deferred)**:
-- **Claude skills with `hooks:` in frontmatter** — Reported as unsupported with clear warning
-
----
-
-## Phase 3: AgentIgnore + Polish ✅ Spec Complete
-
-**Goal**: Complete the type taxonomy; polish warnings and edge cases.
-
-**Scope**:
-- Add `AgentIgnore` type support
-- Cursor plugin: `.cursorignore` discovery and emission
-- Claude plugin: permissions.deny Read rules discovery/emission (approximation + warning)
-- Improve warning messages based on Phase 1-2 feedback (colors, icons, hints)
-- Add `--verbose` flag for debugging
-- Improve error messages for common failure modes
-
-**Spec**: [PHASE_3_SPEC.md](./PHASE_3_SPEC.md)
-
-**Key Decisions**:
-- Use permissions.deny Read rules as an approximation; warn about behavioral differences
-- No approximation via hooks (too complex, community can implement if needed)
-- 10 acceptance criteria defined
-- 9 implementation tasks planned
-
-**Estimated Scope**: ~8-12 hours
-
----
-
-## Phase 4: AgentCommand Support
-
-**Goal**: Support slash command customizations (Cursor → Claude only).
-
-**Background**: Both Cursor and Claude support slash commands — prepackaged prompts invoked explicitly via `/command-name`. However, the semantics differ:
-- **Cursor**: `.cursor/commands/*.md` files with optional features (`$ARGUMENTS`, `$1/$2`, bash execution `!`, file refs `@`, `allowed-tools` frontmatter)
-- **Claude**: Invokes skills via `/skill-name` — there is no separate commands directory; skills serve double duty
-
-**Scope**:
-- Add `AgentCommand` to `CustomizationType` enum
-- Cursor plugin: discover `.cursor/commands/**/*.md` files as `AgentCommand`
-- Cursor plugin: classify commands as "simple" (translatable) vs "complex" (has special features)
-- Claude plugin: emit simple `AgentCommand` → `.claude/skills/*/SKILL.md` with appropriate description for `/invocation`
-- **Skip with warning** any command containing `$ARGUMENTS`, `$1`-`$9`, `!` bash execution, `@` file refs, or `allowed-tools` frontmatter
-
-**Direction**: Cursor → Claude **only**. Claude → Cursor is unsupported because:
-- Claude has no dedicated command concept to discover
-- Claude skills are already discovered as `AgentSkill` (which converts to Cursor rules with `description:`)
-- Users can `@reference` the converted rule in Cursor, achieving similar explicit invocation
-
-**Key Decisions**:
-- Commands with special features are NOT translatable — the basic "prepackaged prompt" is all that can cross the boundary
-- Claude plugin will never discover/report `AgentCommand` entries
-- Converted commands become Claude skills (invocable via `/skill-name`)
-
-**Spec**: To be authored after Phase 3 implementation.
-
-**Estimated Scope**: ~4-6 hours
-
----
-
-## Phase 5: Git Ignore Output Management ✅ Complete
-
-**Goal**: Provide CLI options to manage git tracking of output files.
-
-**Background**: Users may want converted output files to be git-ignored, especially for:
-- Local customizations that shouldn't be committed
-- Generated files that can be regenerated from source
-- Maintaining parity with how source files were tracked
-
-**Scope**:
-- Add `--gitignore-output-with <style>` CLI flag to `convert` command
-- Styles:
-  - `none` (default when flag omitted) — no git ignore management
-  - `ignore` — add entries to `.gitignore`
-  - `exclude` — add entries to `.git/info/exclude`
-  - `hook` — generate/update pre-commit hook that unstages output files
-  - `match` — mirror each source file's git-ignore status to its output(s)
-
-**Style Details**:
-
-| Style | Scope | Mechanism |
-|-------|-------|-----------|
-| `none` | — | No action (current behavior) |
-| `ignore` | All outputs | Append to `.gitignore` |
-| `exclude` | All outputs | Append to `.git/info/exclude` |
-| `hook` | All outputs | Generate `.git/hooks/pre-commit` with semaphore comments; unstages all output paths |
-| `match` | Per-file | Check each source's ignore status; apply same mechanism to output |
-
-**Critical Constraints**:
-- **Only manage files WE CREATE** — if output is an edit to an existing file (e.g., appending to existing `CLAUDE.md`), do not modify its git-ignore status
-- **Warn on boundary crossings** — if source is git-ignored but output file already exists and is tracked (or vice versa), emit warning that parity cannot be maintained
-- **Hook uses semaphore pattern** — like ai-rizz's `# BEGIN a16n hook` / `# END a16n hook`, regenerate the section on each run
-
-**Example Warning**:
-```
-⚠ Cannot match git-ignore status: source '.cursor/rules/local/foo.mdc' is ignored,
-  but output 'CLAUDE.md' already exists and is tracked.
-  Output file's git status will not be changed.
-```
-
-**Dependencies**: Requires resolution of "Output File Strategy" (overwrite vs merge) to correctly identify which files are created vs edited.
-
-**Spec**: To be authored after Phase 4 implementation.
-
-**Estimated Scope**: ~8-12 hours
-
----
-
-## Phase 6: CLI Polish
-
-**Goal**: Quick UX improvements and source management capabilities.
-
-**Scope**:
-
-### 6A: Dry-Run Output Wording
-- Change output verbs to use "Would" prefix in dry-run mode
-- `Wrote:` → `Would write:`
-- `Git: Updated` → `Would update:`
-- Applies consistently to all action outputs
-
-### 6B: `--delete-source` Flag
-- Add `--delete-source` flag to `convert` command
-- When provided, delete source files that were successfully used in output files
-- **Critical constraint**: If a source was involved in ANY skip (warning code `Skipped`), do NOT delete it
-- Uses existing `WrittenFile.sourceItems` tracking to identify consumed sources
-- Uses existing warning `sources` to identify skipped sources
-- Sources to delete = (used sources) − (skipped sources)
-
-**Use Case**: "I'm migrating to the new toolchain and not coming back."
-
-**Spec**: [PHASE_6_SPEC.md](./PHASE_6_SPEC.md)
-
-**Estimated Scope**: ~4-6 hours
-
----
-
-## Phase 7: AgentSkills Standard Alignment
-
-**Goal**: Align with the [AgentSkills open standard](https://agentskills.io) for portable AI agent skills.
-
-**Background**: The AgentSkills standard (supported by Cursor, Claude, Codex) defines:
-- Skills in `.<tool>/skills/<name>/SKILL.md` format
-- `disable-model-invocation: true` frontmatter for manual-only invocation
-- Consistent discovery and emission across tools
-
-**Scope**:
-
-### 7A: AgentCommand → ManualPrompt Rename
-- Rename `AgentCommand` type to `ManualPrompt` in `@a16njs/models`
-- Represents "stored prompts that are user-requested, not agent-activated"
-- Examples: Cursor commands, Cursor rules with no activation criteria, Claude skills with `disable-model-invocation: true`
-
-### 7B: Cursor Plugin — ManualPrompt Classification
-- Rules with no activation criteria (no `globs`, no `description`, `alwaysApply: false` or absent) become `ManualPrompt` instead of `GlobalPrompt`
-- Cursor commands (`.cursor/commands/*.md`) remain `ManualPrompt`
-
-### 7C: Cursor Plugin — Skills Discovery
-- Discover `.cursor/skills/*/SKILL.md` files
-- Skills with `description:` → `AgentSkill`
-- Skills with `disable-model-invocation: true` → `ManualPrompt`
-
-### 7D: Cursor Plugin — Skills Emission
-- Emit `AgentSkill` to `.cursor/skills/<name>/SKILL.md` (NOT `.cursor/rules/`)
-- Emit `ManualPrompt` to `.cursor/skills/<name>/SKILL.md` with `disable-model-invocation: true`
-- **Stop emitting AgentSkill as Cursor rules** — reduces conversion loss
-
-### 7E: Claude Plugin — ManualPrompt Support
-- Discover skills with `disable-model-invocation: true` as `ManualPrompt`
-- Emit `ManualPrompt` as skills with `disable-model-invocation: true`
-- Makes the type **bidirectional** (previously AgentCommand was Cursor → Claude only)
-
-**Key Insight**: This alignment means Cursor → Claude → Cursor conversions preserve skills as skills, reducing information loss.
-
-**Spec**: [PHASE_7_SPEC.md](./PHASE_7_SPEC.md)
-
-**Estimated Scope**: ~12-16 hours
-
----
-
-## Phase 8: Claude Native Rules + Full AgentSkills.io Support
+## Phase 9: IR Serialization Plugin (`@a16njs/plugin-a16n-ir`)
 
 **Status**: Planned
 
-**Goals**:
+**Goal**: Enable persisting and reading the a16n intermediate representation to/from disk, supporting versioned migration workflows.
 
-1. **Claude Native Rules Support**: Leverage Claude Code's new `.claude/rules/` directory with `paths` frontmatter for native glob-based file rules, eliminating the glob-hook workaround.
+### Background
 
-2. **Full AgentSkills.io Support**: Support the complete AgentSkills.io specification, not just simple single-file skills.
+Currently, conversions are ephemeral—source is read, IR is built in memory, output is written. This phase introduces disk-based IR persistence via a new plugin that reads/writes `.a16n/` directory structure. This would allow users to choose to author agent customizations in a stack-agnostic format in a repo, unrecognized by any tool *by default*, and the postentially render customizations on-demand per-developer based on the tool the dev is using.
 
-### Part A: Claude Native Rules (New Feature!)
+### Scope
 
-As of January 2026, Claude Code supports modular rules via `.claude/rules/*.md` files with optional `paths` frontmatter:
+#### 9A: IR File Format
+
+- **Directory structure**: `.a16n/<IRType>/<Name>.md` (e.g., `.a16n/GlobalPrompt/SomeName.md`)
+- **File format**: YAML frontmatter with all IR metadata, content after frontmatter
+- **File extension routing**: `.md` for text-based IR types (GlobalPrompt, FileRule, SimpleAgentSkill, ManualPrompt, AgentIgnore)
+- **Future consideration**: Other extensions for structured IR types (e.g., `.a16n/MCPConfig/*.json`)
+- **Exception:** AgentSkillsIO skills are just emitted in their format in `.a16n/AgentSkillIO/<skill-name>/*` (since there's a "universal" standard, that *is* the IR)
+    - Consider: extract parsing of AgentSkillsIO skills in a given dir, into Models? Or elsewhere? As now 3 plugins - cursor, claude, and a16n, will all be reading the same standard, from 3 different dirs in 3 different plugins...
+
+#### 9B: IR Versioning
+
+- **API version field**: Each IR model type gets a `version` field in frontmatter
+- **Version format**: Kubernetes-style (e.g., `v1beta1`, `v1`, `v2beta1`)
+- **Compatibility**: Versions are NOT compatible across major/stability boundaries (`v1beta1` ≠ `v1`)
+- **Version mismatch handling**: Warn when reading IR files with incompatible versions
+
+#### 9C: Plugin Implementation
+
+- **Package**: `@a16njs/plugin-a16n-ir`
+- **Discovery**: Read `.a16n/<IRType>/*.md` files, parse frontmatter, construct IR items
+- **Emission**: Write IR items to `.a16n/<IRType>/<name>.md` with versioned frontmatter
+- **CLI usage**: `--from a16n`, `--to a16n`
+
+#### 9D: Migration Workflow
+
+- **Current limitation**: Cannot `--from a16n --to a16n` (same plugin both directions)
+    - In general, CLI should warn if `from` and `to` are the same plugin
+- **Migration path**: `--to <other>` with old a16n, then update a16n, then `--from <other> --to a16n`
+- **Future enhancement**: Consider `--a16n-plugin-version` flag or multi-plugin support
+
+### Example IR File
 
 ```markdown
 ---
-paths:
-  - "src/api/**/*.ts"
+version: v1beta1
+type: GlobalPrompt
+name: coding-standards
+alwaysApply: true
 ---
 
-# API Development Rules
+# Coding Standards
+
+Always use TypeScript strict mode...
 ```
 
-**Key Changes**:
-- **Discovery**: `.claude/rules/*.md` without `paths` → GlobalPrompt; with `paths` → FileRule
-- **Emission**: GlobalPrompt/FileRule → native `.claude/rules/*.md` files (no more glob-hook!)
-- **Simplification**: Remove glob-hook integration from Claude plugin; FileRule conversion is now lossless
+### Key Decisions
 
-**Impact**: This is a major simplification that removes translation fuzziness between Cursor and Claude.
+- Start all IR versions at `v1beta1`
+- No automatic version migration—explicit workflow required
+- Markdown frontmatter format for human readability and git-friendliness
+- Directory-per-type structure for clear organization
 
-### Part B: Full AgentSkills.io Support
+### Open Questions (Creative Phase Needed)
 
-**Background**: Our current `AgentSkill` type only handles "simple skills" — a single `SKILL.md` file with description frontmatter. The full [AgentSkills.io standard](https://agentskills.io) supports:
-- Multiple files per skill (SKILL.md + additional resources)
-- Hook definitions in skill frontmatter
-- Resource references
-- Complex activation patterns
+1. **Multi-plugin conversion**: How to enable `--from a16n@v1 --to a16n@v2`?
+   - Option A: Version-suffixed plugin names (`--from a16n-v1 --to a16n-v2`)
+   - Option B: `--source-plugin-version` / `--target-plugin-version` flags
+   - Option C: Accept migration via intermediate format as the only path
+2. **Non-markdown IR types**: When/how to introduce JSON/YAML file extensions?
 
-**Key Changes**:
-- Rename `AgentSkill` → `SimpleAgentSkill` (clarify limited scope)
-- Define `AgentSkillIO` type for full standard
-- Discovery: Read entire skill directories with resources
-- Emission: Smart routing based on skill complexity
+**Spec**: To be authored as PHASE_9_SPEC.md
 
-### 7 Milestones
+**Estimated Scope**: ~16-20 hours
 
-1. **Claude Rules Discovery** — Discover `.claude/rules/*.md` with classification
-2. **Claude Rules Emission** — Emit natively, remove glob-hook
-3. **Documentation Cleanup** — Update docs for native rules
-4. **Type System Updates** — Rename + new AgentSkillIO type
-5. **AgentSkillIO Discovery** — Full skill directory discovery
-6. **AgentSkillIO Emission** — Smart routing logic
-7. **Integration & Polish** — E2E tests, final polish
+---
 
-**Spec**: [PHASE_8_SPEC.md](./PHASE_8_SPEC.md)
+## Phase 10: MCP Configuration Support
 
-**Estimated Scope**: ~24 hours
+**Status**: Planned
+
+**Goal**: Support conversion of MCP (Model Context Protocol) server configurations between Cursor and Claude.
+
+### Background
+
+Both Cursor and Claude support MCP for connecting to external tools:
+- **Cursor**: `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global)
+- **Claude Code**: `.mcp.json` (project root) or `~/.claude.json` (user config)
+
+MCP configs define server connections (stdio, HTTP, SSE), environment variables, and authentication.
+
+### Scope
+
+#### 10A: IR Type Definition
+
+- **New type**: `MCPConfig` in `@a16njs/models`
+- **Properties**: Server name, transport type (stdio/http/sse), command/url, args, env, headers, auth
+
+#### 10B: Cursor Plugin — MCP Discovery
+
+- Discover `.cursor/mcp.json` project config
+- Parse `mcpServers` object into `MCPConfig` IR items
+- Handle stdio servers (command, args, env) and remote servers (url, headers)
+
+#### 10C: Cursor Plugin — MCP Emission
+
+- Emit `MCPConfig` items to `.cursor/mcp.json`
+- Merge with existing config (don't overwrite unrelated servers)
+- Support config interpolation syntax (`${env:NAME}`, `${workspaceFolder}`)
+
+#### 10D: Claude Plugin — MCP Discovery
+
+- Discover `.mcp.json` project config
+- Parse server definitions into `MCPConfig` IR items
+- Handle OAuth auth configurations
+
+#### 10E: Claude Plugin — MCP Emission
+
+- Emit `MCPConfig` items to `.mcp.json`
+- Merge with existing config
+- Map transport types appropriately
+
+### Key Considerations
+
+- **Scope alignment**: Both use `mcpServers` object with similar structure
+- **Transport differences**: Cursor uses `type` field; Claude infers from `url` vs `command`
+- **Auth handling**: Cursor supports static OAuth in `auth` object; Claude uses OAuth flow
+- **Environment variables**: Both support interpolation but with slightly different syntax
+
+### Translation Matrix
+
+| Property | Cursor | Claude | Notes |
+|----------|--------|--------|-------|
+| Server name | Object key | Object key | Direct mapping |
+| Stdio command | `command` | `command` | Direct mapping |
+| Stdio args | `args` | `args` | Direct mapping |
+| Environment | `env` | `env` | Direct mapping |
+| HTTP URL | `url` | `url` | Direct mapping |
+| Headers | `headers` | `headers` | Direct mapping |
+| Static OAuth | `auth` | — | Cursor-only; warn on conversion |
+| Transport type | `type` | Inferred | May need explicit in output |
+
+### Limitations
+
+- **OAuth flows**: Dynamic OAuth cannot be converted (requires runtime auth)
+- **Managed configs**: System-level managed configs are out of scope
+- **User-scope configs**: Focus on project-level configs only
+
+**Spec**: To be authored as PHASE_10_SPEC.md
+
+**Estimated Scope**: ~12-16 hours
 
 ---
 
@@ -325,9 +202,8 @@ paths:
 - `.cursor/rules/*.mdc` — less problematic (one file per rule)
 
 **Research Questions**:
-1. Should `CLAUDE.md` support append/merge, or always overwrite with documentation that users should maintain source-of-truth elsewhere?
-2. For JSON files (`.claude/settings.json`, `.claude/settings.local.json`), should we deep-merge specific keys?
-3. How do we track "what we wrote last time" to enable intelligent updates when source changes?
+1. For JSON files (`.claude/settings.json`, `.claude/settings.local.json`), should we deep-merge specific keys?
+2. How do we track "what we wrote last time" to enable intelligent updates when source changes?
 4. Should there be per-file-type defaults with user overrides?
 
 **Potential Options**:
@@ -336,7 +212,7 @@ paths:
 - Manifest file (`.a16n/manifest.json`) tracking previous outputs for diff-based updates
 
 **Key Insight**: Append CANNOT work reliably over time for markdown files — if source changes, we lose the ability to know what part of the destination should be edited. This suggests:
-- **Markdown outputs** (CLAUDE.md): Default to overwrite; document that users should maintain canonical source elsewhere
+- **Markdown outputs**: Default to overwrite; document that users should maintain canonical source elsewhere
 - **JSON outputs** (settings.json): Default to merge; insert/update specific keys without touching others
 
 **Scope**:
@@ -374,26 +250,13 @@ paths:
 
 | Phase | Author | Reviewer |
 |-------|--------|----------|
-| Phase 1 | Project owner (you) | — |
-| Phase 2 | Project owner or delegate | Project owner if delegated |
-| Phase 3 | Project owner or delegate | Project owner if delegated |
-| Phase 4 | Project owner or delegate | Project owner if delegated |
-| Phase 5 | Project owner or delegate | Project owner if delegated |
+| Phase 1-8 | Completed | — |
+| Phase 9+ | Project owner or delegate | Project owner if delegated |
 | Future | Based on contributor interest | Project owner |
 
 For AI-assisted development: specs can be drafted by an AI agent and reviewed/approved by the project owner before implementation begins.
 
 ### When Are Specs Written?
-
-```mermaid
-flowchart LR
-    P1[Phase 1 Complete] --> R1[Retro/Learnings]
-    R1 --> S2[Write Phase 2 Spec]
-    S2 --> P2[Phase 2 Implementation]
-    P2 --> R2[Retro/Learnings]
-    R2 --> S3[Write Phase 3 Spec]
-    S3 --> P3[Phase 3 Implementation]
-```
 
 **Principle**: Specs are written *after* the prior phase completes, incorporating learnings. This avoids:
 - Specifying details that change based on implementation discoveries
@@ -438,7 +301,9 @@ Before implementation begins, verify:
 | `0.5.0` | Git ignore output management (`--gitignore-output-with`) | Phase 5 |
 | `0.6.0` | CLI polish: dry-run wording, `--delete-source` flag | Phase 6 |
 | `0.7.0` | AgentSkills standard alignment, ManualPrompt type | Phase 7 |
-| `0.8.0` | Output file strategy, plugin auto-discovery, config file | Future |
+| `0.8.0` | Claude Native Rules, full AgentSkills.io support | Phase 8 |
+| `0.9.0` | IR serialization plugin (`@a16njs/plugin-a16n-ir`) | Phase 9 |
+| `0.10.0` | MCP configuration support | Phase 10 |
 | `1.0.0` | Stable API, production-ready | Future |
 
 ---
@@ -452,20 +317,17 @@ Decisions made during planning that affect future phases:
 | GlobalPrompt first | Simplest type; validates full pipeline | Phase 1 |
 | Bundled plugins only in Phase 1 | Defer discovery complexity | Phase 1, Future |
 | Warn on lossy conversion, don't fail | Better UX than blocking | All phases |
-| pnpm + Changesets | Handles interdependent package versioning | All phases |
+| pnpm + Changesets → release-please | Handles interdependent package versioning | All phases |
 | Merge multiple GlobalPrompts → single file | Claude has one CLAUDE.md; reversibility is documented, not guaranteed | Phase 1+ |
-
-Future decisions to make:
-- How to handle Claude skills outside Claude environment (Phase 2)
-- Plugin API stability guarantee timing (Future)
-- Output file strategy defaults (overwrite vs merge) — see "Output File Strategy" roadmap item
+| IR version format: Kubernetes-style | Industry-standard, clear compatibility semantics | Phase 9 |
+| IR migration via intermediate format | Simplest approach; multi-plugin support deferred | Phase 9 |
 
 Decisions made:
 - `.cursorrules` (legacy) is NOT supported by the core Cursor plugin. A community `a16n-plugin-cursor-legacy` could add this if needed.
 - **Claude skills with hooks are skipped** (Phase 2): Skills containing `hooks:` in frontmatter are not convertible to Cursor. Stripping hooks would produce broken skills. Reported as unsupported with warning.
-- **AgentCommand is Cursor → Claude only**: Claude has no dedicated command concept; skills serve double duty. Claude plugin will never discover AgentCommand entries. Commands with special features ($ARGUMENTS, bash execution, etc.) are skipped with warning. *(Superseded by Phase 7 — ManualPrompt becomes bidirectional)*
 - **Git ignore management only for created files**: When using `--gitignore-output-with`, only files created by the conversion run are managed. Files that are edited/appended are left with their existing git status. Boundary crossings (ignored source → tracked output) emit warnings.
 - **`--delete-source` conservative deletion** (Phase 6): Only delete source files that were successfully used AND were not involved in any skips. If any part of a source was skipped, preserve the entire source file.
 - **AgentCommand → ManualPrompt rename** (Phase 7): The `AgentCommand` type is renamed to `ManualPrompt` to better reflect its semantics (user-requested, not agent-activated). This aligns with the AgentSkills standard's `disable-model-invocation` concept.
 - **AgentSkills emit to `.cursor/skills/`** (Phase 7): Stop emitting `AgentSkill` as Cursor rules. Emit to `.cursor/skills/<name>/SKILL.md` instead. This reduces conversion loss when round-tripping Cursor → Claude → Cursor.
 - **ManualPrompt is bidirectional** (Phase 7): Unlike the original AgentCommand (Cursor → Claude only), ManualPrompt can be discovered from and emitted to both Cursor and Claude via the `disable-model-invocation` frontmatter field.
+- **Claude native rules** (Phase 8): Use `.claude/rules/*.md` with `paths` frontmatter instead of glob-hook workaround.
