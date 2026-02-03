@@ -1,10 +1,10 @@
 # a16n
 
+[![npm version](https://img.shields.io/npm/v/a16n.svg)](https://www.npmjs.com/package/a16n)
+
 **Agent customization portability for AI coding tools.**
 
 Convert your Cursor rules to Claude Code config, or vice versa. Take your agent customization anywhere.
-
-[![npm version](https://img.shields.io/npm/v/a16n.svg)](https://www.npmjs.com/package/a16n)
 
 ## Quick Start
 
