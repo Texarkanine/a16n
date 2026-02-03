@@ -29,7 +29,12 @@ A new plugin `@a16njs/plugin-a16n-ir` that reads/writes `.a16n/` directory struc
 │   ├── typescript-style.md
 │   └── react-components.md
 ├── SimpleAgentSkill/
-│   └── deploy-helper.md
+│   └── SKILL.md
+├── AgentSkillIO/
+│   └── deploy-helper/
+│       ├── SKILL.md
+│       ├── resources/
+│       └── scripts/
 └── ManualPrompt/
     └── generate-tests.md
 ```
@@ -90,7 +95,6 @@ YAML frontmatter with all IR metadata, content after frontmatter:
 version: v1beta1
 type: GlobalPrompt
 name: coding-standards
-alwaysApply: true
 sourcePath: .cursor/rules/coding-standards.mdc
 ---
 
@@ -110,11 +114,11 @@ Always use TypeScript strict mode...
 | `name` | string | Yes | Unique identifier within type |
 | `sourcePath` | string | No | Original source file path |
 
+TODO: is `sourcePath` necessary? Remove if not.
+
 #### GlobalPrompt
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `alwaysApply` | boolean | true | Whether rule applies unconditionally |
+(none)
 
 #### FileRule
 
@@ -132,7 +136,6 @@ Always use TypeScript strict mode...
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `disableModelInvocation` | boolean | true | Manual-only invocation |
 | `description` | string | No | Optional description |
 
 #### AgentIgnore
@@ -143,12 +146,10 @@ Always use TypeScript strict mode...
 
 #### AgentSkillIO
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `description` | string | Yes | Activation description |
-| `disableModelInvocation` | boolean | No | Manual-only flag |
-| `resources` | string[] | No | Additional resource files |
-| `files` | object | No | Embedded file contents |
+AgentSkills.io skills will just emit the entire skill as-is in the `.a16n/AgentSkillIO/<skill-name>/*` directory.
+Since there is a "universal" standard, that *is* the IR.
+
+Consider: extract parsing of AgentSkillsIO skills in a given dir, into Models? Or elsewhere? As now 3 plugins - cursor, claude, and a16n, will all be reading the same standard, from 3 different dirs in 3 different plugins...
 
 ### Example Files
 
@@ -158,7 +159,6 @@ Always use TypeScript strict mode...
 version: v1beta1
 type: GlobalPrompt
 name: security-rules
-alwaysApply: true
 sourcePath: .cursor/rules/security.mdc
 ---
 
@@ -279,6 +279,8 @@ export function getCurrentVersion(): IRVersion;
 | `v1` | `v1` | ✅ Yes | Same version |
 | `v1` | `v2beta1` | ❌ No | Different major |
 | `v1` | `v2` | ❌ No | Different major |
+
+TODO: `v1beta1` & `v1beta2` - should these be compatible? I think we do a kindness by bumping to `v1beta2` to note that it's technically different but backwards-compatible. If it's incompatible, we go... uhhh... `v2beta1`?
 
 ---
 
@@ -456,9 +458,6 @@ export function formatIRFile(item: AgentCustomization): string {
   
   // Add type-specific fields
   switch (item.type) {
-    case CustomizationType.GlobalPrompt:
-      frontmatter.alwaysApply = (item as GlobalPrompt).alwaysApply ?? true;
-      break;
     case CustomizationType.FileRule:
       frontmatter.globs = (item as FileRule).globs;
       break;
@@ -703,7 +702,6 @@ a16n plugins  # Should list a16n-ir
 3. Test version mismatch warnings
 4. Write plugin README
 5. Update main docs with IR plugin
-6. Create changeset
 
 **Files**:
 - `packages/cli/test/integration/integration.test.ts`

@@ -16,8 +16,6 @@ a16n/
 ├── pnpm-workspace.yaml
 ├── turbo.json
 ├── tsconfig.base.json
-├── .changeset/
-│   └── config.json
 └── package.json         # Root workspace config
 ```
 
@@ -1047,13 +1045,6 @@ pnpm --filter a16n dev -- convert --from cursor --to claude ./test-project
 
 ### Release Process
 
-```bash
-# 1. Create changeset for your changes
-pnpm changeset
+Handled by release-please in GitHub Actions based on conventional commits to `main`.
 
-# 2. Version packages (done by CI usually)
-pnpm changeset version
-
-# 3. Publish (done by CI usually)
-pnpm changeset publish
-```
+Just make good commits, then merge the release-please PR when ready.
