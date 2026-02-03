@@ -8,8 +8,16 @@
     "test": {
       "dependsOn": ["build"]
     },
+    "test:coverage": {
+      "dependsOn": ["build"],
+      "outputs": ["coverage/**"]
+    },
     "docs#test": {
       "dependsOn": []
+    },
+    "docs#test:coverage": {
+      "dependsOn": [],
+      "outputs": ["coverage/**"]
     },
     "lint": {},
     "typecheck": {

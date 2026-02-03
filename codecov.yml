@@ -1,0 +1,50 @@
+# Codecov configuration for a16n monorepo
+# https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+  status:
+    project:
+      default:
+        # Disable project-wide coverage status checks
+        # Each package has its own flag-based check
+        enabled: false
+    patch:
+      default:
+        enabled: false
+
+# Flag definitions for per-package coverage
+flags:
+  cli:
+    paths:
+      - packages/cli/src/
+    carryforward: true
+  engine:
+    paths:
+      - packages/engine/src/
+    carryforward: true
+  models:
+    paths:
+      - packages/models/src/
+    carryforward: true
+  plugin-cursor:
+    paths:
+      - packages/plugin-cursor/src/
+    carryforward: true
+  plugin-claude:
+    paths:
+      - packages/plugin-claude/src/
+    carryforward: true
+  glob-hook:
+    paths:
+      - packages/glob-hook/src/
+    carryforward: true
+  docs:
+    paths:
+      - packages/docs/scripts/
+    carryforward: true
+
+# Comment configuration for PRs
+comment:
+  layout: "condensed_header, condensed_files, condensed_footer"
+  behavior: default
+  require_changes: true

@@ -37,5 +37,61 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Test
-        run: pnpm test
+      - name: Test with Coverage
+        run: pnpm test:coverage
+
+      - name: Upload CLI coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/cli/coverage/lcov.info
+          flags: cli
+          fail_ci_if_error: false
+
+      - name: Upload Engine coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/engine/coverage/lcov.info
+          flags: engine
+          fail_ci_if_error: false
+
+      - name: Upload Models coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/models/coverage/lcov.info
+          flags: models
+          fail_ci_if_error: false
+
+      - name: Upload Plugin-Cursor coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/plugin-cursor/coverage/lcov.info
+          flags: plugin-cursor
+          fail_ci_if_error: false
+
+      - name: Upload Plugin-Claude coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/plugin-claude/coverage/lcov.info
+          flags: plugin-claude
+          fail_ci_if_error: false
+
+      - name: Upload Glob-Hook coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/glob-hook/coverage/lcov.info
+          flags: glob-hook
+          fail_ci_if_error: false
+
+      - name: Upload Docs coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/docs/coverage/lcov.info
+          flags: docs
+          fail_ci_if_error: false

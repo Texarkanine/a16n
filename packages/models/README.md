@@ -1,6 +1,7 @@
 # @a16njs/models
 
 [![npm version](https://img.shields.io/npm/v/@a16njs/models.svg)](https://www.npmjs.com/package/@a16njs/models)
+[![codecov](https://codecov.io/gh/Texarkanine/a16n/graph/badge.svg?flag=models)](https://codecov.io/gh/Texarkanine/a16n)
 
 Type definitions and plugin interface for a16n.
 
