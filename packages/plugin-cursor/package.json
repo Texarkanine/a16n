@@ -37,7 +37,8 @@
     "clean": "rimraf dist *.tsbuildinfo",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@a16njs/models": "workspace:*"

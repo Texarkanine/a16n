@@ -6,11 +6,13 @@
     "build": "turbo run build --filter='!docs'",
     "build:full": "turbo run build",
     "test": "turbo run test",
+    "test:coverage": "turbo run test:coverage",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean && rimraf node_modules"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^2.0.0",
     "rimraf": "^5.0.0",
     "turbo": "^2.0.0",
     "typescript": "^5.4.0",

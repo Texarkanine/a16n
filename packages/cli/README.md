@@ -1,6 +1,7 @@
 # a16n
 
 [![npm version](https://img.shields.io/npm/v/a16n.svg)](https://www.npmjs.com/package/a16n)
+[![codecov](https://codecov.io/gh/Texarkanine/a16n/graph/badge.svg?flag=cli)](https://codecov.io/gh/Texarkanine/a16n)
 
 Agent customization portability for AI coding tools.
 

@@ -36,7 +36,8 @@
     "clean": "rimraf dist *.tsbuildinfo",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

@@ -1,6 +1,7 @@
 # @a16njs/engine
 
 [![npm version](https://img.shields.io/npm/v/@a16njs/engine.svg)](https://www.npmjs.com/package/@a16njs/engine)
+[![codecov](https://codecov.io/gh/Texarkanine/a16n/graph/badge.svg?flag=engine)](https://codecov.io/gh/Texarkanine/a16n)
 
 Conversion engine for a16n. Orchestrates plugins to convert between tools.
 

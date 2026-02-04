@@ -1,5 +1,7 @@
 # a16n Documentation Site
 
+[![codecov](https://codecov.io/gh/Texarkanine/a16n/graph/badge.svg?flag=docs)](https://codecov.io/gh/Texarkanine/a16n)
+
 Docusaurus-based documentation site for the a16n project.
 
 ## Local Development

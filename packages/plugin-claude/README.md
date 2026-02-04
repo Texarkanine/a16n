@@ -1,6 +1,7 @@
 # @a16njs/plugin-claude
 
 [![npm version](https://img.shields.io/npm/v/@a16njs/plugin-claude.svg)](https://www.npmjs.com/package/@a16njs/plugin-claude)
+[![codecov](https://codecov.io/gh/Texarkanine/a16n/graph/badge.svg?flag=plugin-claude)](https://codecov.io/gh/Texarkanine/a16n)
 
 Claude Code plugin for a16n. Discovers and emits Claude configuration.
 

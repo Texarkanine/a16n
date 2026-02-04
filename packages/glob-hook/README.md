@@ -1,6 +1,7 @@
 # @a16njs/glob-hook
 
 [![npm version](https://img.shields.io/npm/v/@a16njs/glob-hook.svg)](https://www.npmjs.com/package/@a16njs/glob-hook)
+[![codecov](https://codecov.io/gh/Texarkanine/a16n/graph/badge.svg?flag=glob-hook)](https://codecov.io/gh/Texarkanine/a16n)
 
 CLI tool for glob-based file path matching in Claude Code hooks. Part of the [a16n](https://github.com/texarkanine/a16n) project.
 

@@ -1,6 +1,7 @@
 # @a16njs/plugin-cursor
 
 [![npm version](https://img.shields.io/npm/v/@a16njs/plugin-cursor.svg)](https://www.npmjs.com/package/@a16njs/plugin-cursor)
+[![codecov](https://codecov.io/gh/Texarkanine/a16n/graph/badge.svg?flag=plugin-cursor)](https://codecov.io/gh/Texarkanine/a16n)
 
 Cursor IDE plugin for a16n. Discovers and emits Cursor rules.
 
