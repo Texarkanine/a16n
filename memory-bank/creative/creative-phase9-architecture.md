@@ -281,6 +281,78 @@ const promptName = filename; // Already slugified
 
 ---
 
+## Implementation Amendments (2026-02-04)
+
+After initial planning, 10 critical amendments were identified:
+
+### Amendment 1: `metadata` Field NOT Serialized to IR
+- `metadata` is transient, used only during in-memory conversions
+- NOT written to `.a16n/` files
+- Tool-specific pass-through; IR captures canonical representation only
+
+### Amendment 2: `name` vs `sourcePath` Clarity
+- Base `AgentCustomization` does NOT get a `name` field
+- `sourcePath` becomes **optional** (omitted when emitted from a16n plugin)
+- Filename IS the identifier (slugified from original basename)
+- `relativeDir` captures subdirectory structure
+
+### Amendment 3: Use Enum Values for Directory Names
+- Directory names must match `CustomizationType` enum values (kebab-case)
+- `.a16n/global-prompt/`, `.a16n/file-rule/`, etc.
+- Use `item.type` directly as directory name
+
+### Amendment 4: Fix `relativeDir` Extraction Logic
+```typescript
+function extractRelativeDir(sourcePath: string, baseDir: string): string {
+  const fullDir = path.dirname(sourcePath);
+  if (fullDir === baseDir || fullDir === '.') return '';
+  return path.relative(baseDir, fullDir);
+}
+```
+
+### Amendment 5: Correct `IRVersion` Type Definition
+- Must require trailing number: `v1beta1` ✓, `v1` ✗
+- Runtime validation via `parseIRVersion()`
+- Regex: `/^v(\d+)([a-z]*)(\d+)$/`
+
+### Amendment 6: Breaking Change to `AgentCustomization`
+```typescript
+export interface AgentCustomization {
+  id: string;
+  type: CustomizationType;
+  sourcePath?: string;          // CHANGED: now optional
+  content: string;
+  metadata: Record<string, unknown>;
+  version: IRVersion;           // NEW: required
+  relativeDir?: string;         // NEW: optional
+}
+```
+This is a `feat!:` breaking change.
+
+### Amendment 7: AgentSkillIO Verbatim Handling
+- `.a16n/agent-skill-io/<name>/` contains verbatim AgentSkills.io structure
+- `SKILL.md` uses AgentSkills.io format (NOT a16n frontmatter)
+- No `version` field injected
+- AgentSkills.io standard IS the on-disk IR for this type
+
+### Amendment 8: SimpleAgentSkill Identity
+- `description` + location matter, NOT `metadata.name`
+- Frontmatter: `version`, `type`, `description`, `relativeDir` only
+- No `name` field in frontmatter
+- Round-trip may lose `metadata.name` (acceptable)
+
+### Amendment 9: ManualPrompt + `relativeDir` Crucial
+- `relativeDir` is CRUCIAL for identity (provides namespace)
+- `promptName = relativeDir ? path.join(relativeDir, basename) : basename`
+- Example: `shared/company/pr.md` → promptName: `'shared/company/pr'`
+
+### Amendment 10: Version Compatibility Semantics
+- **Newer client reads older file:** ✅ GUARANTEED
+- **Older client reads newer file:** ⚠️ MAY work
+- `areVersionsCompatible(reader, file)`: reader must be >= file revision
+
+---
+
 ## Memory Bank Organization Note
 
 This creative doc contains the **full research and rationale**. The core memory bank files reference this doc but don't duplicate the detailed content:

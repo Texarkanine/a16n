@@ -32,11 +32,17 @@ None - ready to begin implementation.
 ### Planning Phase
 - [x] Loaded Phase 9 specification
 - [x] Analyzed existing codebase patterns
-- [x] Researched 3 architectural questions (see: `creative/creative-phase9-architecture.md`)
-- [x] Finalized 6 architectural decisions (summarized in `tasks.md`)
+- [x] Researched 3 architectural questions
+- [x] Finalized 10 architectural decisions
+- [x] **Integrated 10 implementation amendments:**
+  - Breaking changes documented
+  - Directory naming (kebab-case)
+  - Version semantics clarified
+  - Metadata/sourcePath handling
+  - AgentSkillIO verbatim format
 - [x] Created detailed task breakdown (7 milestones, 24 hours)
 - [x] Documented acceptance criteria and test infrastructure
-- [x] Consolidated memory bank (eliminated duplication)
+- [x] Consolidated memory bank (see: `creative/creative-phase9-architecture.md`)
 
 ---
 

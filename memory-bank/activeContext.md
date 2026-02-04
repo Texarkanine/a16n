@@ -127,5 +127,11 @@ return {
 - Analyzed existing codebase patterns (discovered directory structure loss bug)
 - Researched 3 key architectural questions (see: `memory-bank/creative/creative-phase9-architecture.md`)
 - Finalized architectural decisions (documented in tasks.md)
+- **Integrated 10 implementation amendments** (see creative doc):
+  - Breaking changes to `AgentCustomization` interface
+  - Clarified `metadata` not serialized, `sourcePath` optional
+  - Fixed relativeDir extraction, version regex, compatibility semantics
+  - Kebab-case directory names, ManualPrompt namespace handling
+  - AgentSkillIO verbatim format (no IR frontmatter)
 - Created comprehensive task breakdown with 7 milestones (~24 hours)
 - All planning complete, ready for implementation

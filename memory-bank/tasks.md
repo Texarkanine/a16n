@@ -67,41 +67,49 @@ Enable persisting and reading the IR to/from a `.a16n/` directory structure, sup
 **Estimated:** 5 hours
 
 #### Tasks
-- [ ] 1.1 Add `IRVersion` type to `types.ts`
-- [ ] 1.2 Add `CURRENT_IR_VERSION` constant (`v1beta1`)
-- [ ] 1.3 Add `relativeDir` field to `AgentCustomization` base interface
+- [ ] 1.1 **BREAKING:** Update `AgentCustomization` base interface in `types.ts`:
+  - Make `sourcePath` optional (was required)
+  - Add `version: IRVersion` (required)
+  - Add `relativeDir?: string` (optional)
+- [ ] 1.2 Add `IRVersion` type (runtime validation, must have trailing number)
+- [ ] 1.3 Add `CURRENT_IR_VERSION` constant (`v1beta1`)
 - [ ] 1.4 Create `version.ts` with utilities:
-  - `parseIRVersion()` - Parse Kubernetes-style versions
-  - `areVersionsCompatible()` - Check compatibility rules
+  - `parseIRVersion()` - Regex: `/^v(\d+)([a-z]*)(\d+)$/` (requires trailing number)
+  - `areVersionsCompatible(reader, file)` - Reader >= file revision (forward compat)
   - `getCurrentVersion()` - Return current version
-- [ ] 1.5 Create `agentskills-io.ts` with AgentSkillsIO parsing utilities:
+- [ ] 1.5 Create `agentskills-io.ts` with shared utilities:
   - `ParsedSkillFrontmatter` interface
   - `ParsedSkill` interface
   - `parseSkillFrontmatter()` - Parse SKILL.md frontmatter
   - `readSkillFiles()` - Read resource files from skill directory
+  - `writeAgentSkillIO()` - Write verbatim AgentSkills.io format (NO IR frontmatter)
+  - `readAgentSkillIO()` - Read verbatim AgentSkills.io format
 - [ ] 1.6 Add `WarningCode.VersionMismatch` to `warnings.ts`
 - [ ] 1.7 Export new types/functions from `index.ts`
-- [ ] 1.8 Write unit tests in `test/version.test.ts`
+- [ ] 1.8 Write unit tests in `test/version.test.ts`:
+  - Test version regex (valid: `v1beta1`, invalid: `v1`)
+  - Test forward compatibility (newer reader, older file)
+  - Test incompatibility warnings (different major/stability)
 - [ ] 1.9 Write unit tests in `test/agentskills-io.test.ts`
 
 #### Files to Modify/Create
-- `packages/models/src/types.ts` - Add `IRVersion`, `relativeDir` field
-- `packages/models/src/version.ts` (new) - Version utilities
-- `packages/models/src/agentskills-io.ts` (new) - AgentSkillsIO parsing
+- `packages/models/src/types.ts` - **BREAKING** changes to base interface
+- `packages/models/src/version.ts` (new) - Version utilities with fixed regex
+- `packages/models/src/agentskills-io.ts` (new) - Shared AgentSkillsIO utilities
 - `packages/models/src/warnings.ts` - Add `VersionMismatch`
 - `packages/models/src/index.ts` - Export new members
 - `packages/models/test/version.test.ts` (new) - Version tests
 - `packages/models/test/agentskills-io.test.ts` (new) - Parsing tests
 
 #### Acceptance Criteria
-- AC-9B-1: `version` field concept exists (type defined)
+- AC-9B-1: `version` field required on `AgentCustomization`, `sourcePath` optional
 - AC-9B-2: `CURRENT_IR_VERSION` is `v1beta1`
-- AC-9B-3: `areVersionsCompatible()` returns true for same major+stability
-- AC-9B-4: `areVersionsCompatible()` returns false across stability boundaries
-- AC-9B-5: `parseIRVersion()` correctly parses Kubernetes-style versions
-- AC-9X-1: `relativeDir` field exists on `AgentCustomization` base interface
-- AC-9X-2: `parseSkillFrontmatter()` correctly parses AgentSkills.io format
-- AC-9X-3: `readSkillFiles()` returns map of filename → content
+- AC-9B-3: `areVersionsCompatible(reader, file)` enforces forward compatibility
+- AC-9B-4: Version regex requires trailing number (`v1beta1` ✓, `v1` ✗)
+- AC-9B-5: `parseIRVersion()` correctly validates version format
+- AC-9X-1: `relativeDir` field optional on `AgentCustomization`
+- AC-9X-2: `parseSkillFrontmatter()` parses AgentSkills.io format
+- AC-9X-3: `writeAgentSkillIO()` / `readAgentSkillIO()` handle verbatim format
 
 ---
 
@@ -142,25 +150,30 @@ pnpm --filter @a16njs/plugin-a16n build
 - [ ] 3.1 Add `gray-matter` dependency for YAML frontmatter
 - [ ] 3.2 Implement `parseIRFile()` in `parse.ts`:
   - Parse YAML frontmatter from markdown
-  - Extract version, type, name, relativeDir, type-specific fields
-  - Derive promptName from filename for ManualPrompt
+  - Extract version, type, relativeDir, type-specific fields
+  - **Do NOT extract name** (filename IS the name)
+  - **Do NOT serialize metadata** (transient only)
+  - For ManualPrompt: derive `promptName` from `relativeDir` + filename
   - Return parsed IR item or error
 - [ ] 3.3 Implement `formatIRFile()` in `format.ts`:
   - Generate YAML frontmatter from IR item
-  - Include type-specific fields (globs, patterns, description, relativeDir)
+  - Include: version, type, relativeDir (if present), type-specific fields
+  - **Do NOT include sourcePath** (omitted in IR format)
+  - **Do NOT include metadata** (not serialized)
   - Format as `---\n{yaml}---\n\n{content}\n`
 - [ ] 3.4 Handle all IR types' frontmatter fields:
-  - GlobalPrompt: base fields + optional relativeDir
-  - FileRule: + `globs` array + optional relativeDir
-  - SimpleAgentSkill: + `description`
-  - ManualPrompt: base fields only (derive promptName from filename)
+  - GlobalPrompt: version, type, relativeDir (optional)
+  - FileRule: + `globs` array, relativeDir (optional)
+  - SimpleAgentSkill: + `description` (NO name field)
+  - ManualPrompt: version, type, relativeDir (derive promptName on read)
   - AgentIgnore: + `patterns` array
-  - AgentSkillIO: directory-based (special handling)
-- [ ] 3.5 Implement name slugification utility
-- [ ] 3.6 Write parsing tests in `test/parse.test.ts`
-- [ ] 3.7 Write formatting tests in `test/format.test.ts`
-- [ ] 3.8 Test round-trip (format → parse → format)
-- [ ] 3.9 Test relativeDir preservation
+  - AgentSkillIO: **SKIP** (uses verbatim AgentSkills.io format, no IR frontmatter)
+- [ ] 3.5 Implement `extractRelativeDir()` utility (use `path.relative()`)
+- [ ] 3.6 Implement name slugification utility
+- [ ] 3.7 Write parsing tests in `test/parse.test.ts`
+- [ ] 3.8 Write formatting tests in `test/format.test.ts`
+- [ ] 3.9 Test round-trip (format → parse → format)
+- [ ] 3.10 Test relativeDir extraction edge cases
 
 #### Files to Modify/Create
 - `packages/plugin-a16n/package.json` - Add `gray-matter` dependency
@@ -179,16 +192,27 @@ pnpm --filter @a16njs/plugin-a16n build
 #### Tasks
 - [ ] 4.1 Implement `emit()` function in `emit.ts`:
   - Group items by CustomizationType
-  - Create `.a16n/<Type>/` directories (honor relativeDir for subdirs)
-  - Write IR files with versioned frontmatter
-  - Handle name slugification
+  - **Use kebab-case directory names:** `.a16n/{item.type}/` (matches enum values)
+  - Create subdirectories honoring `relativeDir` field
+  - Write IR files with versioned frontmatter (excluding metadata, sourcePath)
+  - Handle name slugification for filenames
   - Support dry-run mode
-- [ ] 4.2 Handle AgentSkillIO specially (directory with files)
-- [ ] 4.3 Use shared AgentSkillsIO utilities from `@a16njs/models`
+- [ ] 4.2 Handle AgentSkillIO specially:
+  - Use `writeAgentSkillIO()` from `@a16njs/models`
+  - Write to `.a16n/agent-skill-io/<name>/`
+  - Verbatim AgentSkills.io format (NO IR frontmatter)
+- [ ] 4.3 Handle ManualPrompt with relativeDir:
+  - Create subdirectories from `relativeDir` field
+  - Filename = slugify basename only
+  - Full path provides namespace (e.g., `shared/company/pr.md`)
 - [ ] 4.4 Return proper `EmitResult` with written files, warnings
 - [ ] 4.5 Create test fixtures in `test/fixtures/`
-- [ ] 4.6 Write emission unit tests in `test/emit.test.ts`
-- [ ] 4.7 Test relativeDir preservation in emitted files
+- [ ] 4.6 Write emission unit tests in `test/emit.test.ts`:
+  - Test kebab-case directory names
+  - Test relativeDir subdirectory creation
+  - Test ManualPrompt namespace collision avoidance
+  - Test AgentSkillIO verbatim emission
+- [ ] 4.7 Test metadata/sourcePath NOT in output files
 
 #### Files to Modify/Create
 - `packages/plugin-a16n/src/emit.ts` (new)
@@ -212,19 +236,31 @@ pnpm --filter @a16njs/plugin-a16n build
 #### Tasks
 - [ ] 5.1 Implement `discover()` function in `discover.ts`:
   - Check for `.a16n/` directory existence
-  - Iterate over type directories (including subdirs for relativeDir)
-  - Validate type directory names against `CustomizationType`
-  - Parse IR files with frontmatter (extract relativeDir)
-  - Check version compatibility
+  - Iterate over type directories (kebab-case names matching enum)
+  - Recursively scan subdirectories, extract `relativeDir` from path
+  - Validate type names: `Object.values(CustomizationType).includes(dirName)`
+  - Parse IR files with frontmatter (NO name field, NO sourcePath expected)
+  - Check version compatibility (forward compat: reader >= file)
   - Emit warnings for issues
 - [ ] 5.2 Handle unknown type directories (warn + skip)
 - [ ] 5.3 Handle invalid frontmatter (warn + skip)
-- [ ] 5.4 Handle version mismatches (warn + continue)
-- [ ] 5.5 Handle AgentSkillIO directories specially
-- [ ] 5.6 Use shared AgentSkillsIO utilities from `@a16njs/models`
-- [ ] 5.7 Create test fixtures in `test/fixtures/`
-- [ ] 5.8 Write discovery unit tests in `test/discover.test.ts`
-- [ ] 5.9 Test relativeDir extraction from subdirectories
+- [ ] 5.4 Handle version mismatches:
+  - Newer file than reader (same major+stability): WARN, continue
+  - Different major/stability: WARN incompatible, best-effort process
+- [ ] 5.5 Handle AgentSkillIO specially:
+  - Use `readAgentSkillIO()` from `@a16njs/models`
+  - Read from `.a16n/agent-skill-io/<name>/`
+  - Verbatim AgentSkills.io format (NO IR frontmatter)
+- [ ] 5.6 Handle ManualPrompt with relativeDir:
+  - Derive `promptName = relativeDir ? join(relativeDir, basename) : basename`
+  - Test namespace collision: `shared/company/pr` vs `shared/other/pr`
+- [ ] 5.7 Implement `extractRelativeDir()` using `path.relative()`
+- [ ] 5.8 Create test fixtures in `test/fixtures/`
+- [ ] 5.9 Write discovery unit tests in `test/discover.test.ts`:
+  - Test kebab-case validation
+  - Test relativeDir extraction
+  - Test version compatibility warnings
+  - Test ManualPrompt promptName derivation
 
 #### Files to Modify/Create
 - `packages/plugin-a16n/src/discover.ts` (new)
@@ -347,14 +383,20 @@ Follow existing fixture naming: `<feature>-<variant>/from-<tool>/` or `expected-
 
 **Full research & rationale:** See `memory-bank/creative/creative-phase9-architecture.md`
 
+**10 Implementation Amendments (2026-02-04):** See creative doc for detailed amendments
+
 | Decision | Summary |
 |----------|---------|
-| **D1: Plugin Naming** | Plugin ID is `'a16n'` for cleaner CLI (`--from a16n`, not `--from a16n-ir`) |
-| **D2: Directory Preservation** | Add `relativeDir` field to preserve subdirectory structure across conversions |
-| **D3: ManualPrompt Naming** | Derive `promptName` from filename (no redundant frontmatter field) |
-| **D4: AgentSkillsIO Location** | Dedicated module `@a16njs/models/src/agentskills-io.ts` (3rd plugin needs it) |
-| **D5: Version Compatibility** | Same major + stability = compatible (`v1beta1` ↔ `v1beta2` ✓, `v1beta1` ↔ `v1` ✗) |
-| **D6: sourcePath Retention** | Keep for debugging and provenance tracking |
+| **D1: Plugin Naming** | Plugin ID is `'a16n'` for cleaner CLI (`--from a16n`) |
+| **D2: Directory Preservation** | Add `relativeDir` field, use kebab-case enum values for dirs |
+| **D3: ManualPrompt Naming** | Derive `promptName` from `relativeDir` + filename (provides namespace) |
+| **D4: AgentSkillsIO Location** | Dedicated module `@a16njs/models/src/agentskills-io.ts` |
+| **D5: Version Compatibility** | Forward compat guarantee (newer reader, older file always works) |
+| **D6: sourcePath Optional** | **BREAKING:** Optional in IR (omitted by a16n plugin) |
+| **D7: metadata Not Serialized** | Transient only, NOT written to `.a16n/` files |
+| **D8: AgentSkillIO Verbatim** | Uses AgentSkills.io format directly (NO IR frontmatter) |
+| **D9: Version Field Required** | **BREAKING:** All IR items must have `version` field |
+| **D10: No name Field** | Filename IS the identifier (no separate name in frontmatter) |
 
 ---
 
@@ -362,20 +404,28 @@ Follow existing fixture naming: `<feature>-<variant>/from-<tool>/` or `expected-
 
 Phase 9 is complete when:
 
-- [ ] All acceptance criteria pass (AC-9A through AC-9D)
+- [ ] All acceptance criteria pass (AC-9A through AC-9D, AC-9X)
 - [ ] `pnpm build` succeeds
 - [ ] `pnpm test` passes (all packages)
 - [ ] `pnpm lint` passes
-- [ ] `IRVersion` type exists in models
+- [ ] **BREAKING CHANGES documented:**
+  - [ ] `AgentCustomization.version` now required
+  - [ ] `AgentCustomization.sourcePath` now optional
+  - [ ] `AgentCustomization.relativeDir` added (optional)
+- [ ] `IRVersion` type with proper validation (requires trailing number)
 - [ ] `CURRENT_IR_VERSION` is `v1beta1`
-- [ ] Version utilities correctly determine compatibility
-- [ ] Plugin discovers `.a16n/` directory structure
-- [ ] Plugin emits `.a16n/` directory structure
+- [ ] Version utilities enforce forward compatibility
+- [ ] Plugin discovers `.a16n/` with kebab-case directories
+- [ ] Plugin emits `.a16n/` with kebab-case directories
+- [ ] `metadata` NOT serialized to IR files
+- [ ] `sourcePath` NOT emitted to IR files
+- [ ] AgentSkillIO uses verbatim format (no IR frontmatter)
+- [ ] ManualPrompt `promptName` includes `relativeDir` (namespace)
 - [ ] Round-trip tests pass (Cursor → a16n → Cursor)
-- [ ] Version mismatch warnings work correctly
-- [ ] Plugin README complete
+- [ ] Version compatibility tests pass (forward compat, warnings)
+- [ ] Plugin README complete with breaking changes documented
 - [ ] Docs updated with IR plugin documentation
-- [ ] Changeset created for version bump
+- [ ] `feat!:` changeset created for breaking changes
 - [ ] No TODO comments in shipped code
 
 ---
