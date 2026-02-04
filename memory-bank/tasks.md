@@ -136,6 +136,8 @@ Enable persisting and reading the IR to/from a `.a16n/` directory structure, sup
 - [x] 2.7 Verify build works (`pnpm build`)
 - [x] 2.8 Verify typecheck passes
 - [x] 2.9 Update pnpm lockfile
+- [x] 2.10 Add package to release-please-config.json
+- [x] 2.11 Add package to .release-please-manifest.json (version 0.1.0)
 
 #### Files to Create
 - `packages/plugin-a16n/package.json`
