@@ -12,8 +12,8 @@
 | Milestone | Status | Progress |
 |-----------|--------|----------|
 | M1: IR Model Versioning + Extensions | `completed` ✅ | 15/15 tasks (3 hours, PR #32) |
-| M2: Plugin Package Setup | `ready` | 0/6 tasks (unblocked) |
-| M3: Frontmatter Parse/Format | `blocked` | 0/9 tasks (waiting for M2) |
+| M2: Plugin Package Setup | `completed` ✅ | 9/9 tasks (15 minutes) |
+| M3: Frontmatter Parse/Format | `ready` | 0/10 tasks (unblocked) |
 | M4: IR Emission | `blocked` | 0/7 tasks (waiting for M3) |
 | M5: IR Discovery | `blocked` | 0/9 tasks (waiting for M3) |
 | M6: CLI Integration | `blocked` | 0/4 tasks (waiting for M4, M5) |
@@ -53,6 +53,16 @@ None - ready to begin implementation.
 - [x] Added 30 new unit tests (all 493 tests passing)
 - [x] Created commit (c9ec520) and PR #32
 - [x] Completed reflection documentation
+
+### Milestone 2: Plugin Package Setup (2026-02-04)
+- [x] Created `packages/plugin-a16n/` directory structure
+- [x] Configured package.json with dependencies (@a16njs/models, gray-matter)
+- [x] Created tsconfig.json extending base configuration
+- [x] Created placeholder src/index.ts with plugin ID `'a16n'`
+- [x] Created vitest.config.ts for test configuration
+- [x] Created comprehensive README.md
+- [x] Verified build integration with turbo (all 7 packages build successfully)
+- [x] Verified typecheck passes
 
 ---
 
