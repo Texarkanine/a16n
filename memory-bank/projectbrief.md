@@ -32,5 +32,5 @@ a16n/
 ```
 
 ## Upcoming Work
-- **Phase 9**: IR Serialization Plugin (`@a16njs/plugin-a16n-ir`)
+- **Phase 9**: IR Serialization Plugin (`@a16njs/plugin-a16n`, plugin ID: `'a16n'`)
 - **Phase 10**: MCP Configuration Support
