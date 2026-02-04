@@ -13,11 +13,29 @@
 
 ### What We're Building
 A new plugin that enables persisting and reading the a16n intermediate representation (IR) to/from disk in a `.a16n/` directory structure with:
-- YAML frontmatter for metadata (version, type, name, relativeDir, type-specific fields)
+- YAML frontmatter for metadata (version, type, relativeDir, type-specific fields)
 - Markdown content for the actual prompt/rule content
 - Kubernetes-style versioning (`v1beta1`, `v1`, `v2beta1`, etc.)
 - Directory structure preservation via `relativeDir` field
 - Shared AgentSkillsIO parsing utilities in `@a16njs/models`
+
+### Completed Milestones
+
+**M1: IR Model Versioning & Extensions** ✅ (3 hours)
+- Added IRVersion type and version utilities
+- Created AgentSkills.io shared parsing utilities
+- Applied breaking changes to AgentCustomization interface
+- Updated all plugins and CLI
+- 30 new tests, all 493 tests passing
+- PR #32 merged to main
+
+**M2: Plugin Package Setup** ✅ (15 minutes)
+- Created `@a16njs/plugin-a16n` package structure
+- Plugin ID `'a16n'` configured
+- Dependencies and build configuration complete
+- Comprehensive README documentation
+- Integrates successfully with turbo monorepo
+- PR #34 created
 
 ### Key Architectural Decisions
 
@@ -35,25 +53,21 @@ A new plugin that enables persisting and reading the a16n intermediate represent
 
 ## Implementation Order
 
-Start with **Milestones 1 & 2 in parallel** (no dependencies):
+**Completed:** M1 ✅, M2 ✅  
+**Current:** Ready to start M3  
+**Remaining:** M3 → M4 & M5 (parallel) → M6 → M7
 
-### Milestone 1: IR Model Versioning & Extensions (~5 hours)
-- Add `IRVersion` type to `packages/models/src/types.ts`
-- Add `relativeDir` field to `AgentCustomization` base interface
-- Create `packages/models/src/version.ts` with parse/compatibility utilities
-- **Create `packages/models/src/agentskills-io.ts` with parsing utilities**
-- Add `WarningCode.VersionMismatch` to warnings
+### Next: Milestone 3: Frontmatter Parsing & Formatting (~4 hours)
+- Implement `parseIRFile()` in `packages/plugin-a16n/src/parse.ts`
+- Implement `formatIRFile()` in `packages/plugin-a16n/src/format.ts`
+- Handle all IR types with proper frontmatter field mapping
+- Create comprehensive test fixtures
+- Test round-trip serialization
 - Write tests first (TDD)
 
-### Milestone 2: Plugin Package Setup (~1 hour)
-- Create `packages/plugin-a16n/` directory structure
-- Set up package.json (name: `@a16njs/plugin-a16n`), tsconfig.json, vitest.config.ts
-- Create placeholder index.ts with plugin `id: 'a16n'`
-- Verify build works
-
-Then proceed sequentially: M3 → M4 & M5 (parallel) → M6 → M7
-
-**Total Estimated:** ~24 hours across 7 milestones
+**Total Estimated:** ~24 hours across 7 milestones  
+**Actual So Far:** 3.25 hours (M1: 3h, M2: 0.25h)  
+**Remaining:** ~20.75 hours (5 milestones)
 
 ---
 
@@ -123,15 +137,28 @@ return {
 
 ## Recent Activity
 
+### Planning Phase (2026-02-03)
 - Loaded Phase 9 specification from `planning/PHASE_9_SPEC.md`
 - Analyzed existing codebase patterns (discovered directory structure loss bug)
 - Researched 3 key architectural questions (see: `memory-bank/creative/creative-phase9-architecture.md`)
-- Finalized architectural decisions (documented in tasks.md)
-- **Integrated 10 implementation amendments** (see creative doc):
-  - Breaking changes to `AgentCustomization` interface
-  - Clarified `metadata` not serialized, `sourcePath` optional
-  - Fixed relativeDir extraction, version regex, compatibility semantics
-  - Kebab-case directory names, ManualPrompt namespace handling
-  - AgentSkillIO verbatim format (no IR frontmatter)
-- Created comprehensive task breakdown with 7 milestones (~24 hours)
-- All planning complete, ready for implementation
+- Finalized architectural decisions with 10 implementation amendments
+- Created comprehensive task breakdown with 7 milestones
+
+### Implementation Phase (2026-02-04)
+- **M1 Completed** (3 hours, PR #32 merged):
+  - Implemented IR versioning system (Kubernetes-style)
+  - Created AgentSkills.io shared utilities
+  - Applied breaking changes to models package
+  - Updated all 3 plugins and CLI
+  - 30 new tests, all 493 tests passing
+
+- **M2 Completed** (15 minutes, PR #34 created):
+  - Created `@a16njs/plugin-a16n` package structure
+  - Plugin ID `'a16n'` configured
+  - Build integration verified
+  - Comprehensive README written
+
+### Current Status
+- Ready to begin M3 (Frontmatter Parsing & Formatting)
+- Both M1 and M2 have completed reflection documentation
+- All verification checks passing (build, test, typecheck)

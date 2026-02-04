@@ -1,0 +1,51 @@
+{
+  "name": "@a16njs/plugin-a16n",
+  "version": "0.1.0",
+  "description": "a16n Intermediate Representation (IR) plugin for a16n",
+  "license": "AGPL-3.0",
+  "author": "Texarkanine",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Texarkanine/a16n.git",
+    "directory": "packages/plugin-a16n"
+  },
+  "homepage": "https://texarkanine.github.io/a16n/plugin-a16n",
+  "bugs": {
+    "url": "https://github.com/Texarkanine/a16n/issues"
+  },
+  "keywords": [
+    "a16n",
+    "plugin",
+    "ir",
+    "intermediate-representation"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist *.tsbuildinfo",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@a16njs/models": "workspace:*",
+    "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}

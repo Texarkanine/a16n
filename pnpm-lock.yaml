@@ -173,6 +173,25 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@20.19.30)(lightningcss@1.31.1)(terser@5.46.0)
 
+  packages/plugin-a16n:
+    dependencies:
+      '@a16njs/models':
+        specifier: workspace:*
+        version: link:../models
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.30
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.30)(lightningcss@1.31.1)(terser@5.46.0)
+
   packages/plugin-claude:
     dependencies:
       '@a16njs/models':
