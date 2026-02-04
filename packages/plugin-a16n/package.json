@@ -41,7 +41,8 @@
   },
   "dependencies": {
     "@a16njs/models": "workspace:*",
-    "gray-matter": "^4.0.3"
+    "gray-matter": "^4.0.3",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
