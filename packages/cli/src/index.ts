@@ -215,11 +215,13 @@ program
                 const sources = written.sourceItems;
                 if (sources.length === 0) continue;
                 
-                // Check git status for each source
+                // Check git status for each source (skip sources without sourcePath)
                 const sourceStatuses = await Promise.all(
                   sources.map(async (source) => ({
                     source,
-                    ignoreSource: await getIgnoreSource(resolvedPath, source.sourcePath),
+                    ignoreSource: source.sourcePath
+                      ? await getIgnoreSource(resolvedPath, source.sourcePath)
+                      : null,
                   }))
                 );
                 
@@ -244,14 +246,14 @@ program
                         result.warnings.push({
                           code: WarningCode.GitStatusConflict,
                           message: `Git status conflict: output '${relativePath}' is tracked, but ${ignoredSources.length} source(s) are ignored`,
-                          sources: ignoredSources.map(s => s.source.sourcePath),
+                          sources: ignoredSources.map(s => s.source.sourcePath).filter((p): p is string => p !== undefined),
                         });
                         verbose(`  ⚠ Git status conflict for ${relativePath} (output tracked, sources ignored) - skipping`);
                       } else {
                         result.warnings.push({
                           code: WarningCode.GitStatusConflict,
                           message: `Git status conflict: output '${relativePath}' is ignored, but ${trackedSources.length} source(s) are tracked`,
-                          sources: trackedSources.map(s => s.source.sourcePath),
+                          sources: trackedSources.map(s => s.source.sourcePath).filter((p): p is string => p !== undefined),
                         });
                         verbose(`  ⚠ Git status conflict for ${relativePath} (output ignored, sources tracked) - skipping`);
                       }
@@ -290,7 +292,7 @@ program
                       result.warnings.push({
                         code: WarningCode.GitStatusConflict,
                         message: `Git status conflict: sources for '${relativePath}' are ignored by different files (${[...ignoreDestinations].join(', ')})`,
-                        sources: sources.map(s => s.sourcePath),
+                        sources: sources.map(s => s.sourcePath).filter((p): p is string => p !== undefined),
                       });
                       verbose(`  ⚠ Git status conflict for ${relativePath} (sources ignored by different files) - skipping`);
                     } else {
@@ -334,7 +336,7 @@ program
                     result.warnings.push({
                       code: WarningCode.GitStatusConflict,
                       message: `Git status conflict: cannot determine status for '${relativePath}' (${ignoredSources.length} source(s) ignored, ${trackedSources.length} tracked)`,
-                      sources: sources.map(s => s.sourcePath),
+                      sources: sources.map(s => s.sourcePath).filter((p): p is string => p !== undefined),
                     });
                     verbose(`  ⚠ Git status conflict for ${relativePath} (sources have mixed status) - skipping`);
                   } else {

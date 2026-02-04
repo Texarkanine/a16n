@@ -9,6 +9,7 @@ const ICONS: Record<WarningCode, string> = {
   'file-renamed': '→',
   'boundary-crossing': '⚡',
   'git-status-conflict': '⚠',
+  'version-mismatch': '⚠',
 };
 
 const HINTS: Partial<Record<WarningCode, string>> = {

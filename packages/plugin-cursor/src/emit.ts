@@ -125,7 +125,7 @@ ${content}
  * Used for .cursor/skills/ emission (Phase 7).
  */
 function formatAgentSkillMd(skill: import('@a16njs/models').SimpleAgentSkill): string {
-  const skillName = (skill.metadata?.name as string) || sanitizeFilename(skill.sourcePath);
+  const skillName = (skill.metadata?.name as string) || sanitizeFilename(skill.sourcePath || skill.id);
   const safeName = JSON.stringify(skillName);
   const safeDescription = JSON.stringify(skill.description);
 
@@ -195,7 +195,7 @@ async function emitAgentSkillIO(
       const baseName = sanitizePromptName(skill.name);
       let dirName = baseName;
       if (usedSkillNames.has(dirName)) {
-        collisionSources.push(skill.sourcePath);
+        if (skill.sourcePath) collisionSources.push(skill.sourcePath);
         let counter = 1;
         while (usedSkillNames.has(`${baseName}-${counter}`)) {
           counter++;
@@ -250,7 +250,7 @@ ${skill.content}
       const baseName = sanitizeFilename(skill.name) + '.mdc';
       const { filename, collision } = getUniqueFilename(baseName, usedFilenames);
       if (collision) {
-        collisionSources.push(skill.sourcePath);
+        if (skill.sourcePath) collisionSources.push(skill.sourcePath);
       }
 
       const filepath = path.join(rulesDir, filename);
@@ -281,7 +281,7 @@ ${skill.content}
     const baseName = sanitizePromptName(skill.name);
     let dirName = baseName;
     if (usedSkillNames.has(dirName)) {
-      collisionSources.push(skill.sourcePath);
+      if (skill.sourcePath) collisionSources.push(skill.sourcePath);
       let counter = 1;
       while (usedSkillNames.has(`${baseName}-${counter}`)) {
         counter++;
@@ -340,7 +340,7 @@ description: ${safeDescription}`;
         warnings.push({
           code: WarningCode.Skipped,
           message: `Skipped resource with unsafe path: ${filename}`,
-          sources: [skill.sourcePath],
+          sources: skill.sourcePath ? [skill.sourcePath] : [],
         });
         continue;
       }
@@ -350,7 +350,7 @@ description: ${safeDescription}`;
         warnings.push({
           code: WarningCode.Skipped,
           message: `Skipped resource outside skill directory: ${filename}`,
-          sources: [skill.sourcePath],
+          sources: skill.sourcePath ? [skill.sourcePath] : [],
         });
         continue;
       }
@@ -442,11 +442,11 @@ export async function emit(
 
   // Emit each GlobalPrompt as a separate .mdc file
   for (const gp of globalPrompts) {
-    const baseName = sanitizeFilename(gp.sourcePath) + '.mdc';
+    const baseName = sanitizeFilename(gp.sourcePath || gp.id) + '.mdc';
     const { filename, collision } = getUniqueFilename(baseName, usedFilenames);
     
     if (collision) {
-      collisionSources.push(gp.sourcePath);
+      if (gp.sourcePath) collisionSources.push(gp.sourcePath);
     }
 
     const filepath = path.join(rulesDir, filename);
@@ -476,11 +476,11 @@ export async function emit(
 
   // Emit each FileRule as a separate .mdc file with globs
   for (const fr of fileRules) {
-    const baseName = sanitizeFilename(fr.sourcePath) + '.mdc';
+    const baseName = sanitizeFilename(fr.sourcePath || fr.id) + '.mdc';
     const { filename, collision } = getUniqueFilename(baseName, usedFilenames);
     
     if (collision) {
-      collisionSources.push(fr.sourcePath);
+      if (fr.sourcePath) collisionSources.push(fr.sourcePath);
     }
 
     const filepath = path.join(rulesDir, filename);
@@ -511,13 +511,13 @@ export async function emit(
   // === Emit SimpleAgentSkills as .cursor/skills/*/SKILL.md (Phase 7) ===
   for (const skill of agentSkills) {
     // Get skill name from metadata or sourcePath
-    const skillName = (skill.metadata?.name as string) || sanitizeFilename(skill.sourcePath);
+    const skillName = (skill.metadata?.name as string) || sanitizeFilename(skill.sourcePath || skill.id);
     const baseName = sanitizePromptName(skillName);
     
     // Get unique name to avoid collisions
     let dirName = baseName;
     if (usedSkillNames.has(dirName)) {
-      collisionSources.push(skill.sourcePath);
+      if (skill.sourcePath) collisionSources.push(skill.sourcePath);
       let counter = 1;
       while (usedSkillNames.has(`${baseName}-${counter}`)) {
         counter++;
@@ -587,7 +587,7 @@ export async function emit(
       warnings.push({
         code: WarningCode.Merged,
         message: `Merged ${agentIgnores.length} ignore sources into .cursorignore`,
-        sources: agentIgnores.map(ai => ai.sourcePath),
+        sources: agentIgnores.map(ai => ai.sourcePath).filter((s): s is string => s !== undefined),
       });
     }
   }
@@ -600,7 +600,7 @@ export async function emit(
     // Get unique name to avoid collisions (shared with AgentSkills)
     let dirName = baseName;
     if (usedSkillNames.has(dirName)) {
-      collisionSources.push(prompt.sourcePath);
+      if (prompt.sourcePath) collisionSources.push(prompt.sourcePath);
       let counter = 1;
       while (usedSkillNames.has(`${baseName}-${counter}`)) {
         counter++;

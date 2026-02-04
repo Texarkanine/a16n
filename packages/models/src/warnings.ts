@@ -16,6 +16,8 @@ export enum WarningCode {
   BoundaryCrossing = 'boundary-crossing',
   /** Sources have conflicting git status (some ignored, some tracked) */
   GitStatusConflict = 'git-status-conflict',
+  /** IR file version is incompatible with current reader version */
+  VersionMismatch = 'version-mismatch',
 }
 
 /**

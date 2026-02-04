@@ -298,7 +298,7 @@ export async function emit(
 
     for (const gp of globalPrompts) {
       // Get unique filename to avoid collisions
-      const baseName = sanitizeFilename(gp.sourcePath);
+      const baseName = sanitizeFilename(gp.sourcePath || gp.id);
       const filename = getUniqueFilename(baseName, usedFilenames, '.md');
 
       const rulePath = path.join(rulesDir, filename);
@@ -341,8 +341,8 @@ export async function emit(
       if (validGlobs.length === 0) {
         warnings.push({
           code: WarningCode.Skipped,
-          message: `FileRule skipped due to empty globs: ${rule.sourcePath}`,
-          sources: [rule.sourcePath],
+          message: `FileRule skipped due to empty globs: ${rule.sourcePath || rule.id}`,
+          sources: rule.sourcePath ? [rule.sourcePath] : [],
         });
         continue;
       }
@@ -354,7 +354,7 @@ export async function emit(
       validFileRulesExist = true;
 
       // Get unique filename to avoid collisions
-      const baseName = sanitizeFilename(rule.sourcePath);
+      const baseName = sanitizeFilename(rule.sourcePath || rule.id);
       const filename = getUniqueFilename(baseName, usedFilenames, '.md');
 
       const fullPath = path.join(rulesDir, filename);
@@ -394,7 +394,7 @@ export async function emit(
   if (agentSkills.length > 0) {
     for (const skill of agentSkills) {
       // Get unique skill name to avoid directory collisions
-      const baseName = sanitizeFilename(skill.sourcePath);
+      const baseName = sanitizeFilename(skill.sourcePath || skill.id);
       const skillName = getUniqueFilename(baseName, usedSkillNames);
 
       const skillDir = path.join(root, '.claude', 'skills', skillName);
@@ -443,7 +443,7 @@ export async function emit(
       warnings.push({
         code: WarningCode.Skipped,
         message: `Negation patterns cannot be converted to permissions.deny (skipped ${negationPatterns.length} pattern${negationPatterns.length > 1 ? 's' : ''}: ${negationPatterns.join(', ')})`,
-        sources: agentIgnores.map(ai => ai.sourcePath),
+        sources: agentIgnores.map(ai => ai.sourcePath).filter((s): s is string => s !== undefined),
       });
     }
 
@@ -505,7 +505,7 @@ export async function emit(
     warnings.push({
       code: WarningCode.Approximated,
       message: `AgentIgnore approximated as permissions.deny (behavior may differ slightly)`,
-      sources: agentIgnores.map(ai => ai.sourcePath),
+      sources: agentIgnores.map(ai => ai.sourcePath).filter((s): s is string => s !== undefined),
     });
   }
 
