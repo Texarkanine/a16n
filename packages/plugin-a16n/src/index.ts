@@ -10,7 +10,7 @@
  * Directory structure: .a16n/<type>/<name>.md
  */
 
-import type { A16nPlugin } from '@a16njs/models';
+import type { A16nPlugin, AgentCustomization, EmitOptions } from '@a16njs/models';
 
 /**
  * The a16n IR plugin.
@@ -48,7 +48,7 @@ const plugin: A16nPlugin = {
    * @param options - Emission options
    * @returns Emit result with written files
    */
-  async emit(models, root, options) {
+  async emit(models: AgentCustomization[], root: string, options?: EmitOptions) {
     // TODO: Implement in Milestone 4
     return {
       written: [],
