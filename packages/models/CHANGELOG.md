@@ -1,5 +1,17 @@
 # @a16njs/models
 
+## [0.6.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.5.0...@a16njs/models@0.6.0) (2026-02-04)
+
+
+### Features
+
+* Add Codecov coverage tracking with per-package flags ([#31](https://github.com/Texarkanine/a16n/issues/31)) ([228b89f](https://github.com/Texarkanine/a16n/commit/228b89f1c9dfb7a1a7f43d5c9456300e23b30863))
+
+
+### Bug Fixes
+
+* **docs:** Update package.json homepages to docsite links ([4a5f242](https://github.com/Texarkanine/a16n/commit/4a5f242012ae8d95eb3fb9183b7a64dbd153a83f))
+
 ## [0.5.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.4.0...@a16njs/models@0.5.0) (2026-02-01)
 
 
