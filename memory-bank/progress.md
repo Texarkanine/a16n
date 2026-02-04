@@ -11,9 +11,9 @@
 
 | Milestone | Status | Progress |
 |-----------|--------|----------|
-| M1: IR Model Versioning + Extensions | `pending` | 0/9 tasks |
-| M2: Plugin Package Setup | `pending` | 0/6 tasks |
-| M3: Frontmatter Parse/Format | `blocked` | 0/9 tasks (waiting for M1, M2) |
+| M1: IR Model Versioning + Extensions | `completed` ✅ | 15/15 tasks (3 hours, PR #32) |
+| M2: Plugin Package Setup | `ready` | 0/6 tasks (unblocked) |
+| M3: Frontmatter Parse/Format | `blocked` | 0/9 tasks (waiting for M2) |
 | M4: IR Emission | `blocked` | 0/7 tasks (waiting for M3) |
 | M5: IR Discovery | `blocked` | 0/9 tasks (waiting for M3) |
 | M6: CLI Integration | `blocked` | 0/4 tasks (waiting for M4, M5) |
@@ -29,7 +29,7 @@ None - ready to begin implementation.
 
 ## Completed Steps
 
-### Planning Phase
+### Planning Phase (2026-02-03)
 - [x] Loaded Phase 9 specification
 - [x] Analyzed existing codebase patterns
 - [x] Researched 3 architectural questions
@@ -43,6 +43,16 @@ None - ready to begin implementation.
 - [x] Created detailed task breakdown (7 milestones, 24 hours)
 - [x] Documented acceptance criteria and test infrastructure
 - [x] Consolidated memory bank (see: `creative/creative-phase9-architecture.md`)
+
+### Milestone 1: IR Model Versioning & Extensions (2026-02-04)
+- [x] Added IRVersion type with Kubernetes-style versioning (`v1beta1`)
+- [x] Implemented version parsing and compatibility checking
+- [x] Created shared AgentSkills.io parsing utilities
+- [x] Applied breaking changes to AgentCustomization interface
+- [x] Updated all 3 plugins (cursor, claude, CLI) to add version field
+- [x] Added 30 new unit tests (all 493 tests passing)
+- [x] Created commit (c9ec520) and PR #32
+- [x] Completed reflection documentation
 
 ---
 
@@ -66,12 +76,12 @@ None - ready to begin implementation.
 
 ## Verification Status
 
-| Check | Status |
-|-------|--------|
-| pnpm build | Not run |
-| pnpm test | Not run |
-| pnpm lint | Not run |
-| pnpm typecheck | Not run |
+| Check | Status | Result |
+|-------|--------|--------|
+| pnpm build | ✅ Passed | All 6 packages built successfully |
+| pnpm test | ✅ Passed | 493 tests passed (30 new) |
+| pnpm typecheck | ✅ Passed | No TypeScript errors |
+| pnpm lint | ⚠️ Not run | No lint script defined |
 
 ---
 
