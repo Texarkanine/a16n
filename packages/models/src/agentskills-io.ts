@@ -119,9 +119,17 @@ export async function readSkillFiles(
   resources: string[]
 ): Promise<Record<string, string>> {
   const files: Record<string, string> = {};
+  const resolvedSkillDir = path.resolve(skillDir);
 
   for (const resource of resources) {
     const resourcePath = path.join(skillDir, resource);
+    const resolvedResource = path.resolve(resourcePath);
+
+    // Validate path stays within skillDir to prevent path traversal
+    if (!resolvedResource.startsWith(resolvedSkillDir + path.sep) && resolvedResource !== resolvedSkillDir) {
+      continue; // Skip paths that escape the skill directory
+    }
+
     try {
       const content = await fs.readFile(resourcePath, 'utf-8');
       files[resource] = content;
@@ -189,8 +197,16 @@ export async function writeAgentSkillIO(
   written.push(skillPath);
 
   // Write resource files
+  const resolvedOutputDir = path.resolve(outputDir);
   for (const [relativePath, fileContent] of Object.entries(files)) {
     const filePath = path.join(outputDir, relativePath);
+    const resolvedFilePath = path.resolve(filePath);
+
+    // Validate path stays within outputDir to prevent path traversal
+    if (!resolvedFilePath.startsWith(resolvedOutputDir + path.sep) && resolvedFilePath !== resolvedOutputDir) {
+      throw new Error(`Invalid resource path: ${relativePath} escapes output directory`);
+    }
+
     const fileDir = path.dirname(filePath);
     await fs.mkdir(fileDir, { recursive: true });
     await fs.writeFile(filePath, fileContent, 'utf-8');

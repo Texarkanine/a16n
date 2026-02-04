@@ -159,6 +159,26 @@ describe('readSkillFiles', () => {
       'exists.md': 'Content',
     });
   });
+
+  it('should prevent path traversal attacks', async () => {
+    // Create a file outside the skill directory
+    const outsideFile = path.join(testDir, '..', 'outside.txt');
+    await fs.writeFile(outsideFile, 'Outside content');
+
+    // Create legitimate file inside
+    await fs.writeFile(path.join(testDir, 'inside.md'), 'Inside content');
+
+    // Attempt to read with path traversal
+    const files = await readSkillFiles(testDir, ['inside.md', '../outside.txt']);
+
+    // Should only read the legitimate file
+    expect(files).toEqual({
+      'inside.md': 'Inside content',
+    });
+
+    // Clean up outside file
+    await fs.rm(outsideFile, { force: true });
+  });
 });
 
 describe('writeAgentSkillIO', () => {
@@ -252,6 +272,31 @@ describe('writeAgentSkillIO', () => {
       .then(() => true)
       .catch(() => false);
     expect(exists).toBe(true);
+  });
+
+  it('should prevent path traversal attacks in resource writes', async () => {
+    const outputDir = path.join(testDir, 'safe');
+    const frontmatter: ParsedSkillFrontmatter = {
+      name: 'test',
+      description: 'Test skill',
+    };
+
+    // Attempt to write with path traversal
+    const maliciousFiles = {
+      '../malicious.txt': 'Malicious content',
+    };
+
+    await expect(
+      writeAgentSkillIO(outputDir, frontmatter, 'Content', maliciousFiles)
+    ).rejects.toThrow('Invalid resource path');
+
+    // Verify no file was written outside the output directory
+    const maliciousPath = path.join(testDir, 'malicious.txt');
+    const exists = await fs
+      .access(maliciousPath)
+      .then(() => true)
+      .catch(() => false);
+    expect(exists).toBe(false);
   });
 });
 

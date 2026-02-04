@@ -215,11 +215,13 @@ program
                 const sources = written.sourceItems;
                 if (sources.length === 0) continue;
                 
-                // Check git status for each source
+                // Check git status for each source (skip sources without sourcePath)
                 const sourceStatuses = await Promise.all(
                   sources.map(async (source) => ({
                     source,
-                    ignoreSource: await getIgnoreSource(resolvedPath, source.sourcePath || ''),
+                    ignoreSource: source.sourcePath
+                      ? await getIgnoreSource(resolvedPath, source.sourcePath)
+                      : null,
                   }))
                 );
                 
