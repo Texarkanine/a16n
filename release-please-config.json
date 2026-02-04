@@ -31,6 +31,10 @@
       "component": "@a16njs/glob-hook",
       "changelog-path": "CHANGELOG.md"
     },
+    "packages/plugin-a16n": {
+      "component": "@a16njs/plugin-a16n",
+      "changelog-path": "CHANGELOG.md"
+    },
     "packages/docs": {
       "component": "@a16njs/docs",
       "changelog-path": "CHANGELOG.md"
