@@ -20,17 +20,26 @@ export enum CustomizationType {
 /**
  * Base interface for all agent customization items.
  * Every customization discovered or emitted extends this interface.
+ *
+ * BREAKING CHANGES (Phase 9):
+ * - `version` is now required (was not present)
+ * - `sourcePath` is now optional (was required)
+ * - `relativeDir` added as optional field for directory structure preservation
  */
 export interface AgentCustomization {
   /** Unique identifier for this item */
   id: string;
   /** The type of customization */
   type: CustomizationType;
-  /** Original file path where this was discovered */
-  sourcePath: string;
+  /** IR version (required, e.g., 'v1beta1') */
+  version: string;
+  /** Original file path where this was discovered (optional, omitted in IR format) */
+  sourcePath?: string;
+  /** Relative directory path for preserving directory structure (optional) */
+  relativeDir?: string;
   /** The actual prompt/rule content */
   content: string;
-  /** Tool-specific extras that don't fit the standard model */
+  /** Tool-specific extras that don't fit the standard model (transient, not serialized in IR) */
   metadata: Record<string, unknown>;
 }
 

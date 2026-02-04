@@ -13,6 +13,7 @@ import {
   CustomizationType,
   WarningCode,
   createId,
+  CURRENT_IR_VERSION,
 } from '@a16njs/models';
 import { parseMdc, type MdcFrontmatter } from './mdc.js';
 
@@ -77,6 +78,7 @@ function classifyRule(
     return {
       id: createId(CustomizationType.GlobalPrompt, sourcePath),
       type: CustomizationType.GlobalPrompt,
+      version: CURRENT_IR_VERSION,
       sourcePath,
       content: body,
       metadata: { ...frontmatter },
@@ -91,6 +93,7 @@ function classifyRule(
       return {
         id: createId(CustomizationType.FileRule, sourcePath),
         type: CustomizationType.FileRule,
+        version: CURRENT_IR_VERSION,
         sourcePath,
         content: body,
         globs,
@@ -105,6 +108,7 @@ function classifyRule(
     return {
       id: createId(CustomizationType.SimpleAgentSkill, sourcePath),
       type: CustomizationType.SimpleAgentSkill,
+      version: CURRENT_IR_VERSION,
       sourcePath,
       content: body,
       description: frontmatter.description,
@@ -118,6 +122,7 @@ function classifyRule(
   return {
     id: createId(CustomizationType.ManualPrompt, sourcePath),
     type: CustomizationType.ManualPrompt,
+    version: CURRENT_IR_VERSION,
     sourcePath,
     content: body,
     promptName,
@@ -228,6 +233,7 @@ async function discoverCommands(root: string): Promise<{
     items.push({
       id: createId(CustomizationType.ManualPrompt, sourcePath),
       type: CustomizationType.ManualPrompt,
+      version: CURRENT_IR_VERSION,
       sourcePath,
       content,
       promptName,
@@ -423,6 +429,7 @@ async function discoverSkills(root: string): Promise<{
         const agentSkillIO: AgentSkillIO = {
           id: createId(CustomizationType.AgentSkillIO, skillPath),
           type: CustomizationType.AgentSkillIO,
+          version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
           name: skillName,
@@ -438,6 +445,7 @@ async function discoverSkills(root: string): Promise<{
         items.push({
           id: createId(CustomizationType.ManualPrompt, skillPath),
           type: CustomizationType.ManualPrompt,
+          version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
           promptName: skillName,
@@ -448,6 +456,7 @@ async function discoverSkills(root: string): Promise<{
         items.push({
           id: createId(CustomizationType.SimpleAgentSkill, skillPath),
           type: CustomizationType.SimpleAgentSkill,
+          version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
           description: frontmatter.description,
@@ -502,6 +511,7 @@ async function discoverCursorIgnore(root: string): Promise<AgentIgnore | null> {
     return {
       id: createId(CustomizationType.AgentIgnore, '.cursorignore'),
       type: CustomizationType.AgentIgnore,
+      version: CURRENT_IR_VERSION,
       sourcePath: '.cursorignore',
       content,
       patterns,

@@ -12,6 +12,7 @@ import {
   CustomizationType,
   WarningCode,
   createId,
+  CURRENT_IR_VERSION,
 } from '@a16njs/models';
 
 /**
@@ -467,6 +468,7 @@ async function discoverAgentIgnore(root: string): Promise<AgentIgnore | null> {
     return {
       id: createId(CustomizationType.AgentIgnore, '.claude/settings.json'),
       type: CustomizationType.AgentIgnore,
+      version: CURRENT_IR_VERSION,
       sourcePath: '.claude/settings.json',
       content: JSON.stringify({ permissions: { deny: readRules } }, null, 2),
       patterns,
@@ -503,6 +505,7 @@ export async function discover(root: string): Promise<DiscoveryResult> {
       items.push({
         id: createId(CustomizationType.GlobalPrompt, normalizedPath),
         type: CustomizationType.GlobalPrompt,
+        version: CURRENT_IR_VERSION,
         sourcePath: normalizedPath,
         content,
         metadata: {
@@ -572,6 +575,7 @@ export async function discover(root: string): Promise<DiscoveryResult> {
         const agentSkillIO: AgentSkillIO = {
           id: createId(CustomizationType.AgentSkillIO, skillPath),
           type: CustomizationType.AgentSkillIO,
+          version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
           name: skillName,
@@ -587,6 +591,7 @@ export async function discover(root: string): Promise<DiscoveryResult> {
         const prompt: ManualPrompt = {
           id: createId(CustomizationType.ManualPrompt, skillPath),
           type: CustomizationType.ManualPrompt,
+          version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
           promptName: skillName,
@@ -600,6 +605,7 @@ export async function discover(root: string): Promise<DiscoveryResult> {
         const skill: SimpleAgentSkill = {
           id: createId(CustomizationType.SimpleAgentSkill, skillPath),
           type: CustomizationType.SimpleAgentSkill,
+          version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
           description: frontmatter.description,
@@ -655,6 +661,7 @@ export async function discover(root: string): Promise<DiscoveryResult> {
         items.push({
           id: createId(CustomizationType.GlobalPrompt, normalizedPath),
           type: CustomizationType.GlobalPrompt,
+          version: CURRENT_IR_VERSION,
           sourcePath: normalizedPath,
           content: body,
           metadata: {
@@ -668,6 +675,7 @@ export async function discover(root: string): Promise<DiscoveryResult> {
         const fileRule: FileRule = {
           id: createId(CustomizationType.FileRule, normalizedPath),
           type: CustomizationType.FileRule,
+          version: CURRENT_IR_VERSION,
           sourcePath: normalizedPath,
           content: body,
           globs: paths,

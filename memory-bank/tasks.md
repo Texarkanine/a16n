@@ -62,35 +62,41 @@ Enable persisting and reading the IR to/from a `.a16n/` directory structure, sup
 ## Implementation Plan
 
 ### Milestone 1: IR Model Versioning & Extensions (packages/models)
-**Status:** `pending`
+**Status:** `completed`
 **Dependencies:** None
-**Estimated:** 5 hours
+**Actual:** 3 hours
 
 #### Tasks
-- [ ] 1.1 **BREAKING:** Update `AgentCustomization` base interface in `types.ts`:
+- [x] 1.1 **BREAKING:** Update `AgentCustomization` base interface in `types.ts`:
   - Make `sourcePath` optional (was required)
   - Add `version: IRVersion` (required)
   - Add `relativeDir?: string` (optional)
-- [ ] 1.2 Add `IRVersion` type (runtime validation, must have trailing number)
-- [ ] 1.3 Add `CURRENT_IR_VERSION` constant (`v1beta1`)
-- [ ] 1.4 Create `version.ts` with utilities:
+- [x] 1.2 Add `IRVersion` type (runtime validation, must have trailing number)
+- [x] 1.3 Add `CURRENT_IR_VERSION` constant (`v1beta1`)
+- [x] 1.4 Create `version.ts` with utilities:
   - `parseIRVersion()` - Regex: `/^v(\d+)([a-z]*)(\d+)$/` (requires trailing number)
   - `areVersionsCompatible(reader, file)` - Reader >= file revision (forward compat)
   - `getCurrentVersion()` - Return current version
-- [ ] 1.5 Create `agentskills-io.ts` with shared utilities:
+- [x] 1.5 Create `agentskills-io.ts` with shared utilities:
   - `ParsedSkillFrontmatter` interface
   - `ParsedSkill` interface
   - `parseSkillFrontmatter()` - Parse SKILL.md frontmatter
   - `readSkillFiles()` - Read resource files from skill directory
   - `writeAgentSkillIO()` - Write verbatim AgentSkills.io format (NO IR frontmatter)
   - `readAgentSkillIO()` - Read verbatim AgentSkills.io format
-- [ ] 1.6 Add `WarningCode.VersionMismatch` to `warnings.ts`
-- [ ] 1.7 Export new types/functions from `index.ts`
-- [ ] 1.8 Write unit tests in `test/version.test.ts`:
+- [x] 1.6 Add `WarningCode.VersionMismatch` to `warnings.ts`
+- [x] 1.7 Export new types/functions from `index.ts`
+- [x] 1.8 Write unit tests in `test/version.test.ts`:
   - Test version regex (valid: `v1beta1`, invalid: `v1`)
   - Test forward compatibility (newer reader, older file)
   - Test incompatibility warnings (different major/stability)
-- [ ] 1.9 Write unit tests in `test/agentskills-io.test.ts`
+- [x] 1.9 Write unit tests in `test/agentskills-io.test.ts`
+- [x] 1.10 Add `gray-matter` dependency for YAML frontmatter parsing
+- [x] 1.11 Add `@types/node` dev dependency
+- [x] 1.12 Update plugin-cursor to add version field to all AgentCustomization objects
+- [x] 1.13 Update plugin-claude to add version field to all AgentCustomization objects
+- [x] 1.14 Update CLI to handle optional sourcePath and add VersionMismatch icon
+- [x] 1.15 Run full test suite (493 tests passed)
 
 #### Files to Modify/Create
 - `packages/models/src/types.ts` - **BREAKING** changes to base interface

@@ -37,3 +37,23 @@ export {
   getUniqueFilename,
   createId,
 } from './helpers.js';
+
+// Version utilities
+export {
+  type IRVersion,
+  type ParsedIRVersion,
+  CURRENT_IR_VERSION,
+  parseIRVersion,
+  areVersionsCompatible,
+  getCurrentVersion,
+} from './version.js';
+
+// AgentSkills.io utilities
+export {
+  type ParsedSkillFrontmatter,
+  type ParsedSkill,
+  parseSkillFrontmatter,
+  readSkillFiles,
+  writeAgentSkillIO,
+  readAgentSkillIO,
+} from './agentskills-io.js';
