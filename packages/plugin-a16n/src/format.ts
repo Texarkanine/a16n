@@ -32,8 +32,8 @@ export function formatIRFile(item: AgentCustomization): string {
     type: item.type,
   };
   
-  // Add relativeDir if present
-  if (item.relativeDir) {
+  // Add relativeDir if present (check undefined, not truthy, to preserve empty strings)
+  if (item.relativeDir !== undefined) {
     frontmatter.relativeDir = item.relativeDir;
   }
   

@@ -99,15 +99,9 @@ describe('parseIRFile', () => {
     });
   });
 
-  describe('AgentSkillIO', () => {
-    it('should use readAgentSkillIO from models (verbatim format)', async () => {
-      // AgentSkillIO uses verbatim AgentSkills.io format (NO IR frontmatter)
-      // This is handled by readAgentSkillIO() from @a16njs/models
-      // Discovery function will use readAgentSkillIO instead of parseIRFile
-      // So parseIRFile doesn't need to handle AgentSkillIO
-      expect(true).toBe(true);
-    });
-  });
+  // AgentSkillIO: Not tested here because parseIRFile is not used for AgentSkillIO.
+  // AgentSkillIO uses verbatim AgentSkills.io format (NO IR frontmatter) and is
+  // handled by readAgentSkillIO() from @a16njs/models.
 
   describe('ManualPrompt', () => {
     it('should parse a valid ManualPrompt IR file', async () => {
@@ -183,11 +177,12 @@ describe('parseIRFile', () => {
     });
 
     it('should return error for invalid version format', async () => {
-      // TODO: Create fixture with invalid version
-      // For now, test with basic fixture that has valid version
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/global-prompt');
-      expect(result.error).toBeUndefined();
+      const filepath = path.join(fixturesDir, 'parse-errors', 'invalid-version.md');
+      const result = await parseIRFile(filepath, 'invalid-version.md', '.a16n/global-prompt');
+
+      expect(result.error).toBeDefined();
+      expect(result.error).toContain('Invalid version format');
+      expect(result.item).toBeUndefined();
     });
 
     it('should accept valid version formats', async () => {
@@ -220,11 +215,12 @@ describe('parseIRFile', () => {
     });
 
     it('should return error for malformed YAML frontmatter', async () => {
-      // TODO: Create fixture with malformed YAML
-      // For now, test with valid frontmatter
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/global-prompt');
-      expect(result.error).toBeUndefined();
+      const filepath = path.join(fixturesDir, 'parse-errors', 'malformed-yaml.md');
+      const result = await parseIRFile(filepath, 'malformed-yaml.md', '.a16n/global-prompt');
+
+      expect(result.error).toBeDefined();
+      expect(result.error).toContain('YAML');
+      expect(result.item).toBeUndefined();
     });
 
     it('should return error for missing frontmatter', async () => {
@@ -266,26 +262,36 @@ describe('parseIRFile', () => {
 
   describe('edge cases', () => {
     it('should handle empty content (only frontmatter)', async () => {
-      // Empty content is valid - frontmatter is required, content is optional
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/global-prompt');
+      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'empty-content.md');
+      const result = await parseIRFile(filepath, 'empty-content.md', '.a16n/global-prompt');
+
       expect(result.error).toBeUndefined();
+      expect(result.item).toBeDefined();
+      // Empty content after frontmatter should result in empty string
+      expect(result.item?.content).toBe('');
     });
 
     it('should preserve whitespace in content', async () => {
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/global-prompt');
-      
+      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'with-whitespace.md');
+      const result = await parseIRFile(filepath, 'with-whitespace.md', '.a16n/global-prompt');
+
       expect(result.error).toBeUndefined();
       expect(result.item?.content).toBeTruthy();
-      // Content should preserve line breaks and whitespace
+      // Content should preserve leading spaces, multiple blank lines, and trailing newline
+      expect(result.item?.content).toContain('  Leading spaces');
+      expect(result.item?.content).toContain('\n\n');
     });
 
     it('should handle content with YAML-like syntax', async () => {
-      // Content that looks like YAML but isn't frontmatter should be treated as regular content
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/global-prompt');
+      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'yaml-like-content.md');
+      const result = await parseIRFile(filepath, 'yaml-like-content.md', '.a16n/global-prompt');
+
       expect(result.error).toBeUndefined();
+      expect(result.item).toBeDefined();
+      // YAML-like content should be treated as content, not frontmatter
+      expect(result.item?.content).toContain('config:');
+      expect(result.item?.content).toContain('key: value');
+      expect(result.item?.content).toContain('---');
     });
   });
 });

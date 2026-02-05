@@ -64,7 +64,7 @@ export async function parseIRFile(
     }
     
     const frontmatter = parsed.data as IRFrontmatter;
-    const body = parsed.content.trim();
+    const body = parsed.content;
     
     // Validate required fields
     if (!frontmatter.version) {

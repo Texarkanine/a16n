@@ -25,8 +25,9 @@ export function extractRelativeDir(fullPath: string, baseDir: string): string | 
   if (!relative || relative === '.' || relative.startsWith('..')) {
     return undefined;
   }
-  
-  return relative;
+
+  // Normalize to POSIX-style forward slashes for cross-platform consistency
+  return relative.split(path.sep).join('/');
 }
 
 /**
@@ -46,10 +47,11 @@ export function slugify(name: string): string {
 
 /**
  * Get filename without extension.
- * 
+ * Uses path.parse().name to properly handle dotfiles (e.g., ".env" -> ".env").
+ *
  * @param filename - Filename with extension
  * @returns Filename without extension
  */
 export function getNameWithoutExtension(filename: string): string {
-  return filename.replace(/\.[^.]+$/, '');
+  return path.parse(filename).name;
 }

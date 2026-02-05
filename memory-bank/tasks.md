@@ -1,6 +1,31 @@
 # Memory Bank: Tasks
 
-## Current Task
+## Current Task: CodeRabbit PR #36 Fixes
+
+**Status:** COMPLETE
+**PR URL:** https://github.com/Texarkanine/a16n/pull/36
+**Rate Limit Until:**
+**Last Updated:** 2026-02-04T18:30:00Z
+
+### Actionable Items
+- [x] ID: format-relativeDir - Fix format.ts relativeDir truthy check to undefined check - FIXED
+- [x] ID: parse-trim - Remove .trim() from parse.ts to preserve whitespace - FIXED
+- [x] ID: utils-getname - Use path.parse().name in getNameWithoutExtension for dotfiles - FIXED
+- [x] ID: utils-posix - Normalize extractRelativeDir to POSIX separators - FIXED
+- [x] ID: test-agentskill - Remove no-op AgentSkillIO test (per owner approval) - FIXED
+- [x] ID: test-invalid-version - Add fixture and test for invalid version format - FIXED
+- [x] ID: test-malformed-yaml - Add fixture and test for malformed YAML - FIXED
+- [x] ID: test-edge-cases - Add fixtures and tests for edge cases (empty content, whitespace, YAML-like) - FIXED
+
+### Requires Human Decision
+(none)
+
+### Ignored
+- ID: reflection-wording - "Proactive bug fixing" wording in reflection doc - Already resolved
+
+---
+
+## Background: Phase 9 IR Serialization
 
 **Task ID:** PHASE-9-IR-SERIALIZATION
 **Source:** `planning/PHASE_9_SPEC.md`
