@@ -30,6 +30,18 @@ import { formatIRFile } from './format.js';
 import { slugify } from './utils.js';
 
 /**
+ * Check if a path exists on the filesystem.
+ */
+async function pathExists(p: string): Promise<boolean> {
+  try {
+    await fs.access(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Emit IR items to .a16n/ directory structure.
  * 
  * @param models - IR items to emit
@@ -97,9 +109,15 @@ async function emitStandardIR(
   dryRun: boolean
 ): Promise<void> {
   // Determine target directory (handle relativeDir subdirectories)
+  // Validate that relativeDir doesn't escape baseDir via path traversal
+  const baseDirResolved = path.resolve(baseDir);
   const targetDir = item.relativeDir
-    ? path.join(baseDir, item.relativeDir)
-    : baseDir;
+    ? path.resolve(baseDirResolved, item.relativeDir)
+    : baseDirResolved;
+  const rel = path.relative(baseDirResolved, targetDir);
+  if (rel.startsWith('..') || path.isAbsolute(rel)) {
+    throw new Error(`Invalid relativeDir "${item.relativeDir}" (escapes ${baseDir})`);
+  }
 
   // Extract name from ID and slugify for filename
   // For ManualPrompt with path separators, extract basename only
@@ -112,6 +130,9 @@ async function emitStandardIR(
   // Format content with IR frontmatter
   const content = formatIRFile(item);
 
+  // Check if file already exists before writing
+  const existed = await pathExists(filePath);
+
   // Write file (unless dry-run)
   if (!dryRun) {
     await fs.mkdir(targetDir, { recursive: true });
@@ -122,7 +143,7 @@ async function emitStandardIR(
     path: filePath,
     type: item.type,
     itemCount: 1,
-    isNewFile: true,
+    isNewFile: !existed,
     sourceItems: [item],
   });
 }
@@ -148,6 +169,9 @@ async function emitAgentSkillIO(
     description: item.description,
   };
 
+  // Check if skill directory already exists before writing
+  const existed = await pathExists(skillDir);
+
   // Write AgentSkillIO using shared utility (verbatim format)
   if (!dryRun) {
     await fs.mkdir(baseDir, { recursive: true });
@@ -158,7 +182,7 @@ async function emitAgentSkillIO(
     path: skillDir,
     type: item.type,
     itemCount: 1,
-    isNewFile: true,
+    isNewFile: !existed,
     sourceItems: [item],
   });
 }

@@ -1,27 +1,21 @@
 # Memory Bank: Tasks
 
-## Current Task: CodeRabbit PR #36 Fixes
+## Current Task: CodeRabbit PR #37 Fixes
 
-**Status:** COMPLETE
-**PR URL:** https://github.com/Texarkanine/a16n/pull/36
+**Status:** In Progress
+**PR URL:** https://github.com/Texarkanine/a16n/pull/37
 **Rate Limit Until:**
-**Last Updated:** 2026-02-04T18:30:00Z
+**Last Updated:** 2026-02-05T19:56:00Z
 
 ### Actionable Items
-- [x] ID: format-relativeDir - Fix format.ts relativeDir truthy check to undefined check - FIXED
-- [x] ID: parse-trim - Remove .trim() from parse.ts to preserve whitespace - FIXED
-- [x] ID: utils-getname - Use path.parse().name in getNameWithoutExtension for dotfiles - FIXED
-- [x] ID: utils-posix - Normalize extractRelativeDir to POSIX separators - FIXED
-- [x] ID: test-agentskill - Remove no-op AgentSkillIO test (per owner approval) - FIXED
-- [x] ID: test-invalid-version - Add fixture and test for invalid version format - FIXED
-- [x] ID: test-malformed-yaml - Add fixture and test for malformed YAML - FIXED
-- [x] ID: test-edge-cases - Add fixtures and tests for edge cases (empty content, whitespace, YAML-like) - FIXED
+- [x] ID: path-traversal - Block relativeDir path traversal outside .a16n/<type> (CRITICAL) - FIXED
+- [x] ID: isNewFile-hardcoded - Check file existence before writing to set isNewFile accurately (MAJOR) - FIXED
 
 ### Requires Human Decision
 (none)
 
 ### Ignored
-- ID: reflection-wording - "Proactive bug fixing" wording in reflection doc - Already resolved
+- ID: activeContext-time-tracking - User explicitly stated to NOT review memory-bank files unless the ticket is about writing plans
 
 ---
 
