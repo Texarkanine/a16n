@@ -12,11 +12,11 @@
 | Milestone | Status | Progress |
 |-----------|--------|----------|
 | M1: IR Model Versioning + Extensions | `completed` ✅ | 15/15 tasks (3 hours, PR #32) |
-| M2: Plugin Package Setup | `completed` ✅ | 9/9 tasks (15 minutes, PR #35) |
+| M2: Plugin Package Setup | `completed` ✅ | 11/11 tasks (15 minutes, PR #35) |
 | M3: Frontmatter Parse/Format | `completed` ✅ | 11/11 tasks (2.5 hours, PR #36) |
-| M4: IR Emission | `blocked` | 0/7 tasks (waiting for M3) |
-| M5: IR Discovery | `blocked` | 0/9 tasks (waiting for M3) |
-| M6: CLI Integration | `blocked` | 0/4 tasks (waiting for M4, M5) |
+| M4: IR Emission + CLI Integration | `completed` ✅ | 14/14 tasks (2 hours, 60% faster) |
+| M5: IR Discovery | `blocked` | 0/9 tasks (waiting for M4) |
+| M6: E2E Testing | `blocked` | 0/5 tasks (waiting for M4, M5) |
 | M7: Integration & Docs | `blocked` | 0/9 tasks (waiting for M6) |
 
 ---
@@ -77,25 +77,32 @@ None - ready to begin implementation.
 - [x] Created commit (9bfa802) and PR #36
 - [x] Completed reflection documentation
 
+### Milestone 4: IR Emission + CLI Integration (2026-02-04)
+- [x] Implemented emit() function with TDD (16 tests written first)
+- [x] Handle all 6 CustomizationType values correctly
+- [x] AgentSkillIO uses verbatim AgentSkills.io format
+- [x] ManualPrompt namespace collision avoidance via relativeDir
+- [x] metadata/sourcePath NOT in IR output (verified)
+- [x] CLI integration: registered a16nPlugin in engine
+- [x] E2E tested: `a16n convert --from cursor --to a16n .`
+- [x] All 530 tests passing (68 new in plugin-a16n)
+- [x] Build, test, typecheck all pass
+
 ---
 
 ## Next Actions
 
-1. Begin **Milestone 4** (IR Emission - `--to a16n`):
-   - Implement emit() function in emit.ts
-   - Use formatIRFile() to generate IR files
-   - Create .a16n/<type>/ directory structure (kebab-case)
-   - Handle AgentSkillIO via writeAgentSkillIO() from models
-   - Support dry-run mode
-   - Test with real conversion: a16n convert --from cursor --to a16n
+**Current:** M4 complete! Ready for PR and **Milestone 5** (IR Discovery - `--from a16n`)
 
-2. Begin **Milestone 5** (IR Discovery - `--from a16n`) after M4:
-   - Implement discover() function in discover.ts
-   - Use parseIRFile() to read IR files
-   - Scan .a16n/<type>/ directories recursively
-   - Validate version compatibility
-   - Handle AgentSkillIO via readAgentSkillIO() from models
-   - Emit version mismatch warnings
+**M4 Achievements:**
+- ✅ Full TDD implementation of emit() function
+- ✅ CLI fully integrated with `a16n` plugin
+- ✅ End-to-end tested: cursor → a16n conversion
+- ✅ All 530 tests passing
+- ✅ Build, test, typecheck all pass
+- ✅ Ready to create PR
+
+**Next:** Create draft PR for M4, then begin **Milestone 5** (IR Discovery)
 
 ---
 

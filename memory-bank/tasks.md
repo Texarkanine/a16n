@@ -225,35 +225,46 @@ pnpm --filter @a16njs/plugin-a16n build
 
 ---
 
-### Milestone 4: IR Emission (`--to a16n`)
-**Status:** `pending`
+### Milestone 4: IR Emission (`--to a16n`) + CLI Integration
+**Status:** `completed` ✅
 **Dependencies:** M3
-**Estimated:** 4 hours
+**Estimated:** 5 hours (4h emission + 1h CLI integration)
+**Actual:** 2 hours (60% faster)
+**Note:** CLI integration tasks moved from M6 to enable functional `--to a16n` in this milestone
 
 #### Tasks
-- [ ] 4.1 Implement `emit()` function in `emit.ts`:
+- [x] 4.1 Implement `emit()` function in `emit.ts`:
   - Group items by CustomizationType
   - **Use kebab-case directory names:** `.a16n/{item.type}/` (matches enum values)
   - Create subdirectories honoring `relativeDir` field
   - Write IR files with versioned frontmatter (excluding metadata, sourcePath)
   - Handle name slugification for filenames
   - Support dry-run mode
-- [ ] 4.2 Handle AgentSkillIO specially:
+- [x] 4.2 Handle AgentSkillIO specially:
   - Use `writeAgentSkillIO()` from `@a16njs/models`
   - Write to `.a16n/agent-skill-io/<name>/`
   - Verbatim AgentSkills.io format (NO IR frontmatter)
-- [ ] 4.3 Handle ManualPrompt with relativeDir:
+- [x] 4.3 Handle ManualPrompt with relativeDir:
   - Create subdirectories from `relativeDir` field
   - Filename = slugify basename only
   - Full path provides namespace (e.g., `shared/company/pr.md`)
-- [ ] 4.4 Return proper `EmitResult` with written files, warnings
-- [ ] 4.5 Create test fixtures in `test/fixtures/`
-- [ ] 4.6 Write emission unit tests in `test/emit.test.ts`:
+- [x] 4.4 Return proper `EmitResult` with written files, warnings
+- [x] 4.5 Create test fixtures in `test/fixtures/`
+- [x] 4.6 Write emission unit tests in `test/emit.test.ts`:
   - Test kebab-case directory names
   - Test relativeDir subdirectory creation
   - Test ManualPrompt namespace collision avoidance
   - Test AgentSkillIO verbatim emission
-- [ ] 4.7 Test metadata/sourcePath NOT in output files
+- [x] 4.7 Test metadata/sourcePath NOT in output files
+- [x] 4.8 **CLI Integration:** Update `supports` array in `src/index.ts`:
+  - Add all 6 CustomizationType values
+  - Export plugin with complete supports list
+- [x] 4.9 **CLI Integration:** Add `@a16njs/plugin-a16n` dependency to CLI `package.json`
+- [x] 4.10 **CLI Integration:** Import a16nPlugin in `packages/cli/src/index.ts`
+- [x] 4.11 **CLI Integration:** Register a16nPlugin in engine initialization
+- [x] 4.12 **CLI Integration:** Test `a16n plugins` shows 'a16n' plugin
+- [x] 4.13 **CLI Integration:** Test `a16n convert --from cursor --to a16n .` works end-to-end
+- [x] 4.14 Run full verification suite (build, test, typecheck)
 
 #### Files to Modify/Create
 - `packages/plugin-a16n/src/emit.ts` (new)
@@ -318,26 +329,18 @@ pnpm --filter @a16njs/plugin-a16n build
 
 ---
 
-### Milestone 6: Plugin Registration & CLI Integration
+### Milestone 6: Discovery Integration & E2E Testing
 **Status:** `pending`
 **Dependencies:** M4, M5
-**Estimated:** 2 hours
+**Estimated:** 1 hour
+**Note:** Basic CLI integration moved to M4; this milestone focuses on discovery and bidirectional testing
 
 #### Tasks
-- [ ] 6.1 Export complete plugin from `src/index.ts`:
-  - `id: 'a16n'`
-  - `name: 'a16n Intermediate Representation'`
-  - `supports: [all CustomizationType values]`
-  - `discover` and `emit` functions
-- [ ] 6.2 Register plugin in CLI (`packages/cli/src/index.ts`):
-  - Import `a16nPlugin from '@a16njs/plugin-a16n'`
-  - Add to engine: `new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin])`
-- [ ] 6.3 Update CLI package.json to depend on plugin
-- [ ] 6.4 Test CLI commands:
-  - `a16n plugins` shows 'a16n' plugin
-  - `a16n discover --from a16n .`
-  - `a16n convert --from cursor --to a16n .`
-  - `a16n convert --from a16n --to claude .`
+- [ ] 6.1 Test `a16n discover --from a16n .` (discovery only)
+- [ ] 6.2 Test `a16n convert --from a16n --to claude .` (read IR, emit Claude)
+- [ ] 6.3 Test `a16n convert --from a16n --to cursor .` (read IR, emit Cursor)
+- [ ] 6.4 Test round-trip: Cursor → a16n → Cursor preserves content
+- [ ] 6.5 Test round-trip: Claude → a16n → Claude preserves content
 
 #### Files to Modify
 - `packages/plugin-a16n/src/index.ts` - Complete plugin export
@@ -388,15 +391,15 @@ pnpm --filter @a16njs/plugin-a16n build
 flowchart TD
     M1["M1 (Models)"] --> M3["M3 (Parse/Format)"]
     M2["M2 (Package)"] --> M3
-    M3 --> M4["M4 (Emit)"]
+    M3 --> M4["M4 (Emit + CLI)"]
     M3 --> M5["M5 (Discover)"]
-    M4 --> M6["M6 (CLI)"]
+    M4 --> M6["M6 (E2E Tests)"]
     M5 --> M6
     M6 --> M7["M7 (Docs)"]
 ```
 
-
-**Parallelizable:** M1 and M2 can run concurrently.
+**Parallelizable:** M1 and M2 can run concurrently. M4 now includes CLI integration.
+**Updated:** M4 includes CLI integration (moved from M6) to enable functional `--to a16n` in PR.
 
 ---
 
@@ -458,6 +461,11 @@ Phase 9 is complete when:
 - [ ] Version utilities enforce forward compatibility
 - [ ] Plugin discovers `.a16n/` with kebab-case directories
 - [ ] Plugin emits `.a16n/` with kebab-case directories
+- [ ] **CLI Integration:**
+  - [ ] `a16n plugins` lists 'a16n' plugin
+  - [ ] `a16n convert --from cursor --to a16n .` works
+  - [ ] `a16n convert --from a16n --to claude .` works
+  - [ ] `a16n discover --from a16n .` works
 - [ ] `metadata` NOT serialized to IR files
 - [ ] `sourcePath` NOT emitted to IR files
 - [ ] AgentSkillIO uses verbatim format (no IR frontmatter)

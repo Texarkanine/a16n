@@ -11,11 +11,14 @@
  */
 
 import type { A16nPlugin, AgentCustomization, EmitOptions } from '@a16njs/models';
+import { CustomizationType } from '@a16njs/models';
+import { emit as emitImpl } from './emit.js';
 
 // Export utility functions and types
 export { parseIRFile, type ParseIRFileResult } from './parse.js';
 export { formatIRFile } from './format.js';
 export { extractRelativeDir, slugify, getNameWithoutExtension } from './utils.js';
+export { emit } from './emit.js';
 
 /**
  * The a16n IR plugin.
@@ -28,8 +31,12 @@ const plugin: A16nPlugin = {
   id: 'a16n',
   name: 'a16n Intermediate Representation',
   supports: [
-    // Will support all CustomizationType values in M4/M5
-    // For now, exports parseIRFile and formatIRFile for testing
+    CustomizationType.GlobalPrompt,
+    CustomizationType.FileRule,
+    CustomizationType.SimpleAgentSkill,
+    CustomizationType.AgentSkillIO,
+    CustomizationType.AgentIgnore,
+    CustomizationType.ManualPrompt,
   ],
   
   /**
@@ -54,14 +61,7 @@ const plugin: A16nPlugin = {
    * @param options - Emission options
    * @returns Emit result with written files
    */
-  async emit(models: AgentCustomization[], root: string, options?: EmitOptions) {
-    // TODO: Implement in Milestone 4
-    return {
-      written: [],
-      warnings: [],
-      unsupported: [],
-    };
-  },
+  emit: emitImpl,
 };
 
 export default plugin;
