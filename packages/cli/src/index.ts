@@ -517,7 +517,8 @@ program
         if (result.written.length > 0) {
           for (const file of result.written) {
             const writePrefix = options.dryRun ? 'Would write' : 'Wrote';
-            console.log(`${writePrefix}: ${file.path}`);
+            const relativePath = path.relative(resolvedPath, file.path);
+            console.log(`${writePrefix}: ${relativePath}`);
           }
         }
         
