@@ -12,6 +12,11 @@
 
 import type { A16nPlugin, AgentCustomization, EmitOptions } from '@a16njs/models';
 
+// Export utility functions and types
+export { parseIRFile, type ParseIRFileResult } from './parse.js';
+export { formatIRFile } from './format.js';
+export { extractRelativeDir, slugify, getNameWithoutExtension } from './utils.js';
+
 /**
  * The a16n IR plugin.
  * 
@@ -23,7 +28,8 @@ const plugin: A16nPlugin = {
   id: 'a16n',
   name: 'a16n Intermediate Representation',
   supports: [
-    // Will support all CustomizationType values in future milestones
+    // Will support all CustomizationType values in M4/M5
+    // For now, exports parseIRFile and formatIRFile for testing
   ],
   
   /**

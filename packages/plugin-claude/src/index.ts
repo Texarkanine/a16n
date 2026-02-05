@@ -13,6 +13,9 @@ const claudePlugin: A16nPlugin = {
     CustomizationType.GlobalPrompt,
     CustomizationType.FileRule,
     CustomizationType.SimpleAgentSkill,
+    CustomizationType.AgentSkillIO,
+    CustomizationType.AgentIgnore,
+    CustomizationType.ManualPrompt,
   ],
 
   discover,

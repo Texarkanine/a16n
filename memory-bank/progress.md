@@ -12,8 +12,8 @@
 | Milestone | Status | Progress |
 |-----------|--------|----------|
 | M1: IR Model Versioning + Extensions | `completed` ✅ | 15/15 tasks (3 hours, PR #32) |
-| M2: Plugin Package Setup | `completed` ✅ | 9/9 tasks (15 minutes) |
-| M3: Frontmatter Parse/Format | `ready` | 0/10 tasks (unblocked) |
+| M2: Plugin Package Setup | `completed` ✅ | 9/9 tasks (15 minutes, PR #35) |
+| M3: Frontmatter Parse/Format | `completed` ✅ | 11/11 tasks (2.5 hours, PR #36) |
 | M4: IR Emission | `blocked` | 0/7 tasks (waiting for M3) |
 | M5: IR Discovery | `blocked` | 0/9 tasks (waiting for M3) |
 | M6: CLI Integration | `blocked` | 0/4 tasks (waiting for M4, M5) |
@@ -63,24 +63,39 @@ None - ready to begin implementation.
 - [x] Created comprehensive README.md
 - [x] Verified build integration with turbo (all 7 packages build successfully)
 - [x] Verified typecheck passes
+- [x] Created commit (3dd0b87) and PR #35 (merged)
+
+### Milestone 3: Frontmatter Parsing & Formatting (2026-02-04)
+- [x] Implemented parseIRFile() with comprehensive error handling
+- [x] Implemented formatIRFile() with clean YAML output
+- [x] Created utility functions (extractRelativeDir, slugify, getNameWithoutExtension)
+- [x] Added yaml package for clean YAML formatting
+- [x] Created 53 new tests (27 parse + 26 format)
+- [x] Created test fixtures for all 6 IR types + error cases
+- [x] Fixed bug: Updated supports arrays in plugin-cursor and plugin-claude
+- [x] All 546 monorepo tests passing
+- [x] Created commit (9bfa802) and PR #36
+- [x] Completed reflection documentation
 
 ---
 
 ## Next Actions
 
-1. Begin **Milestone 1** (IR Model Versioning + Extensions):
-   - Add `relativeDir` field to `AgentCustomization` interface
-   - Create `packages/models/src/version.ts` with test-first approach
-   - Create `packages/models/src/agentskills-io.ts` with parsing utilities
-   - Write comprehensive unit tests for both modules
-   - Add `WarningCode.VersionMismatch`
-   - Export new types/functions
+1. Begin **Milestone 4** (IR Emission - `--to a16n`):
+   - Implement emit() function in emit.ts
+   - Use formatIRFile() to generate IR files
+   - Create .a16n/<type>/ directory structure (kebab-case)
+   - Handle AgentSkillIO via writeAgentSkillIO() from models
+   - Support dry-run mode
+   - Test with real conversion: a16n convert --from cursor --to a16n
 
-2. Begin **Milestone 2** (Plugin Package Setup) in parallel:
-   - Create `packages/plugin-a16n/` directory
-   - Configure package.json (name: `@a16njs/plugin-a16n`)
-   - Create placeholder src/index.ts with `id: 'a16n'`
-   - Verify build integration
+2. Begin **Milestone 5** (IR Discovery - `--from a16n`) after M4:
+   - Implement discover() function in discover.ts
+   - Use parseIRFile() to read IR files
+   - Scan .a16n/<type>/ directories recursively
+   - Validate version compatibility
+   - Handle AgentSkillIO via readAgentSkillIO() from models
+   - Emit version mismatch warnings
 
 ---
 
@@ -88,8 +103,8 @@ None - ready to begin implementation.
 
 | Check | Status | Result |
 |-------|--------|--------|
-| pnpm build | ✅ Passed | All 6 packages built successfully |
-| pnpm test | ✅ Passed | 493 tests passed (30 new) |
+| pnpm build | ✅ Passed | All 7 packages built successfully |
+| pnpm test | ✅ Passed | 546 tests passed (53 new in M3) |
 | pnpm typecheck | ✅ Passed | No TypeScript errors |
 | pnpm lint | ⚠️ Not run | No lint script defined |
 

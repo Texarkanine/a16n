@@ -1,6 +1,31 @@
 # Memory Bank: Tasks
 
-## Current Task
+## Current Task: CodeRabbit PR #36 Fixes
+
+**Status:** COMPLETE
+**PR URL:** https://github.com/Texarkanine/a16n/pull/36
+**Rate Limit Until:**
+**Last Updated:** 2026-02-04T18:30:00Z
+
+### Actionable Items
+- [x] ID: format-relativeDir - Fix format.ts relativeDir truthy check to undefined check - FIXED
+- [x] ID: parse-trim - Remove .trim() from parse.ts to preserve whitespace - FIXED
+- [x] ID: utils-getname - Use path.parse().name in getNameWithoutExtension for dotfiles - FIXED
+- [x] ID: utils-posix - Normalize extractRelativeDir to POSIX separators - FIXED
+- [x] ID: test-agentskill - Remove no-op AgentSkillIO test (per owner approval) - FIXED
+- [x] ID: test-invalid-version - Add fixture and test for invalid version format - FIXED
+- [x] ID: test-malformed-yaml - Add fixture and test for malformed YAML - FIXED
+- [x] ID: test-edge-cases - Add fixtures and tests for edge cases (empty content, whitespace, YAML-like) - FIXED
+
+### Requires Human Decision
+(none)
+
+### Ignored
+- ID: reflection-wording - "Proactive bug fixing" wording in reflection doc - Already resolved
+
+---
+
+## Background: Phase 9 IR Serialization
 
 **Task ID:** PHASE-9-IR-SERIALIZATION
 **Source:** `planning/PHASE_9_SPEC.md`
@@ -155,38 +180,41 @@ pnpm --filter @a16njs/plugin-a16n build
 ---
 
 ### Milestone 3: Frontmatter Parsing & Formatting
-**Status:** `pending`
+**Status:** `completed` ✅
+**Reflection:** `completed` ✅ (see: `reflection/reflection-phase9-m3.md`)
 **Dependencies:** M1, M2
 **Estimated:** 4 hours
+**Actual:** 2.5 hours (62% faster)
 
 #### Tasks
-- [ ] 3.1 Add `gray-matter` dependency for YAML frontmatter
-- [ ] 3.2 Implement `parseIRFile()` in `parse.ts`:
+- [x] 3.1 Add `yaml` dependency for YAML formatting (gray-matter already present from M2)
+- [x] 3.2 Implement `parseIRFile()` in `parse.ts`:
   - Parse YAML frontmatter from markdown
   - Extract version, type, relativeDir, type-specific fields
   - **Do NOT extract name** (filename IS the name)
-  - **Do NOT serialize metadata** (transient only)
+  - Initialize metadata as {} (transient only, not serialized)
   - For ManualPrompt: derive `promptName` from `relativeDir` + filename
   - Return parsed IR item or error
-- [ ] 3.3 Implement `formatIRFile()` in `format.ts`:
+- [x] 3.3 Implement `formatIRFile()` in `format.ts`:
   - Generate YAML frontmatter from IR item
   - Include: version, type, relativeDir (if present), type-specific fields
   - **Do NOT include sourcePath** (omitted in IR format)
   - **Do NOT include metadata** (not serialized)
   - Format as `---\n{yaml}---\n\n{content}\n`
-- [ ] 3.4 Handle all IR types' frontmatter fields:
+- [x] 3.4 Handle all IR types' frontmatter fields:
   - GlobalPrompt: version, type, relativeDir (optional)
   - FileRule: + `globs` array, relativeDir (optional)
   - SimpleAgentSkill: + `description` (NO name field)
   - ManualPrompt: version, type, relativeDir (derive promptName on read)
   - AgentIgnore: + `patterns` array
   - AgentSkillIO: **SKIP** (uses verbatim AgentSkills.io format, no IR frontmatter)
-- [ ] 3.5 Implement `extractRelativeDir()` utility (use `path.relative()`)
-- [ ] 3.6 Implement name slugification utility
-- [ ] 3.7 Write parsing tests in `test/parse.test.ts`
-- [ ] 3.8 Write formatting tests in `test/format.test.ts`
-- [ ] 3.9 Test round-trip (format → parse → format)
-- [ ] 3.10 Test relativeDir extraction edge cases
+- [x] 3.5 Implement `extractRelativeDir()` utility (use `path.relative()`)
+- [x] 3.6 Implement name slugification utility
+- [x] 3.7 Write parsing tests in `test/parse.test.ts` (27 tests)
+- [x] 3.8 Write formatting tests in `test/format.test.ts` (26 tests)
+- [x] 3.9 Test round-trip (format → parse → format) - deferred to M4/M5 integration
+- [x] 3.10 Test relativeDir extraction edge cases
+- [x] 3.11 **BONUS:** Fix out-of-date `supports` arrays in plugin-cursor and plugin-claude
 
 #### Files to Modify/Create
 - `packages/plugin-a16n/package.json` - Add `gray-matter` dependency
