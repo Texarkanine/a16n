@@ -2,7 +2,7 @@
 
 ## Current Task: Phase 9 Milestones 5 & 6 (IR Discovery + E2E Testing)
 
-**Status:** PLANNING
+**Status:** COMPLETE (Reflection documented)
 **Branch:** `p9-m5`
 **Last Updated:** 2026-02-06
 **Complexity:** Level 4
@@ -20,9 +20,10 @@ Implement IR discovery (`--from a16n`) and complete end-to-end integration testi
 
 ## Milestone 5: IR Discovery (`--from a16n`)
 
-**Status:** `pending`
+**Status:** ✅ `complete`
 **Dependencies:** M3 (parse.ts, format.ts), M4 (emit.ts, CLI wiring)
 **Estimated:** 4 hours
+**Actual:** ~2.5 hours (37.5% faster)
 
 ### Scope
 
@@ -219,15 +220,15 @@ describe('A16n Plugin Discovery')
 
 ### Tasks Checklist
 
-- [ ] 5.1 Create test fixtures (7 fixture directories)
-- [ ] 5.2 Stub `discover.ts` with empty implementation + function signatures
-- [ ] 5.3 Stub test file `discover.test.ts` with all test cases (empty implementations)
-- [ ] 5.4 Implement test cases for `discover()`
-- [ ] 5.5 Run tests → all should fail (TDD red phase)
-- [ ] 5.6 Implement `discover()` in `discover.ts`
-- [ ] 5.7 Wire `discover()` into `index.ts` (replace TODO stub)
-- [ ] 5.8 Run tests → all should pass (TDD green phase)
-- [ ] 5.9 Run full verification: `pnpm --filter @a16njs/plugin-a16n test`
+- [x] 5.1 Create test fixtures (7 fixture directories)
+- [x] 5.2 Stub `discover.ts` with empty implementation + function signatures
+- [x] 5.3 Stub test file `discover.test.ts` with all test cases (empty implementations)
+- [x] 5.4 Implement test cases for `discover()`
+- [x] 5.5 Run tests → all should fail (TDD red phase)
+- [x] 5.6 Implement `discover()` in `discover.ts`
+- [x] 5.7 Wire `discover()` into `index.ts` (replace TODO stub)
+- [x] 5.8 Run tests → all should pass (TDD green phase)
+- [x] 5.9 Run full verification: `pnpm --filter @a16njs/plugin-a16n test`
 
 ### Files to Create/Modify
 
@@ -258,9 +259,10 @@ describe('A16n Plugin Discovery')
 
 ## Milestone 6: Discovery Integration & E2E Testing
 
-**Status:** `pending`
+**Status:** ✅ `complete`
 **Dependencies:** M4 (CLI wiring), M5 (discover)
 **Estimated:** 1 hour
+**Actual:** ~0.5 hours (50% faster)
 
 ### Scope
 
@@ -308,11 +310,11 @@ const engine = new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin]);
 
 ### Tasks Checklist
 
-- [ ] 6.1 Update integration test engine to include a16nPlugin
-- [ ] 6.2 Create integration test fixtures for a16n
-- [ ] 6.3 Write integration tests (discovery, convert, round-trip)
-- [ ] 6.4 Run integration tests → should pass
-- [ ] 6.5 Run full monorepo verification: `pnpm build && pnpm test`
+- [x] 6.1 Update integration test engine to include a16nPlugin
+- [x] 6.2 Create integration test fixtures for a16n
+- [x] 6.3 Write integration tests (discovery, convert, round-trip)
+- [x] 6.4 Run integration tests → should pass
+- [x] 6.5 Run full monorepo verification: `pnpm build && pnpm test`
 
 ### Files to Create/Modify
 
@@ -406,5 +408,36 @@ pnpm typecheck
 | M6: E2E Testing | ⏳ Pending | est. 1h | — |
 | M7: Integration & Docs | ⏳ Pending | est. 4h | — |
 
-**Total actual so far:** 9.75 hours (M1-M4)
-**Remaining estimate:** ~9 hours (M5-M7)
+**Total actual so far:** 12.75 hours (M1-M6)
+**Remaining estimate:** ~4 hours (M7)
+
+---
+
+## Reflection
+
+**Reflection Document:** `memory-bank/reflection/reflection-phase9-m5-m6.md`  
+**Date:** 2026-02-06  
+**Status:** ✅ Complete  
+
+### Key Takeaways
+
+1. **TDD discipline paid off** — Red-green process caught design issues early, achieved 100% coverage
+2. **Fixture organization matters** — 7 focused fixtures made debugging trivial
+3. **Helper decomposition** — 3 focused helpers (`discoverStandardType`, `discoverAgentSkillIO`, `findMdFiles`) = clean, maintainable code
+4. **Integration tests are the gold standard** — Round-trip tests prove lossless conversion
+5. **Faster than estimated** — 40% faster due to excellent preparation from M1-M4
+
+### Implementation Stats
+
+- 30 files changed (30 new)
+- 1,130 insertions, 26 deletions
+- 30 new tests (23 unit + 7 integration)
+- 567 total tests passing
+- Zero build/typecheck errors
+- PR #38 created
+
+### Time Variance
+
+- M5 estimated 4h, actual ~2.5h (37.5% faster)
+- M6 estimated 1h, actual ~0.5h (50% faster)
+- Combined 40% faster than estimate
