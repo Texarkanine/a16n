@@ -229,12 +229,17 @@ async function discoverCommands(root: string): Promise<{
     }
 
     // Simple command - create ManualPrompt
+    // Preserve directory nesting via relativeDir to avoid name collisions
+    // e.g., "foo/bar/baz.md" → promptName: "baz", relativeDir: "foo/bar"
     const promptName = nodePath.basename(file, '.md');
+    const dir = nodePath.dirname(file);
+    const relativeDir = dir === '.' ? undefined : dir.split(nodePath.sep).join('/');
     items.push({
       id: createId(CustomizationType.ManualPrompt, sourcePath),
       type: CustomizationType.ManualPrompt,
       version: CURRENT_IR_VERSION,
       sourcePath,
+      relativeDir,
       content,
       promptName,
       metadata: {},
@@ -351,25 +356,33 @@ async function findSkillDirs(root: string): Promise<string[]> {
 }
 
 /**
- * Read all non-SKILL.md files in a skill directory.
- * Returns a map of filename → content.
+ * Recursively read all non-SKILL.md files in a skill directory.
+ * Returns a map of relative path → content (e.g., 'scripts/extract.py' → '...').
+ * Supports AgentSkills.io subdirectories: scripts/, references/, assets/.
  */
 async function readSkillFiles(skillDir: string): Promise<Record<string, string>> {
   const files: Record<string, string> = {};
-  
-  try {
-    const entries = await fs.readdir(skillDir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      if (entry.isFile() && entry.name !== 'SKILL.md') {
-        const filePath = nodePath.join(skillDir, entry.name);
-        files[entry.name] = await fs.readFile(filePath, 'utf-8');
+
+  async function traverse(currentDir: string, relativePath: string): Promise<void> {
+    try {
+      const entries = await fs.readdir(currentDir, { withFileTypes: true });
+      for (const entry of entries) {
+        const entryRelPath = relativePath
+          ? `${relativePath}/${entry.name}`
+          : entry.name;
+        const entryFullPath = nodePath.join(currentDir, entry.name);
+        if (entry.isFile() && entry.name !== 'SKILL.md') {
+          files[entryRelPath] = await fs.readFile(entryFullPath, 'utf-8');
+        } else if (entry.isDirectory()) {
+          await traverse(entryFullPath, entryRelPath);
+        }
       }
+    } catch {
+      // Directory read error - skip
     }
-  } catch {
-    // Directory read error - return empty files
   }
-  
+
+  await traverse(skillDir, '');
   return files;
 }
 

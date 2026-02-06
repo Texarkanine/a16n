@@ -51,7 +51,8 @@ Priority order for MDC files:
 ## File Structure Conventions
 
 - Nested CLAUDE.md ↔ Nested .cursor/rules/ (structure preserved)
-- Skills: `.claude/skills/<name>/SKILL.md` ↔ `.cursor/skills/<name>/SKILL.md`
+- Skills: `.claude/skills/<name>/SKILL.md` ↔ `.cursor/skills/<name>/SKILL.md` (flat only, no nesting)
+- Skill resources: `readSkillFiles()` recursively reads subdirectories (scripts/, references/, assets/)
 - Generated artifacts: `.a16n/` directory
 
 ## CLI Output Conventions

@@ -32,6 +32,9 @@ importers:
       '@a16njs/models':
         specifier: workspace:*
         version: link:../models
+      '@a16njs/plugin-a16n':
+        specifier: workspace:*
+        version: link:../plugin-a16n
       '@a16njs/plugin-claude':
         specifier: workspace:*
         version: link:../plugin-claude

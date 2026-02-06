@@ -5,6 +5,7 @@ import { Command } from 'commander';
 import { A16nEngine } from '@a16njs/engine';
 import cursorPlugin from '@a16njs/plugin-cursor';
 import claudePlugin from '@a16njs/plugin-claude';
+import a16nPlugin from '@a16njs/plugin-a16n';
 import { formatWarning, formatError, formatSummary } from './output.js';
 import { WarningCode } from '@a16njs/models';
 import {
@@ -34,7 +35,7 @@ function toGitIgnorePath(p: string): string {
 }
 
 // Create engine with bundled plugins
-const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+const engine = new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin]);
 
 program
   .name('a16n')
@@ -516,7 +517,8 @@ program
         if (result.written.length > 0) {
           for (const file of result.written) {
             const writePrefix = options.dryRun ? 'Would write' : 'Wrote';
-            console.log(`${writePrefix}: ${file.path}`);
+            const relativePath = path.relative(resolvedPath, file.path);
+            console.log(`${writePrefix}: ${relativePath}`);
           }
         }
         
