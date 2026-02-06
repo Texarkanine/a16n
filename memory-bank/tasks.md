@@ -1,27 +1,27 @@
 # Memory Bank: Tasks
 
-## Current Task: CodeRabbit PR #37 Fixes
+## Current Task: CodeRabbit PR #36 Fixes
 
 **Status:** COMPLETE
-**PR URL:** https://github.com/Texarkanine/a16n/pull/37
+**PR URL:** https://github.com/Texarkanine/a16n/pull/36
 **Rate Limit Until:**
-**Last Updated:** 2026-02-06T02:15:00Z
+**Last Updated:** 2026-02-04T18:30:00Z
 
 ### Actionable Items
-- [x] ID: path-traversal - Block relativeDir path traversal outside .a16n/<type> (CRITICAL) - FIXED in af450c5
-- [x] ID: isNewFile-hardcoded - Check file existence before writing to set isNewFile accurately (MAJOR) - FIXED in af450c5
-- [x] ID: agentskill-name-frontmatter - Use original skill name in AgentSkillIO frontmatter, not slugified directory name (MAJOR) - FIXED in c49a749
-- [x] ID: missing-import - Add missing AgentCustomization type import in emit.test.ts (MINOR) - FIXED in c49a749
-- [x] ID: unused-variable - Remove unused relativePath variable in emit.ts (NITPICK) - FIXED in c49a749
-- [x] ID: extractNameFromId-empty - Make extractNameFromId throw error for malformed IDs (MINOR) - FIXED in bcf831f
+- [x] ID: format-relativeDir - Fix format.ts relativeDir truthy check to undefined check - FIXED
+- [x] ID: parse-trim - Remove .trim() from parse.ts to preserve whitespace - FIXED
+- [x] ID: utils-getname - Use path.parse().name in getNameWithoutExtension for dotfiles - FIXED
+- [x] ID: utils-posix - Normalize extractRelativeDir to POSIX separators - FIXED
+- [x] ID: test-agentskill - Remove no-op AgentSkillIO test (per owner approval) - FIXED
+- [x] ID: test-invalid-version - Add fixture and test for invalid version format - FIXED
+- [x] ID: test-malformed-yaml - Add fixture and test for malformed YAML - FIXED
+- [x] ID: test-edge-cases - Add fixtures and tests for edge cases (empty content, whitespace, YAML-like) - FIXED
 
 ### Requires Human Decision
 (none)
 
 ### Ignored
-- ID: activeContext-time-tracking - User explicitly stated to NOT review memory-bank files unless the ticket is about writing plans
-- ID: unsupported-array-empty - Nitpick about unsupported array always empty - reserved for future use, not actionable
-- ID: agentskillIO-relativeDir - Nitpick about AgentSkillIO ignoring relativeDir - by design (flat dir-per-skill layout)
+- ID: reflection-wording - "Proactive bug fixing" wording in reflection doc - Already resolved
 
 ---
 
@@ -227,9 +227,11 @@ pnpm --filter @a16njs/plugin-a16n build
 
 ### Milestone 4: IR Emission (`--to a16n`) + CLI Integration
 **Status:** `completed` ✅
+**Reflection:** `completed` ✅ (see: `reflection/reflection-phase9-m4.md`)
 **Dependencies:** M3
 **Estimated:** 5 hours (4h emission + 1h CLI integration)
-**Actual:** 2 hours (60% faster)
+**Actual:** 4 hours (20% faster, including iteration on CodeRabbit feedback)
+**PR:** #37 (OPEN, ready for review)
 **Note:** CLI integration tasks moved from M6 to enable functional `--to a16n` in this milestone
 
 #### Tasks

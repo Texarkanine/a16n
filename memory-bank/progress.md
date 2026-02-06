@@ -14,7 +14,7 @@
 | M1: IR Model Versioning + Extensions | `completed` ✅ | 15/15 tasks (3 hours, PR #32) |
 | M2: Plugin Package Setup | `completed` ✅ | 11/11 tasks (15 minutes, PR #35) |
 | M3: Frontmatter Parse/Format | `completed` ✅ | 11/11 tasks (2.5 hours, PR #36) |
-| M4: IR Emission + CLI Integration | `completed` ✅ | 14/14 tasks (2 hours, 60% faster) |
+| M4: IR Emission + CLI Integration | `completed` ✅ | 14/14 tasks (4 hours total, 20% faster, PR #37) |
 | M5: IR Discovery | `blocked` | 0/9 tasks (waiting for M4) |
 | M6: E2E Testing | `blocked` | 0/5 tasks (waiting for M4, M5) |
 | M7: Integration & Docs | `blocked` | 0/9 tasks (waiting for M6) |
@@ -77,7 +77,8 @@ None - ready to begin implementation.
 - [x] Created commit (9bfa802) and PR #36
 - [x] Completed reflection documentation
 
-### Milestone 4: IR Emission + CLI Integration (2026-02-04)
+### Milestone 4: IR Emission + CLI Integration (2026-02-04 to 2026-02-05)
+**Initial Implementation (2026-02-04):**
 - [x] Implemented emit() function with TDD (16 tests written first)
 - [x] Handle all 6 CustomizationType values correctly
 - [x] AgentSkillIO uses verbatim AgentSkills.io format
@@ -87,22 +88,34 @@ None - ready to begin implementation.
 - [x] E2E tested: `a16n convert --from cursor --to a16n .`
 - [x] All 530 tests passing (68 new in plugin-a16n)
 - [x] Build, test, typecheck all pass
+- [x] Created commit (268cbe9) and PR #37 (draft)
+
+**Iteration & Refinement (2026-02-05):**
+- [x] Fixed relative paths and clean filenames (c0d952c)
+- [x] CodeRabbit: Path traversal security + isNewFile accuracy (af450c5)
+- [x] CodeRabbit: Original skill names + import fixes (c49a749)
+- [x] CodeRabbit: Malformed ID error handling + 3 edge case tests (bcf831f)
+- [x] PR #37 marked ready for review (no longer draft)
+- [x] All 533 tests passing (added 3 edge case tests)
+- [x] Completed reflection documentation (reflection-phase9-m4.md)
 
 ---
 
 ## Next Actions
 
-**Current:** M4 complete! Ready for PR and **Milestone 5** (IR Discovery - `--from a16n`)
+**Current:** M4 complete with reflection! PR #37 ready for review. Awaiting merge before M5.
 
-**M4 Achievements:**
-- ✅ Full TDD implementation of emit() function
+**M4 Final Status:**
+- ✅ Full TDD implementation of emit() function (16 tests first)
 - ✅ CLI fully integrated with `a16n` plugin
-- ✅ End-to-end tested: cursor → a16n conversion
-- ✅ All 530 tests passing
+- ✅ Iterated on CodeRabbit feedback (security, accuracy, robustness)
+- ✅ Iterated on user feedback (relative paths, clean filenames)
+- ✅ All 533 tests passing (added 3 edge case tests)
 - ✅ Build, test, typecheck all pass
-- ✅ Ready to create PR
+- ✅ PR #37 created and ready for review
+- ✅ Reflection documentation complete
 
-**Next:** Create draft PR for M4, then begin **Milestone 5** (IR Discovery)
+**Next:** Await PR #37 merge, then begin **Milestone 5** (IR Discovery - `--from a16n`)
 
 ---
 
@@ -111,7 +124,7 @@ None - ready to begin implementation.
 | Check | Status | Result |
 |-------|--------|--------|
 | pnpm build | ✅ Passed | All 7 packages built successfully |
-| pnpm test | ✅ Passed | 546 tests passed (53 new in M3) |
+| pnpm test | ✅ Passed | 533 tests passed (19 new in M4: 16 initial + 3 edge cases) |
 | pnpm typecheck | ✅ Passed | No TypeScript errors |
 | pnpm lint | ⚠️ Not run | No lint script defined |
 
