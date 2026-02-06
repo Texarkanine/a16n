@@ -1,5 +1,18 @@
 # @a16njs/plugin-claude
 
+## [0.8.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.7.0...@a16njs/plugin-claude@0.8.0) (2026-02-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* Phase 9 Milestone 1 - IR Versioning & AgentSkills.io Utilities ([#32](https://github.com/Texarkanine/a16n/issues/32))
+
+### Features
+
+* Phase 9 Milestone 1 - IR Versioning & AgentSkills.io Utilities ([#32](https://github.com/Texarkanine/a16n/issues/32)) ([f9a4484](https://github.com/Texarkanine/a16n/commit/f9a4484c37fe973756f20822b675c1f25e36109a))
+* Phase 9 Milestone 3 - Frontmatter Parsing & Formatting ([#36](https://github.com/Texarkanine/a16n/issues/36)) ([cf4a8da](https://github.com/Texarkanine/a16n/commit/cf4a8da9be185699977b436917e36eb0acb39ec7))
+* **plugin-a16n:** Phase 9 M4 - IR Emission + CLI Integration ([#37](https://github.com/Texarkanine/a16n/issues/37)) ([b13ed62](https://github.com/Texarkanine/a16n/commit/b13ed62516a0fbd68804aa1c83418f37649dce16))
+
 ## [0.7.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.6.0...@a16njs/plugin-claude@0.7.0) (2026-02-04)
 
 
