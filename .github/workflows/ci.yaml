@@ -80,6 +80,14 @@ jobs:
           flags: plugin-claude
           fail_ci_if_error: false
 
+      - name: Upload Plugin-A16n coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/plugin-a16n/coverage/lcov.info
+          flags: plugin-a16n
+          fail_ci_if_error: false
+
       - name: Upload Glob-Hook coverage
         uses: codecov/codecov-action@v5
         with:
