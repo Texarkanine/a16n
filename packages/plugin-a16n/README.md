@@ -103,10 +103,10 @@ Use this ID with CLI commands:
 
 - ✅ M1: IR Model Versioning & Extensions (complete)
 - ✅ M2: Plugin Package Setup (complete)
-- 🚧 M3: Frontmatter Parsing & Formatting (upcoming)
-- 🚧 M4: IR Emission (upcoming)
-- 🚧 M5: IR Discovery (upcoming)
-- 🚧 M6: CLI Integration (upcoming)
+- ✅ M3: Frontmatter Parsing & Formatting (complete)
+- ✅ M4: IR Emission (complete)
+- ✅ M5: IR Discovery (complete)
+- ✅ M6: E2E Integration Testing (complete)
 - 🚧 M7: Integration Testing & Documentation (upcoming)
 
 ## License

@@ -130,8 +130,8 @@ async function discoverStandardType(
   const items: AgentCustomization[] = [];
   const warnings: Warning[] = [];
 
-  // Find all .md files recursively
-  const mdFiles = await findMdFiles(typeDir);
+  // Find all .md files recursively (pass warnings to surface readdir errors)
+  const mdFiles = await findMdFiles(typeDir, '', warnings);
 
   for (const relativeMdPath of mdFiles) {
     const filepath = path.join(typeDir, relativeMdPath);
@@ -248,19 +248,22 @@ async function discoverAgentSkillIO(
 /**
  * Recursively find all .md files in a directory.
  * Returns paths relative to the given base directory.
- * 
+ *
  * @param dir - Directory to scan
  * @param relativePath - Current relative path (for recursion)
+ * @param warnings - Optional warnings array to report readdir failures
  * @returns Array of relative paths to .md files
  */
 async function findMdFiles(
   dir: string,
-  relativePath: string = ''
+  relativePath: string = '',
+  warnings?: Warning[]
 ): Promise<string[]> {
   const results: string[] = [];
+  const targetDir = path.join(dir, relativePath);
 
   try {
-    const entries = await fs.readdir(path.join(dir, relativePath), { withFileTypes: true });
+    const entries = await fs.readdir(targetDir, { withFileTypes: true });
 
     for (const entry of entries) {
       const entryRelativePath = relativePath
@@ -271,12 +274,21 @@ async function findMdFiles(
         results.push(entryRelativePath);
       } else if (entry.isDirectory()) {
         // Recurse into subdirectories
-        const subFiles = await findMdFiles(dir, entryRelativePath);
+        const subFiles = await findMdFiles(dir, entryRelativePath, warnings);
         results.push(...subFiles);
       }
     }
-  } catch {
-    // Directory doesn't exist or can't be read
+  } catch (err) {
+    // Surface readdir failures as warnings when a warnings accumulator is provided
+    if (warnings) {
+      const dirLabel = relativePath || path.basename(dir);
+      const message = err instanceof Error ? err.message : String(err);
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Could not read directory "${dirLabel}": ${message}`,
+        sources: [targetDir],
+      });
+    }
   }
 
   return results;
