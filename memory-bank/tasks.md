@@ -1,40 +1,389 @@
 # Memory Bank: Tasks
 
-## Current Task: M4 Bug Fixes (CodeRabbit + Design Gaps)
+## Current Task: Phase 9 Milestones 5 & 6 (IR Discovery + E2E Testing)
 
-**Status:** COMPLETE
-**PR URL:** https://github.com/Texarkanine/a16n/pull/37
-**Branch:** p9-m4
-**Last Updated:** 2026-02-05
+**Status:** PLANNING
+**Branch:** `p9-m5`
+**Last Updated:** 2026-02-06
+**Complexity:** Level 4
 
-### Bug Fixes (3 bugs discovered via CodeRabbit relativeDir nitpick investigation)
-- [x] Bug 1: `discoverCommands` (plugin-cursor) didn't set `relativeDir` — nested commands with same basename would collide in IR output (e.g., `frontend/build.md` and `backend/build.md` both → `build.md`)
-- [x] Bug 2: `readSkillFiles` (both plugins) was non-recursive — AgentSkills.io spec-defined subdirectories (`scripts/`, `references/`, `assets/`) silently dropped
-- [x] Bug 3: `emitAgentSkillIO` (plugin-a16n) used `extractNameFromId(item.id)` instead of `item.name` — real IDs like `agent-skill-io:.cursor/skills/my-skill/SKILL.md` got mangled to `cursor-skills-my-skill-skill`
+---
 
-### Tests Added
-- [x] Cursor: nested command relativeDir assertion (+1 test)
-- [x] Cursor: recursive readSkillFiles with subdirectory resources (+1 test)
-- [x] Claude: recursive readSkillFiles with subdirectory resources (+1 test)
-- [x] Emit: existing AgentSkillIO test updated with realistic ID + name field
-- Total: 536 tests passing (was 533)
+## Task Overview
 
-### Design Decision
-- Nested skill discovery (recursive `findSkillDirs`) NOT implemented — YAGNI, neither AgentSkills.io spec nor any current tool supports nested skills
+Implement IR discovery (`--from a16n`) and complete end-to-end integration testing. These two milestones enable round-trip conversion: the `.a16n/` directory can now be both read and written, completing the plugin's core functionality.
 
-### Status
-- [x] Initialization complete
-- [x] Planning complete
-- [x] Creative phases complete (architecture decisions in creative-phase9-architecture.md)
-- [x] Implementation complete
-- [x] Reflection complete (updated reflection-phase9-m4.md with addendum)
-- [ ] Archiving
+**M5** implements `discover()` — reading `.a16n/` directory back into IR items.
+**M6** tests end-to-end integration: discover → convert → round-trip.
 
-### Reflection Highlights
-- **What Went Well**: CodeRabbit nitpick led to discovering 3 real bugs; YAGNI scoping prevented unnecessary work; spec research grounded decisions
-- **Challenges**: Scope creep risk (5 changes proposed, scoped to 3); context window pressure during deep cross-package investigation
-- **Lessons Learned**: Review comments are investigation triggers; "never silently drop data" applies to subdirectories; path-based IDs are fragile
-- **Next Steps**: Commit changes, merge PR #37, begin M5 (IR Discovery)
+---
+
+## Milestone 5: IR Discovery (`--from a16n`)
+
+**Status:** `pending`
+**Dependencies:** M3 (parse.ts, format.ts), M4 (emit.ts, CLI wiring)
+**Estimated:** 4 hours
+
+### Scope
+
+Implement the `discover()` function that reads `.a16n/` directory structure back into IR items. This is the inverse of `emit()`: it scans type directories, parses frontmatter files, handles AgentSkillIO verbatim format, validates versions, and produces warnings for issues.
+
+### Architecture
+
+```
+.a16n/
+├── global-prompt/          ← iterate, parse each .md via parseIRFile()
+│   ├── coding-standards.md
+│   └── shared/company/     ← recursive: relativeDir = "shared/company"
+│       └── standards.md
+├── agent-skill-io/         ← iterate, each subdir → readAgentSkillIO()
+│   └── deploy-helper/
+│       ├── SKILL.md
+│       └── checklist.md
+├── file-rule/              ← iterate, parse each .md via parseIRFile()
+├── simple-agent-skill/     ← iterate, parse each .md via parseIRFile()
+├── agent-ignore/           ← iterate, parse each .md via parseIRFile()
+├── manual-prompt/          ← iterate, parse each .md (derive promptName from relativeDir + basename)
+│   └── shared/company/     ← recursive: promptName = "shared/company/pr"
+│       └── pr.md
+└── unknown-dir/            ← WARN + skip
+```
+
+### Key Design Decisions (Already Decided in creative-phase9-architecture.md)
+
+1. **Type directory names are kebab-case** matching `CustomizationType` enum values
+2. **Recursive subdirectory scan** — files in subdirectories get `relativeDir` extracted via `extractRelativeDir()`
+3. **AgentSkillIO is special** — uses `readAgentSkillIO()` from `@a16njs/models`, not `parseIRFile()`
+4. **ManualPrompt promptName** — derived from `relativeDir` + filename (provides namespace)
+5. **Version validation** — `areVersionsCompatible()` with `CURRENT_IR_VERSION` as reader
+6. **Unknown directories** → `WarningCode.Skipped` warning, skip
+7. **Invalid frontmatter** → `WarningCode.Skipped` warning, skip
+8. **Invalid version format** → skip (parseIRFile already returns error)
+9. **Incompatible version** → `WarningCode.VersionMismatch` warning, still process item
+
+### Implementation Plan
+
+#### 5.1 Create `packages/plugin-a16n/src/discover.ts` (NEW)
+
+**Function signature:**
+```typescript
+export async function discover(root: string): Promise<DiscoveryResult>
+```
+
+**Algorithm:**
+1. Check if `.a16n/` directory exists → if not, return empty `{ items: [], warnings: [] }`
+2. Read top-level entries in `.a16n/`
+3. For each directory entry:
+   a. Validate against `Object.values(CustomizationType)` — unknown → warn + skip
+   b. If `agent-skill-io` → call `discoverAgentSkillIO()` helper
+   c. Otherwise → call `discoverStandardType()` helper (recursive .md scan)
+4. Collate items + warnings and return
+
+**Helper: `discoverStandardType()`**
+- Recursively find all `.md` files in the type directory
+- For each `.md` file:
+  - Call `parseIRFile(filepath, filename, relativePath)` (already exists)
+  - If error → `WarningCode.Skipped` warning, skip
+  - Check version compatibility via `areVersionsCompatible(CURRENT_IR_VERSION, item.version)`
+  - If incompatible → `WarningCode.VersionMismatch` warning, still include item
+  - Push item to results
+
+**Helper: `discoverAgentSkillIO()`**
+- List subdirectories in `.a16n/agent-skill-io/`
+- For each subdirectory:
+  - Call `readAgentSkillIO(skillDir)` from `@a16njs/models`
+  - If error → `WarningCode.Skipped` warning, skip
+  - Construct `AgentSkillIO` IR item from parsed result
+  - Version = `CURRENT_IR_VERSION` (AgentSkills.io format has no version field)
+  - Push to results
+
+**Imports needed:**
+- `fs/promises`, `path` (Node builtins)
+- `parseIRFile` from `./parse.js`
+- `extractRelativeDir` from `./utils.js`
+- From `@a16njs/models`:
+  - `CustomizationType`, `CURRENT_IR_VERSION`, `WarningCode`
+  - `areVersionsCompatible`, `readAgentSkillIO`, `createId`
+  - Type imports: `DiscoveryResult`, `Warning`, `AgentCustomization`, `AgentSkillIO`
+
+#### 5.2 Wire `discover()` into `index.ts`
+
+Replace the TODO stub in `index.ts` with the actual import + delegation:
+```typescript
+import { discover as discoverImpl } from './discover.js';
+// ...
+discover: discoverImpl,
+```
+
+Also add export: `export { discover } from './discover.js';`
+
+#### 5.3 Create test fixtures
+
+**Fixture directories under `packages/plugin-a16n/test/fixtures/`:**
+
+1. **`discover-basic/`** — Basic `.a16n/` with one file per type
+   ```
+   .a16n/
+   ├── global-prompt/coding-standards.md
+   ├── file-rule/typescript.md
+   ├── simple-agent-skill/database.md
+   ├── agent-ignore/cursorignore.md
+   └── manual-prompt/review.md
+   ```
+
+2. **`discover-nested/`** — Subdirectories testing relativeDir
+   ```
+   .a16n/
+   ├── global-prompt/
+   │   └── shared/company/standards.md
+   └── manual-prompt/
+       ├── review.md
+       └── shared/company/pr.md
+   ```
+
+3. **`discover-agentskill-io/`** — AgentSkillIO verbatim format
+   ```
+   .a16n/
+   └── agent-skill-io/
+       └── deploy-helper/
+           ├── SKILL.md
+           └── checklist.md
+   ```
+
+4. **`discover-unknown-dir/`** — Unknown type directory
+   ```
+   .a16n/
+   ├── global-prompt/test.md
+   └── unknown-type/something.md
+   ```
+
+5. **`discover-version-mismatch/`** — Version mismatch files
+   ```
+   .a16n/
+   └── global-prompt/
+       ├── current.md     (v1beta1 — current, should work)
+       └── future.md      (v1beta99 — newer, incompatible → warning)
+   ```
+
+6. **`discover-invalid-frontmatter/`** — Files with parse errors
+   ```
+   .a16n/
+   └── global-prompt/
+       ├── valid.md         (valid file)
+       ├── missing-version.md (no version field → error)
+       └── bad-yaml.md      (malformed YAML → error)
+   ```
+
+7. **`discover-empty/`** — Empty `.a16n/` directory (no type subdirs)
+
+#### 5.4 Write tests in `packages/plugin-a16n/test/discover.test.ts`
+
+**Test structure:**
+```
+describe('A16n Plugin Discovery')
+  describe('basic discovery')
+    it('should return empty results when .a16n/ does not exist')
+    it('should return empty results when .a16n/ is empty')
+    it('should discover GlobalPrompt files')
+    it('should discover FileRule files with globs')
+    it('should discover SimpleAgentSkill files with description')
+    it('should discover AgentIgnore files with patterns')
+    it('should discover ManualPrompt files')
+    it('should discover all types in a single .a16n/ directory')
+  
+  describe('relativeDir handling')
+    it('should extract relativeDir from subdirectories')
+    it('should handle files directly in type directory (no relativeDir)')
+    it('should derive ManualPrompt promptName from relativeDir + basename')
+    it('should handle ManualPrompt namespace collision (different relativeDir, same basename)')
+  
+  describe('AgentSkillIO discovery')
+    it('should discover AgentSkillIO using readAgentSkillIO()')
+    it('should include resource files in AgentSkillIO items')
+    it('should handle AgentSkillIO without resource files')
+    it('should warn and skip AgentSkillIO with missing SKILL.md')
+  
+  describe('version compatibility')
+    it('should accept items with current version (v1beta1)')
+    it('should warn on incompatible version (different major/stability)')
+    it('should still include items with version mismatch')
+    it('should skip files with invalid version format')
+  
+  describe('error handling')
+    it('should warn and skip unknown type directories')
+    it('should warn and skip files with invalid frontmatter')
+    it('should warn and skip files with missing required fields')
+    it('should skip non-.md files in type directories')
+    it('should skip non-directory entries in .a16n/')
+```
+
+### Tasks Checklist
+
+- [ ] 5.1 Create test fixtures (7 fixture directories)
+- [ ] 5.2 Stub `discover.ts` with empty implementation + function signatures
+- [ ] 5.3 Stub test file `discover.test.ts` with all test cases (empty implementations)
+- [ ] 5.4 Implement test cases for `discover()`
+- [ ] 5.5 Run tests → all should fail (TDD red phase)
+- [ ] 5.6 Implement `discover()` in `discover.ts`
+- [ ] 5.7 Wire `discover()` into `index.ts` (replace TODO stub)
+- [ ] 5.8 Run tests → all should pass (TDD green phase)
+- [ ] 5.9 Run full verification: `pnpm --filter @a16njs/plugin-a16n test`
+
+### Files to Create/Modify
+
+**Create:**
+- `packages/plugin-a16n/src/discover.ts`
+- `packages/plugin-a16n/test/discover.test.ts`
+- `packages/plugin-a16n/test/fixtures/discover-basic/.a16n/...` (multiple files)
+- `packages/plugin-a16n/test/fixtures/discover-nested/.a16n/...`
+- `packages/plugin-a16n/test/fixtures/discover-agentskill-io/.a16n/...`
+- `packages/plugin-a16n/test/fixtures/discover-unknown-dir/.a16n/...`
+- `packages/plugin-a16n/test/fixtures/discover-version-mismatch/.a16n/...`
+- `packages/plugin-a16n/test/fixtures/discover-invalid-frontmatter/.a16n/...`
+- `packages/plugin-a16n/test/fixtures/discover-empty/.a16n/` (empty dir)
+
+**Modify:**
+- `packages/plugin-a16n/src/index.ts` — Replace discover stub, add export
+
+### Acceptance Criteria (from tasks.md)
+
+- AC-9C-3: Unknown type directories skipped with warning ✓
+- AC-9C-4: Invalid frontmatter files skipped with warning ✓
+- AC-9D-1: Incompatible versions emit `WarningCode.VersionMismatch` ✓
+- AC-9D-2: Warning message includes file path and both versions ✓
+- AC-9D-3: Items with version mismatch still processed ✓
+- AC-9D-4: Invalid version format files skipped ✓
+
+---
+
+## Milestone 6: Discovery Integration & E2E Testing
+
+**Status:** `pending`
+**Dependencies:** M4 (CLI wiring), M5 (discover)
+**Estimated:** 1 hour
+
+### Scope
+
+Test that the a16n plugin works end-to-end via the engine's convert() function: discover from a16n, convert to cursor/claude, and round-trip. M4 already wired the CLI integration; this milestone focuses on programmatic integration tests.
+
+### Implementation Plan
+
+#### 6.1 Add integration tests to `packages/cli/test/integration/integration.test.ts`
+
+**New test section:**
+```
+describe('Integration Tests - Phase 9 a16n IR Plugin')
+  describe('a16n discovery')
+    it('should discover items from .a16n/ directory')
+    it('should discover all 6 IR types from .a16n/')
+  
+  describe('a16n-to-claude conversion')
+    it('should convert a16n IR to Claude format')
+  
+  describe('a16n-to-cursor conversion')
+    it('should convert a16n IR to Cursor format')
+  
+  describe('round-trip: cursor-to-a16n-to-cursor')
+    it('should preserve content through cursor → a16n → cursor round-trip')
+  
+  describe('round-trip: claude-to-a16n-to-claude')
+    it('should preserve content through claude → a16n → claude round-trip')
+```
+
+#### 6.2 Create integration test fixtures
+
+**Fixture directories under `packages/cli/test/integration/fixtures/`:**
+
+1. **`a16n-basic/from-a16n/`** — Basic `.a16n/` directory for discovery testing
+2. **`cursor-to-a16n-basic/from-cursor/`** — Cursor source for round-trip
+3. **`claude-to-a16n-basic/from-claude/`** — Claude source for round-trip
+
+#### 6.3 Update engine instantiation in integration tests
+
+Add `a16nPlugin` to the engine constructor:
+```typescript
+import a16nPlugin from '@a16njs/plugin-a16n';
+const engine = new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin]);
+```
+
+### Tasks Checklist
+
+- [ ] 6.1 Update integration test engine to include a16nPlugin
+- [ ] 6.2 Create integration test fixtures for a16n
+- [ ] 6.3 Write integration tests (discovery, convert, round-trip)
+- [ ] 6.4 Run integration tests → should pass
+- [ ] 6.5 Run full monorepo verification: `pnpm build && pnpm test`
+
+### Files to Create/Modify
+
+**Create:**
+- `packages/cli/test/integration/fixtures/a16n-basic/from-a16n/.a16n/...`
+- `packages/cli/test/integration/fixtures/cursor-to-a16n-basic/from-cursor/...`
+- `packages/cli/test/integration/fixtures/claude-to-a16n-basic/from-claude/...`
+
+**Modify:**
+- `packages/cli/test/integration/integration.test.ts` — Add a16nPlugin import, new test describe blocks
+
+### Acceptance Criteria
+
+- AC-9C-1: `a16n discover --from a16n .` reads `.a16n/` directory ✓
+- AC-9C-2: `a16n convert --to a16n .` writes `.a16n/` directory ✓ (already works from M4)
+- AC-9C-5: Round-trip preserves all IR fields ✓
+
+---
+
+## Implementation Order
+
+### Phase 1: M5 - TDD Preparation (Stubbing)
+1. Create all fixture directories and files
+2. Stub `discover.ts` with empty implementation
+3. Stub `discover.test.ts` with all test cases
+
+### Phase 2: M5 - Write Tests
+4. Implement all test cases
+5. Run tests → all should fail
+
+### Phase 3: M5 - Implementation
+6. Implement `discover()` and helpers
+7. Wire into `index.ts`
+8. Run tests → all should pass
+
+### Phase 4: M6 - Integration
+9. Update integration test engine
+10. Create integration fixtures
+11. Write integration tests
+12. Run full verification
+
+---
+
+## Test Infrastructure
+
+### Existing
+- `packages/plugin-a16n/test/parse.test.ts` — 27 tests
+- `packages/plugin-a16n/test/format.test.ts` — 26 tests
+- `packages/plugin-a16n/test/emit.test.ts` — 16 tests
+- `packages/cli/test/integration/integration.test.ts` — ~15 tests
+
+### New
+- `packages/plugin-a16n/test/discover.test.ts` — ~25 tests
+- `packages/cli/test/integration/integration.test.ts` — ~5 new tests (appended)
+
+---
+
+## Verification Commands
+
+```bash
+# M5 unit tests
+pnpm --filter @a16njs/plugin-a16n test
+
+# M6 integration tests
+pnpm --filter a16n test
+
+# Full verification
+pnpm build && pnpm test
+pnpm lint
+pnpm typecheck
+```
 
 ---
 
@@ -45,482 +394,17 @@
 **Complexity:** Level 4 (Multi-package architectural change)
 **Estimated Effort:** ~24 hours across 7 milestones
 
----
-
-## Task Overview
-
-Create a new plugin `@a16njs/plugin-a16n` (plugin ID: `'a16n'`) that serializes the a16n intermediate representation (IR) to/from disk in a human-readable, git-friendly format with versioned schema support.
-
-### Goal
-Enable persisting and reading the IR to/from a `.a16n/` directory structure, supporting:
-- Inspection of the intermediate representation
-- Custom tooling that operates on the IR
-- Version-controlled storage of the canonical customization format
-- Migration paths when IR schema evolves
-- Preservation of directory structure across conversions via `relativeDir` field
-
-### Target Structure
-```
-.a16n/
-├── GlobalPrompt/
-│   ├── coding-standards.md
-│   └── security-rules.md
-├── FileRule/
-│   └── typescript-style.md
-├── SimpleAgentSkill/
-│   └── SKILL.md
-├── AgentSkillIO/
-│   └── deploy-helper/
-│       ├── SKILL.md
-│       └── resources/
-├── AgentIgnore/
-│   └── cursorignore.md
-└── ManualPrompt/
-    └── generate-tests.md
-```
-
----
-
-## Scope
-
-### In Scope
-1. **9A: IR File Format** — Define file structure and frontmatter schema
-2. **9B: IR Model Versioning** — Add version field to all IR types
-3. **9C: Plugin Implementation** — Discovery and emission functions
-4. **9D: Version Mismatch Handling** — Warnings for incompatible versions
-
-### Out of Scope
-- Automatic version migration (users migrate via intermediate format)
-- Non-markdown file types (deferred to Phase 10 for MCPConfig)
-- Same-plugin conversion (`--from a16n --to a16n`)
-- User-level IR storage (project-level `.a16n/` only)
-
----
-
-## Implementation Plan
-
-### Milestone 1: IR Model Versioning & Extensions (packages/models)
-**Status:** `completed` ✅
-**Reflection:** `completed` ✅ (see: `reflection/reflection-phase9-m1.md`)
-**Dependencies:** None
-**Actual:** 3 hours (estimated: 5 hours, 40% faster)
-
-#### Tasks
-- [x] 1.1 **BREAKING:** Update `AgentCustomization` base interface in `types.ts`:
-  - Make `sourcePath` optional (was required)
-  - Add `version: IRVersion` (required)
-  - Add `relativeDir?: string` (optional)
-- [x] 1.2 Add `IRVersion` type (runtime validation, must have trailing number)
-- [x] 1.3 Add `CURRENT_IR_VERSION` constant (`v1beta1`)
-- [x] 1.4 Create `version.ts` with utilities:
-  - `parseIRVersion()` - Regex: `/^v(\d+)([a-z]*)(\d+)$/` (requires trailing number)
-  - `areVersionsCompatible(reader, file)` - Reader >= file revision (forward compat)
-  - `getCurrentVersion()` - Return current version
-- [x] 1.5 Create `agentskills-io.ts` with shared utilities:
-  - `ParsedSkillFrontmatter` interface
-  - `ParsedSkill` interface
-  - `parseSkillFrontmatter()` - Parse SKILL.md frontmatter
-  - `readSkillFiles()` - Read resource files from skill directory
-  - `writeAgentSkillIO()` - Write verbatim AgentSkills.io format (NO IR frontmatter)
-  - `readAgentSkillIO()` - Read verbatim AgentSkills.io format
-- [x] 1.6 Add `WarningCode.VersionMismatch` to `warnings.ts`
-- [x] 1.7 Export new types/functions from `index.ts`
-- [x] 1.8 Write unit tests in `test/version.test.ts`:
-  - Test version regex (valid: `v1beta1`, invalid: `v1`)
-  - Test forward compatibility (newer reader, older file)
-  - Test incompatibility warnings (different major/stability)
-- [x] 1.9 Write unit tests in `test/agentskills-io.test.ts`
-- [x] 1.10 Add `gray-matter` dependency for YAML frontmatter parsing
-- [x] 1.11 Add `@types/node` dev dependency
-- [x] 1.12 Update plugin-cursor to add version field to all AgentCustomization objects
-- [x] 1.13 Update plugin-claude to add version field to all AgentCustomization objects
-- [x] 1.14 Update CLI to handle optional sourcePath and add VersionMismatch icon
-- [x] 1.15 Run full test suite (493 tests passed)
-
-#### Files to Modify/Create
-- `packages/models/src/types.ts` - **BREAKING** changes to base interface
-- `packages/models/src/version.ts` (new) - Version utilities with fixed regex
-- `packages/models/src/agentskills-io.ts` (new) - Shared AgentSkillsIO utilities
-- `packages/models/src/warnings.ts` - Add `VersionMismatch`
-- `packages/models/src/index.ts` - Export new members
-- `packages/models/test/version.test.ts` (new) - Version tests
-- `packages/models/test/agentskills-io.test.ts` (new) - Parsing tests
-
-#### Acceptance Criteria
-- AC-9B-1: `version` field required on `AgentCustomization`, `sourcePath` optional
-- AC-9B-2: `CURRENT_IR_VERSION` is `v1beta1`
-- AC-9B-3: `areVersionsCompatible(reader, file)` enforces forward compatibility
-- AC-9B-4: Version regex requires trailing number (`v1beta1` ✓, `v1` ✗)
-- AC-9B-5: `parseIRVersion()` correctly validates version format
-- AC-9X-1: `relativeDir` field optional on `AgentCustomization`
-- AC-9X-2: `parseSkillFrontmatter()` parses AgentSkills.io format
-- AC-9X-3: `writeAgentSkillIO()` / `readAgentSkillIO()` handle verbatim format
-
----
-
-### Milestone 2: Plugin Package Setup
-**Status:** `completed` ✅
-**Reflection:** `completed` ✅ (see: `reflection/reflection-phase9-m2.md`)
-**Dependencies:** None (parallel with M1)
-**Actual:** 15 minutes (estimated: 1 hour, 75% faster)
-
-#### Tasks
-- [x] 2.1 Create `packages/plugin-a16n/` directory structure
-- [x] 2.2 Create `package.json` with dependencies
-- [x] 2.3 Create `tsconfig.json` extending base
-- [x] 2.4 Create placeholder `src/index.ts` with plugin ID `'a16n'`
-- [x] 2.5 Create `vitest.config.ts`
-- [x] 2.6 Create `README.md` with plugin documentation
-- [x] 2.7 Verify build works (`pnpm build`)
-- [x] 2.8 Verify typecheck passes
-- [x] 2.9 Update pnpm lockfile
-- [x] 2.10 Add package to release-please-config.json
-- [x] 2.11 Add package to .release-please-manifest.json (version 0.1.0)
-
-#### Files to Create
-- `packages/plugin-a16n/package.json`
-- `packages/plugin-a16n/tsconfig.json`
-- `packages/plugin-a16n/vitest.config.ts`
-- `packages/plugin-a16n/src/index.ts`
-- `packages/plugin-a16n/README.md`
-
-#### Verification
-```bash
-pnpm install
-pnpm --filter @a16njs/plugin-a16n build
-```
-
----
-
-### Milestone 3: Frontmatter Parsing & Formatting
-**Status:** `completed` ✅
-**Reflection:** `completed` ✅ (see: `reflection/reflection-phase9-m3.md`)
-**Dependencies:** M1, M2
-**Estimated:** 4 hours
-**Actual:** 2.5 hours (62% faster)
-
-#### Tasks
-- [x] 3.1 Add `yaml` dependency for YAML formatting (gray-matter already present from M2)
-- [x] 3.2 Implement `parseIRFile()` in `parse.ts`:
-  - Parse YAML frontmatter from markdown
-  - Extract version, type, relativeDir, type-specific fields
-  - **Do NOT extract name** (filename IS the name)
-  - Initialize metadata as {} (transient only, not serialized)
-  - For ManualPrompt: derive `promptName` from `relativeDir` + filename
-  - Return parsed IR item or error
-- [x] 3.3 Implement `formatIRFile()` in `format.ts`:
-  - Generate YAML frontmatter from IR item
-  - Include: version, type, relativeDir (if present), type-specific fields
-  - **Do NOT include sourcePath** (omitted in IR format)
-  - **Do NOT include metadata** (not serialized)
-  - Format as `---\n{yaml}---\n\n{content}\n`
-- [x] 3.4 Handle all IR types' frontmatter fields:
-  - GlobalPrompt: version, type, relativeDir (optional)
-  - FileRule: + `globs` array, relativeDir (optional)
-  - SimpleAgentSkill: + `description` (NO name field)
-  - ManualPrompt: version, type, relativeDir (derive promptName on read)
-  - AgentIgnore: + `patterns` array
-  - AgentSkillIO: **SKIP** (uses verbatim AgentSkills.io format, no IR frontmatter)
-- [x] 3.5 Implement `extractRelativeDir()` utility (use `path.relative()`)
-- [x] 3.6 Implement name slugification utility
-- [x] 3.7 Write parsing tests in `test/parse.test.ts` (27 tests)
-- [x] 3.8 Write formatting tests in `test/format.test.ts` (26 tests)
-- [x] 3.9 Test round-trip (format → parse → format) - deferred to M4/M5 integration
-- [x] 3.10 Test relativeDir extraction edge cases
-- [x] 3.11 **BONUS:** Fix out-of-date `supports` arrays in plugin-cursor and plugin-claude
-
-#### Files to Modify/Create
-- `packages/plugin-a16n/package.json` - Add `gray-matter` dependency
-- `packages/plugin-a16n/src/parse.ts` (new)
-- `packages/plugin-a16n/src/format.ts` (new)
-- `packages/plugin-a16n/test/parse.test.ts` (new)
-- `packages/plugin-a16n/test/format.test.ts` (new)
-
----
-
-### Milestone 4: IR Emission (`--to a16n`) + CLI Integration
-**Status:** `completed` ✅
-**Reflection:** `completed` ✅ (see: `reflection/reflection-phase9-m4.md`)
-**Dependencies:** M3
-**Estimated:** 5 hours (4h emission + 1h CLI integration)
-**Actual:** 4 hours (20% faster, including iteration on CodeRabbit feedback)
-**PR:** #37 (OPEN, ready for review)
-**Note:** CLI integration tasks moved from M6 to enable functional `--to a16n` in this milestone
-
-#### Tasks
-- [x] 4.1 Implement `emit()` function in `emit.ts`:
-  - Group items by CustomizationType
-  - **Use kebab-case directory names:** `.a16n/{item.type}/` (matches enum values)
-  - Create subdirectories honoring `relativeDir` field
-  - Write IR files with versioned frontmatter (excluding metadata, sourcePath)
-  - Handle name slugification for filenames
-  - Support dry-run mode
-- [x] 4.2 Handle AgentSkillIO specially:
-  - Use `writeAgentSkillIO()` from `@a16njs/models`
-  - Write to `.a16n/agent-skill-io/<name>/`
-  - Verbatim AgentSkills.io format (NO IR frontmatter)
-- [x] 4.3 Handle ManualPrompt with relativeDir:
-  - Create subdirectories from `relativeDir` field
-  - Filename = slugify basename only
-  - Full path provides namespace (e.g., `shared/company/pr.md`)
-- [x] 4.4 Return proper `EmitResult` with written files, warnings
-- [x] 4.5 Create test fixtures in `test/fixtures/`
-- [x] 4.6 Write emission unit tests in `test/emit.test.ts`:
-  - Test kebab-case directory names
-  - Test relativeDir subdirectory creation
-  - Test ManualPrompt namespace collision avoidance
-  - Test AgentSkillIO verbatim emission
-- [x] 4.7 Test metadata/sourcePath NOT in output files
-- [x] 4.8 **CLI Integration:** Update `supports` array in `src/index.ts`:
-  - Add all 6 CustomizationType values
-  - Export plugin with complete supports list
-- [x] 4.9 **CLI Integration:** Add `@a16njs/plugin-a16n` dependency to CLI `package.json`
-- [x] 4.10 **CLI Integration:** Import a16nPlugin in `packages/cli/src/index.ts`
-- [x] 4.11 **CLI Integration:** Register a16nPlugin in engine initialization
-- [x] 4.12 **CLI Integration:** Test `a16n plugins` shows 'a16n' plugin
-- [x] 4.13 **CLI Integration:** Test `a16n convert --from cursor --to a16n .` works end-to-end
-- [x] 4.14 Run full verification suite (build, test, typecheck)
-
-#### Files to Modify/Create
-- `packages/plugin-a16n/src/emit.ts` (new)
-- `packages/plugin-a16n/test/emit.test.ts` (new)
-- `packages/plugin-a16n/test/fixtures/emit-*/` (new fixtures)
-
-#### Acceptance Criteria
-- AC-9A-1: `.a16n/<Type>/<name>.md` structure created on emission
-- AC-9A-2: YAML frontmatter contains version, type, name fields
-- AC-9A-3: Type-specific fields included in frontmatter
-- AC-9A-4: Content placed after frontmatter separator
-- AC-9A-5: File names are slugified from item names
-
----
-
-### Milestone 5: IR Discovery (`--from a16n`)
-**Status:** `pending`
-**Dependencies:** M3
-**Estimated:** 4 hours
-
-#### Tasks
-- [ ] 5.1 Implement `discover()` function in `discover.ts`:
-  - Check for `.a16n/` directory existence
-  - Iterate over type directories (kebab-case names matching enum)
-  - Recursively scan subdirectories, extract `relativeDir` from path
-  - Validate type names: `Object.values(CustomizationType).includes(dirName)`
-  - Parse IR files with frontmatter (NO name field, NO sourcePath expected)
-  - Check version compatibility (forward compat: reader >= file)
-  - Emit warnings for issues
-- [ ] 5.2 Handle unknown type directories (warn + skip)
-- [ ] 5.3 Handle invalid frontmatter (warn + skip)
-- [ ] 5.4 Handle version mismatches:
-  - Newer file than reader (same major+stability): WARN, continue
-  - Different major/stability: WARN incompatible, best-effort process
-- [ ] 5.5 Handle AgentSkillIO specially:
-  - Use `readAgentSkillIO()` from `@a16njs/models`
-  - Read from `.a16n/agent-skill-io/<name>/`
-  - Verbatim AgentSkills.io format (NO IR frontmatter)
-- [ ] 5.6 Handle ManualPrompt with relativeDir:
-  - Derive `promptName = relativeDir ? join(relativeDir, basename) : basename`
-  - Test namespace collision: `shared/company/pr` vs `shared/other/pr`
-- [ ] 5.7 Implement `extractRelativeDir()` using `path.relative()`
-- [ ] 5.8 Create test fixtures in `test/fixtures/`
-- [ ] 5.9 Write discovery unit tests in `test/discover.test.ts`:
-  - Test kebab-case validation
-  - Test relativeDir extraction
-  - Test version compatibility warnings
-  - Test ManualPrompt promptName derivation
-
-#### Files to Modify/Create
-- `packages/plugin-a16n/src/discover.ts` (new)
-- `packages/plugin-a16n/test/discover.test.ts` (new)
-- `packages/plugin-a16n/test/fixtures/discover-*/` (new fixtures)
-
-#### Acceptance Criteria
-- AC-9C-3: Unknown type directories skipped with warning
-- AC-9C-4: Invalid frontmatter files skipped with warning
-- AC-9D-1: Incompatible versions emit `WarningCode.VersionMismatch`
-- AC-9D-2: Warning message includes file path and both versions
-- AC-9D-3: Items with version mismatch still processed
-- AC-9D-4: Invalid version format files skipped
-
----
-
-### Milestone 6: Discovery Integration & E2E Testing
-**Status:** `pending`
-**Dependencies:** M4, M5
-**Estimated:** 1 hour
-**Note:** Basic CLI integration moved to M4; this milestone focuses on discovery and bidirectional testing
-
-#### Tasks
-- [ ] 6.1 Test `a16n discover --from a16n .` (discovery only)
-- [ ] 6.2 Test `a16n convert --from a16n --to claude .` (read IR, emit Claude)
-- [ ] 6.3 Test `a16n convert --from a16n --to cursor .` (read IR, emit Cursor)
-- [ ] 6.4 Test round-trip: Cursor → a16n → Cursor preserves content
-- [ ] 6.5 Test round-trip: Claude → a16n → Claude preserves content
-
-#### Files to Modify
-- `packages/plugin-a16n/src/index.ts` - Complete plugin export
-- `packages/cli/src/index.ts` - Import and register plugin
-- `packages/cli/package.json` - Add dependency
-
-#### Acceptance Criteria
-- AC-9C-1: `a16n discover --from a16n .` reads `.a16n/` directory
-- AC-9C-2: `a16n convert --to a16n .` writes `.a16n/` directory
-
----
-
-### Milestone 7: Integration Testing & Documentation
-**Status:** `pending`
-**Dependencies:** M6
-**Estimated:** 4 hours
-
-#### Tasks
-- [ ] 7.1 Add E2E test: Cursor → a16n → Claude round-trip
-- [ ] 7.2 Add E2E test: Claude → a16n → Cursor round-trip
-- [ ] 7.3 Add E2E test: Version mismatch warnings
-- [ ] 7.4 Add E2E test: relativeDir preservation across conversions
-- [ ] 7.5 Add E2E test: relativeDir warning when can't be preserved across conversions (nested cursor agent-selected rule -> claude skill)
-- [ ] 7.6 Add integration fixtures in `packages/cli/test/integration/fixtures/`
-- [ ] 7.7 Write plugin README
-- [ ] 7.8 Create docs page at `packages/docs/docs/plugin-a16n/`
-- [ ] 7.9 Update main docs navigation
-- [ ] 7.10 Document relativeDir field and directory preservation
-
-#### Files to Modify/Create
-- `packages/cli/test/integration/integration.test.ts` - Add E2E tests
-- `packages/cli/test/integration/fixtures/a16n-*/` - Test fixtures
-- `packages/plugin-a16n/README.md` - Plugin documentation
-- `packages/docs/docs/plugin-a16n/index.md` (new)
-- `packages/docs/docs/plugin-a16n/api.mdx` (new)
-- `packages/docs/sidebars.js` - Add navigation
-
-#### Acceptance Criteria
-- AC-9C-5: Round-trip preserves all IR fields including relativeDir
-- All tests pass
-- Documentation complete
-
----
-
-## Milestone Dependencies
-
-```mermaid
-flowchart TD
-    M1["M1 (Models)"] --> M3["M3 (Parse/Format)"]
-    M2["M2 (Package)"] --> M3
-    M3 --> M4["M4 (Emit + CLI)"]
-    M3 --> M5["M5 (Discover)"]
-    M4 --> M6["M6 (E2E Tests)"]
-    M5 --> M6
-    M6 --> M7["M7 (Docs)"]
-```
-
-**Parallelizable:** M1 and M2 can run concurrently. M4 now includes CLI integration.
-**Updated:** M4 includes CLI integration (moved from M6) to enable functional `--to a16n` in PR.
-
----
-
-## Test Infrastructure
-
-### Existing Test Locations
-- `packages/models/test/` - Model unit tests
-- `packages/plugin-cursor/test/` - Plugin unit tests (pattern to follow)
-- `packages/cli/test/integration/` - E2E integration tests
-
-### New Test Locations
-- `packages/models/test/version.test.ts` - Version utility tests
-- `packages/plugin-a16n/test/parse.test.ts` - Frontmatter parsing
-- `packages/plugin-a16n/test/format.test.ts` - Frontmatter formatting
-- `packages/plugin-a16n/test/emit.test.ts` - Emission tests
-- `packages/plugin-a16n/test/discover.test.ts` - Discovery tests
-- `packages/cli/test/integration/integration.test.ts` - E2E round-trips
-
-### Test Fixture Pattern
-Follow existing fixture naming: `<feature>-<variant>/from-<tool>/` or `expected-<tool>/`
-
----
-
-## Architectural Decisions
-
-**Full research & rationale:** See `memory-bank/creative/creative-phase9-architecture.md`
-
-**10 Implementation Amendments (2026-02-04):** See creative doc for detailed amendments
-
-| Decision | Summary |
-|----------|---------|
-| **D1: Plugin Naming** | Plugin ID is `'a16n'` for cleaner CLI (`--from a16n`) |
-| **D2: Directory Preservation** | Add `relativeDir` field, use kebab-case enum values for dirs |
-| **D3: ManualPrompt Naming** | Derive `promptName` from `relativeDir` + filename (provides namespace) |
-| **D4: AgentSkillsIO Location** | Dedicated module `@a16njs/models/src/agentskills-io.ts` |
-| **D5: Version Compatibility** | Forward compat guarantee (newer reader, older file always works) |
-| **D6: sourcePath Optional** | **BREAKING:** Optional in IR (omitted by a16n plugin) |
-| **D7: metadata Not Serialized** | Transient only, NOT written to `.a16n/` files |
-| **D8: AgentSkillIO Verbatim** | Uses AgentSkills.io format directly (NO IR frontmatter) |
-| **D9: Version Field Required** | **BREAKING:** All IR items must have `version` field |
-| **D10: No name Field** | Filename IS the identifier (no separate name in frontmatter) |
-
----
-
-## Definition of Done
-
-Phase 9 is complete when:
-
-- [ ] All acceptance criteria pass (AC-9A through AC-9D, AC-9X)
-- [ ] `pnpm build` succeeds
-- [ ] `pnpm test` passes (all packages)
-- [ ] `pnpm lint` passes
-- [ ] **BREAKING CHANGES documented:**
-  - [ ] `AgentCustomization.version` now required
-  - [ ] `AgentCustomization.sourcePath` now optional
-  - [ ] `AgentCustomization.relativeDir` added (optional)
-- [ ] `IRVersion` type with proper validation (requires trailing number)
-- [ ] `CURRENT_IR_VERSION` is `v1beta1`
-- [ ] Version utilities enforce forward compatibility
-- [ ] Plugin discovers `.a16n/` with kebab-case directories
-- [ ] Plugin emits `.a16n/` with kebab-case directories
-- [ ] **CLI Integration:**
-  - [ ] `a16n plugins` lists 'a16n' plugin
-  - [ ] `a16n convert --from cursor --to a16n .` works
-  - [ ] `a16n convert --from a16n --to claude .` works
-  - [ ] `a16n discover --from a16n .` works
-- [ ] `metadata` NOT serialized to IR files
-- [ ] `sourcePath` NOT emitted to IR files
-- [ ] AgentSkillIO uses verbatim format (no IR frontmatter)
-- [ ] ManualPrompt `promptName` includes `relativeDir` (namespace)
-- [ ] Round-trip tests pass (Cursor → a16n → Cursor)
-- [ ] Version compatibility tests pass (forward compat, warnings)
-- [ ] Plugin README complete with breaking changes documented
-- [ ] Docs updated with IR plugin documentation
-- [ ] `feat!:` changeset created for breaking changes
-- [ ] No TODO comments in shipped code
-
----
-
-## Risk Assessment
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| Version compatibility confusion | Medium | Medium | Clear docs, helpful warnings |
-| Frontmatter parsing edge cases | Medium | Low | Comprehensive test fixtures |
-| Name collision in slugification | Low | Low | Include hash suffix if needed |
-| Large IR files (AgentSkillIO with files) | Low | Medium | Consider file size limits |
-
----
-
-## Verification Commands
-
-```bash
-# Per-package verification
-pnpm --filter @a16njs/models test
-pnpm --filter @a16njs/plugin-a16n test
-
-# Full verification
-pnpm build
-pnpm test
-pnpm lint
-pnpm typecheck
-```
-
----
-
-## Recent Archives
-
-See `memory-bank/archive/` for completed task documentation.
+### Milestone Progress
+
+| Milestone | Status | Actual | PR |
+|-----------|--------|--------|-----|
+| M1: IR Model Versioning | ✅ Complete | 3h | #32 |
+| M2: Plugin Package Setup | ✅ Complete | 15m | #35 |
+| M3: Frontmatter Parsing & Formatting | ✅ Complete | 2.5h | #36 |
+| M4: IR Emission + CLI Integration | ✅ Complete | 4h | #37 |
+| M5: IR Discovery | 🔄 Planning | est. 4h | — |
+| M6: E2E Testing | ⏳ Pending | est. 1h | — |
+| M7: Integration & Docs | ⏳ Pending | est. 4h | — |
+
+**Total actual so far:** 9.75 hours (M1-M4)
+**Remaining estimate:** ~9 hours (M5-M7)
