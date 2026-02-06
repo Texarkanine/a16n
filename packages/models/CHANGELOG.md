@@ -1,5 +1,16 @@
 # @a16njs/models
 
+## [0.7.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.6.0...@a16njs/models@0.7.0) (2026-02-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* Phase 9 Milestone 1 - IR Versioning & AgentSkills.io Utilities ([#32](https://github.com/Texarkanine/a16n/issues/32))
+
+### Features
+
+* Phase 9 Milestone 1 - IR Versioning & AgentSkills.io Utilities ([#32](https://github.com/Texarkanine/a16n/issues/32)) ([f9a4484](https://github.com/Texarkanine/a16n/commit/f9a4484c37fe973756f20822b675c1f25e36109a))
+
 ## [0.6.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.5.0...@a16njs/models@0.6.0) (2026-02-04)
 
 
