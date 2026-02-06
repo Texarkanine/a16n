@@ -557,6 +557,21 @@ describe('ManualPrompt Discovery (Phase 4 - Commands)', () => {
       );
       expect(componentCommand?.sourcePath).toBe('.cursor/commands/frontend/component.md');
     });
+
+    it('should set relativeDir from directory nesting to avoid name collisions', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-nested/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const componentCommand = result.items.find(
+        i => i.type === CustomizationType.ManualPrompt && (i as ManualPrompt).promptName === 'component'
+      ) as ManualPrompt;
+      const apiCommand = result.items.find(
+        i => i.type === CustomizationType.ManualPrompt && (i as ManualPrompt).promptName === 'api'
+      ) as ManualPrompt;
+
+      expect(componentCommand.relativeDir).toBe('frontend');
+      expect(apiCommand.relativeDir).toBe('backend');
+    });
   });
 
   describe('no commands', () => {
@@ -648,11 +663,27 @@ describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
       const skill = result.items.find(
         i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('deploy')
       ) as AgentSkillIO;
-      
+
       expect(skill).toBeDefined();
       expect(skill.resources).toBeDefined();
       expect(skill.resources).toContain('checklist.md');
       expect(skill.resources).toContain('config.json');
+      expect(skill.resources).toContain('scripts/deploy.sh');
+    });
+
+    it('should recursively read files in subdirectories (scripts/, references/, etc.)', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-complex/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('deploy')
+      ) as AgentSkillIO;
+
+      expect(skill).toBeDefined();
+      expect(skill.files).toBeDefined();
+      // Subdirectory file should be keyed with relative path
+      expect(Object.keys(skill.files)).toContain('scripts/deploy.sh');
+      expect(skill.files['scripts/deploy.sh']).toContain('Deploying to production');
     });
   });
 

@@ -150,6 +150,12 @@ async function emitStandardIR(
 /**
  * Emit an AgentSkillIO item using verbatim AgentSkills.io format.
  * Uses writeAgentSkillIO() from @a16njs/models.
+ *
+ * NOTE: AgentSkillIO uses a flat directory-per-skill layout. The spec and all
+ * current tools (Cursor, Claude Code) only support flat skill directories, so
+ * relativeDir is not used here. If the spec or tools add nested skill support
+ * in the future, relativeDir handling (with path-traversal validation) would
+ * need to be added — see emitStandardIR for the pattern.
  */
 async function emitAgentSkillIO(
   item: AgentSkillIO,
@@ -157,15 +163,15 @@ async function emitAgentSkillIO(
   written: WrittenFile[],
   dryRun: boolean
 ): Promise<void> {
-  // Extract name from ID and slugify for directory name
-  const name = extractNameFromId(item.id);
-  const skillDirName = slugify(name);
+  // Use item.name for directory name — extractNameFromId mangles full source
+  // paths (e.g., ".cursor/skills/my-skill/SKILL" → "cursor-skills-my-skill-skill")
+  const skillDirName = slugify(item.name);
   const skillDir = path.join(baseDir, skillDirName);
 
   // Prepare frontmatter (AgentSkills.io format)
   // Use original human-readable name, not the slugified directory name
   const frontmatter = {
-    name: name,
+    name: item.name,
     description: item.description,
   };
 

@@ -96,21 +96,28 @@ None - ready to begin implementation.
 - [x] CodeRabbit: Original skill names + import fixes (c49a749)
 - [x] CodeRabbit: Malformed ID error handling + 3 edge case tests (bcf831f)
 - [x] PR #37 marked ready for review (no longer draft)
-- [x] All 533 tests passing (added 3 edge case tests)
 - [x] Completed reflection documentation (reflection-phase9-m4.md)
+
+**Bug Fixes from CodeRabbit relativeDir Investigation (2026-02-05):**
+- [x] Bug 1: discoverCommands now sets relativeDir for nested Cursor commands
+- [x] Bug 2: readSkillFiles now recursively reads subdirectories (both plugins)
+- [x] Bug 3: emitAgentSkillIO uses item.name instead of extractNameFromId(item.id)
+- [x] Added 3 new tests + updated 1 existing test fixture
+- [x] All 536 tests passing
 
 ---
 
 ## Next Actions
 
-**Current:** M4 complete with reflection! PR #37 ready for review. Awaiting merge before M5.
+**Current:** M4 complete with all bug fixes. PR #37 ready for review. Awaiting merge before M5.
 
 **M4 Final Status:**
 - ✅ Full TDD implementation of emit() function (16 tests first)
 - ✅ CLI fully integrated with `a16n` plugin
 - ✅ Iterated on CodeRabbit feedback (security, accuracy, robustness)
 - ✅ Iterated on user feedback (relative paths, clean filenames)
-- ✅ All 533 tests passing (added 3 edge case tests)
+- ✅ Fixed 3 cross-package bugs (command relativeDir, recursive readSkillFiles, emit naming)
+- ✅ All 536 tests passing (22 new tests total in M4)
 - ✅ Build, test, typecheck all pass
 - ✅ PR #37 created and ready for review
 - ✅ Reflection documentation complete
@@ -124,7 +131,7 @@ None - ready to begin implementation.
 | Check | Status | Result |
 |-------|--------|--------|
 | pnpm build | ✅ Passed | All 7 packages built successfully |
-| pnpm test | ✅ Passed | 533 tests passed (19 new in M4: 16 initial + 3 edge cases) |
+| pnpm test | ✅ Passed | 536 tests passed (22 new in M4: 16 initial + 3 edge cases + 3 bug fix tests) |
 | pnpm typecheck | ✅ Passed | No TypeScript errors |
 | pnpm lint | ⚠️ Not run | No lint script defined |
 

@@ -179,11 +179,15 @@ describe('A16n Plugin Emission', () => {
 
   describe('AgentSkillIO emission', () => {
     it('should emit AgentSkillIO to .a16n/agent-skill-io/<name>/ with verbatim format', async () => {
+      // Use a realistic ID matching real discovery output — directory name
+      // should come from item.name, not from extracting/slugifying the ID
       const models: AgentSkillIO[] = [
         {
-          id: createId(CustomizationType.AgentSkillIO, 'database-helper'),
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/database-helper/SKILL.md'),
           type: CustomizationType.AgentSkillIO,
           version: CURRENT_IR_VERSION,
+          sourcePath: '.cursor/skills/database-helper/SKILL.md',
+          name: 'database-helper',
           description: 'Database operations helper',
           content: '# Database Helper\n\nHandle DB migrations.',
           files: {
@@ -196,18 +200,19 @@ describe('A16n Plugin Emission', () => {
       const result = await a16nPlugin.emit(models, tempDir);
 
       expect(result.written).toHaveLength(1);
-      
-      // Verify directory structure for AgentSkillIO
+
+      // Verify directory name comes from item.name, not mangled ID
       const skillDir = path.join(tempDir, '.a16n', 'agent-skill-io', 'database-helper');
       const skillFile = path.join(skillDir, 'SKILL.md');
       const content = await fs.readFile(skillFile, 'utf-8');
-      
+
       // Verify verbatim AgentSkills.io format (NO IR frontmatter, NO version field)
+      expect(content).toContain('name: database-helper');
       expect(content).toContain('description: Database operations helper');
       expect(content).not.toContain('version:'); // AgentSkills.io format doesn't have version
       expect(content).not.toContain('type:'); // AgentSkills.io format doesn't have type
       expect(content).toContain('# Database Helper');
-      
+
       // Verify resource files are written
       const schemaFile = path.join(skillDir, 'schema.sql');
       const schemaContent = await fs.readFile(schemaFile, 'utf-8');

@@ -180,9 +180,10 @@ return {
   - Fixed bugs in plugin-cursor and plugin-claude
   - All 546 tests passing
 
-### Current Status (2026-02-04)
-- **Starting M4** (IR Emission + CLI Integration)
-- Branch: `p9-m4` (ready for implementation)
-- All verification checks passing (build, test, typecheck)
-- CLI integration tasks moved from M6 to enable functional `--to a16n` in this milestone
-- User requirement: Full CLI functionality needed for release after PR merge
+### Current Status (2026-02-05)
+- **M4 Complete** (IR Emission + CLI Integration + Bug Fixes)
+- Branch: `p9-m4`, PR #37 (open, ready for review)
+- All 536 tests passing (build, test, typecheck all pass)
+- 3 cross-package bugs fixed (command relativeDir, recursive readSkillFiles, emit naming)
+- Reflection complete (addendum added to reflection-phase9-m4.md)
+- **Next**: Commit bug fixes, merge PR #37, begin M5 (IR Discovery)

@@ -1,27 +1,40 @@
 # Memory Bank: Tasks
 
-## Current Task: CodeRabbit PR #36 Fixes
+## Current Task: M4 Bug Fixes (CodeRabbit + Design Gaps)
 
 **Status:** COMPLETE
-**PR URL:** https://github.com/Texarkanine/a16n/pull/36
-**Rate Limit Until:**
-**Last Updated:** 2026-02-04T18:30:00Z
+**PR URL:** https://github.com/Texarkanine/a16n/pull/37
+**Branch:** p9-m4
+**Last Updated:** 2026-02-05
 
-### Actionable Items
-- [x] ID: format-relativeDir - Fix format.ts relativeDir truthy check to undefined check - FIXED
-- [x] ID: parse-trim - Remove .trim() from parse.ts to preserve whitespace - FIXED
-- [x] ID: utils-getname - Use path.parse().name in getNameWithoutExtension for dotfiles - FIXED
-- [x] ID: utils-posix - Normalize extractRelativeDir to POSIX separators - FIXED
-- [x] ID: test-agentskill - Remove no-op AgentSkillIO test (per owner approval) - FIXED
-- [x] ID: test-invalid-version - Add fixture and test for invalid version format - FIXED
-- [x] ID: test-malformed-yaml - Add fixture and test for malformed YAML - FIXED
-- [x] ID: test-edge-cases - Add fixtures and tests for edge cases (empty content, whitespace, YAML-like) - FIXED
+### Bug Fixes (3 bugs discovered via CodeRabbit relativeDir nitpick investigation)
+- [x] Bug 1: `discoverCommands` (plugin-cursor) didn't set `relativeDir` — nested commands with same basename would collide in IR output (e.g., `frontend/build.md` and `backend/build.md` both → `build.md`)
+- [x] Bug 2: `readSkillFiles` (both plugins) was non-recursive — AgentSkills.io spec-defined subdirectories (`scripts/`, `references/`, `assets/`) silently dropped
+- [x] Bug 3: `emitAgentSkillIO` (plugin-a16n) used `extractNameFromId(item.id)` instead of `item.name` — real IDs like `agent-skill-io:.cursor/skills/my-skill/SKILL.md` got mangled to `cursor-skills-my-skill-skill`
 
-### Requires Human Decision
-(none)
+### Tests Added
+- [x] Cursor: nested command relativeDir assertion (+1 test)
+- [x] Cursor: recursive readSkillFiles with subdirectory resources (+1 test)
+- [x] Claude: recursive readSkillFiles with subdirectory resources (+1 test)
+- [x] Emit: existing AgentSkillIO test updated with realistic ID + name field
+- Total: 536 tests passing (was 533)
 
-### Ignored
-- ID: reflection-wording - "Proactive bug fixing" wording in reflection doc - Already resolved
+### Design Decision
+- Nested skill discovery (recursive `findSkillDirs`) NOT implemented — YAGNI, neither AgentSkills.io spec nor any current tool supports nested skills
+
+### Status
+- [x] Initialization complete
+- [x] Planning complete
+- [x] Creative phases complete (architecture decisions in creative-phase9-architecture.md)
+- [x] Implementation complete
+- [x] Reflection complete (updated reflection-phase9-m4.md with addendum)
+- [ ] Archiving
+
+### Reflection Highlights
+- **What Went Well**: CodeRabbit nitpick led to discovering 3 real bugs; YAGNI scoping prevented unnecessary work; spec research grounded decisions
+- **Challenges**: Scope creep risk (5 changes proposed, scoped to 3); context window pressure during deep cross-package investigation
+- **Lessons Learned**: Review comments are investigation triggers; "never silently drop data" applies to subdirectories; path-based IDs are fragile
+- **Next Steps**: Commit changes, merge PR #37, begin M5 (IR Discovery)
 
 ---
 

@@ -386,6 +386,22 @@ describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
       expect(skill.resources).toBeDefined();
       expect(skill.resources).toContain('schema.sql');
       expect(skill.resources).toContain('migration-guide.md');
+      expect(skill.resources).toContain('scripts/migrate.sh');
+    });
+
+    it('should recursively read files in subdirectories (scripts/, references/, etc.)', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-complex/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO && i.sourcePath.includes('database-migrations')
+      ) as AgentSkillIO;
+
+      expect(skill).toBeDefined();
+      expect(skill.files).toBeDefined();
+      // Subdirectory file should be keyed with relative path
+      expect(Object.keys(skill.files)).toContain('scripts/migrate.sh');
+      expect(skill.files['scripts/migrate.sh']).toContain('Running database migration');
     });
   });
 

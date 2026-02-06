@@ -384,25 +384,33 @@ async function findSkillDirs(root: string): Promise<string[]> {
 }
 
 /**
- * Read all non-SKILL.md files in a skill directory.
- * Returns a map of filename → content.
+ * Recursively read all non-SKILL.md files in a skill directory.
+ * Returns a map of relative path → content (e.g., 'scripts/extract.py' → '...').
+ * Supports AgentSkills.io subdirectories: scripts/, references/, assets/.
  */
 async function readSkillFiles(skillDir: string): Promise<Record<string, string>> {
   const files: Record<string, string> = {};
-  
-  try {
-    const entries = await fs.readdir(skillDir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      if (entry.isFile() && entry.name !== 'SKILL.md') {
-        const filePath = path.join(skillDir, entry.name);
-        files[entry.name] = await fs.readFile(filePath, 'utf-8');
+
+  async function traverse(currentDir: string, relativePath: string): Promise<void> {
+    try {
+      const entries = await fs.readdir(currentDir, { withFileTypes: true });
+      for (const entry of entries) {
+        const entryRelPath = relativePath
+          ? `${relativePath}/${entry.name}`
+          : entry.name;
+        const entryFullPath = path.join(currentDir, entry.name);
+        if (entry.isFile() && entry.name !== 'SKILL.md') {
+          files[entryRelPath] = await fs.readFile(entryFullPath, 'utf-8');
+        } else if (entry.isDirectory()) {
+          await traverse(entryFullPath, entryRelPath);
+        }
       }
+    } catch {
+      // Directory read error - skip
     }
-  } catch {
-    // Directory read error - return empty files
   }
-  
+
+  await traverse(skillDir, '');
   return files;
 }
 

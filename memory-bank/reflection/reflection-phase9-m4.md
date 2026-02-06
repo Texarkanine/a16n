@@ -547,3 +547,104 @@ Key achievements:
 **Ready for:** Milestone 5 (IR Discovery) after PR #37 merges.
 
 **Confidence Level:** **HIGH** - Implementation is production-ready, well-tested, secure, and user-validated.
+
+---
+
+## Addendum: Cross-Package Bug Fixes (2026-02-05)
+
+### Origin
+
+A CodeRabbit nitpick on PR #37 noted that `emitAgentSkillIO` doesn't validate `relativeDir` while `emitStandardIR` does. Investigation revealed this was the tip of a larger design gap spanning 3 packages.
+
+### Investigation Process
+
+1. **Initial assessment**: Dismissed as documentation-only concern (skills are flat, relativeDir unused)
+2. **User challenge**: "What if a skill is ingested from `.claude/skills/foo/bar/SKILL.md`?"
+3. **Deep investigation**: Traced full pipeline across plugin-cursor, plugin-claude, plugin-a16n
+4. **Spec research**: Fetched AgentSkills.io specification to determine nesting support
+5. **Real bug discovery**: Found the actual collision risk is in Cursor commands, not skills
+6. **Scoping**: User correctly applied YAGNI — no nested skill discovery (no tool supports it), but fix the 3 real bugs
+
+### Bugs Found and Fixed
+
+#### Bug 1: `discoverCommands` Missing relativeDir (plugin-cursor)
+
+- **What**: Nested commands like `.cursor/commands/foo/bar/baz.md` and `.cursor/commands/cat/dog/baz.md` both got `promptName: 'baz'` with no `relativeDir`
+- **Impact**: DATA LOSS — second command silently overwrites first in IR emission
+- **Root Cause**: `discoverCommands()` extracted basename but never computed nesting depth
+- **Fix**: Added `relativeDir` computation from `path.dirname(file)` when file is nested
+- **Test**: Asserts `relativeDir: 'frontend'` and `relativeDir: 'backend'` on nested commands
+
+#### Bug 2: `readSkillFiles` Non-Recursive (both plugins)
+
+- **What**: Files in skill subdirectories (`scripts/`, `references/`, `assets/`) were silently dropped
+- **Impact**: DATA LOSS — AgentSkills.io spec explicitly supports these subdirectories
+- **Root Cause**: `readSkillFiles()` only did flat `readdir`, didn't recurse into subdirectories
+- **Fix**: Replaced flat scan with recursive `traverse()` function; keys include relative path (e.g., `scripts/deploy.sh`)
+- **Tests**: Both plugins verify subdirectory files appear in `files` map and `resources` array
+
+#### Bug 3: `emitAgentSkillIO` Using Wrong Name Source (plugin-a16n)
+
+- **What**: Used `extractNameFromId(item.id)` + `slugify()` for directory name
+- **Impact**: Real discovery IDs like `agent-skill-io:.cursor/skills/my-skill/SKILL.md` got mangled to `cursor-skills-my-skill-skill`
+- **Root Cause**: `extractNameFromId` was designed for IR frontmatter names, not full source paths
+- **Fix**: Changed to `slugify(item.name)` — item.name is the clean skill name from discovery
+- **Test**: Updated fixture with realistic discovery ID, asserts `name: database-helper` in output
+
+### What Went Well (Addendum)
+
+1. **CodeRabbit as Investigation Trigger**
+   - A seemingly minor nitpick led to discovering 3 real bugs, two causing silent data loss
+   - Validates the practice of deeply investigating review comments rather than dismissing them
+
+2. **User-Driven YAGNI Scoping**
+   - Initial plan had 5 changes including recursive `findSkillDirs` for nested skills
+   - User correctly identified that no tool or spec supports nested skills — cut scope to 3 real bugs
+   - Prevented unnecessary complexity while still fixing all actual problems
+
+3. **Spec-Informed Decision Making**
+   - Fetching the actual AgentSkills.io specification proved that skill nesting is not supported
+   - But also confirmed that subdirectory resources (`scripts/`, `references/`, `assets/`) ARE part of the spec
+   - Grounded decisions in facts rather than assumptions
+
+4. **Cross-Package Consistency**
+   - Both plugin-cursor and plugin-claude got the same `readSkillFiles` fix
+   - Verified all 536 tests pass across the entire monorepo
+
+### Challenges (Addendum)
+
+1. **Scope Creep Risk**
+   - Initial investigation proposed 5 changes; user had to rein it in to 3 real bugs
+   - Lesson: Always check if the spec/tooling actually supports a hypothetical scenario before proposing to fix it
+
+2. **Context Window Pressure**
+   - The investigation spanned many files across 3 packages plus spec research
+   - Session ran out of context and had to be continued
+   - Lesson: For deep cross-package investigations, use subagents for research to preserve main context
+
+### Lessons Learned (Addendum)
+
+1. **"Never silently drop data" applies to subdirectories too** — `readSkillFiles` was violating the project's own error handling philosophy
+2. **Review comments are investigation triggers, not just fix requests** — the relativeDir nitpick exposed 3 real bugs
+3. **YAGNI requires evidence** — we needed the actual AgentSkills.io spec to prove nested skills don't need support
+4. **Path-based IDs are fragile** — `extractNameFromId` works for simple names but fails for IDs containing full file paths; prefer explicit `item.name` when available
+
+### Updated Metrics
+
+| Metric | Before | After |
+|--------|--------|-------|
+| **Tests** | 533 | 536 (+3) |
+| **Commits** | 6 | 6 (not yet committed) |
+| **Files Changed** | plugin-a16n only | plugin-a16n + plugin-cursor + plugin-claude |
+| **Bugs Fixed** | 0 new | 3 (2 data loss, 1 mangled naming) |
+
+### Design Decision: No Nested Skill Discovery
+
+**Decision**: Do NOT implement recursive `findSkillDirs` for nested skill directories.
+**Rationale**:
+- AgentSkills.io spec says skill `name` "Must match the parent directory name" (implies flat)
+- Neither Cursor nor Claude Code support nested skill directories
+- No user or tool has requested this capability
+- YAGNI — implement when/if a tool adds support
+
+**Note**: If a future spec revision or tool adds nested skill support, the pattern from `readSkillFiles` (recursive traversal) can be applied to `findSkillDirs`, and `relativeDir` + path-traversal validation from `emitStandardIR` can be added to `emitAgentSkillIO`.
