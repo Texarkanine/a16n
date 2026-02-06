@@ -456,11 +456,58 @@ describe('A16n Plugin Emission', () => {
       const result = await a16nPlugin.emit(models, tempDir);
 
       expect(result.written).toHaveLength(1);
-      
+
       // Verify filename is slugified
       const expectedPath = path.join(tempDir, '.a16n', 'global-prompt', 'my-rule-name.md');
       const content = await fs.readFile(expectedPath, 'utf-8');
       expect(content).toContain('Test');
+    });
+  });
+
+  describe('malformed ID handling', () => {
+    it('should produce warning for malformed ID with empty name after type prefix', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          // Malformed ID: just type prefix with no name, resulting in empty name after stripping extension
+          id: 'global-prompt:.md',
+          type: CustomizationType.GlobalPrompt,
+          version: CURRENT_IR_VERSION,
+          content: 'Test',
+          metadata: {},
+        },
+      ];
+
+      const result = await a16nPlugin.emit(models, tempDir);
+
+      // Should have warning for the malformed ID
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0].message).toContain('Invalid ID');
+      expect(result.warnings[0].message).toContain('cannot extract a usable name');
+
+      // Should not have written any files
+      expect(result.written).toHaveLength(0);
+    });
+
+    it('should produce warning for ID with just type and colon', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          // ID with just type: prefix and nothing else
+          id: 'global-prompt:',
+          type: CustomizationType.GlobalPrompt,
+          version: CURRENT_IR_VERSION,
+          content: 'Test',
+          metadata: {},
+        },
+      ];
+
+      const result = await a16nPlugin.emit(models, tempDir);
+
+      // Should have warning for the malformed ID
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0].message).toContain('Invalid ID');
+
+      // Should not have written any files
+      expect(result.written).toHaveLength(0);
     });
   });
 

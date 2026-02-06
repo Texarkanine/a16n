@@ -5,17 +5,23 @@
 **Status:** In Progress
 **PR URL:** https://github.com/Texarkanine/a16n/pull/37
 **Rate Limit Until:**
-**Last Updated:** 2026-02-05T19:56:00Z
+**Last Updated:** 2026-02-06T02:07:00Z
 
 ### Actionable Items
-- [x] ID: path-traversal - Block relativeDir path traversal outside .a16n/<type> (CRITICAL) - FIXED
-- [x] ID: isNewFile-hardcoded - Check file existence before writing to set isNewFile accurately (MAJOR) - FIXED
+- [x] ID: path-traversal - Block relativeDir path traversal outside .a16n/<type> (CRITICAL) - FIXED in af450c5
+- [x] ID: isNewFile-hardcoded - Check file existence before writing to set isNewFile accurately (MAJOR) - FIXED in af450c5
+- [x] ID: agentskill-name-frontmatter - Use original skill name in AgentSkillIO frontmatter, not slugified directory name (MAJOR) - FIXED in c49a749
+- [x] ID: missing-import - Add missing AgentCustomization type import in emit.test.ts (MINOR) - FIXED in c49a749
+- [x] ID: unused-variable - Remove unused relativePath variable in emit.ts (NITPICK) - FIXED in c49a749
+- [x] ID: extractNameFromId-empty - Make extractNameFromId throw error for malformed IDs (MINOR) - FIXING NOW
 
 ### Requires Human Decision
 (none)
 
 ### Ignored
 - ID: activeContext-time-tracking - User explicitly stated to NOT review memory-bank files unless the ticket is about writing plans
+- ID: unsupported-array-empty - Nitpick about unsupported array always empty - reserved for future use, not actionable
+- ID: agentskillIO-relativeDir - Nitpick about AgentSkillIO ignoring relativeDir - by design (flat dir-per-skill layout)
 
 ---
 

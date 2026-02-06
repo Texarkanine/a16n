@@ -190,21 +190,30 @@ async function emitAgentSkillIO(
 /**
  * Extract name from ID and strip file extension.
  * ID format: <type>:<name> or <type>:hash:<hash>
- * 
+ *
  * Example:
  * - 'global-prompt:.cursor/rules/blogging.mdc' -> '.cursor/rules/blogging'
  * - 'file-rule:typescript.mdc' -> 'typescript'
+ *
+ * @throws Error if ID is malformed (missing name after type prefix)
  */
 function extractNameFromId(id: string): string {
   const parts = id.split(':');
   let name = id;
-  
+
   if (parts.length >= 2) {
     // Skip first part (type) and return rest
     name = parts.slice(1).join(':');
   }
-  
+
   // Strip file extension (e.g., .mdc, .md, .txt)
   // This ensures slugified names don't include the original extension
-  return name.replace(/\.[^/.]+$/, '');
+  const stripped = name.replace(/\.[^/.]+$/, '');
+
+  // Validate that we have a usable name (not empty after stripping)
+  if (!stripped) {
+    throw new Error(`Invalid ID "${id}": cannot extract a usable name after type prefix`);
+  }
+
+  return stripped;
 }
