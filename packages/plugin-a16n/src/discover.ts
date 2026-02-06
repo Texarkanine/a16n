@@ -72,7 +72,13 @@ export async function discover(root: string): Promise<DiscoveryResult> {
   let entries;
   try {
     entries = await fs.readdir(a16nDir, { withFileTypes: true });
-  } catch {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    warnings.push({
+      code: WarningCode.Skipped,
+      message: `Could not read .a16n/ directory: ${message}`,
+      sources: ['.a16n'],
+    });
     return { items, warnings };
   }
 
@@ -201,7 +207,7 @@ async function discoverAgentSkillIO(
     warnings.push({
       code: WarningCode.Skipped,
       message: `Could not read AgentSkillIO directory: ${message}`,
-      sources: [agentSkillIODir],
+      sources: ['.a16n/agent-skill-io'],
     });
     return { items, warnings };
   }
@@ -288,11 +294,15 @@ async function findMdFiles(
     // Surface readdir failures as warnings when a warnings accumulator is provided
     if (warnings) {
       const dirLabel = relativePath || path.basename(dir);
+      const typeName = path.basename(dir);
+      const relativeSource = relativePath
+        ? `.a16n/${typeName}/${relativePath}`
+        : `.a16n/${typeName}`;
       const message = err instanceof Error ? err.message : String(err);
       warnings.push({
         code: WarningCode.Skipped,
         message: `Could not read directory "${dirLabel}": ${message}`,
-        sources: [targetDir],
+        sources: [relativeSource],
       });
     }
   }
