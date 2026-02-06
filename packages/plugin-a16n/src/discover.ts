@@ -141,7 +141,7 @@ async function discoverStandardType(
     // e.g., ".a16n/global-prompt" or ".a16n/global-prompt/shared/company"
     const dirOfFile = path.dirname(filepath);
     const a16nRoot = path.dirname(typeDir); // The .a16n/ directory
-    const relativeToA16n = path.relative(a16nRoot, dirOfFile);
+    const relativeToA16n = path.relative(a16nRoot, dirOfFile).split(path.sep).join('/');
     const relativePath = `.a16n/${relativeToA16n}`;
 
     // Parse the IR file
@@ -196,7 +196,13 @@ async function discoverAgentSkillIO(
   let entries;
   try {
     entries = await fs.readdir(agentSkillIODir, { withFileTypes: true });
-  } catch {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    warnings.push({
+      code: WarningCode.Skipped,
+      message: `Could not read AgentSkillIO directory: ${message}`,
+      sources: [agentSkillIODir],
+    });
     return { items, warnings };
   }
 

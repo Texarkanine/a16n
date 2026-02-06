@@ -2,14 +2,16 @@
 
 ## Current Task: CodeRabbit PR #38 Fixes
 
-**Status:** In Progress
+**Status:** COMPLETE
 **PR URL:** https://github.com/Texarkanine/a16n/pull/38
 **Rate Limit Until:**
-**Last Updated:** 2026-02-06T16:00:00Z
+**Last Updated:** 2026-02-06T21:05:00Z
 
 ### Actionable Items
-- [ ] ID: readme-status - Update README.md development status: M3-M6 should be marked complete (✅), not upcoming (🚧)
-- [ ] ID: findmd-catch - discover.ts:278 silent catch swallows all readdir errors — surface via warnings accumulator
+- [x] ID: readme-status - Update README.md development status: M3-M6 marked complete (✅) - FIXED in 3c30132
+- [x] ID: findmd-catch - discover.ts:278 silent catch swallows all readdir errors — surfaced via warnings accumulator - FIXED in 3c30132
+- [x] ID: path-sep-windows - discover.ts:144 path.relative returns OS-specific separators on Windows — normalized with .split(path.sep).join('/') - FIXED in pending-commit
+- [x] ID: agentskill-catch - discover.ts:196-201 silent readdir catch in discoverAgentSkillIO — surfaced via warnings accumulator for consistency - FIXED in pending-commit
 
 ### Requires Human Decision
 - (none)
