@@ -125,7 +125,6 @@ async function emitStandardIR(
   const name = isManualPrompt(item) ? path.basename(rawName) : rawName;
   const filename = `${slugify(name)}.md`;
   const filePath = path.join(targetDir, filename);
-  const relativePath = path.relative(process.cwd(), filePath);
 
   // Format content with IR frontmatter
   const content = formatIRFile(item);
@@ -164,8 +163,9 @@ async function emitAgentSkillIO(
   const skillDir = path.join(baseDir, skillDirName);
 
   // Prepare frontmatter (AgentSkills.io format)
+  // Use original human-readable name, not the slugified directory name
   const frontmatter = {
-    name: skillDirName,
+    name: name,
     description: item.description,
   };
 

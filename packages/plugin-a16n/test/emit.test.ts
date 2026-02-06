@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import a16nPlugin from '../src/index.js';
 import {
   CustomizationType,
+  type AgentCustomization,
   type GlobalPrompt,
   type FileRule,
   type SimpleAgentSkill,
