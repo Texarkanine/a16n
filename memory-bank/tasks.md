@@ -2,10 +2,10 @@
 
 ## Current Task: CodeRabbit PR #37 Fixes
 
-**Status:** In Progress
+**Status:** COMPLETE
 **PR URL:** https://github.com/Texarkanine/a16n/pull/37
 **Rate Limit Until:**
-**Last Updated:** 2026-02-06T02:07:00Z
+**Last Updated:** 2026-02-06T02:15:00Z
 
 ### Actionable Items
 - [x] ID: path-traversal - Block relativeDir path traversal outside .a16n/<type> (CRITICAL) - FIXED in af450c5
@@ -13,7 +13,7 @@
 - [x] ID: agentskill-name-frontmatter - Use original skill name in AgentSkillIO frontmatter, not slugified directory name (MAJOR) - FIXED in c49a749
 - [x] ID: missing-import - Add missing AgentCustomization type import in emit.test.ts (MINOR) - FIXED in c49a749
 - [x] ID: unused-variable - Remove unused relativePath variable in emit.ts (NITPICK) - FIXED in c49a749
-- [x] ID: extractNameFromId-empty - Make extractNameFromId throw error for malformed IDs (MINOR) - FIXING NOW
+- [x] ID: extractNameFromId-empty - Make extractNameFromId throw error for malformed IDs (MINOR) - FIXED in bcf831f
 
 ### Requires Human Decision
 (none)
