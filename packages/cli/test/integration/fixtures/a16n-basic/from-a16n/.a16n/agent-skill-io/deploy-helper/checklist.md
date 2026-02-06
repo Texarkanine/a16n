@@ -1,0 +1,3 @@
+- [ ] Run tests
+- [ ] Deploy to staging
+- [ ] Deploy to production
