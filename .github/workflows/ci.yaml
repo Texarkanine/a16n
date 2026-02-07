@@ -40,6 +40,13 @@ jobs:
       - name: Test with Coverage
         run: pnpm test:coverage
 
+      # Build current (unreleased) API docs and verify Docusaurus compiles.
+      # This catches TypeDoc output that would break the doc site (e.g., JSX-like
+      # tags in markdown) BEFORE it gets released and becomes immutable.
+      # Uses build:current (not build) to skip slow versioned doc generation.
+      - name: Verify docs build (current API)
+        run: pnpm --filter docs run build:current
+
       - name: Upload CLI coverage
         uses: codecov/codecov-action@v5
         with:

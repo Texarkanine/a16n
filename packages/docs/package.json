@@ -8,6 +8,7 @@
     "start": "docusaurus start",
     "start:full": "npm run stage && npm run apidoc:current && docusaurus start",
     "build": "npm run stage && npm run apidoc:versioned && docusaurus build",
+    "build:current": "npm run stage && npm run apidoc:current && docusaurus build",
     "build:prose": "npm run stage && docusaurus build",
     "stage": "rm -rf .generated && mkdir -p .generated && cp -r docs/* .generated/ && bash scripts/stage-changelogs.sh",
     "apidoc:current": "npm run apidoc:current:engine && npm run apidoc:current:models && npm run apidoc:current:plugin-cursor && npm run apidoc:current:plugin-claude && npm run apidoc:current:plugin-a16n && npm run clidoc:current && npm run apidoc:current:postprocess",

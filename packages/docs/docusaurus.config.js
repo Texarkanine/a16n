@@ -26,6 +26,11 @@ const config = {
   onBrokenLinks: 'warn',
   markdown: {
     mermaid: true,
+    // Use 'detect' so .md files are parsed as CommonMark (no JSX interpretation)
+    // and .mdx files get full MDX/JSX support. This prevents TypeDoc-generated
+    // content like <name> or <T> from being misinterpreted as JSX tags.
+    // Docs: https://docusaurus.io/docs/markdown-features#mdx-vs-commonmark
+    format: 'detect',
   },
 
   // Google Search Console verification
