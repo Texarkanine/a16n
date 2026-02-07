@@ -2,7 +2,7 @@
 
 ## Phase 9: IR Serialization Plugin
 
-**Overall Status:** M1–M6 Complete, M7 In Progress
+**Overall Status:** M1–M7 Complete
 **Started:** 2026-02-03
 
 ---
@@ -17,24 +17,18 @@
 | M4: IR Emission + CLI Integration | ✅ Complete | PR #37 |
 | M5: IR Discovery | ✅ Complete | PR #38 |
 | M6: E2E Testing | ✅ Complete | PR #38 |
-| M7: Docs + Cross-Format E2E | 🚧 In Progress | Planning complete |
+| M7: Docs + Cross-Format E2E | ✅ Complete | This session |
 
 ---
 
-## M7 Progress
+## M7 Completed Items
 
-- [ ] E2E tests (A1–A3)
-- [ ] Plugin-a16n docs (B1–B5)
-- [ ] API doc generation pipeline (C1–C4)
-- [ ] CHANGELOG integration (D1–D2)
-- [ ] Google Analytics + site verification (E1–E2)
-- [ ] Housekeeping (F1–F2)
-
----
-
-## Current Blockers
-
-None.
+- [x] E2E tests (A1–A3): cursor→a16n→claude, claude→a16n→cursor, version mismatch warning
+- [x] Plugin-a16n docs (B1–B5): overview, API ref, sidebar, intro, cross-refs
+- [x] API doc generation pipeline (C1–C4): plugin-a16n in PACKAGES, WORKSPACE_PACKAGE_PATHS, apidoc scripts
+- [x] CHANGELOG integration (D1–D2): stage-changelogs.sh script, sidebar entries for all 7 modules
+- [x] Google Analytics + site verification (E1–E2): headTags meta, gtag with GTAG_ID env var
+- [x] Housekeeping (F1–F2): docs README trimmed, plugin-a16n README updated
 
 ---
 
@@ -42,7 +36,7 @@ None.
 
 | Check | Status |
 |-------|--------|
-| pnpm build | ✅ Last passed at M6 |
-| pnpm test | ✅ 567 tests at M6 |
-| pnpm typecheck | ✅ Last passed at M6 |
-| docs build:prose | ⏳ Needs verification after changes |
+| pnpm build | ✅ All 7 packages |
+| pnpm test | ✅ 600 tests (26 integration, including 3 new M7 E2E) |
+| pnpm typecheck | ✅ (via build) |
+| docs build:prose | ✅ Clean build, 7 changelog pages, no broken links |

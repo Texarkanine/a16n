@@ -104,5 +104,6 @@ For complete plugin API details, see the [Plugin Cursor API Reference](/plugin-c
 
 - [Plugin Cursor API Reference](/plugin-cursor/api) - Complete API documentation
 - [Plugin: Claude](/plugin-claude) - Claude Code format plugin
+- [Plugin: a16n IR](/plugin-a16n) - Intermediate representation format plugin
 - [Understanding Conversions](/understanding-conversions) - Conversion details
 - [Models](/models) - Type definitions

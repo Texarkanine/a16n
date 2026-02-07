@@ -81,6 +81,7 @@ a16n is organized as a monorepo with several packages:
 | [@a16njs/models](/models) | Type definitions |
 | [@a16njs/plugin-cursor](/plugin-cursor) | Cursor IDE support |
 | [@a16njs/plugin-claude](/plugin-claude) | Claude Code support |
+| [@a16njs/plugin-a16n](/plugin-a16n) | a16n IR format (hub for cross-format conversion) |
 | [@a16njs/glob-hook](/glob-hook) | Helper CLI for custom glob-based hooks |
 
 ## Contributing

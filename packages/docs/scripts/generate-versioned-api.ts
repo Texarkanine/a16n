@@ -46,6 +46,7 @@ const PACKAGES: PackageConfig[] = [
   { name: 'models', entryPoint: 'packages/models/src/index.ts' },
   { name: 'plugin-cursor', entryPoint: 'packages/plugin-cursor/src/index.ts' },
   { name: 'plugin-claude', entryPoint: 'packages/plugin-claude/src/index.ts' },
+  { name: 'plugin-a16n', entryPoint: 'packages/plugin-a16n/src/index.ts' },
 ];
 
 /**
@@ -171,6 +172,7 @@ const WORKSPACE_PACKAGE_PATHS = [
   'packages/models/src',
   'packages/plugin-cursor/src',
   'packages/plugin-claude/src',
+  'packages/plugin-a16n/src',
   'packages/glob-hook/src',
 ];
 

@@ -3,75 +3,43 @@
 ## Current Focus
 
 **Task:** Phase 9 Milestone 7 — Documentation & Integration Testing
-**Status:** Planning complete, ready for implementation
+**Status:** Implementation complete, ready for commit
 **Complexity:** Level 3
 
 ---
 
-## What We're Building
+## What Was Built
 
-Final milestone of Phase 9. Three workstreams:
-
-1. **Validation E2E tests** — cross-format round-trips (cursor→a16n→claude, claude→a16n→cursor) + version mismatch warning test
-2. **Plugin-a16n docsite pages** — overview + API reference, wired into sidebar/intro, API generation pipeline
-3. **Docsite enhancements** — CHANGELOG pages per module, Google Analytics, site verification meta tag
-
----
-
-## Existing Patterns to Follow
-
-**Plugin docs structure** (see plugin-cursor, plugin-claude):
-- `docs/<plugin>/index.md` — overview with sidebar_position, installation, supported files, programmatic usage, See Also
-- `docs/<plugin>/api.mdx` — VersionPicker wrapper page
-
-**Sidebar pattern** (see sidebars.js):
-```js
-{
-  type: 'category',
-  label: 'Plugin: <Name>',
-  items: ['<plugin>/index', { type: 'category', label: 'API Reference', ... }],
-}
-```
-
-**Integration test pattern** (see integration.test.ts):
-- Create source files in tempDir
-- Call `engine.convert({ source, target, root: tempDir })`
-- Assert on discovered count, written count, content
-
-**API doc generation** (see generate-versioned-api.ts):
-- PACKAGES array with `{ name, entryPoint }` 
-- WORKSPACE_PACKAGE_PATHS for git checkout consistency
-- package.json scripts: `apidoc:current:<pkg>` + pipeline in `apidoc:current`
-
-**Stage script** (see package.json):
-- `rm -rf .generated && mkdir -p .generated && cp -r docs/* .generated/`
-- Extend to also generate changelog pages from package CHANGELOGs
+1. **3 E2E integration tests** — cross-format round-trips (cursor→a16n→claude, claude→a16n→cursor) + version mismatch warning
+2. **Plugin-a16n docsite pages** — overview (`index.md`) + API reference (`api.mdx`), wired into sidebar, intro packages table, cross-references from plugin-cursor and plugin-claude
+3. **API doc generation pipeline** — plugin-a16n added to PACKAGES, WORKSPACE_PACKAGE_PATHS, and apidoc scripts
+4. **CHANGELOG integration** — `stage-changelogs.sh` generates changelog pages for all 7 packages, sidebar entries added
+5. **Google Analytics** — site verification meta tag, gtag with env-based GTAG_ID
+6. **Housekeeping** — docs README trimmed to brief summary, plugin-a16n README shows all milestones complete
 
 ---
 
-## Key References
+## Files Modified
 
-| What | Where |
-|------|-------|
-| Plugin-a16n source | `packages/plugin-a16n/src/` |
-| Plugin-a16n README | `packages/plugin-a16n/README.md` |
-| Integration tests | `packages/cli/test/integration/integration.test.ts` |
-| Docusaurus config | `packages/docs/docusaurus.config.js` |
-| Sidebar config | `packages/docs/sidebars.js` |
-| Docs package.json | `packages/docs/package.json` |
-| API generation script | `packages/docs/scripts/generate-versioned-api.ts` |
-| Example plugin docs | `packages/docs/docs/plugin-cursor/index.md` |
-| Example API page | `packages/docs/docs/plugin-cursor/api.mdx` |
-| Site verification meta | `E9y_GjlmgYsMt4Bjilx2Y201XFZFLyEMn5hQgCXS_z4` |
+| File | Change |
+|------|--------|
+| `packages/cli/test/integration/integration.test.ts` | +3 E2E test cases (WarningCode import, cross-format + version mismatch) |
+| `packages/docs/docs/plugin-a16n/index.md` | **New** — plugin overview |
+| `packages/docs/docs/plugin-a16n/api.mdx` | **New** — API reference landing |
+| `packages/docs/sidebars.js` | Added plugin-a16n category + changelog entries for all modules |
+| `packages/docs/docs/intro.md` | Added plugin-a16n to packages table |
+| `packages/docs/docs/plugin-cursor/index.md` | Added plugin-a16n to "See Also" |
+| `packages/docs/docs/plugin-claude/index.md` | Added plugin-a16n to "See Also" |
+| `packages/docs/docusaurus.config.js` | headTags (site verification) + gtag config |
+| `packages/docs/package.json` | stage script + apidoc:current:plugin-a16n script |
+| `packages/docs/scripts/generate-versioned-api.ts` | Added plugin-a16n to PACKAGES + WORKSPACE_PACKAGE_PATHS |
+| `packages/docs/scripts/stage-changelogs.sh` | **New** — generates changelog pages |
+| `packages/docs/README.md` | Replaced with brief summary |
+| `packages/plugin-a16n/README.md` | Updated development status (M7 complete) |
 
 ---
 
 ## Immediate Next Steps
 
-1. Write E2E test stubs (A1–A3) — tests first per TDD
-2. Implement test bodies
-3. Run tests — should pass immediately (functionality exists)
-4. Create plugin-a16n doc pages
-5. Wire into sidebar + intro + API pipeline
-6. CHANGELOG integration + analytics + housekeeping
-7. Full verification
+1. Commit all changes
+2. Phase 9 is complete — consider creating a release PR

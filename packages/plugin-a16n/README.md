@@ -99,15 +99,15 @@ Use this ID with CLI commands:
 
 ## Development Status
 
-**Current Version**: 0.1.0 (Phase 9 in progress)
+**Current Version**: 0.1.0
 
-- ✅ M1: IR Model Versioning & Extensions (complete)
-- ✅ M2: Plugin Package Setup (complete)
-- ✅ M3: Frontmatter Parsing & Formatting (complete)
-- ✅ M4: IR Emission (complete)
-- ✅ M5: IR Discovery (complete)
-- ✅ M6: E2E Integration Testing (complete)
-- 🚧 M7: Integration Testing & Documentation (upcoming)
+- ✅ M1: IR Model Versioning & Extensions
+- ✅ M2: Plugin Package Setup
+- ✅ M3: Frontmatter Parsing & Formatting
+- ✅ M4: IR Emission + CLI Integration
+- ✅ M5: IR Discovery
+- ✅ M6: E2E Integration Testing
+- ✅ M7: Documentation & Cross-Format E2E Tests
 
 ## License
 

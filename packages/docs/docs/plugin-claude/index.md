@@ -92,5 +92,6 @@ For complete plugin API details, see the [Plugin Claude API Reference](/plugin-c
 
 - [Plugin Claude API Reference](/plugin-claude/api) - Complete API documentation
 - [Plugin: Cursor](/plugin-cursor) - Cursor IDE format plugin
+- [Plugin: a16n IR](/plugin-a16n) - Intermediate representation format plugin
 - [Understanding Conversions](/understanding-conversions) - Conversion details
 - [Models](/models) - Type definitions

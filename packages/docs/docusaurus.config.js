@@ -28,6 +28,17 @@ const config = {
     mermaid: true,
   },
 
+  // Google Search Console verification
+  headTags: [
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'google-site-verification',
+        content: 'E9y_GjlmgYsMt4Bjilx2Y201XFZFLyEMn5hQgCXS_z4',
+      },
+    },
+  ],
+
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".
@@ -53,6 +64,13 @@ const config = {
       'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
+        // Google Analytics (gtag) — only active when GTAG_ID env var is set
+        ...(process.env.GTAG_ID ? {
+          gtag: {
+            trackingID: process.env.GTAG_ID,
+            anonymizeIP: true,
+          },
+        } : {}),
         docs: {
           path: '.generated',
           routeBasePath: '/',
