@@ -69,13 +69,6 @@ const config = {
       'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
-        // Google Analytics (gtag) — only active when GTAG_ID env var is set
-        ...(process.env.GTAG_ID ? {
-          gtag: {
-            trackingID: process.env.GTAG_ID,
-            anonymizeIP: true,
-          },
-        } : {}),
         docs: {
           path: '.generated',
           routeBasePath: '/',
