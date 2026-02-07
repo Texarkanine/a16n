@@ -6,6 +6,22 @@ sidebar_position: 6
 
 The **@a16njs/plugin-a16n** package enables reading and writing the a16n intermediate representation (IR) to/from disk in a human-readable, git-friendly format with versioned schema support.
 
+## Why?
+
+The a16n IR format serves as a **hub format** - convert any supported format to IR, then store it and distribute it when you don't know which tool(s) consumers will be using.
+
+This is only marginally better than just choosing a single tool's format as your canonical format, and using `a16n convert` to just translate normally - with the bonus that you don't have to worry about the version of the IR format on-disk.
+
+You'd only choose to convert `--to a16n` and store the IR if you had multiple tools you wanted to support *and* they had disjoint sets of supported features.
+
+For example consider [AgentIngnore](/models#agentignore): currently, Cursor supports `.cursorignore`, but Codex does not have a tool-enforced exclude for file patterns. If you chose Codex as your canonical format, you wouldn't be able to store an AgentIgnore. Then, Cursor users wouldn't be able to run `a16n convert --from codex --to cursor` to get a `.cursorignore`.
+
+In contrast, if you stored an `AgentIgnore` in the IR format, cursor users could run `a16n convert --from a16n --to cursor` and get their `.cursorignore`, and Codex users who ran `a16n convert --from a16n --to codex` would just see the upstream `AgentIgnore` get skipped.
+
+:::caution Rare & Unusual
+This is unlikely to be a common use-case. Don't overthink it and don't marry yourself to this major-version-0 IR unless you're sure you know what you're doing!
+:::
+
 ## Installation
 
 This plugin is bundled with the `a16n` CLI. For programmatic use:
@@ -177,7 +193,5 @@ For complete plugin API details, see the [Plugin a16n API Reference](/plugin-a16
 ## See Also
 
 - [Plugin a16n API Reference](/plugin-a16n/api) - Complete API documentation
-- [Plugin: Cursor](/plugin-cursor) - Cursor IDE format plugin
-- [Plugin: Claude](/plugin-claude) - Claude Code format plugin
 - [Understanding Conversions](/understanding-conversions) - Conversion details
 - [Models](/models) - Type definitions
