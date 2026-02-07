@@ -51,7 +51,7 @@ When Cursor Rule frontmatter contains multiple keys, rules are classified by fir
 
 1. **`alwaysApply: true`** → GlobalPrompt
 2. **`globs:` present** → FileRule
-3. **`description:` present** → AgentSkill
+3. **`description:` present** → SimpleAgentSkill
 4. **No frontmatter** → ManualPrompt (fallback)
 
 ---
@@ -103,6 +103,5 @@ For complete plugin API details, see the [Plugin Cursor API Reference](/plugin-c
 ## See Also
 
 - [Plugin Cursor API Reference](/plugin-cursor/api) - Complete API documentation
-- [Plugin: Claude](/plugin-claude) - Claude Code format plugin
 - [Understanding Conversions](/understanding-conversions) - Conversion details
 - [Models](/models) - Type definitions

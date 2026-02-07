@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   CustomizationType,
   isGlobalPrompt,
-  isAgentSkill,
   isSimpleAgentSkill,
   isAgentSkillIO,
   isFileRule,
@@ -12,7 +11,6 @@ import {
   createId,
   type AgentCustomization,
   type GlobalPrompt,
-  type AgentSkill,
   type SimpleAgentSkill,
   type AgentSkillIO,
   type FileRule,
@@ -43,34 +41,6 @@ describe('isGlobalPrompt', () => {
     };
 
     expect(isGlobalPrompt(item)).toBe(false);
-  });
-});
-
-describe('isAgentSkill (original tests - updated to use SimpleAgentSkill)', () => {
-  it('should return true for SimpleAgentSkill', () => {
-    const item: SimpleAgentSkill = {
-      id: 'test',
-      type: CustomizationType.SimpleAgentSkill,
-      sourcePath: 'test.md',
-      content: 'content',
-      description: 'Test skill',
-      metadata: {},
-    };
-
-    // isAgentSkill is deprecated alias for isSimpleAgentSkill
-    expect(isAgentSkill(item)).toBe(true);
-  });
-
-  it('should return false for other types', () => {
-    const item: AgentCustomization = {
-      id: 'test',
-      type: CustomizationType.GlobalPrompt,
-      sourcePath: 'test.md',
-      content: 'content',
-      metadata: {},
-    };
-
-    expect(isAgentSkill(item)).toBe(false);
   });
 });
 
@@ -263,27 +233,6 @@ describe('isSimpleAgentSkill', () => {
     };
 
     expect(isSimpleAgentSkill(item)).toBe(false);
-  });
-});
-
-describe('isAgentSkill (deprecated alias)', () => {
-  /**
-   * Backward compatibility: isAgentSkill should work as alias for isSimpleAgentSkill.
-   */
-
-  it('should work as alias for isSimpleAgentSkill', () => {
-    const item: SimpleAgentSkill = {
-      id: 'test',
-      type: CustomizationType.SimpleAgentSkill,
-      sourcePath: 'test.md',
-      content: 'content',
-      description: 'Test skill',
-      metadata: {},
-    };
-
-    // isAgentSkill is the deprecated alias, should return same result
-    expect(isAgentSkill(item)).toBe(true);
-    expect(isAgentSkill(item)).toBe(isSimpleAgentSkill(item));
   });
 });
 

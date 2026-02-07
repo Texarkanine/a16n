@@ -170,7 +170,7 @@ Patterns use [micromatch](https://github.com/micromatch/micromatch) syntax with 
 
 ---
 
-## Integration with a16n (Legacy)
+## Integration with a16n
 
 :::info Historical Context
 Prior to January 2026, a16n used glob-hook to emulate Cursor's glob-based FileRules in Claude Code. This section is preserved for reference, but **a16n no longer uses this approach**.
@@ -179,7 +179,7 @@ Modern a16n versions emit FileRules as native `.claude/rules/*.md` files with `p
 :::
 
 <details>
-<summary>Legacy behavior (pre-January 2026)</summary>
+<summary>Legacy behavior</summary>
 
 When a16n converted Cursor FileRules to Claude format, it used glob-hook:
 
@@ -218,55 +218,6 @@ Prefer named exports over default exports.
 
 </details>
 
-### Current Behavior
-
-a16n now converts FileRules to native Claude rules:
-
-**Cursor source** (`.cursor/rules/react.mdc`):
-```markdown
----
-globs: **/*.tsx,**/*.jsx
----
-
-Use functional components with hooks.
-Prefer named exports over default exports.
-```
-
-**Claude output (current)** (`.claude/rules/react.md`):
-```markdown
----
-paths:
-  - "**/*.tsx"
-  - "**/*.jsx"
----
-
-## From: .cursor/rules/react.mdc
-
-Use functional components with hooks.
-Prefer named exports over default exports.
-```
-
----
-
-## Hook Input Schema
-
-The input from Claude Code hooks follows this structure:
-
-```typescript
-interface HookInput {
-  hook_event_name?: 'PreToolUse' | 'PostToolUse';
-  tool_name: string;
-  tool_input: {
-    file_path?: string;  // The path glob-hook matches against
-    content?: string;
-    command?: string;
-  };
-  tool_response?: {
-    content?: string;
-  };
-}
-```
-
 ---
 
 ## Requirements
@@ -279,5 +230,5 @@ interface HookInput {
 ## See Also
 
 - [CLI Reference](/cli) - a16n command-line interface
-- [Plugin: Claude](/plugin-claude) - Claude format details (now uses native rules)
+- [Plugin: Claude](/plugin-claude) - Claude format details
 - [Understanding Conversions](/understanding-conversions) - How conversions work

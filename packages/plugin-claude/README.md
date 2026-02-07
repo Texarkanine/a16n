@@ -21,7 +21,7 @@ This plugin supports five customization types:
 |------|---------------|-------------|
 | **GlobalPrompt** | `.claude/rules/*.md` | Always-active instructions |
 | **FileRule** | `.claude/rules/*.md` with `paths:` frontmatter | Glob-triggered via native paths |
-| **AgentSkill** | `.claude/skills/*/SKILL.md` | Description-triggered skills |
+| **SimpleAgentSkill** | `.claude/skills/*/SKILL.md` | Description-triggered skills |
 | **AgentIgnore** | `.claude/settings.json` `permissions.deny` | Files to exclude |
 | **AgentCommand** | *Emitted only* | Cursor commands become skills |
 
@@ -34,7 +34,7 @@ This plugin supports five customization types:
 - `CLAUDE.md` - Root Claude configuration (GlobalPrompt)
 - `*/CLAUDE.md` - Nested Claude configuration files (GlobalPrompt)
 - `.claude/rules/*.md` - Native Claude rules (GlobalPrompt if no `paths:`, FileRule if `paths:` present)
-- `.claude/skills/*/SKILL.md` - Skills with description frontmatter (AgentSkill)
+- `.claude/skills/*/SKILL.md` - Skills with description frontmatter (SimpleAgentSkill)
 - `.claude/settings.json` - Permissions deny rules (AgentIgnore)
 
 > **Note:** Skills with `hooks:` in their frontmatter are skipped (not convertible to Cursor).
@@ -44,7 +44,7 @@ This plugin supports five customization types:
 
 - **GlobalPrompt** → `.claude/rules/<name>.md` (individual files)
 - **FileRule** → `.claude/rules/<name>.md` with `paths:` YAML frontmatter
-- **AgentSkill** → `.claude/skills/<name>/SKILL.md` with description frontmatter
+- **SimpleAgentSkill** → `.claude/skills/<name>/SKILL.md` with description frontmatter
 - **AgentIgnore** → `.claude/settings.json` with `permissions.deny` Read rules
 - **AgentCommand** → `.claude/skills/<commandName>/SKILL.md` with `Invoke with /command` description
 
@@ -76,7 +76,7 @@ paths:
 Use functional components with hooks.
 ```
 
-### SKILL.md (AgentSkill)
+### SKILL.md (SimpleAgentSkill)
 
 ```markdown
 ---

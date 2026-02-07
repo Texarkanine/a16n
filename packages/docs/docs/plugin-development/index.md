@@ -57,7 +57,7 @@ export default myPlugin;
 Plugins declare which types they support via the `supports` array:
 
 - `GlobalPrompt` - Always-applied system prompts
-- `AgentSkill` - Description-triggered contextual rules
+- `SimpleAgentSkill` - Description-triggered contextual rules
 - `FileRule` - File pattern-triggered rules
 - `AgentIgnore` - File ignore patterns
 - `ManualPrompt` - Slash commands

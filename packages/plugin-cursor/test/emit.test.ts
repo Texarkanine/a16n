@@ -7,7 +7,7 @@ import {
   CustomizationType,
   type GlobalPrompt,
   type FileRule,
-  type AgentSkill,
+  type SimpleAgentSkill,
   type AgentSkillIO,
   type AgentIgnore,
   type ManualPrompt,
@@ -322,7 +322,7 @@ describe('Cursor FileRule Emission (Phase 2)', () => {
   });
 });
 
-describe('Cursor AgentSkill Emission (Phase 2)', () => {
+describe('Cursor SimpleAgentSkill Emission (Phase 2)', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -331,9 +331,9 @@ describe('Cursor AgentSkill Emission (Phase 2)', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  describe('single AgentSkill', () => {
-    it('should emit AgentSkill as .mdc with description: frontmatter', async () => {
-      const models: AgentSkill[] = [
+  describe('single SimpleAgentSkill', () => {
+    it('should emit SimpleAgentSkill as .mdc with description: frontmatter', async () => {
+      const models: SimpleAgentSkill[] = [
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/auth/SKILL.md'),
           type: CustomizationType.SimpleAgentSkill,
@@ -355,7 +355,7 @@ describe('Cursor AgentSkill Emission (Phase 2)', () => {
     });
 
     it('should include skill content after frontmatter', async () => {
-      const models: AgentSkill[] = [
+      const models: SimpleAgentSkill[] = [
         {
           id: createId(CustomizationType.SimpleAgentSkill, 'auth.md'),
           type: CustomizationType.SimpleAgentSkill,
@@ -373,7 +373,7 @@ describe('Cursor AgentSkill Emission (Phase 2)', () => {
     });
 
     it('should quote description with special characters', async () => {
-      const models: AgentSkill[] = [
+      const models: SimpleAgentSkill[] = [
         {
           id: createId(CustomizationType.SimpleAgentSkill, 'test.md'),
           type: CustomizationType.SimpleAgentSkill,
@@ -403,7 +403,7 @@ describe('Cursor Mixed Emission (Phase 2 - Updated for Phase 7)', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it('should emit GlobalPrompt and FileRule to rules, AgentSkill to skills', async () => {
+  it('should emit GlobalPrompt and FileRule to rules, SimpleAgentSkill to skills', async () => {
     const models = [
       {
         id: createId(CustomizationType.GlobalPrompt, 'global.md'),
@@ -427,7 +427,7 @@ describe('Cursor Mixed Emission (Phase 2 - Updated for Phase 7)', () => {
         content: 'Auth content',
         description: 'Auth patterns',
         metadata: { name: 'auth' },
-      } as AgentSkill,
+      } as SimpleAgentSkill,
     ];
 
     const result = await cursorPlugin.emit(models, tempDir);
@@ -445,7 +445,7 @@ describe('Cursor Mixed Emission (Phase 2 - Updated for Phase 7)', () => {
     expect(rulesContents.some(c => c.includes('alwaysApply: true'))).toBe(true);
     expect(rulesContents.some(c => c.includes('globs:'))).toBe(true);
 
-    // Check AgentSkill in .cursor/skills
+    // Check SimpleAgentSkill in .cursor/skills
     const skillPath = path.join(tempDir, '.cursor', 'skills', 'auth', 'SKILL.md');
     const skillContent = await fs.readFile(skillPath, 'utf-8');
     expect(skillContent).toContain('description:');
@@ -868,9 +868,9 @@ describe('Cursor Skills Emission (Phase 7)', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  describe('AgentSkill emission to .cursor/skills/', () => {
-    it('should emit AgentSkill to .cursor/skills/<name>/SKILL.md', async () => {
-      const models: AgentSkill[] = [
+  describe('SimpleAgentSkill emission to .cursor/skills/', () => {
+    it('should emit SimpleAgentSkill to .cursor/skills/<name>/SKILL.md', async () => {
+      const models: SimpleAgentSkill[] = [
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/auth/SKILL.md'),
           type: CustomizationType.SimpleAgentSkill,
@@ -893,7 +893,7 @@ describe('Cursor Skills Emission (Phase 7)', () => {
     });
 
     it('should include name and description in skill frontmatter', async () => {
-      const models: AgentSkill[] = [
+      const models: SimpleAgentSkill[] = [
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/db/SKILL.md'),
           type: CustomizationType.SimpleAgentSkill,
@@ -914,7 +914,7 @@ describe('Cursor Skills Emission (Phase 7)', () => {
     });
 
     it('should sanitize skill names for directory creation', async () => {
-      const models: AgentSkill[] = [
+      const models: SimpleAgentSkill[] = [
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/weird/SKILL.md'),
           type: CustomizationType.SimpleAgentSkill,
@@ -983,7 +983,7 @@ describe('Cursor Skills Emission (Phase 7)', () => {
   });
 
   describe('collision handling', () => {
-    it('should handle collisions between AgentSkill and ManualPrompt with same name', async () => {
+    it('should handle collisions between SimpleAgentSkill and ManualPrompt with same name', async () => {
       const models = [
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/review/SKILL.md'),
@@ -992,7 +992,7 @@ describe('Cursor Skills Emission (Phase 7)', () => {
           content: 'Skill content',
           description: 'Review skill',
           metadata: { name: 'review' },
-        } as AgentSkill,
+        } as SimpleAgentSkill,
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
           type: CustomizationType.ManualPrompt,
@@ -1070,10 +1070,10 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
     expect(written?.sourceItems?.[0]).toBe(fr);
   });
 
-  it('should populate sourceItems for AgentSkill → SKILL.md (1:1)', async () => {
-    // Test that WrittenFile for each AgentSkill SKILL.md includes
-    // sourceItems array with single AgentSkill
-    const skill: AgentSkill = {
+  it('should populate sourceItems for SimpleAgentSkill → SKILL.md (1:1)', async () => {
+    // Test that WrittenFile for each SimpleAgentSkill SKILL.md includes
+    // sourceItems array with single SimpleAgentSkill
+    const skill: SimpleAgentSkill = {
       id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/database.mdc'),
       type: CustomizationType.SimpleAgentSkill,
       sourcePath: '.cursor/rules/database.mdc',

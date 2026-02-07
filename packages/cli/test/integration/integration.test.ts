@@ -16,6 +16,7 @@ import { A16nEngine } from '@a16njs/engine';
 import cursorPlugin from '@a16njs/plugin-cursor';
 import claudePlugin from '@a16njs/plugin-claude';
 import a16nPlugin from '@a16njs/plugin-a16n';
+import { WarningCode } from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
@@ -246,7 +247,7 @@ describe('Integration Tests - Fixture Based', () => {
   });
 });
 
-describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
+describe('Integration Tests - Phase 2 FileRule and SimpleAgentSkill', () => {
   beforeEach(async () => {
     await fs.rm(tempDir, { recursive: true, force: true });
     await fs.mkdir(tempDir, { recursive: true });
@@ -296,7 +297,7 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
   });
 
   describe('cursor-agentskill-to-claude', () => {
-    it('should convert Cursor AgentSkill to Claude skill', async () => {
+    it('should convert Cursor SimpleAgentSkill to Claude skill', async () => {
       const fixturePath = path.join(fixturesDir, 'cursor-agentskill-to-claude');
       const fromDir = path.join(fixturePath, 'from-cursor');
       
@@ -310,7 +311,7 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
         root: tempDir,
       });
       
-      // Verify AgentSkill was discovered
+      // Verify SimpleAgentSkill was discovered
       const agentSkills = result.discovered.filter(d => d.type === 'simple-agent-skill');
       expect(agentSkills).toHaveLength(1);
       
@@ -340,11 +341,11 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
         root: tempDir,
       });
       
-      // Verify AgentSkill was discovered
+      // Verify SimpleAgentSkill was discovered
       const agentSkills = result.discovered.filter(d => d.type === 'simple-agent-skill');
       expect(agentSkills).toHaveLength(1);
       
-      // Read the output skill files (Phase 7: AgentSkill → .cursor/skills/)
+      // Read the output skill files (Phase 7: SimpleAgentSkill → .cursor/skills/)
       const skillsDir = path.join(tempDir, '.cursor', 'skills');
       const dirs = await fs.readdir(skillsDir);
       expect(dirs).toHaveLength(1);
@@ -935,6 +936,142 @@ Use meaningful variable names.
       const restoredContent = Array.from(restoredFiles.values()).join('\n');
       expect(restoredContent).toContain('Write tests for all functions');
       expect(restoredContent).toContain('Use meaningful variable names');
+    });
+  });
+
+  describe('cross-format: cursor → a16n → claude', () => {
+    it('should preserve content through cursor → a16n → claude round-trip', async () => {
+      // Create a Cursor project with a rule
+      const cursorRulesDir = path.join(tempDir, '.cursor', 'rules');
+      await fs.mkdir(cursorRulesDir, { recursive: true });
+      await fs.writeFile(
+        path.join(cursorRulesDir, 'style.mdc'),
+        `---
+alwaysApply: true
+---
+
+Use consistent naming conventions.
+Prefer const over let.
+`,
+        'utf-8'
+      );
+
+      // Step 1: Convert Cursor → a16n (IR)
+      const toA16n = await engine.convert({
+        source: 'cursor',
+        target: 'a16n',
+        root: tempDir,
+      });
+      expect(toA16n.discovered.length).toBeGreaterThan(0);
+      expect(toA16n.written.length).toBeGreaterThan(0);
+
+      // Step 2: Remove Cursor source to prove the IR carries the content
+      await fs.rm(path.join(tempDir, '.cursor'), { recursive: true, force: true });
+
+      // Step 3: Convert a16n → Claude
+      const toClaude = await engine.convert({
+        source: 'a16n',
+        target: 'claude',
+        root: tempDir,
+      });
+      expect(toClaude.discovered.length).toBeGreaterThan(0);
+      expect(toClaude.written.length).toBeGreaterThan(0);
+
+      // Verify Claude rules contain the original Cursor content
+      const claudeRulesDir = path.join(tempDir, '.claude', 'rules');
+      const claudeFiles = await readDirFiles(claudeRulesDir);
+      expect(claudeFiles.size).toBeGreaterThan(0);
+
+      const claudeContent = Array.from(claudeFiles.values()).join('\n');
+      expect(claudeContent).toContain('Use consistent naming conventions');
+      expect(claudeContent).toContain('Prefer const over let');
+    });
+  });
+
+  describe('cross-format: claude → a16n → cursor', () => {
+    it('should preserve content through claude → a16n → cursor round-trip', async () => {
+      // Create a Claude project with a rule
+      const claudeRulesDir = path.join(tempDir, '.claude', 'rules');
+      await fs.mkdir(claudeRulesDir, { recursive: true });
+      await fs.writeFile(
+        path.join(claudeRulesDir, 'quality.md'),
+        `---
+trigger: always
+---
+
+Always write documentation for public APIs.
+Use descriptive error messages.
+`,
+        'utf-8'
+      );
+
+      // Step 1: Convert Claude → a16n (IR)
+      const toA16n = await engine.convert({
+        source: 'claude',
+        target: 'a16n',
+        root: tempDir,
+      });
+      expect(toA16n.discovered.length).toBeGreaterThan(0);
+      expect(toA16n.written.length).toBeGreaterThan(0);
+
+      // Step 2: Remove Claude source to prove the IR carries the content
+      await fs.rm(path.join(tempDir, '.claude'), { recursive: true, force: true });
+
+      // Step 3: Convert a16n → Cursor
+      const toCursor = await engine.convert({
+        source: 'a16n',
+        target: 'cursor',
+        root: tempDir,
+      });
+      expect(toCursor.discovered.length).toBeGreaterThan(0);
+      expect(toCursor.written.length).toBeGreaterThan(0);
+
+      // Verify Cursor rules contain the original Claude content
+      const cursorRulesDir = path.join(tempDir, '.cursor', 'rules');
+      const cursorFiles = await readDirFiles(cursorRulesDir);
+      expect(cursorFiles.size).toBeGreaterThan(0);
+
+      const cursorContent = Array.from(cursorFiles.values()).join('\n');
+      expect(cursorContent).toContain('Always write documentation for public APIs');
+      expect(cursorContent).toContain('Use descriptive error messages');
+    });
+  });
+
+  describe('version mismatch warning', () => {
+    it('should emit VersionMismatch warning for incompatible IR versions', async () => {
+      // Create a .a16n/ directory with a file that has an incompatible version
+      // v1beta99 is valid but incompatible with current v1beta1 (revision too high)
+      const a16nDir = path.join(tempDir, '.a16n', 'global-prompt');
+      await fs.mkdir(a16nDir, { recursive: true });
+      await fs.writeFile(
+        path.join(a16nDir, 'future-rule.md'),
+        `---
+version: v1beta99
+type: global-prompt
+---
+
+This rule is from a future revision.
+`,
+        'utf-8'
+      );
+
+      // Run discovery (a16n → cursor)
+      const result = await engine.convert({
+        source: 'a16n',
+        target: 'cursor',
+        root: tempDir,
+      });
+
+      // Should still discover the item (processed despite mismatch)
+      expect(result.discovered.length).toBeGreaterThan(0);
+
+      // Should have emitted a VersionMismatch warning
+      const versionWarnings = result.warnings.filter(
+        w => w.code === WarningCode.VersionMismatch
+      );
+      expect(versionWarnings).toHaveLength(1);
+      expect(versionWarnings[0].message).toContain('v1beta99');
+      expect(versionWarnings[0].message).toContain('v1beta1');
     });
   });
 });
