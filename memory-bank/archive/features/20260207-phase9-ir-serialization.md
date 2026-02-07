@@ -39,9 +39,10 @@ Designed and implemented `@a16njs/plugin-a16n`, a complete bidirectional seriali
 | M4 | IR Emission + CLI | #37 | 5h | 4h | `emit()`, path traversal security, CLI integration |
 | M5 | IR Discovery | #38 | 4h | 2.5h | `discover()`, 23 unit tests, 7 fixture directories |
 | M6 | E2E Testing | #38 | 1h | 0.5h | 7 integration tests, round-trip verification |
-| M7 | Docs + Hardening | p9-m7 | 3h | 4h* | Docsite, CHANGELOG, CI gate, MDX fix, deprecated type removal |
+| M7 | Docs + Hardening | p9-m7 | 3h | 4h* | Docsite, CHANGELOG, CI gate, MDX fix, deprecated type removal, GA4 (removed) |
 
-*M7 expanded due to emergent work (MDX fix, deprecated AgentSkill removal, CI hardening).
+*M7 expanded due to emergent work (MDX fix, deprecated AgentSkill removal, CI hardening).  
+**Note:** GA4 tracking was implemented but subsequently removed when user discovered it was blocked by their DNS.
 
 **Total:** Estimated 23h, Actual ~17h (26% faster overall).
 
@@ -61,7 +62,7 @@ Designed and implemented `@a16njs/plugin-a16n`, a complete bidirectional seriali
 7. Plugin overview page on docsite
 8. API reference generation via TypeDoc
 9. CHANGELOGs baked into docsite for all packages
-10. Google Analytics and site verification integration
+10. Google Search Console site verification (GA4 tracking removed post-implementation)
 
 ### Quality Requirements
 11. Forward compatibility: newer readers can read older files
@@ -85,7 +86,7 @@ Designed and implemented `@a16njs/plugin-a16n`, a complete bidirectional seriali
 | ManualPrompt naming | Derived from `relativeDir` + filename | Eliminates redundant `promptName` field in frontmatter |
 | Docusaurus markdown | `format: 'detect'` | `.md` = CommonMark (no JSX), `.mdx` = MDX; prevents TypeDoc `<name>` errors |
 | CHANGELOG display | Generated at build time via `stage-changelogs.sh` | Single source of truth, no duplication |
-| GA tracking | `GTAG_ID` env var | Secrets out of config, graceful degradation when absent |
+| GA tracking | Removed (implemented then reverted) | User has GA blocked; Search Console verification retained |
 
 Full architectural research: `memory-bank/creative/creative-phase9-architecture.md` (archived below).
 
@@ -136,7 +137,7 @@ Full architectural research: `memory-bank/creative/creative-phase9-architecture.
 - Plugin-a16n docsite pages (overview + API reference)
 - TypeDoc generation pipeline extended for plugin-a16n
 - `stage-changelogs.sh`: 7 CHANGELOG pages baked into docsite
-- Google Analytics (gtag + site verification meta tag)
+- Google Search Console site verification meta tag (GA4 tracking implemented then removed)
 - `markdown.format: 'detect'` — fixes MDX `<name>` compilation errors
 - `build:current` CI step — doc compilation gate on every PR
 - Removed deprecated `AgentSkill` type alias across all code/tests/docs
