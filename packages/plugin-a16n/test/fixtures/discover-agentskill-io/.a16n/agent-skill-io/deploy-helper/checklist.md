@@ -1,0 +1,5 @@
+- [ ] Run tests
+- [ ] Check CI status
+- [ ] Deploy to staging
+- [ ] Verify staging
+- [ ] Deploy to production

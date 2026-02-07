@@ -13,12 +13,14 @@
 import type { A16nPlugin, AgentCustomization, EmitOptions } from '@a16njs/models';
 import { CustomizationType } from '@a16njs/models';
 import { emit as emitImpl } from './emit.js';
+import { discover as discoverImpl } from './discover.js';
 
 // Export utility functions and types
 export { parseIRFile, type ParseIRFileResult } from './parse.js';
 export { formatIRFile } from './format.js';
 export { extractRelativeDir, slugify, getNameWithoutExtension } from './utils.js';
 export { emit } from './emit.js';
+export { discover } from './discover.js';
 
 /**
  * The a16n IR plugin.
@@ -45,13 +47,7 @@ const plugin: A16nPlugin = {
    * @param root - Project root directory
    * @returns Discovery result with parsed IR items
    */
-  async discover(root: string) {
-    // TODO: Implement in Milestone 5
-    return {
-      items: [],
-      warnings: [],
-    };
-  },
+  discover: discoverImpl,
   
   /**
    * Emit IR files to .a16n/ directory.

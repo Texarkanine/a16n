@@ -1,6 +1,7 @@
 # @a16njs/plugin-a16n
 
-> a16n Intermediate Representation (IR) Plugin
+[![npm version](https://img.shields.io/npm/v/@a16njs/plugin-a16n.svg)](https://www.npmjs.com/package/@a16njs/plugin-a16n)
+[![codecov](https://codecov.io/gh/Texarkanine/a16n/graph/badge.svg?flag=plugin-a16n)](https://codecov.io/gh/Texarkanine/a16n)
 
 This plugin enables reading and writing the a16n intermediate representation to/from disk in a human-readable, git-friendly format with versioned schema support.
 
@@ -9,7 +10,6 @@ This plugin enables reading and writing the a16n intermediate representation to/
 - **Versioned Schema**: Kubernetes-style versioning (e.g., `v1beta1`) for forward compatibility
 - **Human-Readable**: Markdown files with YAML frontmatter
 - **Git-Friendly**: Text-based format optimized for version control
-- **Type-Safe**: Full TypeScript support with validated schemas
 
 ## Usage
 
@@ -103,10 +103,10 @@ Use this ID with CLI commands:
 
 - ✅ M1: IR Model Versioning & Extensions (complete)
 - ✅ M2: Plugin Package Setup (complete)
-- 🚧 M3: Frontmatter Parsing & Formatting (upcoming)
-- 🚧 M4: IR Emission (upcoming)
-- 🚧 M5: IR Discovery (upcoming)
-- 🚧 M6: CLI Integration (upcoming)
+- ✅ M3: Frontmatter Parsing & Formatting (complete)
+- ✅ M4: IR Emission (complete)
+- ✅ M5: IR Discovery (complete)
+- ✅ M6: E2E Integration Testing (complete)
 - 🚧 M7: Integration Testing & Documentation (upcoming)
 
 ## License

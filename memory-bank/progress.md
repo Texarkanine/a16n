@@ -2,7 +2,7 @@
 
 ## Phase 9: IR Serialization Plugin
 
-**Overall Status:** Planning Complete
+**Overall Status:** M5 + M6 Complete
 **Started:** 2026-02-03
 
 ---
@@ -15,8 +15,8 @@
 | M2: Plugin Package Setup | `completed` ✅ | 11/11 tasks (15 minutes, PR #35) |
 | M3: Frontmatter Parse/Format | `completed` ✅ | 11/11 tasks (2.5 hours, PR #36) |
 | M4: IR Emission + CLI Integration | `completed` ✅ | 14/14 tasks (4 hours total, 20% faster, PR #37) |
-| M5: IR Discovery | `blocked` | 0/9 tasks (waiting for M4) |
-| M6: E2E Testing | `blocked` | 0/5 tasks (waiting for M4, M5) |
+| M5: IR Discovery | `completed` ✅ | 9/9 tasks (TDD, 23 new tests) |
+| M6: E2E Testing | `completed` ✅ | 5/5 tasks (7 integration tests) |
 | M7: Integration & Docs | `blocked` | 0/9 tasks (waiting for M6) |
 
 ---
@@ -107,22 +107,31 @@ None - ready to begin implementation.
 
 ---
 
+### Milestone 5: IR Discovery (2026-02-06)
+- [x] Created 7 test fixture directories (basic, nested, agentskill-io, unknown-dir, version-mismatch, invalid-frontmatter, empty)
+- [x] Stubbed discover.ts with function signatures and empty implementation
+- [x] Stubbed discover.test.ts with 23 test cases (empty implementations)
+- [x] Implemented all 23 test cases
+- [x] TDD red phase: all 23 discover tests fail, 70 existing tests pass
+- [x] Implemented discover() with helpers: discoverStandardType(), discoverAgentSkillIO(), findMdFiles()
+- [x] Wired discover() into index.ts (replaced TODO stub)
+- [x] TDD green phase: all 93 plugin-a16n tests pass
+- [x] Full monorepo verification: 567 tests pass, build + typecheck pass
+
+### Milestone 6: E2E Integration Testing (2026-02-06)
+- [x] Updated integration test engine to include a16nPlugin
+- [x] Created a16n-basic integration fixture with all 6 IR types
+- [x] Wrote 7 integration tests: discovery, a16n→cursor, a16n→claude, cursor→a16n→cursor round-trip, claude→a16n→claude round-trip
+- [x] All 567 monorepo tests pass (23 new discover + 7 new integration)
+- [x] Build + typecheck pass
+
+---
+
 ## Next Actions
 
-**Current:** M4 complete with all bug fixes. PR #37 ready for review. Awaiting merge before M5.
+**Current:** M5 + M6 complete. PR pending.
 
-**M4 Final Status:**
-- ✅ Full TDD implementation of emit() function (16 tests first)
-- ✅ CLI fully integrated with `a16n` plugin
-- ✅ Iterated on CodeRabbit feedback (security, accuracy, robustness)
-- ✅ Iterated on user feedback (relative paths, clean filenames)
-- ✅ Fixed 3 cross-package bugs (command relativeDir, recursive readSkillFiles, emit naming)
-- ✅ All 536 tests passing (22 new tests total in M4)
-- ✅ Build, test, typecheck all pass
-- ✅ PR #37 created and ready for review
-- ✅ Reflection documentation complete
-
-**Next:** Await PR #37 merge, then begin **Milestone 5** (IR Discovery - `--from a16n`)
+**Next:** Begin **Milestone 7** (Integration & Docs)
 
 ---
 
@@ -131,7 +140,7 @@ None - ready to begin implementation.
 | Check | Status | Result |
 |-------|--------|--------|
 | pnpm build | ✅ Passed | All 7 packages built successfully |
-| pnpm test | ✅ Passed | 536 tests passed (22 new in M4: 16 initial + 3 edge cases + 3 bug fix tests) |
+| pnpm test | ✅ Passed | 567 tests passed (23 new discover + 7 new integration) |
 | pnpm typecheck | ✅ Passed | No TypeScript errors |
 | pnpm lint | ⚠️ Not run | No lint script defined |
 
