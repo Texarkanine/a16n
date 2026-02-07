@@ -151,7 +151,7 @@ export async function readSkillFiles(
  *
  * It does NOT write IR-specific fields (version, type, relativeDir).
  *
- * @param outputDir - Directory to write the skill (e.g., .a16n/agent-skill-io/<name>)
+ * @param outputDir - Directory to write the skill (e.g., .a16n/agent-skill-io/NAME)
  * @param frontmatter - Skill frontmatter (AgentSkills.io format)
  * @param content - Skill content
  * @param files - Resource files to write (key: relative path, value: content)
