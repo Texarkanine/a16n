@@ -2,32 +2,19 @@
 
 ## Current Task: CodeRabbit PR #38 Fixes
 
-<<<<<<< HEAD
-**Status:** In Progress
-**PR URL:** https://github.com/Texarkanine/a16n/pull/38
-**Rate Limit Until:**
-**Last Updated:** 2026-02-06T23:30:00Z
-=======
 **Status:** COMPLETE
 **PR URL:** https://github.com/Texarkanine/a16n/pull/38
 **Rate Limit Until:**
 **Last Updated:** 2026-02-07T00:00:00Z
->>>>>>> 98ee930 (chore(docs): tidy up memory bank a bit)
 
 ### Actionable Items
 - [x] ID: readme-status - Update README.md development status: M3-M6 marked complete (✅) - FIXED in 3c30132
 - [x] ID: findmd-catch - discover.ts:278 silent catch swallows all readdir errors — surfaced via warnings accumulator - FIXED in 3c30132
 - [x] ID: path-sep-windows - discover.ts:144 path.relative returns OS-specific separators on Windows — normalized with .split(path.sep).join('/') - FIXED in 66ae9e7
 - [x] ID: agentskill-catch - discover.ts:196-201 silent readdir catch in discoverAgentSkillIO — surfaced via warnings accumulator for consistency - FIXED in 66ae9e7
-<<<<<<< HEAD
-- [x] ID: agentskill-abs-path - discover.ts:204 warning sources leaks absolute path — changed to relative `.a16n/agent-skill-io` - FIXED in (pending commit)
-- [x] ID: discover-readdir-warn - discover.ts:71-77 silent readdir catch in discover() — added warning for consistency - FIXED in (pending commit)
-- [x] ID: findmd-abs-path - discover.ts:295 findMdFiles warning sources uses absolute targetDir — changed to relative `.a16n/<type>/...` path - FIXED in (pending commit)
-=======
 - [x] ID: agentskill-abs-path - discover.ts:204 warning sources leaks absolute path — changed to relative `.a16n/agent-skill-io` - FIXED in a024206
 - [x] ID: discover-readdir-warn - discover.ts:71-77 silent readdir catch in discover() — added warning for consistency - FIXED in a024206
 - [x] ID: findmd-abs-path - discover.ts:295 findMdFiles warning sources uses absolute targetDir — changed to relative `.a16n/<type>/...` path - FIXED in a024206
->>>>>>> 98ee930 (chore(docs): tidy up memory bank a bit)
 
 ### Requires Human Decision
 - (none)
