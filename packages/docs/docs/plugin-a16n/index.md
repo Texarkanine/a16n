@@ -14,7 +14,7 @@ This is only marginally better than just choosing a single tool's format as your
 
 You'd only choose to convert `--to a16n` and store the IR if you had multiple tools you wanted to support *and* they had disjoint sets of supported features.
 
-For example consider [AgentIngnore](/models#agentignore): currently, Cursor supports `.cursorignore`, but Codex does not have a tool-enforced exclude for file patterns. If you chose Codex as your canonical format, you wouldn't be able to store an AgentIgnore. Then, Cursor users wouldn't be able to run `a16n convert --from codex --to cursor` to get a `.cursorignore`.
+For example consider [AgentIgnore](/models#agentignore): currently, Cursor supports `.cursorignore`, but Codex does not have a tool-enforced exclude for file patterns. If you chose Codex as your canonical format, you wouldn't be able to store an AgentIgnore. Then, Cursor users wouldn't be able to run `a16n convert --from codex --to cursor` to get a `.cursorignore`.
 
 In contrast, if you stored an `AgentIgnore` in the IR format, cursor users could run `a16n convert --from a16n --to cursor` and get their `.cursorignore`, and Codex users who ran `a16n convert --from a16n --to codex` would just see the upstream `AgentIgnore` get skipped.
 
