@@ -225,7 +225,7 @@ export async function writeAgentSkillIO(
  *
  * It does NOT expect IR-specific fields (version, type, relativeDir).
  *
- * @param skillDir - Directory containing the skill (e.g., .a16n/agent-skill-io/<name>)
+ * @param skillDir - Directory containing the skill (e.g., .a16n/agent-skill-io/NAME)
  * @returns Parsed skill with frontmatter, content, and resource files
  *
  * @example

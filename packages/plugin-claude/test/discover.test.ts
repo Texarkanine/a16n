@@ -73,9 +73,9 @@ describe('Claude Plugin Discovery', () => {
   });
 });
 
-describe('Claude AgentSkill Discovery (Phase 2)', () => {
+describe('Claude SimpleAgentSkill Discovery (Phase 2)', () => {
   describe('simple skills without hooks', () => {
-    it('should discover AgentSkill from .claude/skills/*/SKILL.md', async () => {
+    it('should discover SimpleAgentSkill from .claude/skills/*/SKILL.md', async () => {
       const root = path.join(fixturesDir, 'claude-skills/from-claude');
       const result = await claudePlugin.discover(root);
 
@@ -93,7 +93,7 @@ describe('Claude AgentSkill Discovery (Phase 2)', () => {
       expect(skill.description).toBe('Testing best practices');
     });
 
-    it('should include skill content in AgentSkill items', async () => {
+    it('should include skill content in SimpleAgentSkill items', async () => {
       const root = path.join(fixturesDir, 'claude-skills/from-claude');
       const result = await claudePlugin.discover(root);
 
@@ -234,8 +234,8 @@ describe('Claude ManualPrompt Discovery (Phase 7)', () => {
     });
   });
 
-  describe('regular skills still work as AgentSkill', () => {
-    it('should still discover regular skills without flag as AgentSkill', async () => {
+  describe('regular skills still work as SimpleAgentSkill', () => {
+    it('should still discover regular skills without flag as SimpleAgentSkill', async () => {
       const root = path.join(fixturesDir, 'claude-skills/from-claude');
       const result = await claudePlugin.discover(root);
 
@@ -265,7 +265,7 @@ describe('Claude Plugin Never Discovers ManualPrompt (Phase 4)', () => {
     }
   });
 
-  it('should only discover GlobalPrompt, AgentSkill, AgentSkillIO, FileRule, and AgentIgnore', async () => {
+  it('should only discover GlobalPrompt, SimpleAgentSkill, AgentSkillIO, FileRule, and AgentIgnore', async () => {
     const root = path.join(fixturesDir, 'claude-skills/from-claude');
     const result = await claudePlugin.discover(root);
 

@@ -136,14 +136,14 @@ describe('FileRule Discovery (Phase 2)', () => {
   });
 });
 
-describe('AgentSkill Discovery (Phase 2)', () => {
-  it('should discover AgentSkill items from rules with description: frontmatter', async () => {
+describe('SimpleAgentSkill Discovery (Phase 2)', () => {
+  it('should discover SimpleAgentSkill items from rules with description: frontmatter', async () => {
     const root = path.join(fixturesDir, 'cursor-agentskill/from-cursor');
     const result = await cursorPlugin.discover(root);
 
     expect(result.items).toHaveLength(2);
     
-    // All should be AgentSkill
+    // All should be SimpleAgentSkill
     for (const item of result.items) {
       expect(item.type).toBe(CustomizationType.SimpleAgentSkill);
     }
@@ -156,7 +156,7 @@ describe('AgentSkill Discovery (Phase 2)', () => {
     const authSkill = result.items.find(i => i.sourcePath.includes('auth'));
     expect(authSkill).toBeDefined();
     expect(authSkill?.type).toBe(CustomizationType.SimpleAgentSkill);
-    expect((authSkill as import('@a16njs/models').AgentSkill).description).toBe('Authentication and authorization patterns');
+    expect((authSkill as import('@a16njs/models').SimpleAgentSkill).description).toBe('Authentication and authorization patterns');
   });
 
   it('should extract description from frontmatter with quotes', async () => {
@@ -166,10 +166,10 @@ describe('AgentSkill Discovery (Phase 2)', () => {
     const dbSkill = result.items.find(i => i.sourcePath.includes('database'));
     expect(dbSkill).toBeDefined();
     expect(dbSkill?.type).toBe(CustomizationType.SimpleAgentSkill);
-    expect((dbSkill as import('@a16njs/models').AgentSkill).description).toBe('Database operations and ORM usage');
+    expect((dbSkill as import('@a16njs/models').SimpleAgentSkill).description).toBe('Database operations and ORM usage');
   });
 
-  it('should include rule content in AgentSkill items', async () => {
+  it('should include rule content in SimpleAgentSkill items', async () => {
     const root = path.join(fixturesDir, 'cursor-agentskill/from-cursor');
     const result = await cursorPlugin.discover(root);
 
@@ -196,7 +196,7 @@ describe('Classification Priority (Phase 2)', () => {
     }
   });
 
-  it('should classify rules with description (no globs) as AgentSkill', async () => {
+  it('should classify rules with description (no globs) as SimpleAgentSkill', async () => {
     const root = path.join(fixturesDir, 'cursor-agentskill/from-cursor');
     const result = await cursorPlugin.discover(root);
 
@@ -205,13 +205,13 @@ describe('Classification Priority (Phase 2)', () => {
     }
   });
 
-  it('should classify rules with empty globs: and description as AgentSkill (not FileRule)', async () => {
+  it('should classify rules with empty globs: and description as SimpleAgentSkill (not FileRule)', async () => {
     const root = path.join(fixturesDir, 'cursor-empty-globs-with-description/from-cursor');
     const result = await cursorPlugin.discover(root);
 
     expect(result.items).toHaveLength(1);
     expect(result.items[0]?.type).toBe(CustomizationType.SimpleAgentSkill);
-    expect((result.items[0] as import('@a16njs/models').AgentSkill).description).toBe('when to do a thing properly');
+    expect((result.items[0] as import('@a16njs/models').SimpleAgentSkill).description).toBe('when to do a thing properly');
   });
 
   it('should classify rules with valid globs over description (globs takes precedence)', async () => {
@@ -325,8 +325,8 @@ describe('AgentIgnore Discovery (Phase 3)', () => {
 });
 
 describe('Cursor Skills Discovery (Phase 7)', () => {
-  describe('skills with description → AgentSkill', () => {
-    it('should discover AgentSkill from .cursor/skills/*/SKILL.md with description', async () => {
+  describe('skills with description → SimpleAgentSkill', () => {
+    it('should discover SimpleAgentSkill from .cursor/skills/*/SKILL.md with description', async () => {
       const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
       const result = await cursorPlugin.discover(root);
 

@@ -247,7 +247,7 @@ describe('Integration Tests - Fixture Based', () => {
   });
 });
 
-describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
+describe('Integration Tests - Phase 2 FileRule and SimpleAgentSkill', () => {
   beforeEach(async () => {
     await fs.rm(tempDir, { recursive: true, force: true });
     await fs.mkdir(tempDir, { recursive: true });
@@ -297,7 +297,7 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
   });
 
   describe('cursor-agentskill-to-claude', () => {
-    it('should convert Cursor AgentSkill to Claude skill', async () => {
+    it('should convert Cursor SimpleAgentSkill to Claude skill', async () => {
       const fixturePath = path.join(fixturesDir, 'cursor-agentskill-to-claude');
       const fromDir = path.join(fixturePath, 'from-cursor');
       
@@ -311,7 +311,7 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
         root: tempDir,
       });
       
-      // Verify AgentSkill was discovered
+      // Verify SimpleAgentSkill was discovered
       const agentSkills = result.discovered.filter(d => d.type === 'simple-agent-skill');
       expect(agentSkills).toHaveLength(1);
       
@@ -341,11 +341,11 @@ describe('Integration Tests - Phase 2 FileRule and AgentSkill', () => {
         root: tempDir,
       });
       
-      // Verify AgentSkill was discovered
+      // Verify SimpleAgentSkill was discovered
       const agentSkills = result.discovered.filter(d => d.type === 'simple-agent-skill');
       expect(agentSkills).toHaveLength(1);
       
-      // Read the output skill files (Phase 7: AgentSkill → .cursor/skills/)
+      // Read the output skill files (Phase 7: SimpleAgentSkill → .cursor/skills/)
       const skillsDir = path.join(tempDir, '.cursor', 'skills');
       const dirs = await fs.readdir(skillsDir);
       expect(dirs).toHaveLength(1);

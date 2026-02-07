@@ -51,7 +51,7 @@ When Cursor Rule frontmatter contains multiple keys, rules are classified by fir
 
 1. **`alwaysApply: true`** → GlobalPrompt
 2. **`globs:` present** → FileRule
-3. **`description:` present** → AgentSkill
+3. **`description:` present** → SimpleAgentSkill
 4. **No frontmatter** → ManualPrompt (fallback)
 
 ---

@@ -5,7 +5,6 @@ import {
   type GlobalPrompt,
   type ManualPrompt,
   type SimpleAgentSkill,
-  type AgentSkill,
   type AgentSkillIO,
 } from '../src/index.js';
 
@@ -119,29 +118,6 @@ describe('SimpleAgentSkill', () => {
 
     expect(skill.type).toBe(CustomizationType.SimpleAgentSkill);
     expect(skill.description).toBe('Helps with authentication');
-  });
-});
-
-describe('AgentSkill (deprecated alias)', () => {
-  /**
-   * Tests for backward compatibility.
-   * The AgentSkill type alias should work identically to SimpleAgentSkill.
-   */
-
-  it('should work as an alias for SimpleAgentSkill', () => {
-    // AgentSkill is a deprecated alias for SimpleAgentSkill
-    // This verifies the type alias compiles correctly
-    const skill: AgentSkill = {
-      id: 'skill-1',
-      type: CustomizationType.SimpleAgentSkill,
-      sourcePath: '.cursor/rules/test.mdc',
-      content: 'Test content',
-      description: 'Test description',
-      metadata: {},
-    };
-
-    expect(skill.type).toBe(CustomizationType.SimpleAgentSkill);
-    expect(skill.description).toBe('Test description');
   });
 });
 

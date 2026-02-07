@@ -21,7 +21,7 @@ This plugin supports five customization types:
 |------|--------|-------------|
 | **GlobalPrompt** | `alwaysApply: true` frontmatter | Always-active rules |
 | **FileRule** | `globs: **/*.ts` frontmatter | Triggered by file patterns |
-| **AgentSkill** | `description: "..."` frontmatter | Triggered by context matching |
+| **SimpleAgentSkill** | `description: "..."` frontmatter | Triggered by context matching |
 | **AgentIgnore** | `.cursorignore` file | Files/patterns to exclude |
 | **AgentCommand** | `.cursor/commands/*.md` files | Explicitly invoked slash commands |
 
