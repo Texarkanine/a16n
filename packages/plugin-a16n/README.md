@@ -97,22 +97,6 @@ Use this ID with CLI commands:
 - `--from a16n`: Read from `.a16n/` directory
 - `--to a16n`: Write to `.a16n/` directory
 
-## Development Status
-
-**Current Version**: 0.1.0
-
-- ✅ M1: IR Model Versioning & Extensions
-- ✅ M2: Plugin Package Setup
-- ✅ M3: Frontmatter Parsing & Formatting
-- ✅ M4: IR Emission + CLI Integration
-- ✅ M5: IR Discovery
-- ✅ M6: E2E Integration Testing
-- ✅ M7: Documentation & Cross-Format E2E Tests
-
-## License
-
-AGPL-3.0
-
 ## Links
 
 - [Homepage](https://texarkanine.github.io/a16n/plugin-a16n)
