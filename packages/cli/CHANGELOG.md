@@ -1,5 +1,12 @@
 # a16n
 
+## [0.9.0](https://github.com/Texarkanine/a16n/compare/a16n@0.8.0...a16n@0.9.0) (2026-02-07)
+
+
+### Features
+
+* **plugin-a16n:** Phase 9 M5+M6 - IR Discovery + E2E Integration Tests ([#38](https://github.com/Texarkanine/a16n/issues/38)) ([e57431d](https://github.com/Texarkanine/a16n/commit/e57431d3ea12ffa194009786b6e8f7b3e0f2e9cc))
+
 ## [0.8.0](https://github.com/Texarkanine/a16n/compare/a16n@0.7.0...a16n@0.8.0) (2026-02-06)
 
 
