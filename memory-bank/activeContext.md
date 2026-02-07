@@ -2,122 +2,76 @@
 
 ## Current Focus
 
-**Task:** Phase 9 - Milestones 5 & 6 (IR Discovery + E2E Testing)
-**Plugin ID:** `'a16n'`
+**Task:** Phase 9 Milestone 7 — Documentation & Integration Testing
 **Status:** Planning complete, ready for implementation
-**Complexity:** Level 4
-**Branch:** `p9-m5`
+**Complexity:** Level 3
 
 ---
 
-## Session Context
+## What We're Building
 
-### What We're Building
+Final milestone of Phase 9. Three workstreams:
 
-**M5:** `discover()` function — reads `.a16n/` directory structure back into IR items (the inverse of `emit()`).
+1. **Validation E2E tests** — cross-format round-trips (cursor→a16n→claude, claude→a16n→cursor) + version mismatch warning test
+2. **Plugin-a16n docsite pages** — overview + API reference, wired into sidebar/intro, API generation pipeline
+3. **Docsite enhancements** — CHANGELOG pages per module, Google Analytics, site verification meta tag
 
-**M6:** End-to-end integration tests — programmatic round-trip tests via the engine's `convert()` function.
+---
 
-### Completed Milestones
+## Existing Patterns to Follow
 
-**M1: IR Model Versioning & Extensions** ✅ (3 hours, PR #32)
-**M2: Plugin Package Setup** ✅ (15 minutes, PR #35)
-**M3: Frontmatter Parsing & Formatting** ✅ (2.5 hours, PR #36)
-**M4: IR Emission + CLI Integration + Bug Fixes** ✅ (4 hours, PR #37)
+**Plugin docs structure** (see plugin-cursor, plugin-claude):
+- `docs/<plugin>/index.md` — overview with sidebar_position, installation, supported files, programmatic usage, See Also
+- `docs/<plugin>/api.mdx` — VersionPicker wrapper page
 
-### Current State of plugin-a16n
-
-- `src/parse.ts` — `parseIRFile(filepath, filename, relativePath)` → reads and parses a single IR file
-- `src/format.ts` — `formatIRFile(item)` → formats an IR item to markdown with YAML frontmatter
-- `src/emit.ts` — `emit(models, root, options)` → writes IR items to `.a16n/` directory
-- `src/utils.ts` — `extractRelativeDir()`, `slugify()`, `getNameWithoutExtension()`
-- `src/index.ts` — Plugin definition with `discover` as TODO stub
-- `@a16njs/models` — `readAgentSkillIO()`, `writeAgentSkillIO()`, `areVersionsCompatible()`, `createId()`
-
-### Key Patterns to Follow
-
-**Discovery return type:**
-```typescript
-interface DiscoveryResult {
-  items: AgentCustomization[];
-  warnings: Warning[];
+**Sidebar pattern** (see sidebars.js):
+```js
+{
+  type: 'category',
+  label: 'Plugin: <Name>',
+  items: ['<plugin>/index', { type: 'category', label: 'API Reference', ... }],
 }
 ```
 
-**Warning pattern:**
-```typescript
-warnings.push({
-  code: WarningCode.Skipped, // or WarningCode.VersionMismatch
-  message: `Description of issue`,
-  sources: [relativePath],
-});
-```
+**Integration test pattern** (see integration.test.ts):
+- Create source files in tempDir
+- Call `engine.convert({ source, target, root: tempDir })`
+- Assert on discovered count, written count, content
 
-**Existing parseIRFile signature:**
-```typescript
-async function parseIRFile(
-  filepath: string,   // absolute path to file
-  filename: string,   // just the filename (e.g., "basic.md")
-  relativePath: string // path relative to .a16n/ root (e.g., ".a16n/global-prompt")
-): Promise<ParseIRFileResult>
-```
+**API doc generation** (see generate-versioned-api.ts):
+- PACKAGES array with `{ name, entryPoint }` 
+- WORKSPACE_PACKAGE_PATHS for git checkout consistency
+- package.json scripts: `apidoc:current:<pkg>` + pipeline in `apidoc:current`
 
-**readAgentSkillIO return type:**
-```typescript
-{ success: true; skill: ParsedSkill & { files: Record<string, string> } }
-| { success: false; error: string }
-```
-
-**createId pattern:**
-```typescript
-createId(CustomizationType.GlobalPrompt, sourcePath) // → "global-prompt:sourcePath"
-```
+**Stage script** (see package.json):
+- `rm -rf .generated && mkdir -p .generated && cp -r docs/* .generated/`
+- Extend to also generate changelog pages from package CHANGELOGs
 
 ---
 
-## Implementation Order
+## Key References
 
-### TDD Process (Strict)
-
-1. **Stub** `discover.ts` + `discover.test.ts` (empty implementations)
-2. **Write** test implementations
-3. **Run** tests → should all fail (red)
-4. **Implement** `discover()` 
-5. **Run** tests → should all pass (green)
-6. **Wire** into `index.ts`
-7. **Integration** tests (M6)
-8. **Full** verification
-
----
-
-## Files to Reference
-
-| Pattern | File |
-|---------|------|
-| Parse implementation | `packages/plugin-a16n/src/parse.ts` |
-| Emit implementation (inverse) | `packages/plugin-a16n/src/emit.ts` |
-| Utils (extractRelativeDir) | `packages/plugin-a16n/src/utils.ts` |
-| Plugin entry | `packages/plugin-a16n/src/index.ts` |
-| Cursor discover (reference) | `packages/plugin-cursor/src/discover.ts` |
-| Claude discover (reference) | `packages/plugin-claude/src/discover.ts` |
-| AgentSkillsIO shared utils | `packages/models/src/agentskills-io.ts` |
-| Version utilities | `packages/models/src/version.ts` |
-| Warning codes | `packages/models/src/warnings.ts` |
-| Type definitions | `packages/models/src/types.ts` |
-| Type helpers | `packages/models/src/helpers.ts` |
-| Emit tests (pattern) | `packages/plugin-a16n/test/emit.test.ts` |
-| Integration tests (pattern) | `packages/cli/test/integration/integration.test.ts` |
+| What | Where |
+|------|-------|
+| Plugin-a16n source | `packages/plugin-a16n/src/` |
+| Plugin-a16n README | `packages/plugin-a16n/README.md` |
+| Integration tests | `packages/cli/test/integration/integration.test.ts` |
+| Docusaurus config | `packages/docs/docusaurus.config.js` |
+| Sidebar config | `packages/docs/sidebars.js` |
+| Docs package.json | `packages/docs/package.json` |
+| API generation script | `packages/docs/scripts/generate-versioned-api.ts` |
+| Example plugin docs | `packages/docs/docs/plugin-cursor/index.md` |
+| Example API page | `packages/docs/docs/plugin-cursor/api.mdx` |
+| Site verification meta | `E9y_GjlmgYsMt4Bjilx2Y201XFZFLyEMn5hQgCXS_z4` |
 
 ---
 
 ## Immediate Next Steps
 
-1. **Create fixture directories** for discover tests
-2. **Stub** `discover.ts` with function signature and empty implementation
-3. **Stub** `discover.test.ts` with all test case outlines
-4. **Implement** test cases
-5. **Implement** `discover()` function
-6. **Wire** into `index.ts`
-7. **Run** plugin tests
-8. **Create** M6 integration fixtures and tests
-9. **Run** full monorepo verification
+1. Write E2E test stubs (A1–A3) — tests first per TDD
+2. Implement test bodies
+3. Run tests — should pass immediately (functionality exists)
+4. Create plugin-a16n doc pages
+5. Wire into sidebar + intro + API pipeline
+6. CHANGELOG integration + analytics + housekeeping
+7. Full verification
