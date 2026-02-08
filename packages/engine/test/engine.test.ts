@@ -190,6 +190,106 @@ describe('A16nEngine', () => {
       ).rejects.toThrow('Unknown target: unknown');
     });
 
+    it('should use sourceRoot for discover when provided (E1)', async () => {
+      // sourceRoot overrides root for discover
+      const sourceDir = path.join(tempDir, 'source');
+      const targetDir = path.join(tempDir, 'target');
+      await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
+      await fs.mkdir(targetDir, { recursive: true });
+      await fs.writeFile(
+        path.join(sourceDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nSplit root E1'
+      );
+
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir, // This should NOT be used for discover
+        sourceRoot: sourceDir,
+        targetRoot: targetDir,
+      });
+
+      expect(result.discovered).toHaveLength(1);
+      expect(result.discovered[0]?.content).toContain('Split root E1');
+      // Output should be in targetDir, not tempDir
+      expect(result.written[0]?.path).toContain(targetDir);
+    });
+
+    it('should use targetRoot for emit when provided (E2)', async () => {
+      // targetRoot overrides root for emit
+      const targetDir = path.join(tempDir, 'output');
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.mkdir(targetDir, { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nSplit root E2'
+      );
+
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+        targetRoot: targetDir,
+      });
+
+      expect(result.discovered).toHaveLength(1);
+      // Output should be in targetDir
+      expect(result.written[0]?.path).toContain(targetDir);
+      // Verify file actually exists in target
+      const claudeRulesDir = path.join(targetDir, '.claude', 'rules');
+      const files = await fs.readdir(claudeRulesDir);
+      expect(files.length).toBeGreaterThan(0);
+    });
+
+    it('should use both split roots correctly (E3)', async () => {
+      // Both sourceRoot and targetRoot override root
+      const sourceDir = path.join(tempDir, 'source');
+      const targetDir = path.join(tempDir, 'target');
+      await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
+      await fs.mkdir(targetDir, { recursive: true });
+      await fs.writeFile(
+        path.join(sourceDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nSplit root E3'
+      );
+
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: '/should/not/be/used',
+        sourceRoot: sourceDir,
+        targetRoot: targetDir,
+      });
+
+      expect(result.discovered).toHaveLength(1);
+      expect(result.written[0]?.path).toContain(targetDir);
+      // Verify that tempDir root does NOT have the output
+      await expect(
+        fs.access(path.join(tempDir, '.claude', 'rules'))
+      ).rejects.toThrow();
+    });
+
+    it('should maintain backward compat with only root (E4)', async () => {
+      // When no split roots, root is used for both discover and emit
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nBackward compat E4'
+      );
+
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+
+      expect(result.discovered).toHaveLength(1);
+      expect(result.written[0]?.path).toContain(tempDir);
+    });
+
     it('should collect warnings from both discovery and emission', async () => {
       // Create multiple cursor rules (each emits to separate file, no merge warning)
       await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
@@ -216,6 +316,113 @@ describe('A16nEngine', () => {
       expect(result.warnings.some((w) => w.code === WarningCode.Merged)).toBe(
         false
       );
+    });
+
+    it('should rewrite path refs when rewritePathRefs is true (EP1)', async () => {
+      // Create two cursor rules where a.mdc references b.mdc
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/a.mdc'),
+        '---\nalwaysApply: true\n---\n\nSee .cursor/rules/b.mdc for details'
+      );
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/b.mdc'),
+        '---\nalwaysApply: true\n---\n\nRule B content'
+      );
+
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+        rewritePathRefs: true,
+      });
+
+      expect(result.discovered).toHaveLength(2);
+      expect(result.written).toHaveLength(2);
+
+      // Read the output file for rule a — should reference .claude/rules/b.md
+      const aFile = result.written.find(w => w.path.endsWith('a.md'));
+      expect(aFile).toBeDefined();
+      const aContent = await fs.readFile(aFile!.path, 'utf-8');
+      expect(aContent).toContain('.claude/rules/b.md');
+      expect(aContent).not.toContain('.cursor/rules/b.mdc');
+    });
+
+    it('should include orphan warnings when rewritePathRefs is true (EP2)', async () => {
+      // Create a cursor rule that references a nonexistent cursor rule
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/a.mdc'),
+        '---\nalwaysApply: true\n---\n\nSee .cursor/rules/nonexistent.mdc for help'
+      );
+
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+        rewritePathRefs: true,
+      });
+
+      // Should have an OrphanPathRef warning
+      const orphanWarnings = result.warnings.filter(w => w.code === WarningCode.OrphanPathRef);
+      expect(orphanWarnings.length).toBeGreaterThanOrEqual(1);
+      expect(orphanWarnings[0]!.message).toContain('.cursor/rules/nonexistent.mdc');
+    });
+
+    it('should NOT rewrite when rewritePathRefs is false/default (EP3)', async () => {
+      // Same setup as EP1 but without rewritePathRefs
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/a.mdc'),
+        '---\nalwaysApply: true\n---\n\nSee .cursor/rules/b.mdc for details'
+      );
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/b.mdc'),
+        '---\nalwaysApply: true\n---\n\nRule B content'
+      );
+
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+        // rewritePathRefs: false by default
+      });
+
+      // Content should still have original cursor paths
+      const aFile = result.written.find(w => w.path.endsWith('a.md'));
+      expect(aFile).toBeDefined();
+      const aContent = await fs.readFile(aFile!.path, 'utf-8');
+      expect(aContent).toContain('.cursor/rules/b.mdc');
+      expect(aContent).not.toContain('.claude/rules/b.md');
+    });
+
+    it('should report rewrites in dry-run without writing (EP4)', async () => {
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/a.mdc'),
+        '---\nalwaysApply: true\n---\n\nSee .cursor/rules/b.mdc for details'
+      );
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/b.mdc'),
+        '---\nalwaysApply: true\n---\n\nRule B content'
+      );
+
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+        dryRun: true,
+        rewritePathRefs: true,
+      });
+
+      // Should still compute what would be written with rewritten content
+      expect(result.written).toHaveLength(2);
+      // But no files should actually exist
+      await expect(fs.access(path.join(tempDir, '.claude', 'rules'))).rejects.toThrow();
     });
   });
 });

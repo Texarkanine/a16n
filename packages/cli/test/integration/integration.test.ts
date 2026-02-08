@@ -716,6 +716,219 @@ Write unit tests first.
 
 });
 
+describe('Integration Tests - Split Directories (--from-dir / --to-dir)', () => {
+  beforeEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it('I1: Convert with sourceRoot reads from specified source, writes to default root', async () => {
+    const sourceDir = path.join(tempDir, 'source');
+    await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
+    await fs.writeFile(
+      path.join(sourceDir, '.cursor/rules/coding.mdc'),
+      '---\nalwaysApply: true\n---\n\nAlways use TypeScript.'
+    );
+
+    const result = await engine.convert({
+      source: 'cursor',
+      target: 'claude',
+      root: tempDir,
+      sourceRoot: sourceDir,
+    });
+
+    expect(result.discovered).toHaveLength(1);
+    expect(result.written).toHaveLength(1);
+    // Output should be in tempDir (the default root), not sourceDir
+    expect(result.written[0]!.path).toContain(tempDir);
+    expect(result.written[0]!.path).not.toContain(path.join(tempDir, 'source'));
+    // Verify file was created
+    const rulesDir = path.join(tempDir, '.claude', 'rules');
+    const files = await fs.readdir(rulesDir);
+    expect(files.length).toBeGreaterThan(0);
+  });
+
+  it('I2: Convert with targetRoot reads from default root, writes to specified target', async () => {
+    const targetDir = path.join(tempDir, 'target');
+    await fs.mkdir(targetDir, { recursive: true });
+    await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+    await fs.writeFile(
+      path.join(tempDir, '.cursor/rules/coding.mdc'),
+      '---\nalwaysApply: true\n---\n\nAlways use TypeScript.'
+    );
+
+    const result = await engine.convert({
+      source: 'cursor',
+      target: 'claude',
+      root: tempDir,
+      targetRoot: targetDir,
+    });
+
+    expect(result.discovered).toHaveLength(1);
+    expect(result.written).toHaveLength(1);
+    // Output should be in targetDir
+    expect(result.written[0]!.path).toContain(targetDir);
+    // Verify file content
+    const rulesDir = path.join(targetDir, '.claude', 'rules');
+    const files = await fs.readdir(rulesDir);
+    expect(files.length).toBeGreaterThan(0);
+    const content = await fs.readFile(path.join(rulesDir, files[0]!), 'utf-8');
+    expect(content).toContain('Always use TypeScript');
+  });
+
+  it('I3: Convert with both sourceRoot and targetRoot', async () => {
+    const sourceDir = path.join(tempDir, 'src');
+    const targetDir = path.join(tempDir, 'out');
+    await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
+    await fs.mkdir(targetDir, { recursive: true });
+    await fs.writeFile(
+      path.join(sourceDir, '.cursor/rules/style.mdc'),
+      '---\nalwaysApply: true\n---\n\nUse 2-space indentation.'
+    );
+
+    const result = await engine.convert({
+      source: 'cursor',
+      target: 'claude',
+      root: '/unused',
+      sourceRoot: sourceDir,
+      targetRoot: targetDir,
+    });
+
+    expect(result.discovered).toHaveLength(1);
+    expect(result.written).toHaveLength(1);
+    expect(result.written[0]!.path).toContain(targetDir);
+    // tempDir root should NOT have output
+    await expect(fs.access(path.join(tempDir, '.claude'))).rejects.toThrow();
+    // Verify content
+    const rulesDir = path.join(targetDir, '.claude', 'rules');
+    const content = await fs.readFile(path.join(rulesDir, 'style.md'), 'utf-8');
+    expect(content).toContain('Use 2-space indentation');
+  });
+});
+
+describe('Integration Tests - Path Reference Rewriting (--rewrite-path-refs)', () => {
+  beforeEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it('CI1: Cursor→Claude with rewritePathRefs rewrites .cursor/rules/... → .claude/rules/...', async () => {
+    // Create cursor rules that reference each other
+    await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+    await fs.writeFile(
+      path.join(tempDir, '.cursor/rules/main.mdc'),
+      '---\nalwaysApply: true\n---\n\nLoad: .cursor/rules/auth.mdc\nLoad: .cursor/rules/db.mdc'
+    );
+    await fs.writeFile(
+      path.join(tempDir, '.cursor/rules/auth.mdc'),
+      '---\nalwaysApply: true\n---\n\nUse JWT for authentication.\nSee also: .cursor/rules/main.mdc'
+    );
+    await fs.writeFile(
+      path.join(tempDir, '.cursor/rules/db.mdc'),
+      '---\nalwaysApply: true\n---\n\nUse PostgreSQL.'
+    );
+
+    const result = await engine.convert({
+      source: 'cursor',
+      target: 'claude',
+      root: tempDir,
+      rewritePathRefs: true,
+    });
+
+    expect(result.discovered).toHaveLength(3);
+    expect(result.written).toHaveLength(3);
+
+    // Read main.md — should have rewritten references
+    const mainContent = await fs.readFile(
+      path.join(tempDir, '.claude/rules/main.md'),
+      'utf-8'
+    );
+    expect(mainContent).toContain('.claude/rules/auth.md');
+    expect(mainContent).toContain('.claude/rules/db.md');
+    expect(mainContent).not.toContain('.cursor/rules/auth.mdc');
+    expect(mainContent).not.toContain('.cursor/rules/db.mdc');
+
+    // Read auth.md — should have back-reference rewritten
+    const authContent = await fs.readFile(
+      path.join(tempDir, '.claude/rules/auth.md'),
+      'utf-8'
+    );
+    expect(authContent).toContain('.claude/rules/main.md');
+    expect(authContent).not.toContain('.cursor/rules/main.mdc');
+  });
+
+  it('CI2: Cursor→Claude with rewritePathRefs warns about orphan refs', async () => {
+    // Create a cursor rule that references a nonexistent rule
+    await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+    await fs.writeFile(
+      path.join(tempDir, '.cursor/rules/main.mdc'),
+      '---\nalwaysApply: true\n---\n\nSee .cursor/rules/missing-rule.mdc'
+    );
+
+    const result = await engine.convert({
+      source: 'cursor',
+      target: 'claude',
+      root: tempDir,
+      rewritePathRefs: true,
+    });
+
+    // Should have an OrphanPathRef warning
+    const orphanWarnings = result.warnings.filter(w => w.code === WarningCode.OrphanPathRef);
+    expect(orphanWarnings.length).toBeGreaterThanOrEqual(1);
+    expect(orphanWarnings[0]!.message).toContain('.cursor/rules/missing-rule.mdc');
+  });
+
+  it('CI3: Combined --from-dir + --to-dir + --rewrite-path-refs works end-to-end', async () => {
+    const sourceDir = path.join(tempDir, 'source');
+    const targetDir = path.join(tempDir, 'target');
+    await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
+    await fs.mkdir(targetDir, { recursive: true });
+
+    // Create rules with cross-references
+    await fs.writeFile(
+      path.join(sourceDir, '.cursor/rules/a.mdc'),
+      '---\nalwaysApply: true\n---\n\nReference: .cursor/rules/b.mdc'
+    );
+    await fs.writeFile(
+      path.join(sourceDir, '.cursor/rules/b.mdc'),
+      '---\nalwaysApply: true\n---\n\nRule B content'
+    );
+
+    const result = await engine.convert({
+      source: 'cursor',
+      target: 'claude',
+      root: '/unused',
+      sourceRoot: sourceDir,
+      targetRoot: targetDir,
+      rewritePathRefs: true,
+    });
+
+    expect(result.discovered).toHaveLength(2);
+    expect(result.written).toHaveLength(2);
+
+    // Output should be in targetDir
+    const aContent = await fs.readFile(
+      path.join(targetDir, '.claude/rules/a.md'),
+      'utf-8'
+    );
+    expect(aContent).toContain('.claude/rules/b.md');
+    expect(aContent).not.toContain('.cursor/rules/b.mdc');
+
+    // Source should be untouched (no --delete-source)
+    await expect(
+      fs.access(path.join(sourceDir, '.cursor/rules/a.mdc'))
+    ).resolves.not.toThrow();
+  });
+});
+
 describe('Integration Tests - Phase 9 a16n IR Plugin', () => {
   beforeEach(async () => {
     await fs.rm(tempDir, { recursive: true, force: true });

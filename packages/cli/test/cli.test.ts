@@ -460,6 +460,147 @@ describe('CLI', () => {
     });
   });
 
+  describe('--from-dir and --to-dir flags', () => {
+    it('C1: --from-dir flag is parsed and reads from specified source', async () => {
+      // Create source in a different directory from positional arg
+      const sourceDir = path.join(tempDir, 'source');
+      const outputDir = path.join(tempDir, 'output');
+      await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
+      await fs.mkdir(outputDir, { recursive: true });
+      await fs.writeFile(
+        path.join(sourceDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nFromDir test'
+      );
+
+      const { stdout, exitCode } = runCli(`convert --from cursor --to claude --from-dir ${sourceDir}`, outputDir);
+
+      expect(exitCode).toBe(0);
+      expect(stdout).toContain('Discovered: 1');
+    });
+
+    it('C2: --to-dir flag writes to specified target', async () => {
+      const targetDir = path.join(tempDir, 'target');
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.mkdir(targetDir, { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nToDir test'
+      );
+
+      const { stdout, exitCode } = runCli(`convert --from cursor --to claude --to-dir ${targetDir}`);
+
+      expect(exitCode).toBe(0);
+      // Output should be in targetDir
+      const claudeRulesDir = path.join(targetDir, '.claude', 'rules');
+      const files = await fs.readdir(claudeRulesDir);
+      expect(files.length).toBeGreaterThan(0);
+    });
+
+    it('C3: both flags together work correctly', async () => {
+      const sourceDir = path.join(tempDir, 'source');
+      const targetDir = path.join(tempDir, 'target');
+      await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
+      await fs.mkdir(targetDir, { recursive: true });
+      await fs.writeFile(
+        path.join(sourceDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nBoth flags test'
+      );
+
+      const { stdout, exitCode } = runCli(`convert --from cursor --to claude --from-dir ${sourceDir} --to-dir ${targetDir}`);
+
+      expect(exitCode).toBe(0);
+      expect(stdout).toContain('Discovered: 1');
+      // Output should be in targetDir, NOT tempDir
+      const claudeRulesDir = path.join(targetDir, '.claude', 'rules');
+      const files = await fs.readdir(claudeRulesDir);
+      expect(files.length).toBeGreaterThan(0);
+      // tempDir should NOT have claude output
+      await expect(fs.access(path.join(tempDir, '.claude', 'rules'))).rejects.toThrow();
+    });
+
+    it('C4: --from-dir with nonexistent directory produces error', () => {
+      const { stderr, exitCode } = runCli('convert --from cursor --to claude --from-dir /nonexistent/source');
+
+      expect(exitCode).toBe(1);
+      expect(stderr).toContain('does not exist');
+    });
+
+    it('C5: --to-dir with nonexistent directory produces error', () => {
+      const { stderr, exitCode } = runCli('convert --from cursor --to claude --to-dir /nonexistent/target');
+
+      expect(exitCode).toBe(1);
+      expect(stderr).toContain('does not exist');
+    });
+
+    it('C6: --from-dir on discover command works', async () => {
+      const sourceDir = path.join(tempDir, 'source');
+      await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(sourceDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nDiscover fromDir test'
+      );
+
+      const { stdout, exitCode } = runCli(`discover --from cursor --from-dir ${sourceDir}`);
+
+      expect(exitCode).toBe(0);
+      expect(stdout).toContain('global-prompt');
+    });
+
+    it('C7: --to-dir on discover command produces error', () => {
+      const { stderr, exitCode } = runCli(`discover --from cursor --to-dir ${tempDir}`);
+
+      expect(exitCode).toBe(1);
+      expect(stderr).toContain('--to-dir');
+    });
+
+    it('C8: --delete-source uses sourceRoot, not targetRoot', async () => {
+      const sourceDir = path.join(tempDir, 'source');
+      const targetDir = path.join(tempDir, 'target');
+      await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
+      await fs.mkdir(targetDir, { recursive: true });
+      const sourcePath = path.join(sourceDir, '.cursor/rules/test.mdc');
+      await fs.writeFile(
+        sourcePath,
+        '---\nalwaysApply: true\n---\n\nDelete source test'
+      );
+
+      const { exitCode } = runCli(`convert --from cursor --to claude --from-dir ${sourceDir} --to-dir ${targetDir} --delete-source`);
+
+      expect(exitCode).toBe(0);
+      // Source should be deleted from sourceDir
+      await expect(fs.access(sourcePath)).rejects.toThrow();
+      // Output should exist in targetDir
+      const claudeRulesDir = path.join(targetDir, '.claude', 'rules');
+      const files = await fs.readdir(claudeRulesDir);
+      expect(files.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('--rewrite-path-refs flag', () => {
+    it('should rewrite path references in converted files', async () => {
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/a.mdc'),
+        '---\nalwaysApply: true\n---\n\nSee .cursor/rules/b.mdc for details'
+      );
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/b.mdc'),
+        '---\nalwaysApply: true\n---\n\nRule B'
+      );
+
+      const { stdout, exitCode } = runCli('convert --from cursor --to claude --rewrite-path-refs');
+
+      expect(exitCode).toBe(0);
+      // Read the output and verify path was rewritten
+      const aContent = await fs.readFile(
+        path.join(tempDir, '.claude/rules/a.md'),
+        'utf-8'
+      );
+      expect(aContent).toContain('.claude/rules/b.md');
+      expect(aContent).not.toContain('.cursor/rules/b.mdc');
+    });
+  });
+
   describe('Phase 6: Dry-run output wording', () => {
     it('should show "Would write:" in dry-run mode', async () => {
       // AC1: Dry-run shows "Would write:" prefix

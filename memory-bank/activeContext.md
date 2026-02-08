@@ -6,7 +6,7 @@ Level 3 Feature: Split Read/Write Directories & Path Reference Rewriting
 
 ## Phase
 
-PLAN mode complete → Ready for BUILD mode
+BUILD mode complete → Ready for REFLECT mode
 
 ## Key Decisions Made
 
@@ -16,15 +16,24 @@ PLAN mode complete → Ready for BUILD mode
 4. **New module**: `packages/engine/src/path-rewriter.ts` for all rewriting logic
 5. **No plugin changes**: Plugins already accept `root` parameter; split is handled by engine
 6. **Clone items before rewriting**: Prevent mutation side effects
+7. **Well-known plugin patterns**: `PLUGIN_PATH_PATTERNS` map in engine for orphan detection
 
-## Affected Packages
+## Implementation Summary
 
-- `@a16njs/models` — New warning code
-- `@a16njs/engine` — Split roots, path rewriter module
-- `a16n` CLI — New flags, directory resolution logic
+### Files Modified
+- `packages/models/src/warnings.ts` — Added `OrphanPathRef` warning code
+- `packages/engine/src/index.ts` — Added `sourceRoot`, `targetRoot`, `rewritePathRefs` to `ConversionOptions`; two-pass emit logic; `PLUGIN_PATH_PATTERNS`
+- `packages/engine/src/path-rewriter.ts` — **NEW** — `buildMapping()`, `rewriteContent()`, `detectOrphans()`
+- `packages/cli/src/index.ts` — Added `--from-dir`, `--to-dir`, `--rewrite-path-refs` flags; directory validation; split root resolution
+- `packages/cli/src/output.ts` — Added `OrphanPathRef` icon and hint
 
-## Latest Changes
+### Files Added (Tests)
+- `packages/engine/test/path-rewriter.test.ts` — **NEW** — 13 unit tests (P1-P13)
+- `packages/engine/test/engine.test.ts` — 4 new tests (EP1-EP4)
+- `packages/cli/test/cli.test.ts` — 10 new tests (C1-C8, rewrite-path-refs)
+- `packages/cli/test/integration/integration.test.ts` — 6 new integration tests (I1-I3, CI1-CI3)
 
-- Comprehensive plan created in `memory-bank/tasks.md`
-- All test behaviors identified (13 unit tests, 4 engine integration, 12 CLI/integration tests)
-- No creative phases remaining — design is complete
+### Test Results
+- **All 126 CLI tests pass** (53 cli.test.ts + 32 integration + 41 git-ignore)
+- **All 33 engine tests pass** (20 engine.test.ts + 13 path-rewriter.test.ts)
+- **Full monorepo: 15/15 turbo tasks successful**
