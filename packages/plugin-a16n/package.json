@@ -1,6 +1,6 @@
 {
   "name": "@a16njs/plugin-a16n",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "a16n Intermediate Representation (IR) plugin for a16n",
   "license": "AGPL-3.0",
   "author": "Texarkanine",

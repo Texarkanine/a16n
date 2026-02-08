@@ -1,5 +1,12 @@
 # @a16njs/models
 
+## [0.8.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.7.0...@a16njs/models@0.8.0) (2026-02-07)
+
+
+### Features
+
+* Phase 9 Milestone 7 - Documentation & Polish ([#40](https://github.com/Texarkanine/a16n/issues/40)) ([8779631](https://github.com/Texarkanine/a16n/commit/87796312bb4d9965d80b1103a6c2444adc6f3f25))
+
 ## [0.7.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.6.0...@a16njs/models@0.7.0) (2026-02-06)
 
 
