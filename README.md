@@ -17,6 +17,9 @@ npx a16n convert --from claude --to cursor
 
 # Preview changes (dry run)
 npx a16n convert --from cursor --to claude --dry-run
+
+# Read from one directory, write to another
+npx a16n convert --from cursor --to claude --from-dir ./proj-a --to-dir ./proj-b
 ```
 
 ## Installation

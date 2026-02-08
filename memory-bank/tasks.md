@@ -293,9 +293,9 @@ No additional creative phases needed — the design decisions are well-constrain
 - [x] ID: cr-makeitem-simplify - Simplify makeItem helper redundant fields (path-rewriter.test.ts:9-16) - FIXED in 8e441e9
 
 ### Actionable Items (Round 2)
-- [x] ID: cr-notdir-msg - Error message misleading when path exists but is not a directory (cli/src/index.ts:106-117, 120-131, 633-647) - FIXED
-- [x] ID: cr-discover-todir - --to-dir check on discover unreachable; add hidden option (cli/src/index.ts:618-626) - FIXED
-- [x] ID: cr-empty-guard - Guard detectOrphans against empty prefixes/extensions arrays (path-rewriter.ts:157-193) - FIXED
+- [x] ID: cr-notdir-msg - Error message misleading when path exists but is not a directory (cli/src/index.ts:106-117, 120-131, 633-647) - FIXED in 43668a1
+- [x] ID: cr-discover-todir - --to-dir check on discover unreachable; add hidden option (cli/src/index.ts:618-626) - FIXED in 43668a1
+- [x] ID: cr-empty-guard - Guard detectOrphans against empty prefixes/extensions arrays (path-rewriter.ts:157-193) - FIXED in 43668a1
 
 ### Requires Human Decision
 _(none)_

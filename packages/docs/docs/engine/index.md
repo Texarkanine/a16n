@@ -37,6 +37,39 @@ console.log(`Warnings: ${result.warnings.length}`);
 
 ---
 
+## Handy Features
+
+### Split Directories
+
+Use `sourceRoot` and `targetRoot` to read from one directory and write to another:
+
+```typescript
+const result = await engine.convert({
+  source: 'cursor',
+  target: 'claude',
+  root: '.', // fallback (used if sourceRoot/targetRoot not set)
+  sourceRoot: './project-source',
+  targetRoot: './project-output',
+});
+```
+
+### Path Reference Rewriting
+
+Enable `rewritePathRefs` to automatically update file path references in content during conversion:
+
+```typescript
+const result = await engine.convert({
+  source: 'cursor',
+  target: 'claude',
+  root: './my-project',
+  rewritePathRefs: true, // rewrites .cursor/rules/foo.mdc → .claude/rules/foo.md in content
+});
+```
+
+This uses a two-pass emit: first a dry-run to learn target paths, then a real emit with rewritten content.
+
+---
+
 ## Architecture
 
 The engine uses a plugin-based architecture and a sequential pipeline.
@@ -49,14 +82,37 @@ sequenceDiagram
     participant Target as Target Plugin
 
     User->>Engine: convert({ source, target, root })
-    Engine->>Source: discover(root)
+    Engine->>Source: discover(sourceRoot ?? root)
     Source->>Source: Scan and parse config files
     Source->>Source: Normalize to IR (AgentCustomization[])
     Source-->>Engine: AgentCustomization[]
-    Engine->>Target: emit(AgentCustomization[], root)
+    Engine->>Target: emit(AgentCustomization[], targetRoot ?? root)
     Note over Target: Write Files
     Target-->>Engine: EmitResult (written files, warnings)
     Engine-->>User: Conversion result
+```
+
+When `rewritePathRefs` is enabled, the engine uses a two-pass approach:
+
+```mermaid
+sequenceDiagram
+    participant Engine as A16nEngine
+    participant Source as Source Plugin
+    participant Rewriter as Path Rewriter
+    participant Target as Target Plugin
+
+    Engine->>Source: discover(sourceRoot)
+    Source-->>Engine: items[]
+    Engine->>Target: emit(items, targetRoot, dryRun=true)
+    Target-->>Engine: dryRunResult (target paths)
+    Engine->>Rewriter: buildMapping(items, dryRunResult)
+    Rewriter-->>Engine: source→target path map
+    Engine->>Rewriter: rewriteContent(items, mapping)
+    Rewriter-->>Engine: rewritten items[]
+    Engine->>Rewriter: detectOrphans(items, mapping)
+    Rewriter-->>Engine: orphan warnings[]
+    Engine->>Target: emit(rewrittenItems, targetRoot)
+    Target-->>Engine: final result
 ```
 
 ---
@@ -72,6 +128,18 @@ Key classes and methods:
   - `discover(pluginId, root)` - Find customizations without converting
   - `listPlugins()` - List registered plugins
   - `registerPlugin(plugin)` - Add a plugin at runtime
+
+### ConversionOptions
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `source` | `string` | Yes | Source plugin ID (e.g., `'cursor'`) |
+| `target` | `string` | Yes | Target plugin ID (e.g., `'claude'`) |
+| `root` | `string` | Yes | Project root directory (default for both read and write) |
+| `dryRun` | `boolean` | No | If true, discover without writing |
+| `sourceRoot` | `string` | No | Override root for discovery (reading) |
+| `targetRoot` | `string` | No | Override root for emission (writing) |
+| `rewritePathRefs` | `boolean` | No | Rewrite file path references in content to target-format paths |
 
 ---
 

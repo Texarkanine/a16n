@@ -42,6 +42,14 @@
 - Status: **Complete**
 - CLI help text included inline with Commander option declarations
 - `convert --help` and `discover --help` show all new flags
+- Documentation site updates:
+  - **CLI Overview** (`packages/docs/docs/cli/index.md`): Added examples, "Split Directories" section, "Path Reference Rewriting" section
+  - **Engine Overview** (`packages/docs/docs/engine/index.md`): Added split directories + path rewriting Quick Start examples, two-pass architecture diagram, `ConversionOptions` table
+  - **Models Overview** (`packages/docs/docs/models/index.md`): Added `version-mismatch` and `orphan-path-ref` to warning code table
+  - **Understanding Conversions** (`packages/docs/docs/understanding-conversions/index.md`): Added `boundary-crossing`, `git-status-conflict`, `version-mismatch`, `orphan-path-ref` to warning code table; added "Path Reference Rewriting" section
+  - **FAQ** (`packages/docs/docs/faq.md`): Added entries for split directories and path rewriting
+  - **README** (`README.md`): Added `--from-dir`/`--to-dir` and `--rewrite-path-refs` examples to Quick Start
+  - **ROADMAP** (`planning/ROADMAP.md`): Added "Split Directories & Path Rewriting" to Completed Phases table and Decision Log
 
 ## Current Blockers
 None

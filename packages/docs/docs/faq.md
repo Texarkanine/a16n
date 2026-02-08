@@ -55,6 +55,27 @@ See [Understanding Conversions](/understanding-conversions) for details.
 
 a16n skips unsupported features and warns you. Your conversion still completes with everything that can be translated.
 
+### Can I read and write from different directories?
+
+Yes. Use `--from-dir` and `--to-dir` to separate the source and target directories:
+
+```bash
+# Read Cursor rules from ./project-a, write Claude config to ./project-b
+a16n convert --from cursor --to claude --from-dir ./project-a --to-dir ./project-b
+```
+
+Either flag can be used independently - the other defaults to the positional `[path]` argument.
+
+### My converted files reference old paths. How do I fix that?
+
+Use `--rewrite-path-refs` to automatically update file path references in content during conversion:
+
+```bash
+a16n convert --from cursor --to claude --rewrite-path-refs .
+```
+
+This rewrites references like `.cursor/rules/auth.mdc` to their target equivalents (e.g., `.claude/rules/auth.md`). If any references point to source files that aren't part of the conversion, you'll see `orphan-path-ref` warnings.
+
 ## Troubleshooting
 
 ### Why are some files not converted?
