@@ -210,7 +210,7 @@ describe('CLI', () => {
       const { stderr, exitCode } = runCli('convert --from cursor --to claude /nonexistent/path');
 
       expect(exitCode).toBe(1);
-      expect(stderr).toContain('does not exist');
+      expect(stderr).toContain('is not a valid directory');
       expect(stderr).toContain('Make sure');
     });
 
@@ -218,7 +218,7 @@ describe('CLI', () => {
       const { stderr, exitCode } = runCli('discover --from cursor /nonexistent/path');
 
       expect(exitCode).toBe(1);
-      expect(stderr).toContain('does not exist');
+      expect(stderr).toContain('is not a valid directory');
     });
   });
 
@@ -522,14 +522,14 @@ describe('CLI', () => {
       const { stderr, exitCode } = runCli('convert --from cursor --to claude --from-dir /nonexistent/source');
 
       expect(exitCode).toBe(1);
-      expect(stderr).toContain('does not exist');
+      expect(stderr).toContain('is not a valid directory');
     });
 
     it('C5: --to-dir with nonexistent directory produces error', () => {
       const { stderr, exitCode } = runCli('convert --from cursor --to claude --to-dir /nonexistent/target');
 
       expect(exitCode).toBe(1);
-      expect(stderr).toContain('does not exist');
+      expect(stderr).toContain('is not a valid directory');
     });
 
     it('C6: --from-dir on discover command works', async () => {

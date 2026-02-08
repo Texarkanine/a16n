@@ -160,6 +160,10 @@ export function detectOrphans(
   sourcePluginPrefixes: string[],
   sourceExtensions: string[],
 ): Warning[] {
+  if (sourcePluginPrefixes.length === 0 || sourceExtensions.length === 0) {
+    return [];
+  }
+
   const warnings: Warning[] = [];
   const mappedPaths = new Set(mapping.keys());
   const seen = new Set<string>();

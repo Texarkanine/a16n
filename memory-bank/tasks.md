@@ -279,22 +279,27 @@ No additional creative phases needed — the design decisions are well-constrain
 
 ---
 
-## Current Task: CodeRabbit PR #42 Fixes
+## Current Task: CodeRabbit PR #42 Fixes (Round 2)
 
 **Status:** In Progress
 **PR URL:** https://github.com/Texarkanine/a16n/pull/42
 **Rate Limit Until:**
-**Last Updated:** 2026-02-08T19:00:00Z
+**Last Updated:** 2026-02-08T20:05:00Z
 
-### Actionable Items
-- [ ] ID: cr-emit-warnings - Merge real emission warnings instead of dropping them (index.ts:214-227)
-- [ ] ID: cr-chain-comment - Add comment about chained replacement safety (path-rewriter.ts:100-123)
-- [ ] ID: cr-orphan-dedup - Deduplicate orphan warnings for repeated references (path-rewriter.ts:172-184)
-- [ ] ID: cr-makeitem-simplify - Simplify makeItem helper redundant fields (path-rewriter.test.ts:9-16)
+### Actionable Items (Round 1 - all fixed)
+- [x] ID: cr-emit-warnings - Merge real emission warnings instead of dropping them (index.ts:214-227) - FIXED in 8e441e9
+- [x] ID: cr-chain-comment - Add comment about chained replacement safety (path-rewriter.ts:100-123) - FIXED in 8e441e9
+- [x] ID: cr-orphan-dedup - Deduplicate orphan warnings for repeated references (path-rewriter.ts:172-184) - FIXED in 8e441e9
+- [x] ID: cr-makeitem-simplify - Simplify makeItem helper redundant fields (path-rewriter.test.ts:9-16) - FIXED in 8e441e9
+
+### Actionable Items (Round 2)
+- [x] ID: cr-notdir-msg - Error message misleading when path exists but is not a directory (cli/src/index.ts:106-117, 120-131, 633-647) - FIXED
+- [x] ID: cr-discover-todir - --to-dir check on discover unreachable; add hidden option (cli/src/index.ts:618-626) - FIXED
+- [x] ID: cr-empty-guard - Guard detectOrphans against empty prefixes/extensions arrays (path-rewriter.ts:157-193) - FIXED
 
 ### Requires Human Decision
 _(none)_
 
 ### Ignored
-- ID: cr-plugin-patterns - PLUGIN_PATH_PATTERNS coupling to plugins - Reason: CodeRabbit acknowledged this is acceptable given the "no plugin changes" design decision, flagged for future consideration only
-- ID: cr-unused-params - Unused `_discovered` and `_sourceRoot` params in buildMapping - Reason: Already prefixed with underscore convention, JSDoc explains intent; adding more comments would be over-documenting
+- ID: cr-plugin-patterns - PLUGIN_PATH_PATTERNS coupling to plugins - Reason: CodeRabbit acknowledged this is acceptable given the "no plugin changes" design decision, flagged for future consideration only (repeated in round 2)
+- ID: cr-unused-params - Unused `_discovered` and `_sourceRoot` params in buildMapping - Reason: Already prefixed with underscore convention, JSDoc explains intent; adding more comments would be over-documenting (repeated in round 2)

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { A16nEngine } from '@a16njs/engine';
 import cursorPlugin from '@a16njs/plugin-cursor';
 import claudePlugin from '@a16njs/plugin-claude';
@@ -103,13 +103,17 @@ program
       const resolvedTargetRoot = options.toDir ? path.resolve(options.toDir) : resolvedPath;
 
       // Validate source root exists and is a directory
+      let sourceIsNotDir = false;
       try {
         const stat = await fs.stat(resolvedSourceRoot);
-        if (!stat.isDirectory()) throw new Error('not-a-directory');
+        if (!stat.isDirectory()) sourceIsNotDir = true;
       } catch {
+        sourceIsNotDir = true;
+      }
+      if (sourceIsNotDir) {
         const label = options.fromDir ? `--from-dir '${options.fromDir}'` : `'${projectPath}'`;
         console.error(formatError(
-          `Directory ${label} does not exist`,
+          `${label} is not a valid directory`,
           'Make sure the path is correct and the directory exists.'
         ));
         process.exitCode = 1;
@@ -117,13 +121,17 @@ program
       }
 
       // Validate target root exists and is a directory
+      let targetIsNotDir = false;
       try {
         const stat = await fs.stat(resolvedTargetRoot);
-        if (!stat.isDirectory()) throw new Error('not-a-directory');
+        if (!stat.isDirectory()) targetIsNotDir = true;
       } catch {
+        targetIsNotDir = true;
+      }
+      if (targetIsNotDir) {
         const label = options.toDir ? `--to-dir '${options.toDir}'` : `'${projectPath}'`;
         console.error(formatError(
-          `Directory ${label} does not exist`,
+          `${label} is not a valid directory`,
           'Make sure the path is correct and the directory exists.'
         ));
         process.exitCode = 1;
@@ -608,6 +616,7 @@ program
     '--from-dir <dir>',
     'Override source directory for reading. Default: positional [path]'
   )
+  .addOption(new Option('--to-dir <dir>', 'hidden').hideHelp())
   .argument('[path]', 'Project path', '.')
   .action(async (projectPath, options) => {
     try {
@@ -631,15 +640,17 @@ program
         : path.resolve(projectPath);
 
       // Validate directory exists and is a directory
+      let discoverIsNotDir = false;
       try {
         const stat = await fs.stat(resolvedPath);
-        if (!stat.isDirectory()) {
-          throw new Error('not-a-directory');
-        }
+        if (!stat.isDirectory()) discoverIsNotDir = true;
       } catch {
+        discoverIsNotDir = true;
+      }
+      if (discoverIsNotDir) {
         const label = options.fromDir ? `--from-dir '${options.fromDir}'` : `'${projectPath}'`;
         console.error(formatError(
-          `Directory ${label} does not exist`,
+          `${label} is not a valid directory`,
           'Make sure the path is correct and the directory exists.'
         ));
         process.exitCode = 1;
