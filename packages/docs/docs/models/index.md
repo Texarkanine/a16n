@@ -131,6 +131,8 @@ Conversions may produce warnings when features can't be perfectly translated:
 | `file-renamed` | Renamed to avoid collision |
 | `boundary-crossing` | Git-ignored source → tracked output |
 | `git-status-conflict` | Sources have conflicting git status |
+| `version-mismatch` | IR file version is incompatible with current reader |
+| `orphan-path-ref` | Content references a source-format path not in the conversion set |
 
 Warnings help you understand what happened during conversion and whether manual adjustments are needed.
 

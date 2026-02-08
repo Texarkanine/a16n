@@ -40,6 +40,7 @@ gantt
 | 6 | CLI Polish | Dry-run "Would" prefix, `--delete-source` flag | [PHASE_6_SPEC.md](./PHASE_6_SPEC.md) |
 | 7 | AgentSkills Standard | AgentCommand → ManualPrompt rename, `.cursor/skills/` emission, bidirectional support | [PHASE_7_SPEC.md](./PHASE_7_SPEC.md) |
 | 8 | Claude Native Rules | `.claude/rules/` with `paths` frontmatter, full AgentSkills.io support | [PHASE_8_SPEC.md](./PHASE_8_SPEC.md) |
+| — | Split Directories & Path Rewriting | `--from-dir`/`--to-dir` flags, `--rewrite-path-refs`, orphan detection, `OrphanPathRef` warning code | — |
 
 ---
 
@@ -329,6 +330,9 @@ Decisions made during planning that affect future phases:
 | IR migration via intermediate format | Simplest approach; multi-plugin support deferred | Phase 9 |
 
 Decisions made:
+- **Split directory roots** (`--from-dir`/`--to-dir`): Decouple read and write directories at the engine level via `sourceRoot`/`targetRoot` options, with the CLI exposing them as `--from-dir`/`--to-dir`. The positional `[path]` remains the default for both.
+- **Two-pass path rewriting** (`--rewrite-path-refs`): Uses a dry-run emit to discover target paths, builds a source→target mapping, rewrites content with longest-match-first replacement, then performs the real emit. Orphan references produce `orphan-path-ref` warnings.
+- **Plugin path patterns in engine**: Rather than modifying the `A16nPlugin` interface, known plugin directory prefixes and extensions are defined as a `PLUGIN_PATH_PATTERNS` constant in the engine for orphan detection.
 - `.cursorrules` (legacy) is NOT supported by the core Cursor plugin. A community `a16n-plugin-cursor-legacy` could add this if needed.
 - **Claude skills with hooks are skipped** (Phase 2): Skills containing `hooks:` in frontmatter are not convertible to Cursor. Stripping hooks would produce broken skills. Reported as unsupported with warning.
 - **Git ignore management only for created files**: When using `--gitignore-output-with`, only files created by the conversion run are managed. Files that are edited/appended are left with their existing git status. Boundary crossings (ignored source → tracked output) emit warnings.

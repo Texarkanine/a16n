@@ -101,6 +101,10 @@ a16n emits warnings when conversions can't be perfect. These appear in CLI outpu
 | `skipped` | ⊘ | Feature could not be converted |
 | `overwritten` | ↺ | Existing file was replaced |
 | `file-renamed` | → | File was renamed to avoid collision |
+| `boundary-crossing` | ⚠ | Git-ignored source produced a tracked output |
+| `git-status-conflict` | ⚠ | Sources for one output have conflicting git-ignore status |
+| `version-mismatch` | ⚠ | IR file version is incompatible with current reader |
+| `orphan-path-ref` | ⚠ | Content references a source-format path not in the conversion set |
 
 **Note**: Warnings don't affect the exit code. The CLI exits 0 on success (even with warnings) and 1 on error.
 
@@ -118,6 +122,24 @@ With `--json`, warnings appear in the output:
   ]
 }
 ```
+
+## Path Reference Rewriting
+
+When converting between formats, your configuration files may reference other configuration files by their source-format paths. For example, a Cursor rule might say:
+
+```
+Load: .cursor/rules/shared/auth.mdc
+```
+
+After conversion to Claude, the file lives at `.claude/rules/auth.md` - but the reference in content still says `.cursor/rules/shared/auth.mdc`.
+
+Use `--rewrite-path-refs` to automatically fix these references:
+
+```bash
+a16n convert --from cursor --to claude --rewrite-path-refs .
+```
+
+If a reference points to a source-format path that wasn't part of the conversion (e.g., a deleted or missing file), a16n emits an `orphan-path-ref` warning so you know to fix it manually.
 
 ## Learn More
 

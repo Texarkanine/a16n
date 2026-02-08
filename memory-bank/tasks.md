@@ -1,3 +1,3 @@
-# Memory Bank: Tasks
+# Tasks
 
 No active task.

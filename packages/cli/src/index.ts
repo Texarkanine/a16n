@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import { A16nEngine } from '@a16njs/engine';
 import cursorPlugin from '@a16njs/plugin-cursor';
 import claudePlugin from '@a16njs/plugin-claude';
@@ -65,6 +65,18 @@ program
     '--delete-source',
     'Delete source files after successful conversion (skipped sources are preserved)'
   )
+  .option(
+    '--from-dir <dir>',
+    'Override source directory for reading (discover). Default: positional [path]'
+  )
+  .option(
+    '--to-dir <dir>',
+    'Override target directory for writing (emit). Default: positional [path]'
+  )
+  .option(
+    '--rewrite-path-refs',
+    'Rewrite file path references in content to point to target-format paths'
+  )
   .argument('[path]', 'Project path', '.')
   .action(async (projectPath, options) => {
     try {
@@ -84,16 +96,42 @@ program
         return;
       }
 
-      // Validate directory exists and is a directory
+      // Resolve split roots:
+      // --from-dir overrides source, --to-dir overrides target, positional fills gaps
       const resolvedPath = path.resolve(projectPath);
+      const resolvedSourceRoot = options.fromDir ? path.resolve(options.fromDir) : resolvedPath;
+      const resolvedTargetRoot = options.toDir ? path.resolve(options.toDir) : resolvedPath;
+
+      // Validate source root exists and is a directory
+      let sourceIsNotDir = false;
       try {
-        const stat = await fs.stat(resolvedPath);
-        if (!stat.isDirectory()) {
-          throw new Error('not-a-directory');
-        }
+        const stat = await fs.stat(resolvedSourceRoot);
+        if (!stat.isDirectory()) sourceIsNotDir = true;
       } catch {
+        sourceIsNotDir = true;
+      }
+      if (sourceIsNotDir) {
+        const label = options.fromDir ? `--from-dir '${options.fromDir}'` : `'${projectPath}'`;
         console.error(formatError(
-          `Directory '${projectPath}' does not exist`,
+          `${label} is not a valid directory`,
+          'Make sure the path is correct and the directory exists.'
+        ));
+        process.exitCode = 1;
+        return;
+      }
+
+      // Validate target root exists and is a directory
+      let targetIsNotDir = false;
+      try {
+        const stat = await fs.stat(resolvedTargetRoot);
+        if (!stat.isDirectory()) targetIsNotDir = true;
+      } catch {
+        targetIsNotDir = true;
+      }
+      if (targetIsNotDir) {
+        const label = options.toDir ? `--to-dir '${options.toDir}'` : `'${projectPath}'`;
+        console.error(formatError(
+          `${label} is not a valid directory`,
           'Make sure the path is correct and the directory exists.'
         ));
         process.exitCode = 1;
@@ -101,13 +139,17 @@ program
       }
 
       verbose(`Discovering from ${options.from}...`);
-      verbose(`Root: ${resolvedPath}`);
+      verbose(`Source root: ${resolvedSourceRoot}`);
+      verbose(`Target root: ${resolvedTargetRoot}`);
 
       const result = await engine.convert({
         source: options.from,
         target: options.to,
         root: resolvedPath,
+        sourceRoot: options.fromDir ? resolvedSourceRoot : undefined,
+        targetRoot: options.toDir ? resolvedTargetRoot : undefined,
         dryRun: options.dryRun,
+        rewritePathRefs: options.rewritePathRefs,
       });
 
       verbose(`Discovered ${result.discovered.length} items:`);
@@ -127,9 +169,10 @@ program
         verbose(`Planning git-ignore style: ${gitignoreStyle}${options.dryRun ? ' (dry-run)' : ''}`);
         
         // Filter for new files only and convert absolute paths to relative paths (POSIX format)
+        // Git-ignore operations use the target root (where output files live)
         const newFiles = result.written
           .filter(w => w.isNewFile)
-          .map(w => toGitIgnorePath(path.relative(resolvedPath, w.path)));
+          .map(w => toGitIgnorePath(path.relative(resolvedTargetRoot, w.path)));
         
         if (newFiles.length === 0) {
           verbose('No new files to manage (all outputs are edits to existing files)');
@@ -145,14 +188,14 @@ program
                 verbose(`Would add to .gitignore with semaphore pattern`);
               } else {
                 verbose('Adding to .gitignore with semaphore pattern');
-                await addToGitIgnore(resolvedPath, newFiles);
+                await addToGitIgnore(resolvedTargetRoot, newFiles);
                 verbose(`✓ Updated ${plannedResult.file}`);
               }
               result.gitIgnoreChanges!.push(plannedResult);
               
             } else if (gitignoreStyle === 'exclude') {
               // Style: exclude - append to .git/info/exclude
-              if (!(await isGitRepo(resolvedPath))) {
+              if (!(await isGitRepo(resolvedTargetRoot))) {
                 throw new Error('Cannot use --gitignore-output-with \'exclude\': not a git repository');
               }
               const plannedResult: GitIgnoreResult = { file: '.git/info/exclude', added: newFiles };
@@ -161,14 +204,14 @@ program
                 verbose(`Would add to .git/info/exclude with semaphore pattern`);
               } else {
                 verbose('Adding to .git/info/exclude with semaphore pattern');
-                await addToGitExclude(resolvedPath, newFiles);
+                await addToGitExclude(resolvedTargetRoot, newFiles);
                 verbose(`✓ Updated ${plannedResult.file}`);
               }
               result.gitIgnoreChanges!.push(plannedResult);
               
             } else if (gitignoreStyle === 'hook') {
               // Style: hook - create/update pre-commit hook
-              if (!(await isGitRepo(resolvedPath))) {
+              if (!(await isGitRepo(resolvedTargetRoot))) {
                 throw new Error('Cannot use --gitignore-output-with \'hook\': not a git repository');
               }
               const plannedResult: GitIgnoreResult = { file: '.git/hooks/pre-commit', added: newFiles };
@@ -177,14 +220,14 @@ program
                 verbose(`Would create/update pre-commit hook with semaphore pattern`);
               } else {
                 verbose('Creating/updating pre-commit hook with semaphore pattern');
-                await updatePreCommitHook(resolvedPath, newFiles);
+                await updatePreCommitHook(resolvedTargetRoot, newFiles);
                 verbose(`✓ Updated ${plannedResult.file} (executable)`);
               }
               result.gitIgnoreChanges!.push(plannedResult);
               
             } else if (gitignoreStyle === 'match') {
               // Style: match - mirror source git status to output, routing to same destination
-              if (!(await isGitRepo(resolvedPath))) {
+              if (!(await isGitRepo(resolvedTargetRoot))) {
                 throw new Error("Cannot use --gitignore-output-with 'match': not a git repository");
               }
               verbose('Checking git status for source files...');
@@ -200,7 +243,7 @@ program
               
               for (const written of result.written) {
                 // Convert absolute path to relative path for git operations (POSIX format)
-                const relativePath = toGitIgnorePath(path.relative(resolvedPath, written.path));
+                const relativePath = toGitIgnorePath(path.relative(resolvedTargetRoot, written.path));
                 
                 // Check if plugin provides sourceItems (required for accurate conflict detection)
                 if (!written.sourceItems) {
@@ -221,7 +264,7 @@ program
                   sources.map(async (source) => ({
                     source,
                     ignoreSource: source.sourcePath
-                      ? await getIgnoreSource(resolvedPath, source.sourcePath)
+                      ? await getIgnoreSource(resolvedSourceRoot, source.sourcePath)
                       : null,
                   }))
                 );
@@ -231,8 +274,8 @@ program
                 
                 // Case 1: Output file already exists
                 if (!written.isNewFile) {
-                  const outputTracked = await isGitTracked(resolvedPath, relativePath);
-                  const outputIgnored = !outputTracked && await isGitIgnored(resolvedPath, relativePath);
+                  const outputTracked = await isGitTracked(resolvedTargetRoot, relativePath);
+                  const outputIgnored = !outputTracked && await isGitIgnored(resolvedTargetRoot, relativePath);
                   
                   // Check for destination conflict (output status doesn't match sources)
                   const hasDestinationConflict = 
@@ -370,7 +413,7 @@ program
                   verbose(`Would add ${filesToGitignore.length} file(s) to .gitignore to match source status`);
                 } else {
                   verbose(`Adding ${filesToGitignore.length} file(s) to .gitignore to match source status`);
-                  await addToGitIgnore(resolvedPath, filesToGitignore);
+                  await addToGitIgnore(resolvedTargetRoot, filesToGitignore);
                   verbose(`✓ Updated ${plannedResult.file}`);
                 }
                 result.gitIgnoreChanges!.push(plannedResult);
@@ -384,7 +427,7 @@ program
                   verbose(`Would add ${filesToExclude.length} file(s) to .git/info/exclude to match source status`);
                 } else {
                   verbose(`Adding ${filesToExclude.length} file(s) to .git/info/exclude to match source status`);
-                  await addToGitExclude(resolvedPath, filesToExclude);
+                  await addToGitExclude(resolvedTargetRoot, filesToExclude);
                   verbose(`✓ Updated ${plannedResult.file}`);
                 }
                 result.gitIgnoreChanges!.push(plannedResult);
@@ -398,7 +441,7 @@ program
                   verbose(`Would add ${filesToHook.length} file(s) to pre-commit hook (conflict resolution)`);
                 } else {
                   verbose(`Adding ${filesToHook.length} file(s) to pre-commit hook (conflict resolution)`);
-                  await updatePreCommitHook(resolvedPath, filesToHook);
+                  await updatePreCommitHook(resolvedTargetRoot, filesToHook);
                   verbose(`✓ Updated ${plannedResult.file}`);
                 }
                 result.gitIgnoreChanges!.push(plannedResult);
@@ -412,20 +455,20 @@ program
                   verbose(`Removing ${filesToCommit.length} file(s) from a16n-managed sections (conflict resolution: commit)`);
                   
                   // Remove from .gitignore
-                  const gitignoreResult = await removeFromGitIgnore(resolvedPath, filesToCommit);
+                  const gitignoreResult = await removeFromGitIgnore(resolvedTargetRoot, filesToCommit);
                   if (gitignoreResult.file) {
                     verbose(`  Removed from .gitignore`);
                   }
                   
                   // Remove from .git/info/exclude if git repo
-                  if (await isGitRepo(resolvedPath)) {
-                    const excludeResult = await removeFromGitExclude(resolvedPath, filesToCommit);
+                  if (await isGitRepo(resolvedTargetRoot)) {
+                    const excludeResult = await removeFromGitExclude(resolvedTargetRoot, filesToCommit);
                     if (excludeResult.file) {
                       verbose(`  Removed from .git/info/exclude`);
                     }
                     
                     // Remove from pre-commit hook if git repo
-                    const hookResult = await removeFromPreCommitHook(resolvedPath, filesToCommit);
+                    const hookResult = await removeFromPreCommitHook(resolvedTargetRoot, filesToCommit);
                     if (hookResult.file) {
                       verbose(`  Removed from pre-commit hook`);
                     }
@@ -448,6 +491,7 @@ program
       }
 
       // Handle --delete-source flag
+      // Delete from the source root (--from-dir if set, otherwise positional path)
       if (options.deleteSource) {
         const deletedSources: string[] = [];
         
@@ -457,7 +501,7 @@ program
           if (written.sourceItems) {
             for (const item of written.sourceItems) {
               if (item.sourcePath) {
-                usedSources.add(path.resolve(resolvedPath, item.sourcePath));
+                usedSources.add(path.resolve(resolvedSourceRoot, item.sourcePath));
               }
             }
           }
@@ -468,7 +512,7 @@ program
         for (const warning of result.warnings) {
           if (warning.code === WarningCode.Skipped && warning.sources) {
             for (const source of warning.sources) {
-              skippedSources.add(path.resolve(resolvedPath, source));
+              skippedSources.add(path.resolve(resolvedSourceRoot, source));
             }
           }
         }
@@ -480,7 +524,7 @@ program
         
         // Delete sources (or show what would be deleted in dry-run)
         for (const absolutePath of sourcesToDelete) {
-          const relativePath = path.relative(resolvedPath, absolutePath);
+          const relativePath = path.relative(resolvedSourceRoot, absolutePath);
           // Guard: prevent deletion outside project root (CR-12 security feedback)
           if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
             console.error(formatError(`Warning: Refusing to delete source outside project: ${relativePath}`));
@@ -503,7 +547,7 @@ program
         // Add deletedSources to result for JSON output (relative paths)
         if (deletedSources.length > 0 || (options.dryRun && sourcesToDelete.length > 0)) {
           result.deletedSources = options.dryRun 
-            ? sourcesToDelete.map(s => path.relative(resolvedPath, s)) 
+            ? sourcesToDelete.map(s => path.relative(resolvedSourceRoot, s)) 
             : deletedSources;
         }
       }
@@ -517,7 +561,7 @@ program
         if (result.written.length > 0) {
           for (const file of result.written) {
             const writePrefix = options.dryRun ? 'Would write' : 'Wrote';
-            const relativePath = path.relative(resolvedPath, file.path);
+            const relativePath = path.relative(resolvedTargetRoot, file.path);
             console.log(`${writePrefix}: ${relativePath}`);
           }
         }
@@ -568,6 +612,11 @@ program
   .requiredOption('-f, --from <agent>', 'Agent to discover')
   .option('--json', 'Output as JSON')
   .option('-v, --verbose', 'Show detailed output')
+  .option(
+    '--from-dir <dir>',
+    'Override source directory for reading. Default: positional [path]'
+  )
+  .addOption(new Option('--to-dir <dir>', 'hidden').hideHelp())
   .argument('[path]', 'Project path', '.')
   .action(async (projectPath, options) => {
     try {
@@ -575,16 +624,33 @@ program
         if (options.verbose) console.error(`[verbose] ${msg}`);
       };
 
+      // --to-dir is not applicable to discover (no output)
+      if (options.toDir) {
+        console.error(formatError(
+          '--to-dir is not applicable to the discover command',
+          'Use --to-dir with the convert command instead.'
+        ));
+        process.exitCode = 1;
+        return;
+      }
+
+      // Resolve the effective root: --from-dir overrides positional path
+      const resolvedPath = options.fromDir
+        ? path.resolve(options.fromDir)
+        : path.resolve(projectPath);
+
       // Validate directory exists and is a directory
-      const resolvedPath = path.resolve(projectPath);
+      let discoverIsNotDir = false;
       try {
         const stat = await fs.stat(resolvedPath);
-        if (!stat.isDirectory()) {
-          throw new Error('not-a-directory');
-        }
+        if (!stat.isDirectory()) discoverIsNotDir = true;
       } catch {
+        discoverIsNotDir = true;
+      }
+      if (discoverIsNotDir) {
+        const label = options.fromDir ? `--from-dir '${options.fromDir}'` : `'${projectPath}'`;
         console.error(formatError(
-          `Directory '${projectPath}' does not exist`,
+          `${label} is not a valid directory`,
           'Make sure the path is correct and the directory exists.'
         ));
         process.exitCode = 1;
@@ -594,7 +660,7 @@ program
       verbose(`Discovering from ${options.from}...`);
       verbose(`Root: ${resolvedPath}`);
 
-      const result = await engine.discover(options.from, projectPath);
+      const result = await engine.discover(options.from, resolvedPath);
 
       verbose(`Found ${result.items.length} items`);
 

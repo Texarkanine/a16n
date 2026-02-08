@@ -18,6 +18,8 @@ export enum WarningCode {
   GitStatusConflict = 'git-status-conflict',
   /** IR file version is incompatible with current reader version */
   VersionMismatch = 'version-mismatch',
+  /** A path reference in content points to a source-format file not in the conversion set */
+  OrphanPathRef = 'orphan-path-ref',
 }
 
 /**
