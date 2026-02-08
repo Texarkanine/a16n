@@ -9,8 +9,6 @@ import { CustomizationType, WarningCode } from '@a16njs/models';
 function makeItem(overrides: Partial<AgentCustomization> & { content: string; sourcePath: string }): AgentCustomization {
   return {
     type: CustomizationType.GlobalPrompt,
-    content: overrides.content,
-    sourcePath: overrides.sourcePath,
     ...overrides,
   } as AgentCustomization;
 }

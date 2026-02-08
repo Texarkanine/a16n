@@ -215,10 +215,14 @@ export class A16nEngine {
       const emission = await targetPlugin.emit(rewriteResult.items, effectiveTargetRoot, {
         dryRun: options.dryRun,
       });
-      // Only add warnings that weren't already captured from the dry-run
-      // (dry-run and real emit produce the same structural warnings)
-      // We skip emission warnings here since we already have them from the dry-run
-      
+      // Deduplicate: add only emission warnings not already present from dry-run
+      const existingMessages = new Set(allWarnings.map((w) => w.message));
+      for (const w of emission.warnings) {
+        if (!existingMessages.has(w.message)) {
+          allWarnings.push(w);
+        }
+      }
+
       return {
         discovered: discovery.items,
         written: emission.written,

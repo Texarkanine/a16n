@@ -276,3 +276,25 @@ No additional creative phases needed — the design decisions are well-constrain
 - [x] Phase 5: Integration Testing
 - [x] Phase 6: Documentation
 - [x] **BUILD COMPLETE** — All phases implemented and verified
+
+---
+
+## Current Task: CodeRabbit PR #42 Fixes
+
+**Status:** In Progress
+**PR URL:** https://github.com/Texarkanine/a16n/pull/42
+**Rate Limit Until:**
+**Last Updated:** 2026-02-08T19:00:00Z
+
+### Actionable Items
+- [ ] ID: cr-emit-warnings - Merge real emission warnings instead of dropping them (index.ts:214-227)
+- [ ] ID: cr-chain-comment - Add comment about chained replacement safety (path-rewriter.ts:100-123)
+- [ ] ID: cr-orphan-dedup - Deduplicate orphan warnings for repeated references (path-rewriter.ts:172-184)
+- [ ] ID: cr-makeitem-simplify - Simplify makeItem helper redundant fields (path-rewriter.test.ts:9-16)
+
+### Requires Human Decision
+_(none)_
+
+### Ignored
+- ID: cr-plugin-patterns - PLUGIN_PATH_PATTERNS coupling to plugins - Reason: CodeRabbit acknowledged this is acceptable given the "no plugin changes" design decision, flagged for future consideration only
+- ID: cr-unused-params - Unused `_discovered` and `_sourceRoot` params in buildMapping - Reason: Already prefixed with underscore convention, JSDoc explains intent; adding more comments would be over-documenting

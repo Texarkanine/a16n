@@ -102,6 +102,9 @@ export function rewriteContent(
     const clone = { ...item };
     let content = clone.content;
 
+    // NOTE: Replacements are applied sequentially. This is safe because source
+    // and target paths use different plugin directory prefixes, so a target path
+    // won't match a subsequent source key.
     for (const [sourcePath, targetPath] of sortedEntries) {
       // Count occurrences before replacement
       let count = 0;
@@ -159,6 +162,7 @@ export function detectOrphans(
 ): Warning[] {
   const warnings: Warning[] = [];
   const mappedPaths = new Set(mapping.keys());
+  const seen = new Set<string>();
 
   // Build a regex that matches: <prefix><non-whitespace-path><extension>
   // e.g., .cursor/rules/some-file.mdc
@@ -173,7 +177,9 @@ export function detectOrphans(
     const matches = item.content.matchAll(pattern);
     for (const match of matches) {
       const foundPath = match[0];
-      if (!mappedPaths.has(foundPath)) {
+      const key = `${item.sourcePath ?? ''}::${foundPath}`;
+      if (!mappedPaths.has(foundPath) && !seen.has(key)) {
+        seen.add(key);
         warnings.push({
           code: WarningCode.OrphanPathRef,
           message: `Orphan path reference: '${foundPath}' is not in the conversion set`,
