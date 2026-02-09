@@ -1,5 +1,12 @@
 # @a16njs/plugin-cursor
 
+## [0.9.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@0.9.0...@a16njs/plugin-cursor@0.9.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* nested paths were not preserved during translation ([#44](https://github.com/Texarkanine/a16n/issues/44)) ([d1565b0](https://github.com/Texarkanine/a16n/commit/d1565b0c870b287e5df0b71fb14026aa657ab93a))
+
 ## [0.9.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@0.8.0...@a16njs/plugin-cursor@0.9.0) (2026-02-07)
 
 
