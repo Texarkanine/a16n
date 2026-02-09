@@ -8,6 +8,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { Command } from 'commander';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   generateCommandMarkdown,
   generateCliReference,
@@ -264,5 +266,22 @@ describe('generateFallbackPage', () => {
     const md = generateFallbackPage('0.5.0');
 
     expect(md).toMatch(/not available/i);
+  });
+});
+
+describe('buildCli configuration', () => {
+  it('uses the correct pnpm filter name matching CLI package.json', () => {
+    // Read the CLI package.json to get the actual package name
+    const cliPkgPath = join(__dirname, '..', '..', 'cli', 'package.json');
+    const cliPkg = JSON.parse(readFileSync(cliPkgPath, 'utf-8'));
+
+    // Read the generate-cli-docs.ts source to find the filter name used
+    const scriptPath = join(__dirname, '..', 'scripts', 'generate-cli-docs.ts');
+    const scriptSource = readFileSync(scriptPath, 'utf-8');
+
+    // Extract the pnpm filter name from the build command
+    const filterMatch = scriptSource.match(/pnpm --filter (\S+) build/);
+    expect(filterMatch).not.toBeNull();
+    expect(filterMatch![1]).toBe(cliPkg.name);
   });
 });

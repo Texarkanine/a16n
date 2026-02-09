@@ -13,7 +13,7 @@
 
 import { Command, Option, Argument } from 'commander';
 import { execSync } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 
 /** Information about a CLI option */
@@ -239,7 +239,7 @@ function getDocsDir(): string {
  */
 function buildCli(): void {
   const repoRoot = getRepoRoot();
-  exec('pnpm --filter @a16njs/cli build', repoRoot);
+  exec('pnpm --filter a16n build', repoRoot);
 }
 
 /**
@@ -251,10 +251,15 @@ function buildCli(): void {
  * export, throws so the caller can fall back to a placeholder page.
  */
 async function getCliProgram(): Promise<Command> {
+  const repoRoot = getRepoRoot();
+  const cliDistDir = join(repoRoot, 'packages', 'cli', 'dist');
+
+  // Remove stale dist to prevent previous version's build from leaking through
+  rmSync(cliDistDir, { recursive: true, force: true });
+
   buildCli();
 
-  const repoRoot = getRepoRoot();
-  const cliDistPath = join(repoRoot, 'packages', 'cli', 'dist', 'index.js');
+  const cliDistPath = join(cliDistDir, 'index.js');
 
   if (!existsSync(cliDistPath)) {
     throw new Error(`CLI dist not found at ${cliDistPath} — build may have failed`);
