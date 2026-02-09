@@ -1,3 +1,3 @@
-# Memory Bank: Progress
+# Progress
 
 No active task.

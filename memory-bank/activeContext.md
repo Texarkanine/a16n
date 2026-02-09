@@ -1,3 +1,3 @@
-# Memory Bank: Active Context
+# Active Context
 
 No active task.
