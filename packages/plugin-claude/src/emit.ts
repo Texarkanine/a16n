@@ -309,7 +309,9 @@ export async function emit(
       const targetDir = gp.relativeDir
         ? path.join(rulesDir, gp.relativeDir)
         : rulesDir;
-      if (gp.relativeDir && !path.resolve(targetDir).startsWith(path.resolve(rulesDir) + path.sep)) {
+      const resolvedTarget = path.resolve(targetDir);
+      const resolvedRules = path.resolve(rulesDir);
+      if (gp.relativeDir && resolvedTarget !== resolvedRules && !resolvedTarget.startsWith(resolvedRules + path.sep)) {
         warnings.push({
           code: WarningCode.Skipped,
           message: `Skipped rule with unsafe relativeDir: ${gp.relativeDir}`,
@@ -384,7 +386,9 @@ export async function emit(
       const targetDir = rule.relativeDir
         ? path.join(rulesDir, rule.relativeDir)
         : rulesDir;
-      if (rule.relativeDir && !path.resolve(targetDir).startsWith(path.resolve(rulesDir) + path.sep)) {
+      const resolvedTarget = path.resolve(targetDir);
+      const resolvedRules = path.resolve(rulesDir);
+      if (rule.relativeDir && resolvedTarget !== resolvedRules && !resolvedTarget.startsWith(resolvedRules + path.sep)) {
         warnings.push({
           code: WarningCode.Skipped,
           message: `Skipped rule with unsafe relativeDir: ${rule.relativeDir}`,
