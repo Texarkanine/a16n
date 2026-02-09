@@ -15,6 +15,7 @@ import {
   generateCliReference,
   extractCommandInfo,
   generateFallbackPage,
+  hasCreateProgramExport,
   type CommandInfo,
 } from '../scripts/generate-cli-docs.js';
 
@@ -266,6 +267,40 @@ describe('generateFallbackPage', () => {
     const md = generateFallbackPage('0.5.0');
 
     expect(md).toMatch(/not available/i);
+  });
+});
+
+// The CLI must export `createProgram` as a named function for the docsite to
+// generate auto-generated reference pages. Without it, importing the CLI module
+// triggers `program.parse()` at the top level, which calls `process.exit(1)` —
+// uncatchable, killing the entire build. See the contract documented in
+// `packages/cli/src/index.ts` on createProgram.
+describe('hasCreateProgramExport', () => {
+  it('returns true when source contains the createProgram factory export', () => {
+    const sourceWithExport = `
+import { Command } from 'commander';
+
+export function createProgram(engine: A16nEngine | null): Command {
+  const program = new Command();
+  return program;
+}
+`;
+    expect(hasCreateProgramExport(sourceWithExport)).toBe(true);
+  });
+
+  it('returns false when source uses monolithic program.parse() pattern', () => {
+    const sourceWithoutExport = `
+import { Command } from 'commander';
+
+const program = new Command();
+program.name('a16n');
+program.parse();
+`;
+    expect(hasCreateProgramExport(sourceWithoutExport)).toBe(false);
+  });
+
+  it('returns false for empty source', () => {
+    expect(hasCreateProgramExport('')).toBe(false);
   });
 });
 

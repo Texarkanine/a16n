@@ -199,6 +199,28 @@ export function generateCliReference(program: Command, version: string): string 
   return lines.join('\n');
 }
 
+/**
+ * Check whether a CLI source string exports the `createProgram` factory.
+ *
+ * Tagged CLI versions that predate the factory export have a monolithic
+ * `program.parse()` at module level. Dynamically importing such a module
+ * triggers Commander to parse `process.argv` and call `process.exit(1)`,
+ * which cannot be caught by try/catch — it kills the entire Node process.
+ * This function lets callers detect the old pattern and skip straight to
+ * a fallback page without building or importing.
+ *
+ * The contract for the CLI's `createProgram` export is documented in
+ * `packages/cli/src/index.ts`. If the export is renamed or removed,
+ * this regex will no longer match, and all CLI versions will degrade
+ * to fallback pages.
+ *
+ * @param source - TypeScript/JavaScript source text
+ * @returns true if the source exports createProgram
+ */
+export function hasCreateProgramExport(source: string): boolean {
+  return /export\s+function\s+createProgram/.test(source);
+}
+
 // ============================================================================
 // Execution Logic (for standalone use and integration with versioned pipeline)
 // ============================================================================
@@ -253,6 +275,18 @@ function buildCli(): void {
 async function getCliProgram(): Promise<Command> {
   const repoRoot = getRepoRoot();
   const cliDistDir = join(repoRoot, 'packages', 'cli', 'dist');
+
+  // Check if the checked-out source exports createProgram before building.
+  // Tagged versions that predate the factory export have a monolithic
+  // program.parse() at module level. Importing such a module triggers
+  // process.exit(1) which cannot be caught, crashing the entire build.
+  const cliSourcePath = join(repoRoot, 'packages', 'cli', 'src', 'index.ts');
+  if (existsSync(cliSourcePath)) {
+    const source = readFileSync(cliSourcePath, 'utf-8');
+    if (!hasCreateProgramExport(source)) {
+      throw new Error('CLI source does not export createProgram — version predates factory export');
+    }
+  }
 
   // Remove stale dist to prevent previous version's build from leaking through
   rmSync(cliDistDir, { recursive: true, force: true });
