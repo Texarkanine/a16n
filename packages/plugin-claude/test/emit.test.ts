@@ -1646,4 +1646,91 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
       expect(file1).toBe('Content 1');
     });
   });
+
+  describe('relativeDir nesting support', () => {
+    it('should emit GlobalPrompt with relativeDir to subdirectory under .claude/rules/', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/shared/niko/main.mdc'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: '.cursor/rules/shared/niko/main.mdc',
+          relativeDir: 'shared/niko',
+          content: 'Main Niko rule.',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+
+      // File should be in subdirectory
+      const expectedPath = path.join(tempDir, '.claude', 'rules', 'shared', 'niko', 'main.md');
+      const content = await fs.readFile(expectedPath, 'utf-8');
+      expect(content).toContain('Main Niko rule.');
+    });
+
+    it('should emit FileRule with relativeDir to subdirectory under .claude/rules/', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, '.cursor/rules/shared/niko/Core/file-verification.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: '.cursor/rules/shared/niko/Core/file-verification.mdc',
+          relativeDir: 'shared/niko/Core',
+          content: 'File verification content.',
+          globs: ['file-verification.mdc'],
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+
+      // File should be in deep subdirectory
+      const expectedPath = path.join(tempDir, '.claude', 'rules', 'shared', 'niko', 'Core', 'file-verification.md');
+      const content = await fs.readFile(expectedPath, 'utf-8');
+      expect(content).toContain('File verification content.');
+    });
+
+    it('should emit items without relativeDir to flat .claude/rules/ (backward compat)', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/general.mdc'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: '.cursor/rules/general.mdc',
+          content: 'General rule.',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+
+      // File should be at flat level
+      const expectedPath = path.join(tempDir, '.claude', 'rules', 'general.md');
+      const content = await fs.readFile(expectedPath, 'utf-8');
+      expect(content).toContain('General rule.');
+    });
+
+    it('should report correct WrittenFile.path with relativeDir nesting', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/shared/niko/main.mdc'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: '.cursor/rules/shared/niko/main.mdc',
+          relativeDir: 'shared/niko',
+          content: 'Main Niko rule.',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      // WrittenFile.path should reflect the nested path (critical for path rewriter)
+      const expectedPath = path.join(tempDir, '.claude', 'rules', 'shared', 'niko', 'main.md');
+      expect(result.written[0]?.path).toBe(expectedPath);
+    });
+  });
 });

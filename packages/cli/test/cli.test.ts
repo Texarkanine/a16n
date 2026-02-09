@@ -295,7 +295,7 @@ describe('CLI', () => {
       // Normalize paths for OS-agnostic assertions
       const normalizedStdout = stdout.replaceAll('\\', '/');
       expect(normalizedStdout).toContain('Would update .gitignore');
-      expect(normalizedStdout).toMatch(/\.claude\/rules\/secret\.md.*→.*\.gitignore/);
+      expect(normalizedStdout).toMatch(/\.claude\/rules\/local\/secret\.md.*→.*\.gitignore/);
     });
 
     it('should route outputs to .git/info/exclude when source is ignored via exclude', async () => {
@@ -349,7 +349,7 @@ describe('CLI', () => {
       
       // Check that .git/info/exclude was updated with the output file
       const excludeContent = await fs.readFile(path.join(tempDir, '.git', 'info', 'exclude'), 'utf-8');
-      expect(excludeContent).toContain('.claude/rules/secret.md');
+      expect(excludeContent).toContain('.claude/rules/local/secret.md');
       expect(excludeContent).toContain('# BEGIN a16n managed');
     });
   });

@@ -71,6 +71,59 @@ describe('Cursor Plugin Discovery', () => {
       expect(sourcePaths).toContain('.cursor/rules/shared/core.mdc');
       expect(sourcePaths).toContain('.cursor/rules/local/project.mdc');
     });
+
+    it('should set relativeDir from subdirectory path on nested rules', async () => {
+      // Rules in subdirectories should have relativeDir set to the directory
+      // portion of their path under .cursor/rules/ (e.g., 'shared', 'local')
+      const root = path.join(fixturesDir, 'cursor-nested/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const rootRule = result.items.find(i => i.sourcePath === '.cursor/rules/root.mdc');
+      const sharedRule = result.items.find(i => i.sourcePath === '.cursor/rules/shared/core.mdc');
+      const localRule = result.items.find(i => i.sourcePath === '.cursor/rules/local/project.mdc');
+
+      expect(rootRule?.relativeDir).toBeUndefined();
+      expect(sharedRule?.relativeDir).toBe('shared');
+      expect(localRule?.relativeDir).toBe('local');
+    });
+
+    it('should set relativeDir for deeply nested rules preserving full subdirectory path', async () => {
+      // Deep nesting like shared/niko/Core/ should be preserved in full
+      const root = path.join(fixturesDir, 'cursor-nested-deep/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      // Should find 3 rules across deep nesting
+      expect(result.items).toHaveLength(3);
+
+      const mainRule = result.items.find(i => i.sourcePath === '.cursor/rules/shared/niko/main.mdc');
+      const coreRule = result.items.find(i => i.sourcePath === '.cursor/rules/shared/niko/Core/file-verification.mdc');
+      const level1Rule = result.items.find(i => i.sourcePath === '.cursor/rules/shared/niko/Level1/workflow-level1.mdc');
+
+      expect(mainRule?.relativeDir).toBe('shared/niko');
+      expect(coreRule?.relativeDir).toBe('shared/niko/Core');
+      expect(level1Rule?.relativeDir).toBe('shared/niko/Level1');
+    });
+
+    it('should set relativeDir on all rule types (GlobalPrompt, FileRule, SimpleAgentSkill)', async () => {
+      // The deep fixture has: GlobalPrompt (main.mdc), FileRule (file-verification.mdc),
+      // SimpleAgentSkill (workflow-level1.mdc) — all nested, all should get relativeDir
+      const root = path.join(fixturesDir, 'cursor-nested-deep/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const mainRule = result.items.find(i => i.sourcePath === '.cursor/rules/shared/niko/main.mdc');
+      const coreRule = result.items.find(i => i.sourcePath === '.cursor/rules/shared/niko/Core/file-verification.mdc');
+      const level1Rule = result.items.find(i => i.sourcePath === '.cursor/rules/shared/niko/Level1/workflow-level1.mdc');
+
+      // Verify types
+      expect(mainRule?.type).toBe(CustomizationType.GlobalPrompt);
+      expect(coreRule?.type).toBe(CustomizationType.FileRule);
+      expect(level1Rule?.type).toBe(CustomizationType.SimpleAgentSkill);
+
+      // All should have relativeDir
+      expect(mainRule?.relativeDir).toBeDefined();
+      expect(coreRule?.relativeDir).toBeDefined();
+      expect(level1Rule?.relativeDir).toBeDefined();
+    });
   });
 });
 

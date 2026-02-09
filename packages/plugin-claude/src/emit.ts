@@ -301,7 +301,14 @@ export async function emit(
       const baseName = sanitizeFilename(gp.sourcePath || gp.id);
       const filename = getUniqueFilename(baseName, usedFilenames, '.md');
 
-      const rulePath = path.join(rulesDir, filename);
+      // Use relativeDir for subdirectory nesting when present
+      const targetDir = gp.relativeDir
+        ? path.join(rulesDir, gp.relativeDir)
+        : rulesDir;
+      if (!dryRun) {
+        await fs.mkdir(targetDir, { recursive: true });
+      }
+      const rulePath = path.join(targetDir, filename);
       const content = formatGlobalPromptAsClaudeRule(gp);
 
       // Check if file exists before writing
@@ -357,7 +364,14 @@ export async function emit(
       const baseName = sanitizeFilename(rule.sourcePath || rule.id);
       const filename = getUniqueFilename(baseName, usedFilenames, '.md');
 
-      const fullPath = path.join(rulesDir, filename);
+      // Use relativeDir for subdirectory nesting when present
+      const targetDir = rule.relativeDir
+        ? path.join(rulesDir, rule.relativeDir)
+        : rulesDir;
+      if (!dryRun) {
+        await fs.mkdir(targetDir, { recursive: true });
+      }
+      const fullPath = path.join(targetDir, filename);
 
       // Filter to only valid globs for emission
       const filteredRule = { ...rule, globs: validGlobs };

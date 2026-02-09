@@ -449,7 +449,14 @@ export async function emit(
       if (gp.sourcePath) collisionSources.push(gp.sourcePath);
     }
 
-    const filepath = path.join(rulesDir, filename);
+    // Use relativeDir for subdirectory nesting when present
+    const targetDir = gp.relativeDir
+      ? path.join(rulesDir, gp.relativeDir)
+      : rulesDir;
+    if (!dryRun) {
+      await fs.mkdir(targetDir, { recursive: true });
+    }
+    const filepath = path.join(targetDir, filename);
     const content = formatGlobalPromptMdc(gp.content);
 
     // Check if file exists before writing
@@ -483,7 +490,14 @@ export async function emit(
       if (fr.sourcePath) collisionSources.push(fr.sourcePath);
     }
 
-    const filepath = path.join(rulesDir, filename);
+    // Use relativeDir for subdirectory nesting when present
+    const targetDir = fr.relativeDir
+      ? path.join(rulesDir, fr.relativeDir)
+      : rulesDir;
+    if (!dryRun) {
+      await fs.mkdir(targetDir, { recursive: true });
+    }
+    const filepath = path.join(targetDir, filename);
     const content = formatFileRuleMdc(fr.content, fr.globs);
 
     // Check if file exists before writing

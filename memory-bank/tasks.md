@@ -83,12 +83,13 @@ Type: Cross-Package Feature (plugin-cursor, plugin-claude)
 - [x] Investigation complete
 - [x] Test planning complete (TDD)
 - [x] Planning complete
-- [ ] Phase 1: Cursor Discover — set `relativeDir` on rules
-- [ ] Phase 2: Claude Discover — set `relativeDir` on rules
-- [ ] Phase 3: Claude Emit — use `relativeDir` for nesting
-- [ ] Phase 4: Cursor Emit — use `relativeDir` for nesting
-- [ ] Phase 5: Integration verification
-- [ ] Final verification (build + all tests)
+- [x] Phase 1: Cursor Discover — set `relativeDir` on rules
+- [x] Phase 2: Claude Discover — set `relativeDir` on rules
+- [x] Phase 3: Claude Emit — use `relativeDir` for nesting
+- [x] Phase 4: Cursor Emit — use `relativeDir` for nesting
+- [x] Phase 5: Integration verification
+- [x] Final verification (build + all tests)
+- [x] **BUILD COMPLETE** — all 645 tests pass across 8 packages
 
 ## Implementation Plan
 
