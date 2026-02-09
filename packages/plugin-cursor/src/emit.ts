@@ -443,16 +443,28 @@ export async function emit(
   // Emit each GlobalPrompt as a separate .mdc file
   for (const gp of globalPrompts) {
     const baseName = sanitizeFilename(gp.sourcePath || gp.id) + '.mdc';
-    const { filename, collision } = getUniqueFilename(baseName, usedFilenames);
+    // Qualify with relativeDir to prevent false collisions across subdirectories
+    const qualifiedName = gp.relativeDir ? `${gp.relativeDir}/${baseName}` : baseName;
+    const { filename: qualifiedFilename, collision } = getUniqueFilename(qualifiedName, usedFilenames);
+    const filename = gp.relativeDir ? path.basename(qualifiedFilename) : qualifiedFilename;
     
     if (collision) {
       if (gp.sourcePath) collisionSources.push(gp.sourcePath);
     }
 
     // Use relativeDir for subdirectory nesting when present
+    // Validate that relativeDir doesn't escape rulesDir via path traversal
     const targetDir = gp.relativeDir
       ? path.join(rulesDir, gp.relativeDir)
       : rulesDir;
+    if (gp.relativeDir && !path.resolve(targetDir).startsWith(path.resolve(rulesDir) + path.sep)) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Skipped rule with unsafe relativeDir: ${gp.relativeDir}`,
+        sources: gp.sourcePath ? [gp.sourcePath] : [],
+      });
+      continue;
+    }
     if (!dryRun) {
       await fs.mkdir(targetDir, { recursive: true });
     }
@@ -484,16 +496,28 @@ export async function emit(
   // Emit each FileRule as a separate .mdc file with globs
   for (const fr of fileRules) {
     const baseName = sanitizeFilename(fr.sourcePath || fr.id) + '.mdc';
-    const { filename, collision } = getUniqueFilename(baseName, usedFilenames);
+    // Qualify with relativeDir to prevent false collisions across subdirectories
+    const qualifiedName = fr.relativeDir ? `${fr.relativeDir}/${baseName}` : baseName;
+    const { filename: qualifiedFilename, collision } = getUniqueFilename(qualifiedName, usedFilenames);
+    const filename = fr.relativeDir ? path.basename(qualifiedFilename) : qualifiedFilename;
     
     if (collision) {
       if (fr.sourcePath) collisionSources.push(fr.sourcePath);
     }
 
     // Use relativeDir for subdirectory nesting when present
+    // Validate that relativeDir doesn't escape rulesDir via path traversal
     const targetDir = fr.relativeDir
       ? path.join(rulesDir, fr.relativeDir)
       : rulesDir;
+    if (fr.relativeDir && !path.resolve(targetDir).startsWith(path.resolve(rulesDir) + path.sep)) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Skipped rule with unsafe relativeDir: ${fr.relativeDir}`,
+        sources: fr.sourcePath ? [fr.sourcePath] : [],
+      });
+      continue;
+    }
     if (!dryRun) {
       await fs.mkdir(targetDir, { recursive: true });
     }
