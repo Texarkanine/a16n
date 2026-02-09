@@ -13,7 +13,7 @@
 
 import { Command, Option, Argument } from 'commander';
 import { execSync } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 
 /** Information about a CLI option */
@@ -62,11 +62,13 @@ export function extractCommandInfo(cmd: Command): CommandInfo {
   const options: OptionInfo[] = [];
   const args: ArgumentInfo[] = [];
 
-  // Extract options
+  // Extract options (skip hidden options marked with .hideHelp())
   // Commander stores options in a private _options array
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cmdOptions = (cmd as any).options as Option[];
   for (const opt of cmdOptions) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((opt as any).hidden) continue;
     options.push({
       flags: opt.flags,
       description: opt.description,
@@ -197,6 +199,28 @@ export function generateCliReference(program: Command, version: string): string 
   return lines.join('\n');
 }
 
+/**
+ * Check whether a CLI source string exports the `createProgram` factory.
+ *
+ * Tagged CLI versions that predate the factory export have a monolithic
+ * `program.parse()` at module level. Dynamically importing such a module
+ * triggers Commander to parse `process.argv` and call `process.exit(1)`,
+ * which cannot be caught by try/catch — it kills the entire Node process.
+ * This function lets callers detect the old pattern and skip straight to
+ * a fallback page without building or importing.
+ *
+ * The contract for the CLI's `createProgram` export is documented in
+ * `packages/cli/src/index.ts`. If the export is renamed or removed,
+ * this regex will no longer match, and all CLI versions will degrade
+ * to fallback pages.
+ *
+ * @param source - TypeScript/JavaScript source text
+ * @returns true if the source exports createProgram
+ */
+export function hasCreateProgramExport(source: string): boolean {
+  return /export\s+function\s+createProgram/.test(source);
+}
+
 // ============================================================================
 // Execution Logic (for standalone use and integration with versioned pipeline)
 // ============================================================================
@@ -237,81 +261,84 @@ function getDocsDir(): string {
  */
 function buildCli(): void {
   const repoRoot = getRepoRoot();
-  exec('pnpm --filter @a16njs/cli build', repoRoot);
+  exec('pnpm --filter a16n build', repoRoot);
 }
 
 /**
  * Get the CLI program by dynamically importing the built CLI.
- * Note: This imports the actual CLI which sets up Commander, but we
- * need to access the program before .parse() is called.
  *
- * Since the CLI calls program.parse() at module load, we need a different
- * approach - we'll create a mock program by reading the source and
- * extracting the structure.
+ * Builds the CLI package, then imports the compiled dist and calls
+ * createProgram(null) to get the Commander program structure without
+ * executing any actions. If the CLI version predates the createProgram
+ * export, throws so the caller can fall back to a placeholder page.
  */
 async function getCliProgram(): Promise<Command> {
   const repoRoot = getRepoRoot();
-  const cliSrcPath = join(repoRoot, 'packages', 'cli', 'src', 'index.ts');
+  const cliDistDir = join(repoRoot, 'packages', 'cli', 'dist');
 
-  if (!existsSync(cliSrcPath)) {
-    throw new Error(`CLI source not found at ${cliSrcPath}`);
+  // Check if the checked-out source exports createProgram before building.
+  // Tagged versions that predate the factory export have a monolithic
+  // program.parse() at module level. Importing such a module triggers
+  // process.exit(1) which cannot be caught, crashing the entire build.
+  const cliSourcePath = join(repoRoot, 'packages', 'cli', 'src', 'index.ts');
+  if (existsSync(cliSourcePath)) {
+    const source = readFileSync(cliSourcePath, 'utf-8');
+    if (!hasCreateProgramExport(source)) {
+      throw new Error('CLI source does not export createProgram — version predates factory export');
+    }
   }
 
-  // Read CLI source to extract version
-  const cliSource = readFileSync(cliSrcPath, 'utf-8');
+  // Remove stale dist to prevent previous version's build from leaking through
+  rmSync(cliDistDir, { recursive: true, force: true });
 
-  // Extract version from source (look for .version() call)
-  const versionMatch = cliSource.match(/\.version\(['"]([^'"]+)['"]\)/);
-  const version = versionMatch?.[1] ?? 'unknown';
+  buildCli();
 
-  // Build the program structure by parsing the source
-  // This is a simplified approach - we'll construct the program manually
-  // based on the known structure of our CLI
-  const program = new Command('a16n')
-    .description('Agent customization portability for AI coding tools')
-    .version(version);
+  const cliDistPath = join(cliDistDir, 'index.js');
 
-  // Parse the convert command
-  program
-    .command('convert')
-    .description('Convert agent customization between tools')
-    .requiredOption('-f, --from <agent>', 'Source agent')
-    .requiredOption('-t, --to <agent>', 'Target agent')
-    .option('--dry-run', 'Show what would happen without writing')
-    .option('--json', 'Output as JSON')
-    .option('-q, --quiet', 'Suppress non-error output')
-    .option('-v, --verbose', 'Show detailed output')
-    .option(
-      '--gitignore-output-with <style>',
-      'Manage git-ignore status of output files (none, ignore, exclude, hook, match)',
-      'none'
-    )
-    .option(
-      '--if-gitignore-conflict <resolution>',
-      'How to resolve git-ignore conflicts in match mode (skip, ignore, exclude, hook, commit)',
-      'skip'
-    )
-    .option(
-      '--delete-source',
-      'Delete source files after successful conversion (skipped sources are preserved)'
-    )
-    .argument('[path]', 'Project path', '.');
+  if (!existsSync(cliDistPath)) {
+    throw new Error(`CLI dist not found at ${cliDistPath} — build may have failed`);
+  }
 
-  // Parse the discover command
-  program
-    .command('discover')
-    .description('List agent customization without converting')
-    .requiredOption('-f, --from <agent>', 'Agent to discover')
-    .option('--json', 'Output as JSON')
-    .option('-v, --verbose', 'Show detailed output')
-    .argument('[path]', 'Project path', '.');
+  // Dynamic import with cache-busting query to avoid stale module cache
+  // when generating docs for multiple versions in sequence
+  const mod = await import(`${cliDistPath}?t=${Date.now()}`);
 
-  // Parse the plugins command
-  program
-    .command('plugins')
-    .description('Show available plugins');
+  if (typeof mod.createProgram !== 'function') {
+    throw new Error('createProgram not found — CLI version predates factory export');
+  }
 
-  return program;
+  // null engine — actions are never invoked during doc generation
+  return mod.createProgram(null);
+}
+
+/**
+ * Generate a fallback documentation page for versions where the CLI
+ * predates the createProgram() factory export.
+ *
+ * The fallback page appears in the version picker and pagination chain
+ * but directs users to run --help locally instead of showing auto-generated
+ * command reference.
+ *
+ * @param version - Version string (e.g., '0.5.0')
+ * @returns Markdown string with frontmatter
+ */
+export function generateFallbackPage(version: string): string {
+  const slug = version.replace(/\s+/g, '-').replace(/[()]/g, '');
+  return `---
+title: ${version}
+slug: /cli/reference/${slug}
+---
+
+# CLI Reference — ${version}
+
+Auto-generated reference is not available for this version.
+
+To view the full command reference, run:
+
+\`\`\`bash
+npx a16n@${version} --help
+\`\`\`
+`;
 }
 
 /**
@@ -345,11 +372,19 @@ export async function generateCliDocsForVersion(
 
   console.log(`Generating CLI docs for version ${actualVersion}...`);
 
-  // Get CLI program structure
-  const program = await getCliProgram();
+  let markdown: string;
 
-  // Generate markdown
-  const markdown = generateCliReference(program, actualVersion);
+  try {
+    // Get CLI program structure via dynamic import
+    const program = await getCliProgram();
+    markdown = generateCliReference(program, actualVersion);
+  } catch (err) {
+    // Fallback for versions that predate the createProgram() export
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(`  ⚠️  Dynamic import failed: ${message.split('\n')[0]}`);
+    console.warn(`  ⚠️  Writing fallback page for ${actualVersion}`);
+    markdown = generateFallbackPage(actualVersion);
+  }
 
   // Ensure output directory exists
   const fullOutputDir = join(docsDir, outputDir);

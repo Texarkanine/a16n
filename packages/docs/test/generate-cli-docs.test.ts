@@ -8,10 +8,14 @@
 
 import { describe, it, expect } from 'vitest';
 import { Command } from 'commander';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   generateCommandMarkdown,
   generateCliReference,
   extractCommandInfo,
+  generateFallbackPage,
+  hasCreateProgramExport,
   type CommandInfo,
 } from '../scripts/generate-cli-docs.js';
 
@@ -240,5 +244,79 @@ describe('generateCliReference', () => {
     const md = generateCliReference(program, '2.5.0');
 
     expect(md).toContain('2.5.0');
+  });
+});
+
+describe('generateFallbackPage', () => {
+  it('returns correct frontmatter with title and slug', () => {
+    const md = generateFallbackPage('0.5.0');
+
+    expect(md).toMatch(/^---\n/);
+    expect(md).toContain('title: 0.5.0');
+    expect(md).toContain('slug: /cli/reference/0.5.0');
+    expect(md).toContain('---');
+  });
+
+  it('contains npx command with correct version', () => {
+    const md = generateFallbackPage('0.5.0');
+
+    expect(md).toContain('npx a16n@0.5.0 --help');
+  });
+
+  it('contains "not available" messaging', () => {
+    const md = generateFallbackPage('0.5.0');
+
+    expect(md).toMatch(/not available/i);
+  });
+});
+
+// The CLI must export `createProgram` as a named function for the docsite to
+// generate auto-generated reference pages. Without it, importing the CLI module
+// triggers `program.parse()` at the top level, which calls `process.exit(1)` —
+// uncatchable, killing the entire build. See the contract documented in
+// `packages/cli/src/index.ts` on createProgram.
+describe('hasCreateProgramExport', () => {
+  it('returns true when source contains the createProgram factory export', () => {
+    const sourceWithExport = `
+import { Command } from 'commander';
+
+export function createProgram(engine: A16nEngine | null): Command {
+  const program = new Command();
+  return program;
+}
+`;
+    expect(hasCreateProgramExport(sourceWithExport)).toBe(true);
+  });
+
+  it('returns false when source uses monolithic program.parse() pattern', () => {
+    const sourceWithoutExport = `
+import { Command } from 'commander';
+
+const program = new Command();
+program.name('a16n');
+program.parse();
+`;
+    expect(hasCreateProgramExport(sourceWithoutExport)).toBe(false);
+  });
+
+  it('returns false for empty source', () => {
+    expect(hasCreateProgramExport('')).toBe(false);
+  });
+});
+
+describe('buildCli configuration', () => {
+  it('uses the correct pnpm filter name matching CLI package.json', () => {
+    // Read the CLI package.json to get the actual package name
+    const cliPkgPath = join(__dirname, '..', '..', 'cli', 'package.json');
+    const cliPkg = JSON.parse(readFileSync(cliPkgPath, 'utf-8'));
+
+    // Read the generate-cli-docs.ts source to find the filter name used
+    const scriptPath = join(__dirname, '..', 'scripts', 'generate-cli-docs.ts');
+    const scriptSource = readFileSync(scriptPath, 'utf-8');
+
+    // Extract the pnpm filter name from the build command
+    const filterMatch = scriptSource.match(/pnpm --filter (\S+) build/);
+    expect(filterMatch).not.toBeNull();
+    expect(filterMatch![1]).toBe(cliPkg.name);
   });
 });
