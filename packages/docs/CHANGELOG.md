@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.7.0...@a16njs/docs@0.7.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* CLI docs were not being automatically generated into docsite ([#45](https://github.com/Texarkanine/a16n/issues/45)) ([12faf3a](https://github.com/Texarkanine/a16n/commit/12faf3a779648ae991b7819f2b1d03f92dac8b3d))
+
 ## [0.7.0](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.6.0...@a16njs/docs@0.7.0) (2026-02-08)
 
 
