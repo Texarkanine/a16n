@@ -315,8 +315,21 @@ describe('buildCli configuration', () => {
     const scriptSource = readFileSync(scriptPath, 'utf-8');
 
     // Extract the pnpm filter name from the build command
-    const filterMatch = scriptSource.match(/pnpm --filter (\S+) build/);
+    // The filter may use pnpm's "..." suffix to include workspace dependencies
+    const filterMatch = scriptSource.match(/pnpm --filter (\S+?)\.{0,3} build/);
     expect(filterMatch).not.toBeNull();
     expect(filterMatch![1]).toBe(cliPkg.name);
+  });
+
+  it('builds CLI with its workspace dependencies using pnpm ... selector', () => {
+    // The CLI depends on workspace packages (@a16njs/engine, @a16njs/models, etc.)
+    // The build command must use "..." suffix so pnpm builds deps in topological order.
+    // Without this, `tsc` fails in CI where dependency dist/ directories don't exist.
+    const scriptPath = join(__dirname, '..', 'scripts', 'generate-cli-docs.ts');
+    const scriptSource = readFileSync(scriptPath, 'utf-8');
+
+    const filterMatch = scriptSource.match(/pnpm --filter (\S+) build/);
+    expect(filterMatch).not.toBeNull();
+    expect(filterMatch![1]).toMatch(/\.\.\.$/);
   });
 });
