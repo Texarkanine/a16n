@@ -486,6 +486,37 @@ describe('Claude Rules Discovery (Phase 8 A1)', () => {
       expect(sourcePaths).toContain('.claude/rules/backend/database.md');
     });
 
+    it('should set relativeDir from subdirectory path on nested rules', async () => {
+      // Rules in subdirectories should have relativeDir set to the directory
+      // portion under .claude/rules/ (e.g., 'frontend', 'backend')
+      const root = path.join(fixturesDir, 'claude-rules-nested/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const frontendRule = result.items.find(i => i.sourcePath === '.claude/rules/frontend/react.md');
+      const backendRule = result.items.find(i => i.sourcePath === '.claude/rules/backend/database.md');
+
+      expect(frontendRule?.relativeDir).toBe('frontend');
+      expect(backendRule?.relativeDir).toBe('backend');
+    });
+
+    it('should set relativeDir for deeply nested rules and undefined for root rules', async () => {
+      // Deep nesting like niko/Core/ should be preserved in full;
+      // root-level rules should have relativeDir undefined
+      const root = path.join(fixturesDir, 'claude-nested-rules/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const rules = result.items.filter(i => i.sourcePath.startsWith('.claude/rules/'));
+      expect(rules).toHaveLength(3);
+
+      const topLevel = result.items.find(i => i.sourcePath === '.claude/rules/top-level.md');
+      const coreRule = result.items.find(i => i.sourcePath === '.claude/rules/niko/Core/file-verification.md');
+      const level1Rule = result.items.find(i => i.sourcePath === '.claude/rules/niko/Level1/workflow-level1.md');
+
+      expect(topLevel?.relativeDir).toBeUndefined();
+      expect(coreRule?.relativeDir).toBe('niko/Core');
+      expect(level1Rule?.relativeDir).toBe('niko/Level1');
+    });
+
     it('should skip hidden directories like .git', async () => {
       // This is implicitly tested - we won't create .git directories in fixtures
       // The implementation should use the same pattern as findClaudeFiles

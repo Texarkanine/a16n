@@ -1,3 +1,3 @@
-# Tasks
+# Current Task
 
-No active task.
+No active task. Use `/niko` to start a new task.

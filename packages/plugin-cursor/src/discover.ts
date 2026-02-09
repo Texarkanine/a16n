@@ -71,7 +71,8 @@ function parseGlobs(globsString: string): string[] {
 function classifyRule(
   frontmatter: MdcFrontmatter,
   body: string,
-  sourcePath: string
+  sourcePath: string,
+  relativeDir?: string,
 ): AgentCustomization {
   // Priority 1: alwaysApply: true → GlobalPrompt
   if (frontmatter.alwaysApply === true) {
@@ -80,6 +81,7 @@ function classifyRule(
       type: CustomizationType.GlobalPrompt,
       version: CURRENT_IR_VERSION,
       sourcePath,
+      relativeDir,
       content: body,
       metadata: { ...frontmatter },
     } as GlobalPrompt;
@@ -95,6 +97,7 @@ function classifyRule(
         type: CustomizationType.FileRule,
         version: CURRENT_IR_VERSION,
         sourcePath,
+        relativeDir,
         content: body,
         globs,
         metadata: { ...frontmatter },
@@ -110,6 +113,7 @@ function classifyRule(
       type: CustomizationType.SimpleAgentSkill,
       version: CURRENT_IR_VERSION,
       sourcePath,
+      relativeDir,
       content: body,
       description: frontmatter.description,
       metadata: { ...frontmatter },
@@ -124,6 +128,7 @@ function classifyRule(
     type: CustomizationType.ManualPrompt,
     version: CURRENT_IR_VERSION,
     sourcePath,
+    relativeDir,
     content: body,
     promptName,
     metadata: { ...frontmatter },
@@ -553,7 +558,10 @@ export async function discover(root: string): Promise<DiscoveryResult> {
 
     // Classify and add all rules (Phase 2: supports GlobalPrompt, FileRule, AgentSkill)
     const sourcePath = `.cursor/rules/${file}`;
-    const item = classifyRule(frontmatter, body, sourcePath);
+    // Compute relativeDir from subdirectory path (e.g., 'shared/niko/Core' for 'shared/niko/Core/file.mdc')
+    const dir = nodePath.dirname(file);
+    const relativeDir = dir === '.' ? undefined : dir.split(nodePath.sep).join('/');
+    const item = classifyRule(frontmatter, body, sourcePath, relativeDir);
     items.push(item);
   }
 

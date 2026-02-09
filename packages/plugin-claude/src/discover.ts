@@ -661,6 +661,12 @@ export async function discover(root: string): Promise<DiscoveryResult> {
         }
       }
       
+      // Compute relativeDir from subdirectory path under .claude/rules/
+      // e.g., '.claude/rules/niko/Core/file-verification.md' → 'niko/Core'
+      const ruleRelPath = normalizedPath.replace(/^\.claude\/rules\//, '');
+      const ruleDir = path.posix.dirname(ruleRelPath);
+      const relativeDir = ruleDir === '.' ? undefined : ruleDir;
+
       // Classification:
       // - No paths or empty paths -> GlobalPrompt
       // - paths present -> FileRule with globs
@@ -671,6 +677,7 @@ export async function discover(root: string): Promise<DiscoveryResult> {
           type: CustomizationType.GlobalPrompt,
           version: CURRENT_IR_VERSION,
           sourcePath: normalizedPath,
+          relativeDir,
           content: body,
           metadata: {
             nested: false,
@@ -685,6 +692,7 @@ export async function discover(root: string): Promise<DiscoveryResult> {
           type: CustomizationType.FileRule,
           version: CURRENT_IR_VERSION,
           sourcePath: normalizedPath,
+          relativeDir,
           content: body,
           globs: paths,
           metadata: {
