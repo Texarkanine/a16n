@@ -177,14 +177,60 @@ const WORKSPACE_PACKAGE_PATHS = [
 ];
 
 /**
+ * Remove files that exist at HEAD but not at the target commit.
+ *
+ * `git checkout <commit> -- <path>` restores files from the target commit but
+ * does not remove tracked files that were added after that commit. This function
+ * diffs the file lists and removes the extras so TypeDoc only sees files that
+ * actually existed at the target version.
+ *
+ * @param dirPath - Directory path (e.g., 'packages/engine/src')
+ * @param commit - Target commit SHA
+ */
+function removeStaleFiles(dirPath: string, commit: string): void {
+  try {
+    const headFiles = exec(`git ls-tree -r --name-only HEAD -- "${dirPath}"`)
+      .split('\n')
+      .filter(Boolean)
+      .sort();
+    const commitFiles = exec(`git ls-tree -r --name-only "${commit}" -- "${dirPath}"`)
+      .split('\n')
+      .filter(Boolean)
+      .sort();
+
+    const commitFileSet = new Set(commitFiles);
+    const staleFiles = headFiles.filter((f) => !commitFileSet.has(f));
+
+    for (const file of staleFiles) {
+      const fullPath = join(getRepoRoot(), file);
+      if (existsSync(fullPath)) {
+        unlinkSync(fullPath);
+      }
+    }
+  } catch {
+    // Non-critical — if we can't clean up, the old behavior (potential TypeDoc failure) applies
+  }
+}
+
+/**
  * Check out all workspace packages from a specific commit.
  * This ensures type compatibility - all packages are from the same point in time.
+ *
+ * After checkout, removes tracked files that exist at HEAD but not at the target
+ * commit. Without this cleanup, files added in later commits (e.g., path-rewriter.ts
+ * added in engine@0.5.0) remain on disk because `git checkout <commit> -- <path>`
+ * only restores files present at the target commit without removing extras. Since
+ * these stale files are tracked (not untracked), `git clean` won't remove them.
+ * TypeDoc picks them up via the tsconfig include glob, causing compilation
+ * failures when they reference symbols that don't exist at the old version.
+ *
  * @param commit - Git commit SHA to check out from
  */
 function checkoutAllPackagesFromCommit(commit: string): void {
   for (const path of WORKSPACE_PACKAGE_PATHS) {
     try {
       exec(`git checkout "${commit}" -- "${path}"`);
+      removeStaleFiles(path, commit);
     } catch {
       // Some packages may not exist at older commits, that's okay
     }
