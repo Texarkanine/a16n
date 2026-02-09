@@ -1,5 +1,12 @@
 # @a16njs/engine
 
+## [0.5.0](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@0.4.0...@a16njs/engine@0.5.0) (2026-02-08)
+
+
+### Features
+
+* control over input/output destinations, and path re-writing accordingly ([#42](https://github.com/Texarkanine/a16n/issues/42)) ([943b9ce](https://github.com/Texarkanine/a16n/commit/943b9ce3220b4b8379919646199dfcfca05aaa64))
+
 ## [0.4.0](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@0.3.0...@a16njs/engine@0.4.0) (2026-02-04)
 
 

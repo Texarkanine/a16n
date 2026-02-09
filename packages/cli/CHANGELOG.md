@@ -1,5 +1,12 @@
 # a16n
 
+## [0.11.0](https://github.com/Texarkanine/a16n/compare/a16n@0.10.0...a16n@0.11.0) (2026-02-08)
+
+
+### Features
+
+* control over input/output destinations, and path re-writing accordingly ([#42](https://github.com/Texarkanine/a16n/issues/42)) ([943b9ce](https://github.com/Texarkanine/a16n/commit/943b9ce3220b4b8379919646199dfcfca05aaa64))
+
 ## [0.10.0](https://github.com/Texarkanine/a16n/compare/a16n@0.9.0...a16n@0.10.0) (2026-02-07)
 
 
