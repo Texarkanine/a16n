@@ -261,7 +261,7 @@ function getDocsDir(): string {
  */
 function buildCli(): void {
   const repoRoot = getRepoRoot();
-  exec('pnpm --filter a16n build', repoRoot);
+  exec('pnpm --filter a16n... build', repoRoot);
 }
 
 /**
