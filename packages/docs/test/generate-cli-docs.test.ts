@@ -12,6 +12,7 @@ import {
   generateCommandMarkdown,
   generateCliReference,
   extractCommandInfo,
+  generateFallbackPage,
   type CommandInfo,
 } from '../scripts/generate-cli-docs.js';
 
@@ -240,5 +241,28 @@ describe('generateCliReference', () => {
     const md = generateCliReference(program, '2.5.0');
 
     expect(md).toContain('2.5.0');
+  });
+});
+
+describe('generateFallbackPage', () => {
+  it('returns correct frontmatter with title and slug', () => {
+    const md = generateFallbackPage('0.5.0');
+
+    expect(md).toMatch(/^---\n/);
+    expect(md).toContain('title: 0.5.0');
+    expect(md).toContain('slug: /cli/reference/0.5.0');
+    expect(md).toContain('---');
+  });
+
+  it('contains npx command with correct version', () => {
+    const md = generateFallbackPage('0.5.0');
+
+    expect(md).toContain('npx a16n@0.5.0 --help');
+  });
+
+  it('contains "not available" messaging', () => {
+    const md = generateFallbackPage('0.5.0');
+
+    expect(md).toMatch(/not available/i);
   });
 });

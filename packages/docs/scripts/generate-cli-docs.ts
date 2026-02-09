@@ -62,11 +62,13 @@ export function extractCommandInfo(cmd: Command): CommandInfo {
   const options: OptionInfo[] = [];
   const args: ArgumentInfo[] = [];
 
-  // Extract options
+  // Extract options (skip hidden options marked with .hideHelp())
   // Commander stores options in a private _options array
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cmdOptions = (cmd as any).options as Option[];
   for (const opt of cmdOptions) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((opt as any).hidden) continue;
     options.push({
       flags: opt.flags,
       description: opt.description,
@@ -242,76 +244,62 @@ function buildCli(): void {
 
 /**
  * Get the CLI program by dynamically importing the built CLI.
- * Note: This imports the actual CLI which sets up Commander, but we
- * need to access the program before .parse() is called.
  *
- * Since the CLI calls program.parse() at module load, we need a different
- * approach - we'll create a mock program by reading the source and
- * extracting the structure.
+ * Builds the CLI package, then imports the compiled dist and calls
+ * createProgram(null) to get the Commander program structure without
+ * executing any actions. If the CLI version predates the createProgram
+ * export, throws so the caller can fall back to a placeholder page.
  */
 async function getCliProgram(): Promise<Command> {
-  const repoRoot = getRepoRoot();
-  const cliSrcPath = join(repoRoot, 'packages', 'cli', 'src', 'index.ts');
+  buildCli();
 
-  if (!existsSync(cliSrcPath)) {
-    throw new Error(`CLI source not found at ${cliSrcPath}`);
+  const repoRoot = getRepoRoot();
+  const cliDistPath = join(repoRoot, 'packages', 'cli', 'dist', 'index.js');
+
+  if (!existsSync(cliDistPath)) {
+    throw new Error(`CLI dist not found at ${cliDistPath} — build may have failed`);
   }
 
-  // Read CLI source to extract version
-  const cliSource = readFileSync(cliSrcPath, 'utf-8');
+  // Dynamic import with cache-busting query to avoid stale module cache
+  // when generating docs for multiple versions in sequence
+  const mod = await import(`${cliDistPath}?t=${Date.now()}`);
 
-  // Extract version from source (look for .version() call)
-  const versionMatch = cliSource.match(/\.version\(['"]([^'"]+)['"]\)/);
-  const version = versionMatch?.[1] ?? 'unknown';
+  if (typeof mod.createProgram !== 'function') {
+    throw new Error('createProgram not found — CLI version predates factory export');
+  }
 
-  // Build the program structure by parsing the source
-  // This is a simplified approach - we'll construct the program manually
-  // based on the known structure of our CLI
-  const program = new Command('a16n')
-    .description('Agent customization portability for AI coding tools')
-    .version(version);
+  // null engine — actions are never invoked during doc generation
+  return mod.createProgram(null);
+}
 
-  // Parse the convert command
-  program
-    .command('convert')
-    .description('Convert agent customization between tools')
-    .requiredOption('-f, --from <agent>', 'Source agent')
-    .requiredOption('-t, --to <agent>', 'Target agent')
-    .option('--dry-run', 'Show what would happen without writing')
-    .option('--json', 'Output as JSON')
-    .option('-q, --quiet', 'Suppress non-error output')
-    .option('-v, --verbose', 'Show detailed output')
-    .option(
-      '--gitignore-output-with <style>',
-      'Manage git-ignore status of output files (none, ignore, exclude, hook, match)',
-      'none'
-    )
-    .option(
-      '--if-gitignore-conflict <resolution>',
-      'How to resolve git-ignore conflicts in match mode (skip, ignore, exclude, hook, commit)',
-      'skip'
-    )
-    .option(
-      '--delete-source',
-      'Delete source files after successful conversion (skipped sources are preserved)'
-    )
-    .argument('[path]', 'Project path', '.');
+/**
+ * Generate a fallback documentation page for versions where the CLI
+ * predates the createProgram() factory export.
+ *
+ * The fallback page appears in the version picker and pagination chain
+ * but directs users to run --help locally instead of showing auto-generated
+ * command reference.
+ *
+ * @param version - Version string (e.g., '0.5.0')
+ * @returns Markdown string with frontmatter
+ */
+export function generateFallbackPage(version: string): string {
+  const slug = version.replace(/\s+/g, '-').replace(/[()]/g, '');
+  return `---
+title: ${version}
+slug: /cli/reference/${slug}
+---
 
-  // Parse the discover command
-  program
-    .command('discover')
-    .description('List agent customization without converting')
-    .requiredOption('-f, --from <agent>', 'Agent to discover')
-    .option('--json', 'Output as JSON')
-    .option('-v, --verbose', 'Show detailed output')
-    .argument('[path]', 'Project path', '.');
+# CLI Reference — ${version}
 
-  // Parse the plugins command
-  program
-    .command('plugins')
-    .description('Show available plugins');
+Auto-generated reference is not available for this version.
 
-  return program;
+To view the full command reference, run:
+
+\`\`\`bash
+npx a16n@${version} --help
+\`\`\`
+`;
 }
 
 /**
@@ -345,11 +333,19 @@ export async function generateCliDocsForVersion(
 
   console.log(`Generating CLI docs for version ${actualVersion}...`);
 
-  // Get CLI program structure
-  const program = await getCliProgram();
+  let markdown: string;
 
-  // Generate markdown
-  const markdown = generateCliReference(program, actualVersion);
+  try {
+    // Get CLI program structure via dynamic import
+    const program = await getCliProgram();
+    markdown = generateCliReference(program, actualVersion);
+  } catch (err) {
+    // Fallback for versions that predate the createProgram() export
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(`  ⚠️  Dynamic import failed: ${message.split('\n')[0]}`);
+    console.warn(`  ⚠️  Writing fallback page for ${actualVersion}`);
+    markdown = generateFallbackPage(actualVersion);
+  }
 
   // Ensure output directory exists
   const fullOutputDir = join(docsDir, outputDir);
