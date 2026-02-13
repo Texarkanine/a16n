@@ -719,7 +719,10 @@ const isDirectRun = process.argv[1] &&
   realpathSync(fileURLToPath(import.meta.url)) === realpathSync(resolve(process.argv[1]));
 
 if (isDirectRun) {
-  const engine = new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin]);
-  const program = createProgram(engine);
-  program.parse();
+  (async () => {
+    const engine = new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin]);
+    await engine.discoverAndRegisterPlugins();
+    const program = createProgram(engine);
+    program.parse();
+  })();
 }

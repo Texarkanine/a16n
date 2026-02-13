@@ -7,6 +7,11 @@ import type {
   CustomizationType,
 } from '@a16njs/models';
 import { buildMapping, rewriteContent, detectOrphans } from './path-rewriter.js';
+import {
+  discoverInstalledPlugins,
+  type PluginDiscoveryOptions,
+  type PluginLoadError,
+} from './plugin-discovery.js';
 
 /**
  * Well-known directory prefixes and file extensions for each plugin.
@@ -98,12 +103,25 @@ export interface PluginInfo {
  * The a16n conversion engine.
  * Orchestrates plugins to discover and emit agent customizations.
  */
+/**
+ * Result of a plugin auto-discovery operation.
+ */
+export interface DiscoverAndRegisterResult {
+  /** IDs of plugins that were successfully registered. */
+  registered: string[];
+  /** IDs of plugins that were skipped because a bundled plugin with the same ID exists. */
+  skipped: string[];
+  /** Packages that were found but failed to load or validate. */
+  errors: PluginLoadError[];
+}
+
 export class A16nEngine {
-  private plugins: Map<string, A16nPlugin> = new Map();
+  private plugins: Map<string, { plugin: A16nPlugin; source: 'bundled' | 'installed' }> =
+    new Map();
 
   /**
    * Create a new engine with the given plugins.
-   * @param plugins - Plugins to register
+   * @param plugins - Plugins to register (source defaults to 'bundled')
    */
   constructor(plugins: A16nPlugin[] = []) {
     for (const plugin of plugins) {
@@ -114,9 +132,10 @@ export class A16nEngine {
   /**
    * Register a plugin with the engine.
    * @param plugin - The plugin to register
+   * @param source - Where the plugin came from (defaults to 'bundled')
    */
-  registerPlugin(plugin: A16nPlugin): void {
-    this.plugins.set(plugin.id, plugin);
+  registerPlugin(plugin: A16nPlugin, source: 'bundled' | 'installed' = 'bundled'): void {
+    this.plugins.set(plugin.id, { plugin, source });
   }
 
   /**
@@ -124,11 +143,11 @@ export class A16nEngine {
    * @returns Array of plugin info
    */
   listPlugins(): PluginInfo[] {
-    return Array.from(this.plugins.values()).map((p) => ({
-      id: p.id,
-      name: p.name,
-      supports: p.supports,
-      source: 'bundled' as const,
+    return Array.from(this.plugins.values()).map((entry) => ({
+      id: entry.plugin.id,
+      name: entry.plugin.name,
+      supports: entry.plugin.supports,
+      source: entry.source,
     }));
   }
 
@@ -138,7 +157,33 @@ export class A16nEngine {
    * @returns The plugin or undefined if not found
    */
   getPlugin(id: string): A16nPlugin | undefined {
-    return this.plugins.get(id);
+    return this.plugins.get(id)?.plugin;
+  }
+
+  /**
+   * Scan for installed `a16n-plugin-*` packages and register any that don't
+   * conflict with already-registered (bundled) plugins.
+   *
+   * @param options - Optional search path overrides
+   * @returns Summary of registered, skipped, and errored plugins
+   */
+  async discoverAndRegisterPlugins(
+    options?: PluginDiscoveryOptions,
+  ): Promise<DiscoverAndRegisterResult> {
+    const result = await discoverInstalledPlugins(options);
+    const registered: string[] = [];
+    const skipped: string[] = [];
+
+    for (const plugin of result.plugins) {
+      if (this.plugins.has(plugin.id)) {
+        skipped.push(plugin.id);
+      } else {
+        this.registerPlugin(plugin, 'installed');
+        registered.push(plugin.id);
+      }
+    }
+
+    return { registered, skipped, errors: result.errors };
   }
 
   /**
@@ -244,3 +289,7 @@ export class A16nEngine {
     };
   }
 }
+
+// Re-export discovery types for consumers
+export type { PluginDiscoveryOptions, PluginDiscoveryResult, PluginLoadError } from './plugin-discovery.js';
+export { discoverInstalledPlugins, isValidPlugin, getDefaultSearchPaths } from './plugin-discovery.js';
