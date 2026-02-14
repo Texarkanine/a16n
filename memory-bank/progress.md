@@ -14,15 +14,16 @@
 - [x] Phase 2: Engine API changes — source tracking, `discoverAndRegisterPlugins()` + 6 new tests
 - [x] Phase 3: CLI integration — async IIFE, discovery on startup
 - [x] Phase 4: Verification — build, typecheck, 187 tests pass (56 engine + 131 CLI)
-
-### Not Started
-- [ ] Phase 5: Cross-repo integration test (requires a16n-plugin-cursorrules)
-
-### Blocked
-- [ ] Phase 5 depends on a16n-plugin-cursorrules being buildable (parallel work)
+- [x] Phase 5: Cross-repo integration with `a16n-plugin-cursorrules`
+  - [x] Linked plugin via `pnpm link`
+  - [x] Bug fix: `resolvePluginEntry()` — read `main` from package.json (+ 3 tests)
+  - [x] Bug fix: `getDefaultSearchPaths()` — handle monorepo layout (check child node_modules)
+  - [x] Verified: `plugins`, `discover --from cursorrules`, `convert --from cursorrules --to claude`
+  - [x] Full test suite: 694 tests pass, zero regressions
+- [x] Reflection updated with Phase 5 findings
 
 ### Observations
-- `getDefaultSearchPaths()` walks up from `import.meta.url` to find the nearest `node_modules` ancestor — this works in both monorepo dev (finds the workspace `node_modules`) and global installs
-- Dynamic `import()` requires `pathToFileURL()` for absolute paths on all platforms
-- The `isValidPlugin()` type guard checks all 5 required fields: id, name, supports, discover, emit
-- All existing tests (engine + CLI) pass without modification — the internal refactor from `Map<string, A16nPlugin>` to `Map<string, {plugin, source}>` is fully transparent to callers
+- `getDefaultSearchPaths()` now walks up from `import.meta.url` checking for both `node_modules` ancestors (global install) and `node_modules` children (monorepo), collecting all matches
+- `resolvePluginEntry()` reads `main` from `package.json`, falling back to `index.js` — handles real packages with `dist/` output
+- pnpm monorepo requires `pnpm link` at root level, not `npm link` or sub-package linking
+- Phase 5 integration testing was critical — found two bugs that unit tests with simplified fixtures missed

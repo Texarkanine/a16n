@@ -2,21 +2,21 @@
 
 ## Current Focus
 
-Plugin auto-discovery implementation — **Phases 1-4 complete**. The engine now supports discovering and registering third-party `a16n-plugin-*` packages, and the CLI calls this on startup.
+Plugin auto-discovery implementation — **All 5 phases complete**. Phase 5 cross-repo integration with `a16n-plugin-cursorrules` revealed and fixed two bugs in the discovery module.
 
-## What Was Done
+## What Was Done (Phase 5)
 
-1. **New file: `packages/engine/src/plugin-discovery.ts`** — Core discovery module with `discoverInstalledPlugins()`, `isValidPlugin()`, `getDefaultSearchPaths()`, plus `PluginDiscoveryOptions`, `PluginDiscoveryResult`, `PluginLoadError` types.
-2. **Modified: `packages/engine/src/index.ts`** — Internal plugins map now tracks `source: 'bundled' | 'installed'`. Added `discoverAndRegisterPlugins()` method and `DiscoverAndRegisterResult` type. Re-exports discovery types.
-3. **Modified: `packages/cli/src/index.ts`** — `isDirectRun` block is now async IIFE, calls `engine.discoverAndRegisterPlugins()` after constructing the engine with bundled plugins.
-4. **New file: `packages/engine/test/plugin-discovery.test.ts`** — 17 tests covering discovery, validation, error handling.
-5. **Modified: `packages/engine/test/engine.test.ts`** — 6 new tests for source tracking and `discoverAndRegisterPlugins`.
+1. **Linked `a16n-plugin-cursorrules`** into the monorepo via `pnpm link` at root level.
+2. **Bug fix: entry point resolution** — Discovery hardcoded `index.js` as entry point. Added `resolvePluginEntry()` that reads `main` from `package.json`, falling back to `index.js`. Added 3 new tests.
+3. **Bug fix: monorepo search paths** — `getDefaultSearchPaths()` only found `node_modules` as a parent directory (global install case). Fixed to also check for `node_modules` as a child directory at each ancestor level, collecting all matches. This handles monorepo layouts where the engine is at `packages/engine/dist/`.
+4. **Verified end-to-end**: `plugins`, `discover --from cursorrules`, `convert --from cursorrules --to claude --dry-run` all work correctly from any cwd.
+5. **Updated reflection document** with Phase 5 findings.
 
 ## Remaining
 
-- Phase 5 (cross-repo integration test) is blocked on `a16n-plugin-cursorrules` being ready.
+- Task is complete. Ready for `/archive`.
 
 ## Next Steps
 
-1. Proceed to `/reflect` for task review
-2. Or proceed to Phase 5 cross-repo integration when `a16n-plugin-cursorrules` is available
+1. Proceed to `/archive` to finalize task documentation
+2. Consider committing the Phase 5 bug fixes

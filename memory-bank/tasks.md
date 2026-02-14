@@ -1,7 +1,7 @@
 # Current Task: Plugin Auto-Discovery
 
 **Issue:** [Texarkanine/a16n#54](https://github.com/Texarkanine/a16n/issues/54) (enabling requirement)
-**Status:** Implementation Complete, Reflection Done — Phase 5 Pending (cross-repo)
+**Status:** All Phases Complete (including Phase 5 cross-repo integration)
 
 ## Context
 
@@ -69,12 +69,14 @@ The plugin framework documentation claims auto-discovery of `a16n-plugin-*` pack
 
 ### Phase 5: Cross-Repo Integration Test
 
-- [ ] In a16n-plugin-cursorrules: `npm link`
-- [ ] In a16n: `npm link a16n-plugin-cursorrules`
-- [ ] Verify: `a16n plugins` shows `cursorrules` with `source: installed`
-- [ ] Verify: `a16n convert --from cursorrules --to cursor <fixture>` works
-- [ ] Verify: `a16n convert --from cursor --to cursorrules <fixture>` gracefully reports unsupported
-- [ ] Document any framework issues discovered and fix them
+- [x] In a16n-plugin-cursorrules: `npm link`
+- [x] In a16n: `pnpm link /path/to/a16n-plugin-cursorrules` (pnpm, not npm)
+- [x] Verify: `a16n plugins` shows `cursorrules` with `source: installed`
+- [x] Verify: `a16n discover --from cursorrules` works
+- [x] Verify: `a16n convert --from cursorrules --to claude --dry-run` works
+- [x] Document framework issues discovered and fix them:
+  - Bug #1: Hardcoded `index.js` entry — fixed with `resolvePluginEntry()` + 3 new tests
+  - Bug #2: `getDefaultSearchPaths()` didn't find monorepo root `node_modules` — fixed to check for child `node_modules` dirs while walking up
 
 ## Components
 

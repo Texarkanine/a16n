@@ -159,6 +159,75 @@ export default plugin;
     expect(result.plugins[0]?.name).toBe('ESM Test Plugin');
   });
 
+  it('should resolve entry point from package.json main field', async () => {
+    const searchPath = path.join(tempDir, 'node_modules');
+    await fs.mkdir(searchPath, { recursive: true });
+
+    // Create a plugin with main pointing to dist/index.js (like real packages)
+    const pkgDir = path.join(searchPath, 'a16n-plugin-dist');
+    const distDir = path.join(pkgDir, 'dist');
+    await fs.mkdir(distDir, { recursive: true });
+    await fs.writeFile(
+      path.join(pkgDir, 'package.json'),
+      JSON.stringify({ name: 'a16n-plugin-dist', type: 'module', main: './dist/index.js' }),
+    );
+    await fs.writeFile(
+      path.join(distDir, 'index.js'),
+      `export default {
+        id: 'dist-test',
+        name: 'Dist Test Plugin',
+        supports: ['global-prompt'],
+        discover: async () => ({ items: [], warnings: [] }),
+        emit: async () => ({ written: [], warnings: [], unsupported: [] }),
+      };`,
+    );
+
+    const result = await discoverInstalledPlugins({ searchPaths: [searchPath] });
+
+    expect(result.plugins).toHaveLength(1);
+    expect(result.plugins[0]?.id).toBe('dist-test');
+  });
+
+  it('should fall back to index.js when package.json has no main field', async () => {
+    const searchPath = path.join(tempDir, 'node_modules');
+    await fs.mkdir(searchPath, { recursive: true });
+
+    const pkgDir = path.join(searchPath, 'a16n-plugin-nomain');
+    await fs.mkdir(pkgDir, { recursive: true });
+    await fs.writeFile(
+      path.join(pkgDir, 'package.json'),
+      JSON.stringify({ name: 'a16n-plugin-nomain', type: 'module' }),
+    );
+    await fs.writeFile(
+      path.join(pkgDir, 'index.js'),
+      `export default {
+        id: 'nomain-test',
+        name: 'No Main Plugin',
+        supports: ['global-prompt'],
+        discover: async () => ({ items: [], warnings: [] }),
+        emit: async () => ({ written: [], warnings: [], unsupported: [] }),
+      };`,
+    );
+
+    const result = await discoverInstalledPlugins({ searchPaths: [searchPath] });
+
+    expect(result.plugins).toHaveLength(1);
+    expect(result.plugins[0]?.id).toBe('nomain-test');
+  });
+
+  it('should fall back to index.js when no package.json exists', async () => {
+    const searchPath = path.join(tempDir, 'node_modules');
+    await fs.mkdir(searchPath, { recursive: true });
+    await createFakePluginWithSource(searchPath, 'a16n-plugin-nopkg', VALID_PLUGIN_SOURCE);
+    // Remove the package.json that createFakePluginWithSource created
+    await fs.rm(path.join(searchPath, 'a16n-plugin-nopkg', 'package.json'));
+
+    const result = await discoverInstalledPlugins({ searchPaths: [searchPath] });
+
+    expect(result.plugins).toHaveLength(1);
+    expect(result.plugins[0]?.id).toBe('test-plugin');
+  });
+
   it('should handle packages that fail to import and report them as errors', async () => {
     const searchPath = path.join(tempDir, 'node_modules');
     await fs.mkdir(searchPath, { recursive: true });

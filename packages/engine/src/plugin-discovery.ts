@@ -1,4 +1,5 @@
 import * as fs from 'fs/promises';
+import { statSync } from 'fs';
 import * as path from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 import type { A16nPlugin } from '@a16njs/models';
@@ -66,8 +67,8 @@ export async function discoverInstalledPlugins(
       const pkgPath = path.join(searchPath, dirName);
 
       try {
-        // Dynamic import using file:// URL (required for absolute paths in ESM)
-        const entryFile = path.join(pkgPath, 'index.js');
+        // Resolve entry point from package.json main field, falling back to index.js
+        const entryFile = await resolvePluginEntry(pkgPath);
         const moduleUrl = pathToFileURL(entryFile).href;
         const mod = await import(moduleUrl);
 
@@ -92,6 +93,28 @@ export async function discoverInstalledPlugins(
   }
 
   return { plugins, errors };
+}
+
+/**
+ * Resolve the JavaScript entry point for a plugin package directory.
+ *
+ * Reads the `main` field from the package's `package.json` if it exists,
+ * otherwise falls back to `index.js` at the package root.
+ *
+ * @param pkgPath - Absolute path to the plugin package directory
+ * @returns Absolute path to the entry JavaScript file
+ */
+async function resolvePluginEntry(pkgPath: string): Promise<string> {
+  try {
+    const raw = await fs.readFile(path.join(pkgPath, 'package.json'), 'utf-8');
+    const pkg = JSON.parse(raw) as Record<string, unknown>;
+    if (typeof pkg.main === 'string' && pkg.main.length > 0) {
+      return path.resolve(pkgPath, pkg.main);
+    }
+  } catch {
+    // No package.json or unreadable — fall through to default
+  }
+  return path.join(pkgPath, 'index.js');
 }
 
 /**
@@ -124,20 +147,38 @@ export function isValidPlugin(obj: unknown): obj is A16nPlugin {
  * - The global npm `node_modules` directory (derived from this package's location)
  * - The local `node_modules` in the current working directory
  *
+ * In a global install, the engine lives inside node_modules:
+ *   .../lib/node_modules/@a16njs/engine/dist/plugin-discovery.js
+ * so walking up finds the node_modules parent directly.
+ *
+ * In a monorepo (e.g. pnpm workspace), the engine lives at:
+ *   <root>/packages/engine/dist/plugin-discovery.js
+ * so we also check for a node_modules child directory at each level.
+ *
  * @returns Array of directory paths to scan
  */
 export function getDefaultSearchPaths(): string[] {
   const paths: string[] = [];
 
-  // Walk up from this file's location to find the nearest node_modules parent.
-  // In a typical global install: .../lib/node_modules/@a16njs/engine/dist/plugin-discovery.js
-  // We want: .../lib/node_modules
   const thisFile = fileURLToPath(import.meta.url);
   let dir = path.dirname(thisFile);
   while (dir !== path.dirname(dir)) {
+    // Global install: this file is inside a node_modules tree
     if (path.basename(dir) === 'node_modules') {
       paths.push(dir);
       break;
+    }
+    // Monorepo / local dev: check for a sibling node_modules directory.
+    // Don't stop — keep walking up to find all ancestor node_modules
+    // (e.g. packages/engine/node_modules AND root/node_modules).
+    const siblingNodeModules = path.join(dir, 'node_modules');
+    try {
+      const stat = statSync(siblingNodeModules);
+      if (stat.isDirectory()) {
+        paths.push(siblingNodeModules);
+      }
+    } catch {
+      // Directory doesn't exist, keep walking
     }
     dir = path.dirname(dir);
   }
