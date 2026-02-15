@@ -5,31 +5,34 @@
 
 ## Current Phase
 **Phase 1 COMPLETE** - Plugin Registry implemented and integrated
-**Phase 2 NEXT** - Plugin Loader System
+**Phase 2 COMPLETE** - Plugin Loader implemented and integrated
+**Phase 3 COMPLETE** - Workspace Abstraction implemented and tested
+**Phase 4 NEXT** - Transformation Pipeline
 
 ## Recent Decisions
-- Replaced dual Maps in A16nEngine with unified PluginRegistry class
-- Used `Omit<PluginRegistration, 'registeredAt'>` for input type rather than separate interface
-- Deferred lifecycle hooks (onRegister, onConflict) to future work
-- Added `size` getter and `clear()` method beyond the original plan (useful for testing and future phases)
+- Designed Workspace interface with 6 methods: resolve, exists, read, write, readdir, mkdir
+- Added `readdir` and `mkdir` to the interface (beyond creative doc spec) because plugins use recursive readdir and mkdir extensively
+- Used decorator pattern for ReadOnlyWorkspace (wraps any Workspace, blocks write/mkdir)
+- MemoryWorkspace tracks both files (Map) and explicit directories (Set) for proper readdir behavior
+- Deferred plugin interface changes (3c) and engine integration (3d) to Phase 4 where they fit more naturally
 
-## What Was Just Completed (Phase 1)
-- `packages/engine/src/plugin-registry.ts` - PluginRegistry class (single source of truth for plugin metadata)
-- `packages/engine/test/plugin-registry.test.ts` - 21 unit tests
-- `packages/engine/src/index.ts` - A16nEngine refactored to use PluginRegistry internally
-- All 80 engine tests passing (21 new + 59 existing), TypeScript compilation clean
-- Reflection document created at `memory-bank/reflection/reflection-arch-phase1.md`
+## What Was Just Completed (Phase 3)
+- `packages/engine/src/workspace.ts` - Workspace interface + 3 implementations (341 lines)
+- `packages/engine/test/workspace.test.ts` - 45 unit tests (349 lines)
+- All 139 engine tests passing, TypeScript compilation clean
 
 ## Immediate Next Steps
-1. Begin Phase 2: Plugin Loader System
-   - Create `PluginConflictStrategy` enum
-   - Create `PluginLoader` class with `loadInstalled()` and `resolveConflicts()`
-   - Refactor engine's `discoverAndRegisterPlugins()` to use loader
-2. Phase 3 (Workspace) can be developed in parallel after Phase 2 starts
+1. Begin Phase 4: Transformation Pipeline
+   - Create `ContentTransformation` interface
+   - Create `PathRewritingTransformation` class
+   - Add `pathPatterns` to `A16nPlugin` interface
+   - Refactor engine convert() to use pipeline (eliminate double emission)
+2. Phase 4 also absorbs deferred Phase 3c/3d tasks (plugin interface + engine integration)
 
 ## Key Files
-- `packages/engine/src/plugin-registry.ts` - NEW: PluginRegistry
-- `packages/engine/src/index.ts` - MODIFIED: Uses PluginRegistry
-- `packages/engine/src/plugin-discovery.ts` - Will be modified in Phase 2
+- `packages/engine/src/workspace.ts` - NEW: Workspace interface + implementations
+- `packages/engine/src/plugin-registry.ts` - Phase 1: PluginRegistry
+- `packages/engine/src/plugin-loader.ts` - Phase 2: PluginLoader
+- `packages/engine/src/index.ts` - MODIFIED: Uses PluginRegistry + PluginLoader
 - `memory-bank/tasks.md` - Implementation plan and progress
 - `memory-bank/creative/creative-architectural-redesign.md` - Design decisions
