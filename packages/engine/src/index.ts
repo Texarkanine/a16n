@@ -6,12 +6,10 @@ import type {
   WrittenFile,
   CustomizationType,
 } from '@a16njs/models';
-import {
-  discoverInstalledPlugins,
-  type PluginDiscoveryOptions,
-} from './plugin-discovery.js';
+import { type PluginDiscoveryOptions } from './plugin-discovery.js';
 import { buildMapping, rewriteContent, detectOrphans } from './path-rewriter.js';
 import { PluginRegistry } from './plugin-registry.js';
+import { PluginLoader, PluginConflictStrategy } from './plugin-loader.js';
 
 /**
  * Options for a conversion operation.
@@ -89,12 +87,14 @@ export interface DiscoverAndRegisterResult {
  */
 export class A16nEngine {
   private registry: PluginRegistry = new PluginRegistry();
+  private loader: PluginLoader;
 
   /**
    * Create a new engine with the given plugins.
    * @param plugins - Plugins to register (registered as 'bundled')
    */
   constructor(plugins: A16nPlugin[] = []) {
+    this.loader = new PluginLoader(PluginConflictStrategy.PREFER_BUNDLED);
     for (const plugin of plugins) {
       this.registerPlugin(plugin, 'bundled');
     }
@@ -117,24 +117,19 @@ export class A16nEngine {
   async discoverAndRegisterPlugins(
     options?: PluginDiscoveryOptions,
   ): Promise<DiscoverAndRegisterResult> {
-    const result = await discoverInstalledPlugins(options);
-    const registered: string[] = [];
-    const skipped: string[] = [];
+    const candidates = await this.loader.loadInstalled(options);
+    const resolved = this.loader.resolveConflicts(this.registry, candidates);
 
-    for (const plugin of result.plugins) {
-      if (this.registry.has(plugin.id)) {
-        // Already registered (bundled takes precedence)
-        skipped.push(plugin.id);
-      } else {
-        this.registerPlugin(plugin, 'installed');
-        registered.push(plugin.id);
-      }
+    const registered: string[] = [];
+    for (const reg of resolved.loaded) {
+      this.registry.register(reg);
+      registered.push(reg.plugin.id);
     }
 
     return {
       registered,
-      skipped,
-      errors: result.errors,
+      skipped: resolved.skipped.map((s) => s.plugin.id),
+      errors: resolved.errors,
     };
   }
 

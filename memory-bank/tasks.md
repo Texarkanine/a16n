@@ -91,7 +91,7 @@ Creative Design Decisions & Justification: [./creative/creative-architectural-re
 |-----------|--------|--------|--------------|
 | ARCH-M1 | Week 1 | Planning | Architecture design doc, test plan |
 | ARCH-M2 | Week 2 | ✅ Complete | Component 1 (Registry) complete with tests |
-| ARCH-M3 | Week 3 | Not Started | Component 2 (Loader) complete with tests |
+| ARCH-M3 | Week 3 | ✅ Complete | Component 2 (Loader) complete with tests |
 | ARCH-M4 | Week 4 | Not Started | Component 3 (Workspace) complete with tests |
 | ARCH-M5 | Week 5 | Not Started | Component 4 (Transformations) complete with tests |
 | ARCH-M6 | Week 6 | Not Started | Component 5 (CLI) complete, all integration tests pass |
@@ -136,38 +136,36 @@ Creative Design Decisions & Justification: [./creative/creative-architectural-re
 
 **Goal:** Separate discovery, conflict resolution, and registration
 
-#### Phase 2a: Design & Stub (TDD)
+#### Phase 2a: Design & Stub (TDD) ✅ COMPLETE
 **Tasks:**
-- [ ] Create `packages/engine/src/plugin-loader.ts` interface
-  - `PluginConflictStrategy` enum
-  - `PluginLoadResult` interface
-  - `PluginLoader` class
-- [ ] Stub test suite `packages/engine/test/plugin-loader.test.ts`
-  - Test loading from node_modules
-  - Test conflict resolution strategies
-  - Test error handling
+- [x] Create `packages/engine/src/plugin-loader.ts` interface
+  - `PluginConflictStrategy` enum (PREFER_BUNDLED, PREFER_INSTALLED, FAIL)
+  - `SkippedPlugin` interface (plugin, reason, conflictsWith)
+  - `PluginLoadResult` interface (loaded, skipped, errors)
+  - `PluginLoader` class with loadInstalled() and resolveConflicts()
+- [x] Stub test suite `packages/engine/test/plugin-loader.test.ts`
+  - 14 test cases covering all behaviors
 
-#### Phase 2b: Refactor Discovery (TDD)
+#### Phase 2b: Refactor Discovery (TDD) ✅ COMPLETE
 **Tasks:**
-- [ ] Refactor `plugin-discovery.ts` to focus only on finding plugins
-- [ ] Implement `PluginLoader` class
-  - `loadInstalled()` method
-  - `resolveConflicts()` method
-  - Strategy pattern for conflict resolution
-- [ ] Run tests - all loader tests pass
-- [ ] Update existing `plugin-discovery.test.ts` for new separation
-- [ ] Run all tests - no regressions
+- [x] `plugin-discovery.ts` already focused only on finding plugins (no changes needed)
+- [x] Implement `PluginLoader` class
+  - `loadInstalled()` wraps discovery results with source='installed'
+  - `resolveConflicts()` applies strategy pattern
+- [x] Run tests - all 14 loader tests pass
+- [x] Existing `plugin-discovery.test.ts` unchanged (already tests pure discovery)
+- [x] Run all tests - no regressions
 
-#### Phase 2c: Integrate with Engine
+#### Phase 2c: Integrate with Engine ✅ COMPLETE
 **Tasks:**
-- [ ] Update `A16nEngine.discoverAndRegisterPlugins()` to use `PluginLoader`
-- [ ] Run all engine tests - all pass
-- [ ] Verify backward compatibility
+- [x] Update `A16nEngine.discoverAndRegisterPlugins()` to use `PluginLoader`
+- [x] Run all engine tests - all 94 tests pass
+- [x] Verify backward compatibility (existing behavior preserved)
 
-**Quality Gates:**
-- Clear separation of concerns (discover vs resolve vs register)
-- All conflict strategies tested
-- No regressions in existing functionality
+**Quality Gates:** ✅ ALL MET
+- Clear separation of concerns (discovery in plugin-discovery.ts, resolution in plugin-loader.ts, registration in engine)
+- All 3 conflict strategies tested (PREFER_BUNDLED, PREFER_INSTALLED, FAIL)
+- No regressions (94/94 tests passing)
 
 ---
 
@@ -401,13 +399,13 @@ Creative Design Decisions & Justification: [./creative/creative-architectural-re
 ### Overall Progress
 - **Planning**: 100% ✅ (Complete 2026-02-15)
 - **QA Validation**: 100% ✅ (PASS 2026-02-15)
-- **Implementation**: 17% (Phase 1 of 6 complete)
+- **Implementation**: 33% (Phases 1-2 of 6 complete)
 - **Testing**: 0%
 - **Documentation**: 0%
 
 ### Component Progress
 - Component 1 (Registry): 100% ✅ (Complete 2026-02-15)
-- Component 2 (Loader): 0% (Queued)
+- Component 2 (Loader): 100% ✅ (Complete 2026-02-15)
 - Component 3 (Workspace): 0% (Queued)
 - Component 4 (Transformations): 0% (Queued)
 - Component 5 (CLI): 0% (Queued)
