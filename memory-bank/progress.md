@@ -1,29 +1,181 @@
-# Progress
+# Progress: Architectural Redesign - Foundation Patterns
 
-## Task: Plugin Auto-Discovery
+**Last Updated:** 2026-02-15
+**Status:** Planning Complete
 
-### Completed
-- [x] Research: Current plugin registration (hard-coded imports in CLI)
-- [x] Research: Engine API (PluginInfo already has `source` field typed)
-- [x] Research: Existing plugin structure (cursor, claude, a16n)
-- [x] Design: Discovery mechanism (scan search paths for `a16n-plugin-*`)
-- [x] Design: Engine API changes (discoverAndRegisterPlugins, source tracking)
-- [x] Design: CLI integration (async startup, call discovery after construction)
-- [x] Plan: Full implementation plan with TDD phases
-- [x] Phase 1: Plugin discovery module — `plugin-discovery.ts` + 17 tests
-- [x] Phase 2: Engine API changes — source tracking, `discoverAndRegisterPlugins()` + 6 new tests
-- [x] Phase 3: CLI integration — async IIFE, discovery on startup
-- [x] Phase 4: Verification — build, typecheck, 187 tests pass (56 engine + 131 CLI)
-- [x] Phase 5: Cross-repo integration with `a16n-plugin-cursorrules`
-  - [x] Linked plugin via `pnpm link`
-  - [x] Bug fix: `resolvePluginEntry()` — read `main` from package.json (+ 3 tests)
-  - [x] Bug fix: `getDefaultSearchPaths()` — handle monorepo layout (check child node_modules)
-  - [x] Verified: `plugins`, `discover --from cursorrules`, `convert --from cursorrules --to claude`
-  - [x] Full test suite: 694 tests pass, zero regressions
-- [x] Reflection updated with Phase 5 findings
+## Current Milestone: ARCH-M1 (Planning)
 
-### Observations
-- `getDefaultSearchPaths()` now walks up from `import.meta.url` checking for both `node_modules` ancestors (global install) and `node_modules` children (monorepo), collecting all matches
-- `resolvePluginEntry()` reads `main` from `package.json`, falling back to `index.js` — handles real packages with `dist/` output
-- pnpm monorepo requires `pnpm link` at root level, not `npm link` or sub-package linking
-- Phase 5 integration testing was critical — found two bugs that unit tests with simplified fixtures missed
+✅ **Milestone M1 Complete** - Planning and Design
+
+### Completed Activities
+- [x] Analyzed current architectural pain points
+- [x] Designed 5 core component abstractions
+- [x] Created comprehensive 6-phase implementation plan
+- [x] Identified 3 creative phases requiring design decisions
+- [x] Documented backward compatibility strategy
+- [x] Defined test strategy and coverage targets
+- [x] Created risk assessment with mitigations
+- [x] Established dependency graph and critical path
+- [x] Updated Memory Bank (tasks.md, activeContext.md, progress.md)
+
+## Overall Project Status
+
+| Milestone | Status | Progress | Target |
+|-----------|--------|----------|--------|
+| ARCH-M1: Planning | ✅ Complete | 100% | Week 1 |
+| ARCH-M2: Registry | Not Started | 0% | Week 2 |
+| ARCH-M3: Loader | Not Started | 0% | Week 3 |
+| ARCH-M4: Workspace | Not Started | 0% | Week 4 |
+| ARCH-M5: Transformations | Not Started | 0% | Week 5 |
+| ARCH-M6: CLI | Not Started | 0% | Week 6 |
+| ARCH-M7: Integration | Not Started | 0% | Week 7 |
+
+**Overall Project Progress:** 14% (1 of 7 milestones complete)
+
+## Component Status
+
+### Component 1: Plugin Registry System
+- **Status:** Not Started
+- **Progress:** 0%
+- **Files:** 0 of 3 created
+- **Tests:** 0 of 15+ written
+
+### Component 2: Plugin Loader System
+- **Status:** Not Started
+- **Progress:** 0%
+- **Files:** 0 of 4 created
+- **Tests:** 0 of 20+ written
+
+### Component 3: Workspace Abstraction
+- **Status:** Not Started
+- **Progress:** 0%
+- **Files:** 0 of 7 created
+- **Tests:** 0 of 25+ written
+
+### Component 4: Transformation Pipeline
+- **Status:** Not Started
+- **Progress:** 0%
+- **Files:** 0 of 5 created
+- **Tests:** 0 of 15+ written
+
+### Component 5: CLI Restructuring
+- **Status:** Not Started
+- **Progress:** 0%
+- **Files:** 0 of 7 created
+- **Tests:** 0 of 30+ written
+
+## Phase Breakdown
+
+### Phase 1: Foundation - Plugin Registry
+- **Status:** Not Started
+- **Tasks:** 0 of ~50 complete
+- **Blockers:** None (ready to start)
+- **Next:** Design PluginRegistry interface
+
+### Phase 2: Plugin Loader System
+- **Status:** Not Started
+- **Tasks:** 0 of ~60 complete
+- **Blockers:** Waiting for Phase 1
+- **Next:** After Phase 1 complete
+
+### Phase 3: Workspace Abstraction
+- **Status:** Not Started
+- **Tasks:** 0 of ~70 complete
+- **Blockers:** Waiting for Phase 1
+- **Next:** Can start in parallel after Phase 1
+
+### Phase 4: Transformation Pipeline
+- **Status:** Not Started
+- **Tasks:** 0 of ~80 complete
+- **Blockers:** Waiting for Phases 2 & 3
+- **Next:** After Phases 2 & 3 complete
+
+### Phase 5: CLI Restructuring
+- **Status:** Not Started
+- **Tasks:** 0 of ~60 complete
+- **Blockers:** Waiting for Phase 4
+- **Next:** After Phase 4 complete
+
+### Phase 6: Integration & Documentation
+- **Status:** Not Started
+- **Tasks:** 0 of ~40 complete
+- **Blockers:** Waiting for Phase 5
+- **Next:** After Phase 5 complete
+
+## Test Coverage Status
+
+### Current Baseline
+- **Engine:** 59 tests passing (100%)
+- **CLI:** 131 tests total (92 passing, 39 failing - unrelated to this work)
+- **Overall:** ~500+ tests across all packages
+
+### Target Coverage
+- **New code:** >95% coverage
+- **Modified code:** maintain existing coverage
+- **Overall project:** >90% coverage
+
+### Test Count Projections
+- **New tests to add:** ~115+ tests across all components
+- **Modified tests:** ~50+ existing tests to update
+- **Total test count after refactor:** ~665+ tests
+
+## Risks & Issues
+
+### Active Risks
+1. **Backward Compatibility** (High Impact, High Probability)
+   - Mitigation: Overloads, deprecation warnings, 2-version overlap
+   - Status: Strategy defined, monitoring during implementation
+
+2. **Scope Creep** (High Impact, Medium Probability)
+   - Mitigation: Strict adherence to plan, defer new features
+   - Status: Plan locked, no scope changes without explicit approval
+
+3. **Test Coverage Gaps** (High Impact, Medium Probability)
+   - Mitigation: TDD strictly enforced, coverage reports
+   - Status: Test strategy defined, will monitor during implementation
+
+### Resolved Risks
+- None yet (just starting)
+
+### Open Issues
+- None yet (just starting)
+
+## Timeline Estimates
+
+**Start Date:** TBD (after plan approval)
+**Estimated Completion:** 7 weeks from start
+**Critical Path:** M1 → M2 → M3 → M5 → M6 → M7
+
+### Weekly Breakdown (Estimated)
+- **Week 1:** ✅ Planning (COMPLETE)
+- **Week 2:** PluginRegistry implementation
+- **Week 3:** PluginLoader implementation
+- **Week 4:** Workspace abstraction (can overlap with Week 3)
+- **Week 5:** Transformation pipeline
+- **Week 6:** CLI restructuring
+- **Week 7:** Integration testing and documentation
+
+## Next Actions
+
+### Immediate (Before Implementation Starts)
+1. **Review plan** with stakeholders/maintainers
+2. **Create creative phase documents** for 3 design decisions:
+   - Workspace API Design
+   - Transformation Composition
+   - CLI Backward Compatibility
+3. **Get approval** to proceed with implementation
+
+### Phase 1a Start (After Approval)
+1. Create `packages/engine/src/plugin-registry.ts` interface
+2. Stub test suite `packages/engine/test/plugin-registry.test.ts`
+3. Define `PluginRegistration` and `PluginRegistry` interfaces
+4. Write failing tests for registry behavior
+
+## Notes
+
+- Planning took longer than expected but resulted in comprehensive design
+- All 5 components are well-defined and testable in isolation
+- Backward compatibility strategy is critical and well-documented
+- Each phase can be merged independently (low risk, incremental value)
+- Consider creating feature flags for gradual rollout
+- Performance benchmarking should happen at each phase

@@ -6,6 +6,11 @@ import type {
   WrittenFile,
   CustomizationType,
 } from '@a16njs/models';
+import {
+  discoverInstalledPlugins,
+  type PluginDiscoveryOptions,
+} from './plugin-discovery.js';
+import { buildMapping, rewriteContent, detectOrphans } from './path-rewriter.js';
 
 /**
  * Options for a conversion operation.
@@ -19,6 +24,12 @@ export interface ConversionOptions {
   root: string;
   /** If true, only discover without writing */
   dryRun?: boolean;
+  /** Override root for discovery (source plugin) */
+  sourceRoot?: string;
+  /** Override root for emission (target plugin) */
+  targetRoot?: string;
+  /** If true, rewrite path references in content during conversion */
+  rewritePathRefs?: boolean;
 }
 
 /**
@@ -60,28 +71,72 @@ export interface PluginInfo {
 }
 
 /**
+ * Result of discovering and registering plugins.
+ */
+export interface DiscoverAndRegisterResult {
+  /** Plugin IDs that were successfully registered */
+  registered: string[];
+  /** Plugin IDs that were skipped (already registered) */
+  skipped: string[];
+  /** Errors encountered during discovery */
+  errors: Array<{ packageName: string; error: string }>;
+}
+
+/**
  * The a16n conversion engine.
  * Orchestrates plugins to discover and emit agent customizations.
  */
 export class A16nEngine {
   private plugins: Map<string, A16nPlugin> = new Map();
+  private pluginSources: Map<string, 'bundled' | 'installed'> = new Map();
 
   /**
    * Create a new engine with the given plugins.
-   * @param plugins - Plugins to register
+   * @param plugins - Plugins to register (registered as 'bundled')
    */
   constructor(plugins: A16nPlugin[] = []) {
     for (const plugin of plugins) {
-      this.registerPlugin(plugin);
+      this.registerPlugin(plugin, 'bundled');
     }
   }
 
   /**
    * Register a plugin with the engine.
    * @param plugin - The plugin to register
+   * @param source - Whether the plugin is bundled or installed
    */
-  registerPlugin(plugin: A16nPlugin): void {
+  registerPlugin(plugin: A16nPlugin, source: 'bundled' | 'installed' = 'bundled'): void {
     this.plugins.set(plugin.id, plugin);
+    this.pluginSources.set(plugin.id, source);
+  }
+
+  /**
+   * Discover and register installed plugins from node_modules.
+   * @param options - Plugin discovery options
+   * @returns Result with registered, skipped, and error info
+   */
+  async discoverAndRegisterPlugins(
+    options?: PluginDiscoveryOptions,
+  ): Promise<DiscoverAndRegisterResult> {
+    const result = await discoverInstalledPlugins(options);
+    const registered: string[] = [];
+    const skipped: string[] = [];
+
+    for (const plugin of result.plugins) {
+      if (this.plugins.has(plugin.id)) {
+        // Already registered (bundled takes precedence)
+        skipped.push(plugin.id);
+      } else {
+        this.registerPlugin(plugin, 'installed');
+        registered.push(plugin.id);
+      }
+    }
+
+    return {
+      registered,
+      skipped,
+      errors: result.errors,
+    };
   }
 
   /**
@@ -93,7 +148,7 @@ export class A16nEngine {
       id: p.id,
       name: p.name,
       supports: p.supports,
-      source: 'bundled' as const,
+      source: this.pluginSources.get(p.id) ?? 'bundled',
     }));
   }
 
@@ -136,18 +191,80 @@ export class A16nEngine {
       throw new Error(`Unknown target: ${options.target}`);
     }
 
+    // Use sourceRoot for discovery if provided, otherwise use root
+    const discoverRoot = options.sourceRoot ?? options.root;
+    // Use targetRoot for emission if provided, otherwise use root
+    const emitRoot = options.targetRoot ?? options.root;
+
     // Discover from source
-    const discovery = await sourcePlugin.discover(options.root);
+    const discovery = await sourcePlugin.discover(discoverRoot);
+
+    // Collect warnings
+    const warnings: Warning[] = [...discovery.warnings];
+
+    // Determine items to emit (may be rewritten if rewritePathRefs is true)
+    let itemsToEmit = discovery.items;
 
     // Emit to target (pass dryRun to calculate what would be written)
-    const emission = await targetPlugin.emit(discovery.items, options.root, {
+    const emission = await targetPlugin.emit(itemsToEmit, emitRoot, {
       dryRun: options.dryRun,
     });
+
+    warnings.push(...emission.warnings);
+
+    // If path rewriting is enabled, rewrite paths in the content
+    if (options.rewritePathRefs && emission.written.length > 0) {
+      // Build mapping from source paths to target paths
+      const mapping = buildMapping(
+        discovery.items,
+        emission.written,
+        discoverRoot,
+        emitRoot,
+      );
+
+      // Rewrite content using the mapping
+      const rewriteResult = rewriteContent(discovery.items, mapping);
+      itemsToEmit = rewriteResult.items;
+
+      // Detect orphan path references (paths that weren't converted)
+      // For cursor plugin, we look for .cursor/rules/ and .cursor/skills/ paths
+      // For claude plugin, we look for .claude/rules/ and .claude/skills/ paths
+      let sourcePluginPrefixes: string[] = [];
+      let sourceExtensions: string[] = [];
+
+      if (options.source === 'cursor') {
+        sourcePluginPrefixes = ['.cursor/rules/', '.cursor/skills/'];
+        sourceExtensions = ['.mdc', '.md'];
+      } else if (options.source === 'claude') {
+        sourcePluginPrefixes = ['.claude/rules/', '.claude/skills/'];
+        sourceExtensions = ['.md'];
+      }
+
+      const orphanWarnings = detectOrphans(
+        itemsToEmit,
+        mapping,
+        sourcePluginPrefixes,
+        sourceExtensions,
+      );
+      warnings.push(...orphanWarnings);
+
+      // Re-emit with rewritten content
+      const rewrittenEmission = await targetPlugin.emit(itemsToEmit, emitRoot, {
+        dryRun: options.dryRun,
+      });
+
+      return {
+        discovered: discovery.items,
+        written: rewrittenEmission.written,
+        warnings,
+        unsupported: rewrittenEmission.unsupported,
+      };
+    }
 
     return {
       discovered: discovery.items,
       written: emission.written,
-      warnings: [...discovery.warnings, ...emission.warnings],
+      warnings,
       unsupported: emission.unsupported,
     };
   }
