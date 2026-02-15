@@ -7,6 +7,8 @@
 
 The engine was built incrementally with features added as patches (source tracking, split roots, path rewriting). This task redesigns the core architecture to make these features foundational patterns, resulting in a more elegant, maintainable, and extensible system.
 
+Creative Design Decisions & Justification: [./creative/creative-architectural-redesign.md](creative/creative-architectural-redesign.md)
+
 ## Strategic Goals
 
 1. **Eliminate parallel data structures** - Replace dual Maps with unified PluginRegistry
@@ -451,5 +453,5 @@ graph TD
 - This is a major refactoring that touches core architecture
 - Strict TDD discipline required throughout
 - Backward compatibility is critical - existing plugins must not break
-- Each phase can be merged independently (incremental improvement)
+- Each hase can be merged independently (incremental improvement)
 - Consider feature flags for gradual rollout of new APIs
