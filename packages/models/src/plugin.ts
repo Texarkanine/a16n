@@ -55,6 +55,17 @@ export interface EmitOptions {
  * The plugin interface that all a16n plugins must implement.
  * Plugins bridge between a16n's internal model and a specific tool's format.
  */
+/**
+ * Path patterns for a plugin, used by transformations like path rewriting
+ * to identify and handle file references specific to this plugin's format.
+ */
+export interface PluginPathPatterns {
+  /** Directory prefixes used by this plugin (e.g., ['.cursor/rules/', '.cursor/skills/']) */
+  prefixes: string[];
+  /** File extensions used by this plugin (e.g., ['.mdc', '.md']) */
+  extensions: string[];
+}
+
 export interface A16nPlugin {
   /** Unique identifier, e.g., 'cursor', 'claude', 'codex' */
   id: string;
@@ -62,6 +73,8 @@ export interface A16nPlugin {
   name: string;
   /** Which customization types this plugin supports */
   supports: CustomizationType[];
+  /** Path patterns for this plugin's file format (used by transformations) */
+  pathPatterns?: PluginPathPatterns;
 
   /**
    * Discover all agent customizations in a directory tree.

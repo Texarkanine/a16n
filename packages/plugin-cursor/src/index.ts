@@ -17,6 +17,10 @@ const cursorPlugin: A16nPlugin = {
     CustomizationType.AgentIgnore,
     CustomizationType.ManualPrompt,
   ],
+  pathPatterns: {
+    prefixes: ['.cursor/rules/', '.cursor/skills/'],
+    extensions: ['.mdc', '.md'],
+  },
 
   discover,
   emit,

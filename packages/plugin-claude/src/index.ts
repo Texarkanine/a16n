@@ -17,6 +17,10 @@ const claudePlugin: A16nPlugin = {
     CustomizationType.AgentIgnore,
     CustomizationType.ManualPrompt,
   ],
+  pathPatterns: {
+    prefixes: ['.claude/rules/', '.claude/skills/'],
+    extensions: ['.md'],
+  },
 
   discover,
   emit,

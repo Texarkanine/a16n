@@ -7,9 +7,13 @@ import type {
   CustomizationType,
 } from '@a16njs/models';
 import { type PluginDiscoveryOptions } from './plugin-discovery.js';
-import { buildMapping, rewriteContent, detectOrphans } from './path-rewriter.js';
 import { PluginRegistry } from './plugin-registry.js';
 import { PluginLoader, PluginConflictStrategy } from './plugin-loader.js';
+import {
+  type ContentTransformation,
+  type TransformationContext,
+  PathRewritingTransformation,
+} from './transformation.js';
 
 /**
  * Options for a conversion operation.
@@ -27,8 +31,13 @@ export interface ConversionOptions {
   sourceRoot?: string;
   /** Override root for emission (target plugin) */
   targetRoot?: string;
-  /** If true, rewrite path references in content during conversion */
+  /**
+   * If true, rewrite path references in content during conversion.
+   * @deprecated Use `transformations: [new PathRewritingTransformation()]` instead.
+   */
   rewritePathRefs?: boolean;
+  /** Content transformations to apply between discovery and emission */
+  transformations?: ContentTransformation[];
 }
 
 /**
@@ -196,64 +205,43 @@ export class A16nEngine {
     // Collect warnings
     const warnings: Warning[] = [...discovery.warnings];
 
-    // Determine items to emit (may be rewritten if rewritePathRefs is true)
+    // Build transformations list
+    const transformations: ContentTransformation[] = options.transformations
+      ? [...options.transformations]
+      : [];
+
+    // Backward compatibility: rewritePathRefs maps to PathRewritingTransformation
+    if (options.rewritePathRefs && !transformations.some((t) => t.id === 'path-rewriting')) {
+      transformations.push(new PathRewritingTransformation());
+    }
+
+    // Apply transformation pipeline
     let itemsToEmit = discovery.items;
 
-    // Emit to target (pass dryRun to calculate what would be written)
+    if (transformations.length > 0) {
+      for (const transformation of transformations) {
+        const transformContext: TransformationContext = {
+          items: itemsToEmit,
+          sourcePlugin,
+          targetPlugin,
+          sourceRoot: discoverRoot,
+          targetRoot: emitRoot,
+          trialEmit: (items) =>
+            targetPlugin.emit(items, emitRoot, { dryRun: true }),
+        };
+
+        const result = await transformation.transform(transformContext);
+        itemsToEmit = result.items;
+        warnings.push(...result.warnings);
+      }
+    }
+
+    // Single emission at the end
     const emission = await targetPlugin.emit(itemsToEmit, emitRoot, {
       dryRun: options.dryRun,
     });
 
     warnings.push(...emission.warnings);
-
-    // If path rewriting is enabled, rewrite paths in the content
-    if (options.rewritePathRefs && emission.written.length > 0) {
-      // Build mapping from source paths to target paths
-      const mapping = buildMapping(
-        discovery.items,
-        emission.written,
-        discoverRoot,
-        emitRoot,
-      );
-
-      // Rewrite content using the mapping
-      const rewriteResult = rewriteContent(discovery.items, mapping);
-      itemsToEmit = rewriteResult.items;
-
-      // Detect orphan path references (paths that weren't converted)
-      // For cursor plugin, we look for .cursor/rules/ and .cursor/skills/ paths
-      // For claude plugin, we look for .claude/rules/ and .claude/skills/ paths
-      let sourcePluginPrefixes: string[] = [];
-      let sourceExtensions: string[] = [];
-
-      if (options.source === 'cursor') {
-        sourcePluginPrefixes = ['.cursor/rules/', '.cursor/skills/'];
-        sourceExtensions = ['.mdc', '.md'];
-      } else if (options.source === 'claude') {
-        sourcePluginPrefixes = ['.claude/rules/', '.claude/skills/'];
-        sourceExtensions = ['.md'];
-      }
-
-      const orphanWarnings = detectOrphans(
-        itemsToEmit,
-        mapping,
-        sourcePluginPrefixes,
-        sourceExtensions,
-      );
-      warnings.push(...orphanWarnings);
-
-      // Re-emit with rewritten content
-      const rewrittenEmission = await targetPlugin.emit(itemsToEmit, emitRoot, {
-        dryRun: options.dryRun,
-      });
-
-      return {
-        discovered: discovery.items,
-        written: rewrittenEmission.written,
-        warnings,
-        unsupported: rewrittenEmission.unsupported,
-      };
-    }
 
     return {
       discovered: discovery.items,

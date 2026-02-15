@@ -16,6 +16,7 @@ export {
 // Plugin interface
 export {
   type A16nPlugin,
+  type PluginPathPatterns,
   type DiscoveryResult,
   type EmitResult,
   type EmitOptions,
