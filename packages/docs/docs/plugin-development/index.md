@@ -5,14 +5,6 @@ description: How to create plugins for a16n
 
 # Plugin Development
 
-:::danger Work in Progress
-
-**This library is currently in early development (pre-1.0).** The plugin API is subject to change without notice. If you're interested in building a plugin, please wait until the API stabilizes or be prepared to update your code frequently.
-
-:::
-
-## Overview
-
 a16n uses a plugin architecture to support different AI coding tools. Each plugin handles:
 
 1. **Discovery** - Finding agent customization files in a project
@@ -20,7 +12,7 @@ a16n uses a plugin architecture to support different AI coding tools. Each plugi
 
 ## Plugin Interface
 
-Plugins implement the `A16nPlugin` interface from `@a16njs/models`. See the [Models API Reference](/models/api) for complete interface documentation.
+Plugins implement the `A16nPlugin` interface from `@a16njs/models`; see the [Models API Reference](/models/api) for complete interface documentation.
 
 The key methods are:
 
@@ -48,21 +40,11 @@ const myPlugin: A16nPlugin = {
 export default myPlugin;
 ```
 
----
-
 ## Key Concepts
 
 ### Customization Types
 
-Plugins declare which types they support via the `supports` array:
-
-- `GlobalPrompt` - Always-applied system prompts
-- `SimpleAgentSkill` - Description-triggered contextual rules
-- `FileRule` - File pattern-triggered rules
-- `AgentIgnore` - File ignore patterns
-- `ManualPrompt` - Slash commands
-
-See [Understanding Conversions](/understanding-conversions) for detailed explanations.
+Plugins declare which types they support via the `supports` array. Entries are instances of [CustomizationType](/models/#customizationtype) from `@a16njs/models`.
 
 ### Discovery
 
@@ -106,16 +88,14 @@ async emit(
 }
 ```
 
----
-
 ## Project Structure
 
 Recommended plugin structure:
 
 ```
-packages/plugin-example/
+a16n-plugin-example/
 ├── src/
-│   ├── index.ts        # Plugin entry point & exports
+│   ├── index.ts        # Plugin entry point & default export
 │   ├── discover.ts     # Discovery logic
 │   └── emit.ts         # Emission logic
 ├── test/
@@ -127,52 +107,72 @@ packages/plugin-example/
 └── README.md
 ```
 
----
+### package.json Requirements
+
+Your `package.json` must:
+
+- Use the `a16n-plugin-` prefix in the package name (required for auto-discovery)
+- Set `main` to point to your built entry file
+- Declare `@a16njs/models` as a `peerDependency`
+
+```json
+{
+  "name": "a16n-plugin-example",
+  "type": "module",
+  "main": "./dist/index.js",
+  "peerDependencies": {
+    "@a16njs/models": "^0.9.0"
+  },
+  "devDependencies": {
+    "@a16njs/models": "^0.9.0"
+  }
+}
+```
 
 ## Learning from Existing Plugins
 
 The best way to understand plugin development is to study the existing implementations:
 
-### [@a16njs/plugin-cursor](/plugin-cursor)
+**[@a16njs/plugin-cursor](/plugin-cursor)**
 
 The Cursor plugin demonstrates:
 - MDC file parsing (YAML frontmatter + markdown body)
 - Multiple file types (rules, commands, ignore files)
 - Frontmatter-based type classification
 
-Key files:
-- `discover.ts` - Glob-based file discovery, MDC parsing
-- `emit.ts` - MDC generation with proper frontmatter
-- `mdc.ts` - MDC format utilities
-
-### [@a16njs/plugin-claude](/plugin-claude)
+**[@a16njs/plugin-claude](/plugin-claude)**
 
 The Claude plugin demonstrates:
-- Single-file aggregation (`CLAUDE.md` merging)
 - Settings JSON handling
-- Hook configuration generation for FileRules
 
-Key files:
-- `discover.ts` - CLAUDE.md parsing, settings.json reading
-- `emit.ts` - Section-based file merging, hook generation
+**[a16n-plugin-cursorrules](https://github.com/Texarkanine/a16n-plugin-cursorrules)**
 
----
+The cursorrules plugin demonstrates:
+- Community plugin naming format (`a16n-plugin-*`)
+- Discovery-only support (no emission)
 
 ## Publishing
 
-Community plugins can be published to npm:
+Community plugins should be published to npm with the `a16n-plugin-` prefix:
 
-- **Scoped**: `@a16njs/plugin-<name>` (requires organization membership)
-- **Unscoped**: `a16n-plugin-<name>` (anyone can publish)
+```
+a16n-plugin-<name>
+```
 
-a16n automatically discovers installed plugins matching these patterns.
+a16n automatically discovers installed packages matching the `a16n-plugin-*` naming convention by scanning `node_modules` directories. No registration or configuration is needed - just `npm install` the plugin alongside a16n.
 
----
+:::note
+The `@a16njs/plugin-*` scoped packages are reserved for bundled plugins maintained in the a16n monorepo. Community plugins should use the unscoped `a16n-plugin-*` convention.
+:::
+
 
 ## See Also
 
 - [Models API Reference](/models/api) - Plugin interface documentation
-- [Plugin: Cursor](/plugin-cursor) - Cursor implementation details
-- [Plugin: Claude](/plugin-claude) - Claude implementation details
-- [Understanding Conversions](/understanding-conversions) - Type taxonomy
+- Plugins:
+	- [Plugin: Cursor](/plugin-cursor) - Cursor implementation details
+	- [Plugin: Claude](/plugin-claude) - Claude implementation details
+	- [Plugin: a16n](/plugin-a16n) - a16n implementation details
+	- [Plugin: cursorrules](/plugin-cursorrules) - cursorrules implementation details
+- [Understanding Conversions](/understanding-conversions) - Translation can be hard!
 - [GitHub Repository](https://github.com/Texarkanine/a16n) - Source code

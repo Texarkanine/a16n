@@ -6,6 +6,7 @@ import { A16nEngine } from '../src/index.js';
 import cursorPlugin from '@a16njs/plugin-cursor';
 import claudePlugin from '@a16njs/plugin-claude';
 import { CustomizationType, WarningCode } from '@a16njs/models';
+import type { A16nPlugin } from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tempDir = path.join(__dirname, '.temp-engine-test');
@@ -45,6 +46,126 @@ describe('A16nEngine', () => {
       const plugins = engine.listPlugins();
 
       expect(plugins[0]?.supports).toContain(CustomizationType.GlobalPrompt);
+    });
+  });
+
+  describe('source tracking', () => {
+    it('should report source as bundled for constructor-registered plugins', () => {
+      const engine = new A16nEngine([cursorPlugin]);
+      const plugins = engine.listPlugins();
+
+      expect(plugins).toHaveLength(1);
+      expect(plugins[0]?.source).toBe('bundled');
+    });
+
+    it('should report source as installed for plugins registered with source=installed', () => {
+      const fakePlugin: A16nPlugin = {
+        id: 'fake-installed',
+        name: 'Fake Installed Plugin',
+        supports: [CustomizationType.GlobalPrompt],
+        discover: async () => ({ items: [], warnings: [] }),
+        emit: async () => ({ written: [], warnings: [], unsupported: [] }),
+      };
+
+      const engine = new A16nEngine();
+      engine.registerPlugin(fakePlugin, 'installed');
+      const plugins = engine.listPlugins();
+
+      expect(plugins).toHaveLength(1);
+      expect(plugins[0]?.source).toBe('installed');
+    });
+
+    it('should return the plugin via getPlugin after source tracking refactor', () => {
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+
+      const cursor = engine.getPlugin('cursor');
+      expect(cursor?.id).toBe('cursor');
+      expect(cursor?.name).toBe('Cursor IDE');
+    });
+  });
+
+  describe('discoverAndRegisterPlugins', () => {
+    beforeEach(async () => {
+      await fs.mkdir(tempDir, { recursive: true });
+    });
+
+    afterEach(async () => {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    });
+
+    it('should register discovered plugins with source=installed', async () => {
+      // Create a temp dir with a fake plugin
+      const searchPath = path.join(tempDir, 'discover-node_modules');
+      const pkgDir = path.join(searchPath, 'a16n-plugin-disco');
+      await fs.mkdir(pkgDir, { recursive: true });
+      await fs.writeFile(
+        path.join(pkgDir, 'package.json'),
+        JSON.stringify({ name: 'a16n-plugin-disco', type: 'module', main: 'index.js' }),
+      );
+      await fs.writeFile(
+        path.join(pkgDir, 'index.js'),
+        `export default {
+          id: 'disco', name: 'Disco Plugin', supports: ['global-prompt'],
+          discover: async () => ({ items: [], warnings: [] }),
+          emit: async () => ({ written: [], warnings: [], unsupported: [] }),
+        };`,
+      );
+
+      const engine = new A16nEngine([cursorPlugin]);
+      const result = await engine.discoverAndRegisterPlugins({ searchPaths: [searchPath] });
+
+      expect(result.registered).toContain('disco');
+      expect(result.errors).toHaveLength(0);
+
+      // Verify it's listed as installed
+      const plugins = engine.listPlugins();
+      const disco = plugins.find((p) => p.id === 'disco');
+      expect(disco?.source).toBe('installed');
+    });
+
+    it('should skip installed plugin when bundled plugin has same ID', async () => {
+      const searchPath = path.join(tempDir, 'conflict-node_modules');
+      const pkgDir = path.join(searchPath, 'a16n-plugin-cursor');
+      await fs.mkdir(pkgDir, { recursive: true });
+      await fs.writeFile(
+        path.join(pkgDir, 'package.json'),
+        JSON.stringify({ name: 'a16n-plugin-cursor', type: 'module', main: 'index.js' }),
+      );
+      await fs.writeFile(
+        path.join(pkgDir, 'index.js'),
+        `export default {
+          id: 'cursor', name: 'Imposter Cursor', supports: ['global-prompt'],
+          discover: async () => ({ items: [], warnings: [] }),
+          emit: async () => ({ written: [], warnings: [], unsupported: [] }),
+        };`,
+      );
+
+      const engine = new A16nEngine([cursorPlugin]);
+      const result = await engine.discoverAndRegisterPlugins({ searchPaths: [searchPath] });
+
+      expect(result.skipped).toContain('cursor');
+      expect(result.registered).not.toContain('cursor');
+
+      // Bundled plugin should still be there, unchanged
+      const plugin = engine.getPlugin('cursor');
+      expect(plugin?.name).toBe('Cursor IDE'); // original bundled name, not imposter
+    });
+
+    it('should return errors for invalid plugins without crashing', async () => {
+      const searchPath = path.join(tempDir, 'error-node_modules');
+      const pkgDir = path.join(searchPath, 'a16n-plugin-bad');
+      await fs.mkdir(pkgDir, { recursive: true });
+      await fs.writeFile(
+        path.join(pkgDir, 'package.json'),
+        JSON.stringify({ name: 'a16n-plugin-bad', type: 'module', main: 'index.js' }),
+      );
+      await fs.writeFile(path.join(pkgDir, 'index.js'), 'invalid javascript }{}{');
+
+      const engine = new A16nEngine([cursorPlugin]);
+      const result = await engine.discoverAndRegisterPlugins({ searchPaths: [searchPath] });
+
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.packageName).toBe('a16n-plugin-bad');
     });
   });
 
