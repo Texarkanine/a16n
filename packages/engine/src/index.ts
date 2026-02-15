@@ -11,6 +11,7 @@ import {
   type PluginDiscoveryOptions,
 } from './plugin-discovery.js';
 import { buildMapping, rewriteContent, detectOrphans } from './path-rewriter.js';
+import { PluginRegistry } from './plugin-registry.js';
 
 /**
  * Options for a conversion operation.
@@ -87,8 +88,7 @@ export interface DiscoverAndRegisterResult {
  * Orchestrates plugins to discover and emit agent customizations.
  */
 export class A16nEngine {
-  private plugins: Map<string, A16nPlugin> = new Map();
-  private pluginSources: Map<string, 'bundled' | 'installed'> = new Map();
+  private registry: PluginRegistry = new PluginRegistry();
 
   /**
    * Create a new engine with the given plugins.
@@ -106,8 +106,7 @@ export class A16nEngine {
    * @param source - Whether the plugin is bundled or installed
    */
   registerPlugin(plugin: A16nPlugin, source: 'bundled' | 'installed' = 'bundled'): void {
-    this.plugins.set(plugin.id, plugin);
-    this.pluginSources.set(plugin.id, source);
+    this.registry.register({ plugin, source });
   }
 
   /**
@@ -123,7 +122,7 @@ export class A16nEngine {
     const skipped: string[] = [];
 
     for (const plugin of result.plugins) {
-      if (this.plugins.has(plugin.id)) {
+      if (this.registry.has(plugin.id)) {
         // Already registered (bundled takes precedence)
         skipped.push(plugin.id);
       } else {
@@ -144,11 +143,11 @@ export class A16nEngine {
    * @returns Array of plugin info
    */
   listPlugins(): PluginInfo[] {
-    return Array.from(this.plugins.values()).map((p) => ({
-      id: p.id,
-      name: p.name,
-      supports: p.supports,
-      source: this.pluginSources.get(p.id) ?? 'bundled',
+    return this.registry.list().map((r) => ({
+      id: r.plugin.id,
+      name: r.plugin.name,
+      supports: r.plugin.supports,
+      source: r.source,
     }));
   }
 
@@ -158,7 +157,7 @@ export class A16nEngine {
    * @returns The plugin or undefined if not found
    */
   getPlugin(id: string): A16nPlugin | undefined {
-    return this.plugins.get(id);
+    return this.registry.getPlugin(id);
   }
 
   /**
