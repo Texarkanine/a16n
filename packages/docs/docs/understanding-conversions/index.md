@@ -62,8 +62,8 @@ Some impossible conversions include, but are not necessarily limited to:
 
 | Feature                 | From   | To     | Reason                                                                      |
 |-------------------------|--------|--------|-----------------------------------------------------------------------------|
-| Complex Commands        | Cursor | Claude | Commands with `$ARGUMENTS`, `!`, `@`, or `allowed-tools` have no equivalent |
-| Skills with hooks       | Claude | Cursor | Cursor skills do not support hooks                                          |
+| Complex Commands        | Cursor | Claude | Commands with `$ARGUMENTS`, `!`, or `allowed-tools` have no equivalent |
+| Skills with hooks       | Claude | Cursor | skills with hooks are unique to Claude Code                                          |
 
 ## Non-Invertible
 
@@ -73,6 +73,61 @@ For example, `CLAUDE.md` converts into a Cursor Rule with `alwaysApply: true`. B
 `.claude/rules/*.md` file, rather than appending or creating a `CLAUDE.md` file.
 
 Since a16n doesn't know what conversions you may attempt after the first, it cannot warn you about such non-invertible (or multi-step) lossiness like this.
+
+### GlobalPrompts in Subdirectories are FileRules
+
+A `GlobalPrompt` in a subdirectory is semantically the same as a `FileRule` in the root with globs that match the subdirectory.
+
+For example, these are *semantically* the same rule:
+
+| Claude Code | Cursor |
+| - | - |
+| `packages/foo/src/CLAUDE.md` | `.cursor/rules/CLAUDE.mdc`<br>with <code>globs: packages/foo/src/**</code> |
+
+However, the above translation is not fully faithful to the original configuration!
+
+In the example above, it's clearly a monorepo and someone's tried to set up "global" rules for Claude *in the `foo` package*. While an AI agent would encounter the same guidance if this were translated to a `FileRule` for Cursor, it is *more correct* to translate it to a `GlobalPrompt` in the same location:
+
+`packages/foo/src/.cursor/rules/CLAUDE.mdc` with `alwaysApply: true`.
+
+This keeps the rule as "a global rule for this package, *in this package*," which is closer to the original rule's intent.
+
+---
+
+It's not always possible to do this, though! In the above example the translation is invertible: translating that Cursor rule back to Claude will produce a `CLAUDE.md` in the original directory.
+
+But what if Cursor specifies *two* `alwaysApply: true` rules in a subdirectory?
+
+```
+packages/
+└── foo/
+    └── src/
+        └── .cursor/
+            └── rules/
+                ├── rule1.mdc
+                └── rule2.mdc
+```
+
+These would need to be combined into a single `CLAUDE.md`, but that cannot be done cleanly, nor repeatably. So, in this case, you might prefer to hoist both rules up to the root:
+
+```
+.claude/
+└── rules/
+    ├── rule1.md
+    └── rule2.md
+```
+
+where each of the rules has `paths:` in its frontmatter:
+
+```yaml
+paths:
+  - "packages/foo/src/**"
+```
+
+This sidesteps nasty edge cases around combining content into a single file (especially if there was an existing `CLAUDE.md` in that subdirectory, with its own unique content), and with repeatability.
+Of course, it still loses the "rules for the package/directory tree live in that directory tree" intent.
+
+Plugins that may run into this situation should clearly document the solution(s) they choose, and emit appropriate warnings when one of these "lossy" translations occurs.
 
 ## Example Warning Output
 

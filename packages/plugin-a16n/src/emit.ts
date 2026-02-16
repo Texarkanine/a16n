@@ -20,11 +20,13 @@ import {
   type EmitOptions,
   type WrittenFile,
   type Warning,
+  type Workspace,
   CustomizationType,
   WarningCode,
   isAgentSkillIO,
   isManualPrompt,
   writeAgentSkillIO,
+  resolveRoot,
 } from '@a16njs/models';
 import { formatIRFile } from './format.js';
 import { slugify } from './utils.js';
@@ -45,15 +47,16 @@ async function pathExists(p: string): Promise<boolean> {
  * Emit IR items to .a16n/ directory structure.
  * 
  * @param models - IR items to emit
- * @param root - Project root directory
+ * @param rootOrWorkspace - Project root directory path or Workspace instance
  * @param options - Emission options (dryRun, etc.)
  * @returns EmitResult with written files and warnings
  */
 export async function emit(
   models: AgentCustomization[],
-  root: string,
+  rootOrWorkspace: string | Workspace,
   options?: EmitOptions
 ): Promise<EmitResult> {
+  const root = resolveRoot(rootOrWorkspace);
   const written: WrittenFile[] = [];
   const warnings: Warning[] = [];
   const unsupported: AgentCustomization[] = [];

@@ -16,6 +16,7 @@ export {
 // Plugin interface
 export {
   type A16nPlugin,
+  type PluginPathPatterns,
   type DiscoveryResult,
   type EmitResult,
   type EmitOptions,
@@ -47,6 +48,9 @@ export {
   areVersionsCompatible,
   getCurrentVersion,
 } from './version.js';
+
+// Workspace abstraction
+export { type Workspace, type WorkspaceEntry, resolveRoot, LocalWorkspace, toWorkspace } from './workspace.js';
 
 // AgentSkills.io utilities
 export {

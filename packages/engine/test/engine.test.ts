@@ -3,9 +3,11 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { A16nEngine } from '../src/index.js';
+import { LocalWorkspace } from '../src/workspace.js';
 import cursorPlugin from '@a16njs/plugin-cursor';
 import claudePlugin from '@a16njs/plugin-claude';
 import { CustomizationType, WarningCode } from '@a16njs/models';
+import type { A16nPlugin } from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tempDir = path.join(__dirname, '.temp-engine-test');
@@ -45,6 +47,126 @@ describe('A16nEngine', () => {
       const plugins = engine.listPlugins();
 
       expect(plugins[0]?.supports).toContain(CustomizationType.GlobalPrompt);
+    });
+  });
+
+  describe('source tracking', () => {
+    it('should report source as bundled for constructor-registered plugins', () => {
+      const engine = new A16nEngine([cursorPlugin]);
+      const plugins = engine.listPlugins();
+
+      expect(plugins).toHaveLength(1);
+      expect(plugins[0]?.source).toBe('bundled');
+    });
+
+    it('should report source as installed for plugins registered with source=installed', () => {
+      const fakePlugin: A16nPlugin = {
+        id: 'fake-installed',
+        name: 'Fake Installed Plugin',
+        supports: [CustomizationType.GlobalPrompt],
+        discover: async () => ({ items: [], warnings: [] }),
+        emit: async () => ({ written: [], warnings: [], unsupported: [] }),
+      };
+
+      const engine = new A16nEngine();
+      engine.registerPlugin(fakePlugin, 'installed');
+      const plugins = engine.listPlugins();
+
+      expect(plugins).toHaveLength(1);
+      expect(plugins[0]?.source).toBe('installed');
+    });
+
+    it('should return the plugin via getPlugin after source tracking refactor', () => {
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+
+      const cursor = engine.getPlugin('cursor');
+      expect(cursor?.id).toBe('cursor');
+      expect(cursor?.name).toBe('Cursor IDE');
+    });
+  });
+
+  describe('discoverAndRegisterPlugins', () => {
+    beforeEach(async () => {
+      await fs.mkdir(tempDir, { recursive: true });
+    });
+
+    afterEach(async () => {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    });
+
+    it('should register discovered plugins with source=installed', async () => {
+      // Create a temp dir with a fake plugin
+      const searchPath = path.join(tempDir, 'discover-node_modules');
+      const pkgDir = path.join(searchPath, 'a16n-plugin-disco');
+      await fs.mkdir(pkgDir, { recursive: true });
+      await fs.writeFile(
+        path.join(pkgDir, 'package.json'),
+        JSON.stringify({ name: 'a16n-plugin-disco', type: 'module', main: 'index.js' }),
+      );
+      await fs.writeFile(
+        path.join(pkgDir, 'index.js'),
+        `export default {
+          id: 'disco', name: 'Disco Plugin', supports: ['global-prompt'],
+          discover: async () => ({ items: [], warnings: [] }),
+          emit: async () => ({ written: [], warnings: [], unsupported: [] }),
+        };`,
+      );
+
+      const engine = new A16nEngine([cursorPlugin]);
+      const result = await engine.discoverAndRegisterPlugins({ searchPaths: [searchPath] });
+
+      expect(result.registered).toContain('disco');
+      expect(result.errors).toHaveLength(0);
+
+      // Verify it's listed as installed
+      const plugins = engine.listPlugins();
+      const disco = plugins.find((p) => p.id === 'disco');
+      expect(disco?.source).toBe('installed');
+    });
+
+    it('should skip installed plugin when bundled plugin has same ID', async () => {
+      const searchPath = path.join(tempDir, 'conflict-node_modules');
+      const pkgDir = path.join(searchPath, 'a16n-plugin-cursor');
+      await fs.mkdir(pkgDir, { recursive: true });
+      await fs.writeFile(
+        path.join(pkgDir, 'package.json'),
+        JSON.stringify({ name: 'a16n-plugin-cursor', type: 'module', main: 'index.js' }),
+      );
+      await fs.writeFile(
+        path.join(pkgDir, 'index.js'),
+        `export default {
+          id: 'cursor', name: 'Imposter Cursor', supports: ['global-prompt'],
+          discover: async () => ({ items: [], warnings: [] }),
+          emit: async () => ({ written: [], warnings: [], unsupported: [] }),
+        };`,
+      );
+
+      const engine = new A16nEngine([cursorPlugin]);
+      const result = await engine.discoverAndRegisterPlugins({ searchPaths: [searchPath] });
+
+      expect(result.skipped).toContain('cursor');
+      expect(result.registered).not.toContain('cursor');
+
+      // Bundled plugin should still be there, unchanged
+      const plugin = engine.getPlugin('cursor');
+      expect(plugin?.name).toBe('Cursor IDE'); // original bundled name, not imposter
+    });
+
+    it('should return errors for invalid plugins without crashing', async () => {
+      const searchPath = path.join(tempDir, 'error-node_modules');
+      const pkgDir = path.join(searchPath, 'a16n-plugin-bad');
+      await fs.mkdir(pkgDir, { recursive: true });
+      await fs.writeFile(
+        path.join(pkgDir, 'package.json'),
+        JSON.stringify({ name: 'a16n-plugin-bad', type: 'module', main: 'index.js' }),
+      );
+      await fs.writeFile(path.join(pkgDir, 'index.js'), 'invalid javascript }{}{');
+
+      const engine = new A16nEngine([cursorPlugin]);
+      const result = await engine.discoverAndRegisterPlugins({ searchPaths: [searchPath] });
+
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.packageName).toBe('a16n-plugin-bad');
     });
   });
 
@@ -423,6 +545,128 @@ describe('A16nEngine', () => {
       expect(result.written).toHaveLength(2);
       // But no files should actually exist
       await expect(fs.access(path.join(tempDir, '.claude', 'rules'))).rejects.toThrow();
+    });
+  });
+
+  describe('workspace integration', () => {
+    beforeEach(async () => {
+      await fs.mkdir(tempDir, { recursive: true });
+    });
+
+    afterEach(async () => {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    });
+
+    it('should discover using a Workspace instead of string root (WS1)', async () => {
+      await fs.writeFile(path.join(tempDir, 'CLAUDE.md'), 'Test content');
+      const workspace = new LocalWorkspace('test-source', tempDir);
+
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+      const result = await engine.discover('claude', workspace);
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]?.type).toBe(CustomizationType.GlobalPrompt);
+    });
+
+    it('should convert using Workspace for source and target (WS2)', async () => {
+      await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(tempDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nWorkspace test rule'
+      );
+
+      const sourceWs = new LocalWorkspace('source', tempDir);
+      const targetWs = new LocalWorkspace('target', tempDir);
+
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+        sourceWorkspace: sourceWs,
+        targetWorkspace: targetWs,
+      });
+
+      expect(result.discovered).toHaveLength(1);
+      expect(result.written).toHaveLength(1);
+      expect(result.written[0]?.path).toContain('.claude/rules/');
+    });
+
+    it('should accept Workspace in convert with split roots (WS3)', async () => {
+      // Create separate source and target directories
+      const sourceDir = path.join(tempDir, 'source-project');
+      const targetDir = path.join(tempDir, 'target-project');
+      await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
+      await fs.mkdir(targetDir, { recursive: true });
+      await fs.writeFile(
+        path.join(sourceDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nSplit workspace test'
+      );
+
+      const sourceWs = new LocalWorkspace('source', sourceDir);
+      const targetWs = new LocalWorkspace('target', targetDir);
+
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+        sourceWorkspace: sourceWs,
+        targetWorkspace: targetWs,
+      });
+
+      expect(result.discovered).toHaveLength(1);
+      expect(result.written).toHaveLength(1);
+
+      // Verify file was written to target workspace root
+      const claudeRulesDir = path.join(targetDir, '.claude', 'rules');
+      const files = await fs.readdir(claudeRulesDir);
+      expect(files.length).toBeGreaterThan(0);
+    });
+
+    it('should prefer sourceWorkspace over sourceRoot when both given (WS4)', async () => {
+      // Create workspace dir with cursor rules
+      const wsDir = path.join(tempDir, 'ws-project');
+      await fs.mkdir(path.join(wsDir, '.cursor', 'rules'), { recursive: true });
+      await fs.writeFile(
+        path.join(wsDir, '.cursor/rules/test.mdc'),
+        '---\nalwaysApply: true\n---\n\nFrom workspace'
+      );
+
+      const sourceWs = new LocalWorkspace('source', wsDir);
+
+      const engine = new A16nEngine([cursorPlugin, claudePlugin]);
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+        sourceRoot: '/nonexistent/should/not/be/used',
+        sourceWorkspace: sourceWs,
+      });
+
+      // Should discover from workspace, not sourceRoot
+      expect(result.discovered).toHaveLength(1);
+    });
+
+    it('should call plugin.discover with Workspace when available (WS5)', async () => {
+      const workspace = new LocalWorkspace('test-source', tempDir);
+
+      // Use a mock plugin to verify Workspace is passed through
+      const mockPlugin: A16nPlugin = {
+        id: 'mock',
+        name: 'Mock',
+        supports: [CustomizationType.GlobalPrompt],
+        discover: async (rootOrWorkspace) => {
+          // Verify it received a Workspace, not a string
+          expect(typeof rootOrWorkspace).not.toBe('string');
+          expect((rootOrWorkspace as any).id).toBe('test-source');
+          return { items: [], warnings: [] };
+        },
+        emit: async () => ({ written: [], warnings: [], unsupported: [] }),
+      };
+
+      const engine = new A16nEngine([mockPlugin]);
+      await engine.discover('mock', workspace);
     });
   });
 });

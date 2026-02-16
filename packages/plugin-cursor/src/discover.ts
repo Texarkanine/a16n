@@ -10,9 +10,11 @@ import {
   type SimpleAgentSkill,
   type AgentSkillIO,
   type GlobalPrompt,
+  type Workspace,
   CustomizationType,
   WarningCode,
   createId,
+  resolveRoot,
   CURRENT_IR_VERSION,
 } from '@a16njs/models';
 import { parseMdc, type MdcFrontmatter } from './mdc.js';
@@ -542,8 +544,10 @@ async function discoverCursorIgnore(root: string): Promise<AgentIgnore | null> {
 
 /**
  * Discover all Cursor rules in a project directory.
+ * @param rootOrWorkspace - Root directory path or Workspace instance
  */
-export async function discover(root: string): Promise<DiscoveryResult> {
+export async function discover(rootOrWorkspace: string | Workspace): Promise<DiscoveryResult> {
+  const root = resolveRoot(rootOrWorkspace);
   const items: AgentCustomization[] = [];
   const warnings: Warning[] = [];
 

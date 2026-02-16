@@ -5,27 +5,17 @@ import type {
   Warning,
   WrittenFile,
   CustomizationType,
+  Workspace,
 } from '@a16njs/models';
-import { buildMapping, rewriteContent, detectOrphans } from './path-rewriter.js';
-
-/**
- * Well-known directory prefixes and file extensions for each plugin.
- * Used by detectOrphans() to identify source-format path references.
- */
-const PLUGIN_PATH_PATTERNS: Record<string, { prefixes: string[]; extensions: string[] }> = {
-  cursor: {
-    prefixes: ['.cursor/rules/', '.cursor/skills/', '.cursor/commands/'],
-    extensions: ['.mdc', '.md'],
-  },
-  claude: {
-    prefixes: ['.claude/rules/', '.claude/skills/'],
-    extensions: ['.md'],
-  },
-  a16n: {
-    prefixes: ['.a16n/'],
-    extensions: ['.md', '.json'],
-  },
-};
+import { type PluginDiscoveryOptions } from './plugin-discovery.js';
+import { PluginRegistry } from './plugin-registry.js';
+import { PluginLoader, PluginConflictStrategy } from './plugin-loader.js';
+import { LocalWorkspace } from './workspace.js';
+import {
+  type ContentTransformation,
+  type TransformationContext,
+  PathRewritingTransformation,
+} from './transformation.js';
 
 /**
  * Options for a conversion operation.
@@ -35,25 +25,25 @@ export interface ConversionOptions {
   source: string;
   /** Target plugin ID */
   target: string;
-  /** Project root directory (used as default for both source and target) */
+  /** Project root directory */
   root: string;
   /** If true, only discover without writing */
   dryRun?: boolean;
-  /**
-   * Override root directory for discovery (reading).
-   * When set, discover() uses this instead of `root`.
-   */
+  /** Override root for discovery (source plugin) */
   sourceRoot?: string;
-  /**
-   * Override root directory for emission (writing).
-   * When set, emit() uses this instead of `root`.
-   */
+  /** Override root for emission (target plugin) */
   targetRoot?: string;
+  /** Workspace for source discovery (takes precedence over sourceRoot/root) */
+  sourceWorkspace?: Workspace;
+  /** Workspace for target emission (takes precedence over targetRoot/root) */
+  targetWorkspace?: Workspace;
   /**
-   * If true, rewrite file path references in content so they point
-   * to the target-format paths instead of source-format paths.
+   * If true, rewrite path references in content during conversion.
+   * @deprecated Use `transformations: [new PathRewritingTransformation()]` instead.
    */
   rewritePathRefs?: boolean;
+  /** Content transformations to apply between discovery and emission */
+  transformations?: ContentTransformation[];
 }
 
 /**
@@ -95,28 +85,67 @@ export interface PluginInfo {
 }
 
 /**
+ * Result of discovering and registering plugins.
+ */
+export interface DiscoverAndRegisterResult {
+  /** Plugin IDs that were successfully registered */
+  registered: string[];
+  /** Plugin IDs that were skipped (already registered) */
+  skipped: string[];
+  /** Errors encountered during discovery */
+  errors: Array<{ packageName: string; error: string }>;
+}
+
+/**
  * The a16n conversion engine.
  * Orchestrates plugins to discover and emit agent customizations.
  */
 export class A16nEngine {
-  private plugins: Map<string, A16nPlugin> = new Map();
+  private registry: PluginRegistry = new PluginRegistry();
+  private loader: PluginLoader;
 
   /**
    * Create a new engine with the given plugins.
-   * @param plugins - Plugins to register
+   * @param plugins - Plugins to register (registered as 'bundled')
    */
   constructor(plugins: A16nPlugin[] = []) {
+    this.loader = new PluginLoader(PluginConflictStrategy.PREFER_BUNDLED);
     for (const plugin of plugins) {
-      this.registerPlugin(plugin);
+      this.registerPlugin(plugin, 'bundled');
     }
   }
 
   /**
    * Register a plugin with the engine.
    * @param plugin - The plugin to register
+   * @param source - Whether the plugin is bundled or installed
    */
-  registerPlugin(plugin: A16nPlugin): void {
-    this.plugins.set(plugin.id, plugin);
+  registerPlugin(plugin: A16nPlugin, source: 'bundled' | 'installed' = 'bundled'): void {
+    this.registry.register({ plugin, source });
+  }
+
+  /**
+   * Discover and register installed plugins from node_modules.
+   * @param options - Plugin discovery options
+   * @returns Result with registered, skipped, and error info
+   */
+  async discoverAndRegisterPlugins(
+    options?: PluginDiscoveryOptions,
+  ): Promise<DiscoverAndRegisterResult> {
+    const candidates = await this.loader.loadInstalled(options);
+    const resolved = this.loader.resolveConflicts(this.registry, candidates);
+
+    const registered: string[] = [];
+    for (const reg of resolved.loaded) {
+      this.registry.register(reg);
+      registered.push(reg.plugin.id);
+    }
+
+    return {
+      registered,
+      skipped: resolved.skipped.map((s) => s.plugin.id),
+      errors: resolved.errors,
+    };
   }
 
   /**
@@ -124,11 +153,11 @@ export class A16nEngine {
    * @returns Array of plugin info
    */
   listPlugins(): PluginInfo[] {
-    return Array.from(this.plugins.values()).map((p) => ({
-      id: p.id,
-      name: p.name,
-      supports: p.supports,
-      source: 'bundled' as const,
+    return this.registry.list().map((r) => ({
+      id: r.plugin.id,
+      name: r.plugin.name,
+      supports: r.plugin.supports,
+      source: r.source,
     }));
   }
 
@@ -138,21 +167,24 @@ export class A16nEngine {
    * @returns The plugin or undefined if not found
    */
   getPlugin(id: string): A16nPlugin | undefined {
-    return this.plugins.get(id);
+    return this.registry.getPlugin(id);
   }
 
   /**
    * Discover customizations using a specific plugin.
    * @param pluginId - The plugin to use for discovery
-   * @param root - The project root to scan
+   * @param rootOrWorkspace - The project root path or Workspace to scan
    * @returns Discovery result with items and warnings
    */
-  async discover(pluginId: string, root: string): Promise<DiscoveryResult> {
+  async discover(pluginId: string, rootOrWorkspace: string | Workspace): Promise<DiscoveryResult> {
     const plugin = this.getPlugin(pluginId);
     if (!plugin) {
       throw new Error(`Unknown plugin: ${pluginId}`);
     }
-    return plugin.discover(root);
+    const workspace = typeof rootOrWorkspace === 'string'
+      ? new LocalWorkspace('discover', rootOrWorkspace)
+      : rootOrWorkspace;
+    return plugin.discover(workspace);
   }
 
   /**
@@ -171,75 +203,64 @@ export class A16nEngine {
       throw new Error(`Unknown target: ${options.target}`);
     }
 
-    // Resolve split roots: sourceRoot for discover, targetRoot for emit
-    const effectiveSourceRoot = options.sourceRoot ?? options.root;
-    const effectiveTargetRoot = options.targetRoot ?? options.root;
+    // Resolve source and target roots/workspaces
+    // Priority: explicit workspace > explicit root override > default root
+    const discoverRoot = options.sourceRoot ?? options.root;
+    const emitRoot = options.targetRoot ?? options.root;
 
-    // Discover from source
-    const discovery = await sourcePlugin.discover(effectiveSourceRoot);
+    const sourceWorkspace = options.sourceWorkspace
+      ?? new LocalWorkspace('source', discoverRoot);
+    const targetWorkspace = options.targetWorkspace
+      ?? new LocalWorkspace('target', emitRoot);
 
-    const allWarnings: Warning[] = [...discovery.warnings];
+    // Discover from source using workspace
+    const discovery = await sourcePlugin.discover(sourceWorkspace);
 
-    if (options.rewritePathRefs && discovery.items.length > 0) {
-      // Two-pass emit approach:
-      // Pass 1: Dry-run emit to get target paths for building the mapping
-      const dryEmission = await targetPlugin.emit(discovery.items, effectiveTargetRoot, {
-        dryRun: true,
-      });
-      allWarnings.push(...dryEmission.warnings);
+    // Collect warnings
+    const warnings: Warning[] = [...discovery.warnings];
 
-      // Build source→target path mapping from the dry-run results
-      const mapping = buildMapping(
-        discovery.items,
-        dryEmission.written,
-        effectiveSourceRoot,
-        effectiveTargetRoot,
-      );
+    // Build transformations list
+    const transformations: ContentTransformation[] = options.transformations
+      ? [...options.transformations]
+      : [];
 
-      // Rewrite content in discovered items
-      const rewriteResult = rewriteContent(discovery.items, mapping);
-
-      // Detect orphan references
-      const sourcePatterns = PLUGIN_PATH_PATTERNS[options.source];
-      if (sourcePatterns) {
-        const orphanWarnings = detectOrphans(
-          rewriteResult.items,
-          mapping,
-          sourcePatterns.prefixes,
-          sourcePatterns.extensions,
-        );
-        allWarnings.push(...orphanWarnings);
-      }
-
-      // Pass 2: Real emit with rewritten items
-      const emission = await targetPlugin.emit(rewriteResult.items, effectiveTargetRoot, {
-        dryRun: options.dryRun,
-      });
-      // Deduplicate: add only emission warnings not already present from dry-run
-      const existingMessages = new Set(allWarnings.map((w) => w.message));
-      for (const w of emission.warnings) {
-        if (!existingMessages.has(w.message)) {
-          allWarnings.push(w);
-        }
-      }
-
-      return {
-        discovered: discovery.items,
-        written: emission.written,
-        warnings: allWarnings,
-        unsupported: emission.unsupported,
-      };
+    // Backward compatibility: rewritePathRefs maps to PathRewritingTransformation
+    if (options.rewritePathRefs && !transformations.some((t) => t.id === 'path-rewriting')) {
+      transformations.push(new PathRewritingTransformation());
     }
 
-    // Standard single-pass emit (no rewriting)
-    const emission = await targetPlugin.emit(discovery.items, effectiveTargetRoot, {
+    // Apply transformation pipeline
+    let itemsToEmit = discovery.items;
+
+    if (transformations.length > 0) {
+      for (const transformation of transformations) {
+        const transformContext: TransformationContext = {
+          items: itemsToEmit,
+          sourcePlugin,
+          targetPlugin,
+          sourceRoot: sourceWorkspace.root,
+          targetRoot: targetWorkspace.root,
+          trialEmit: (items) =>
+            targetPlugin.emit(items, targetWorkspace, { dryRun: true }),
+        };
+
+        const result = await transformation.transform(transformContext);
+        itemsToEmit = result.items;
+        warnings.push(...result.warnings);
+      }
+    }
+
+    // Single emission at the end using workspace
+    const emission = await targetPlugin.emit(itemsToEmit, targetWorkspace, {
       dryRun: options.dryRun,
     });
+
+    warnings.push(...emission.warnings);
 
     return {
       discovered: discovery.items,
       written: emission.written,
-      warnings: [...allWarnings, ...emission.warnings],
+      warnings,
       unsupported: emission.unsupported,
     };
   }

@@ -11,6 +11,7 @@ import {
   type GlobalPrompt,
   type SimpleAgentSkill,
   type AgentSkillIO,
+  type Workspace,
   CustomizationType,
   WarningCode,
   isGlobalPrompt,
@@ -20,6 +21,7 @@ import {
   isAgentIgnore,
   isManualPrompt,
   getUniqueFilename,
+  resolveRoot,
 } from '@a16njs/models';
 
 /**
@@ -259,14 +261,15 @@ description: ${safeDescription}`;
  * - AgentSkills → .claude/skills/ subdirectories
  * 
  * @param models - The customizations to emit
- * @param root - The root directory to write to
+ * @param rootOrWorkspace - Root directory path or Workspace instance
  * @param options - Optional emit options (e.g., dryRun)
  */
 export async function emit(
   models: AgentCustomization[],
-  root: string,
+  rootOrWorkspace: string | Workspace,
   options?: EmitOptions
 ): Promise<EmitResult> {
+  const root = resolveRoot(rootOrWorkspace);
   const dryRun = options?.dryRun ?? false;
   const written: WrittenFile[] = [];
   const warnings: Warning[] = [];

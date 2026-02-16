@@ -1,5 +1,3 @@
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import matter from 'gray-matter';
 import {
   type AgentCustomization,
@@ -9,9 +7,11 @@ import {
   type ManualPrompt,
   type AgentIgnore,
   type IRVersion,
+  type Workspace,
   CustomizationType,
   createId,
   parseIRVersion,
+  toWorkspace,
 } from '@a16njs/models';
 
 /**
@@ -39,21 +39,24 @@ interface IRFrontmatter {
 }
 
 /**
- * Parse an IR file from disk.
- * 
- * @param filepath - Absolute path to the file
+ * Parse an IR file from a workspace.
+ *
+ * @param rootOrWorkspace - Workspace or root path string
+ * @param filePath - Path to the file relative to workspace root
  * @param filename - Filename (used to derive name)
- * @param relativePath - Path relative to .a16n/ directory (e.g., ".a16n/global-prompt/coding-standards.md")
+ * @param sourcePath - Path relative to .a16n/ directory (e.g., ".a16n/global-prompt/coding-standards.md")
  * @returns ParseIRFileResult with either item or error
  */
 export async function parseIRFile(
-  filepath: string,
+  rootOrWorkspace: string | Workspace,
+  filePath: string,
   filename: string,
-  relativePath: string
+  sourcePath: string
 ): Promise<ParseIRFileResult> {
   try {
+    const ws = toWorkspace(rootOrWorkspace);
     // Read file content
-    const content = await fs.readFile(filepath, 'utf-8');
+    const content = await ws.read(filePath);
     
     // Parse YAML frontmatter
     let parsed: ReturnType<typeof matter>;
@@ -93,10 +96,10 @@ export async function parseIRFile(
     // Build base IR item
     // metadata is NOT serialized to IR files (transient only), so initialize as empty
     const baseItem = {
-      id: createId(type, relativePath),
+      id: createId(type, sourcePath),
       type,
       version: frontmatter.version as IRVersion,
-      sourcePath: relativePath,
+      sourcePath,
       content: body,
       relativeDir: frontmatter.relativeDir,
       metadata: {},

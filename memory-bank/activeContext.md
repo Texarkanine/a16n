@@ -1,3 +1,3 @@
 # Active Context
 
-No active task.
+No active context.

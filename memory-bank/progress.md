@@ -1,3 +1,3 @@
 # Progress
 
-No active task.
+No active tasks.

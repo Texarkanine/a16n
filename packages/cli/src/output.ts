@@ -18,7 +18,6 @@ const HINTS: Partial<Record<WarningCode, string>> = {
   approximated: 'Behavior may differ slightly between tools',
   'boundary-crossing': 'Output file cannot be git-ignored because it is already tracked',
   'git-status-conflict': 'Source files have inconsistent git-ignore status; review manually',
-  'orphan-path-ref': 'Content references a source-format path that is not being converted; update manually',
 };
 
 /**

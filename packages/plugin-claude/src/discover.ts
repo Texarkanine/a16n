@@ -9,9 +9,11 @@ import {
   type ManualPrompt,
   type DiscoveryResult,
   type Warning,
+  type Workspace,
   CustomizationType,
   WarningCode,
   createId,
+  resolveRoot,
   CURRENT_IR_VERSION,
 } from '@a16njs/models';
 
@@ -489,8 +491,10 @@ async function discoverAgentIgnore(root: string): Promise<AgentIgnore | null> {
 
 /**
  * Discover all CLAUDE.md files and skills in a project directory.
+ * @param rootOrWorkspace - Root directory path or Workspace instance
  */
-export async function discover(root: string): Promise<DiscoveryResult> {
+export async function discover(rootOrWorkspace: string | Workspace): Promise<DiscoveryResult> {
+  const root = resolveRoot(rootOrWorkspace);
   const items: AgentCustomization[] = [];
   const warnings: Warning[] = [];
 

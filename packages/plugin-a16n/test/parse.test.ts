@@ -1,18 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { CustomizationType, CURRENT_IR_VERSION, type IRVersion } from '@a16njs/models';
+import { CustomizationType, CURRENT_IR_VERSION, LocalWorkspace, type IRVersion } from '@a16njs/models';
 import { parseIRFile } from '../src/parse.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
+const ws = new LocalWorkspace('test-parse', fixturesDir);
 
 describe('parseIRFile', () => {
   describe('GlobalPrompt', () => {
     it('should parse a valid GlobalPrompt IR file', async () => {
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/global-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-globalPrompt/basic.md', 'basic.md', '.a16n/global-prompt');
+
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
       expect(result.item?.type).toBe(CustomizationType.GlobalPrompt);
@@ -22,18 +22,16 @@ describe('parseIRFile', () => {
     });
 
     it('should extract relativeDir if present', async () => {
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'with-relativedir.md');
-      const result = await parseIRFile(filepath, 'with-relativedir.md', '.a16n/global-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-globalPrompt/with-relativedir.md', 'with-relativedir.md', '.a16n/global-prompt');
+
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
       expect(result.item?.relativeDir).toBe('shared/company');
     });
 
     it('should handle missing relativeDir', async () => {
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/global-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-globalPrompt/basic.md', 'basic.md', '.a16n/global-prompt');
+
       expect(result.error).toBeUndefined();
       expect(result.item?.relativeDir).toBeUndefined();
     });
@@ -41,9 +39,8 @@ describe('parseIRFile', () => {
 
   describe('FileRule', () => {
     it('should parse a valid FileRule IR file with globs', async () => {
-      const filepath = path.join(fixturesDir, 'parse-fileRule', 'typescript.md');
-      const result = await parseIRFile(filepath, 'typescript.md', '.a16n/file-rule');
-      
+      const result = await parseIRFile(ws, 'parse-fileRule/typescript.md', 'typescript.md', '.a16n/file-rule');
+
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
       expect(result.item?.type).toBe(CustomizationType.FileRule);
@@ -53,9 +50,8 @@ describe('parseIRFile', () => {
     });
 
     it('should parse globs as array', async () => {
-      const filepath = path.join(fixturesDir, 'parse-fileRule', 'typescript.md');
-      const result = await parseIRFile(filepath, 'typescript.md', '.a16n/file-rule');
-      
+      const result = await parseIRFile(ws, 'parse-fileRule/typescript.md', 'typescript.md', '.a16n/file-rule');
+
       expect(result.error).toBeUndefined();
       if (result.item?.type === CustomizationType.FileRule) {
         expect(Array.isArray(result.item.globs)).toBe(true);
@@ -66,9 +62,8 @@ describe('parseIRFile', () => {
 
   describe('SimpleAgentSkill', () => {
     it('should parse a valid SimpleAgentSkill IR file', async () => {
-      const filepath = path.join(fixturesDir, 'parse-simpleAgentSkill', 'database.md');
-      const result = await parseIRFile(filepath, 'database.md', '.a16n/simple-agent-skill');
-      
+      const result = await parseIRFile(ws, 'parse-simpleAgentSkill/database.md', 'database.md', '.a16n/simple-agent-skill');
+
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
       expect(result.item?.type).toBe(CustomizationType.SimpleAgentSkill);
@@ -78,9 +73,8 @@ describe('parseIRFile', () => {
     });
 
     it('should extract description from frontmatter', async () => {
-      const filepath = path.join(fixturesDir, 'parse-simpleAgentSkill', 'database.md');
-      const result = await parseIRFile(filepath, 'database.md', '.a16n/simple-agent-skill');
-      
+      const result = await parseIRFile(ws, 'parse-simpleAgentSkill/database.md', 'database.md', '.a16n/simple-agent-skill');
+
       expect(result.error).toBeUndefined();
       if (result.item?.type === CustomizationType.SimpleAgentSkill) {
         expect(result.item.description).toBeTruthy();
@@ -90,9 +84,8 @@ describe('parseIRFile', () => {
 
     it('should NOT expect name in frontmatter (filename is the name)', async () => {
       // Filename IS the name, no name field should be present in frontmatter
-      const filepath = path.join(fixturesDir, 'parse-simpleAgentSkill', 'database.md');
-      const result = await parseIRFile(filepath, 'database.md', '.a16n/simple-agent-skill');
-      
+      const result = await parseIRFile(ws, 'parse-simpleAgentSkill/database.md', 'database.md', '.a16n/simple-agent-skill');
+
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
       // Parse should succeed even without name field in frontmatter
@@ -105,9 +98,8 @@ describe('parseIRFile', () => {
 
   describe('ManualPrompt', () => {
     it('should parse a valid ManualPrompt IR file', async () => {
-      const filepath = path.join(fixturesDir, 'parse-manualPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/manual-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-manualPrompt/basic.md', 'basic.md', '.a16n/manual-prompt');
+
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
       expect(result.item?.type).toBe(CustomizationType.ManualPrompt);
@@ -117,9 +109,8 @@ describe('parseIRFile', () => {
     });
 
     it('should derive promptName from relativeDir + filename', async () => {
-      const filepath = path.join(fixturesDir, 'parse-manualPrompt', 'with-relativedir.md');
-      const result = await parseIRFile(filepath, 'with-relativedir.md', '.a16n/manual-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-manualPrompt/with-relativedir.md', 'with-relativedir.md', '.a16n/manual-prompt');
+
       expect(result.error).toBeUndefined();
       if (result.item?.type === CustomizationType.ManualPrompt) {
         // relativeDir: "shared/company" + filename: "with-relativedir.md" -> "shared/company/with-relativedir"
@@ -129,9 +120,8 @@ describe('parseIRFile', () => {
     });
 
     it('should derive promptName from filename only when no relativeDir', async () => {
-      const filepath = path.join(fixturesDir, 'parse-manualPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/manual-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-manualPrompt/basic.md', 'basic.md', '.a16n/manual-prompt');
+
       expect(result.error).toBeUndefined();
       if (result.item?.type === CustomizationType.ManualPrompt) {
         // No relativeDir, so promptName is just filename without extension
@@ -143,9 +133,8 @@ describe('parseIRFile', () => {
 
   describe('AgentIgnore', () => {
     it('should parse a valid AgentIgnore IR file with patterns', async () => {
-      const filepath = path.join(fixturesDir, 'parse-agentIgnore', 'patterns.md');
-      const result = await parseIRFile(filepath, 'patterns.md', '.a16n/agent-ignore');
-      
+      const result = await parseIRFile(ws, 'parse-agentIgnore/patterns.md', 'patterns.md', '.a16n/agent-ignore');
+
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
       expect(result.item?.type).toBe(CustomizationType.AgentIgnore);
@@ -155,9 +144,8 @@ describe('parseIRFile', () => {
     });
 
     it('should parse patterns as array', async () => {
-      const filepath = path.join(fixturesDir, 'parse-agentIgnore', 'patterns.md');
-      const result = await parseIRFile(filepath, 'patterns.md', '.a16n/agent-ignore');
-      
+      const result = await parseIRFile(ws, 'parse-agentIgnore/patterns.md', 'patterns.md', '.a16n/agent-ignore');
+
       expect(result.error).toBeUndefined();
       if (result.item?.type === CustomizationType.AgentIgnore) {
         expect(Array.isArray(result.item.patterns)).toBe(true);
@@ -168,17 +156,15 @@ describe('parseIRFile', () => {
 
   describe('version handling', () => {
     it('should return error for missing version field', async () => {
-      const filepath = path.join(fixturesDir, 'parse-errors', 'missing-version.md');
-      const result = await parseIRFile(filepath, 'missing-version.md', '.a16n/global-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-errors/missing-version.md', 'missing-version.md', '.a16n/global-prompt');
+
       expect(result.error).toBeDefined();
       expect(result.error).toContain('version');
       expect(result.item).toBeUndefined();
     });
 
     it('should return error for invalid version format', async () => {
-      const filepath = path.join(fixturesDir, 'parse-errors', 'invalid-version.md');
-      const result = await parseIRFile(filepath, 'invalid-version.md', '.a16n/global-prompt');
+      const result = await parseIRFile(ws, 'parse-errors/invalid-version.md', 'invalid-version.md', '.a16n/global-prompt');
 
       expect(result.error).toBeDefined();
       expect(result.error).toContain('Invalid version format');
@@ -187,9 +173,8 @@ describe('parseIRFile', () => {
 
     it('should accept valid version formats', async () => {
       // v1beta1, v2alpha1, etc.
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/global-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-globalPrompt/basic.md', 'basic.md', '.a16n/global-prompt');
+
       expect(result.error).toBeUndefined();
       expect(result.item?.version).toBe('v1beta1');
     });
@@ -197,26 +182,23 @@ describe('parseIRFile', () => {
 
   describe('error handling', () => {
     it('should return error for missing type field', async () => {
-      const filepath = path.join(fixturesDir, 'parse-errors', 'missing-type.md');
-      const result = await parseIRFile(filepath, 'missing-type.md', '.a16n/global-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-errors/missing-type.md', 'missing-type.md', '.a16n/global-prompt');
+
       expect(result.error).toBeDefined();
       expect(result.error).toContain('type');
       expect(result.item).toBeUndefined();
     });
 
     it('should return error for invalid type value', async () => {
-      const filepath = path.join(fixturesDir, 'parse-errors', 'invalid-type.md');
-      const result = await parseIRFile(filepath, 'invalid-type.md', '.a16n/invalid-type');
-      
+      const result = await parseIRFile(ws, 'parse-errors/invalid-type.md', 'invalid-type.md', '.a16n/invalid-type');
+
       expect(result.error).toBeDefined();
       expect(result.error).toContain('type');
       expect(result.item).toBeUndefined();
     });
 
     it('should return error for malformed YAML frontmatter', async () => {
-      const filepath = path.join(fixturesDir, 'parse-errors', 'malformed-yaml.md');
-      const result = await parseIRFile(filepath, 'malformed-yaml.md', '.a16n/global-prompt');
+      const result = await parseIRFile(ws, 'parse-errors/malformed-yaml.md', 'malformed-yaml.md', '.a16n/global-prompt');
 
       expect(result.error).toBeDefined();
       expect(result.error).toContain('YAML');
@@ -224,27 +206,24 @@ describe('parseIRFile', () => {
     });
 
     it('should return error for missing frontmatter', async () => {
-      const filepath = path.join(fixturesDir, 'parse-errors', 'no-frontmatter.md');
-      const result = await parseIRFile(filepath, 'no-frontmatter.md', '.a16n/global-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-errors/no-frontmatter.md', 'no-frontmatter.md', '.a16n/global-prompt');
+
       expect(result.error).toBeDefined();
       expect(result.item).toBeUndefined();
     });
 
     it('should NOT expect name field (filename is the name)', async () => {
       // Verify no error when name field is missing (it should be missing!)
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/global-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-globalPrompt/basic.md', 'basic.md', '.a16n/global-prompt');
+
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
     });
 
     it('should NOT expect sourcePath field (not in IR format)', async () => {
       // sourcePath is NOT in IR format (omitted during emission)
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/global-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-globalPrompt/basic.md', 'basic.md', '.a16n/global-prompt');
+
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
       // sourcePath should be set by parseIRFile, not read from frontmatter
@@ -252,9 +231,8 @@ describe('parseIRFile', () => {
 
     it('should NOT expect metadata field (transient only)', async () => {
       // metadata is NOT serialized to IR files
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'basic.md');
-      const result = await parseIRFile(filepath, 'basic.md', '.a16n/global-prompt');
-      
+      const result = await parseIRFile(ws, 'parse-globalPrompt/basic.md', 'basic.md', '.a16n/global-prompt');
+
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
     });
@@ -262,8 +240,7 @@ describe('parseIRFile', () => {
 
   describe('edge cases', () => {
     it('should handle empty content (only frontmatter)', async () => {
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'empty-content.md');
-      const result = await parseIRFile(filepath, 'empty-content.md', '.a16n/global-prompt');
+      const result = await parseIRFile(ws, 'parse-globalPrompt/empty-content.md', 'empty-content.md', '.a16n/global-prompt');
 
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
@@ -272,8 +249,7 @@ describe('parseIRFile', () => {
     });
 
     it('should preserve whitespace in content', async () => {
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'with-whitespace.md');
-      const result = await parseIRFile(filepath, 'with-whitespace.md', '.a16n/global-prompt');
+      const result = await parseIRFile(ws, 'parse-globalPrompt/with-whitespace.md', 'with-whitespace.md', '.a16n/global-prompt');
 
       expect(result.error).toBeUndefined();
       expect(result.item?.content).toBeTruthy();
@@ -283,8 +259,7 @@ describe('parseIRFile', () => {
     });
 
     it('should handle content with YAML-like syntax', async () => {
-      const filepath = path.join(fixturesDir, 'parse-globalPrompt', 'yaml-like-content.md');
-      const result = await parseIRFile(filepath, 'yaml-like-content.md', '.a16n/global-prompt');
+      const result = await parseIRFile(ws, 'parse-globalPrompt/yaml-like-content.md', 'yaml-like-content.md', '.a16n/global-prompt');
 
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
