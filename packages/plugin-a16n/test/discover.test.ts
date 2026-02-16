@@ -304,6 +304,16 @@ Just the SKILL.md content.
       expect(future).toBeDefined();
       expect(future!.content).toContain('Future version content');
     });
+
+    it('should generate unique IDs for multiple files in the same type directory', async () => {
+      const fixturePath = path.join(fixturesDir, 'discover-version-mismatch');
+      const result = await discover(fixturePath);
+
+      // Both current.md and future.md are in .a16n/global-prompt/ — they must have distinct IDs
+      expect(result.items).toHaveLength(2);
+      const ids = result.items.map((i) => i.id);
+      expect(new Set(ids).size).toBe(2);
+    });
   });
 
   describe('error handling', () => {

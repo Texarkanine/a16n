@@ -146,12 +146,9 @@ async function discoverStandardType(
     const filepath = path.join(typeDir, relativeMdPath);
     const filename = path.basename(relativeMdPath);
 
-    // Compute the sourcePath for parseIRFile (path relative to project root's .a16n/)
-    // e.g., ".a16n/global-prompt" or ".a16n/global-prompt/shared/company"
-    const dirOfFile = path.dirname(filepath);
-    const a16nRoot = path.dirname(typeDir); // The .a16n/ directory
-    const relativeToA16n = path.relative(a16nRoot, dirOfFile).split(path.sep).join('/');
-    const sourcePath = `.a16n/${relativeToA16n}`;
+    // Compute the sourcePath for parseIRFile (file path relative to project root)
+    // e.g., ".a16n/global-prompt/blogging.md" or ".a16n/global-prompt/shared/company/standards.md"
+    const sourcePath = `.a16n/${type}/${relativeMdPath}`;
 
     // Parse the IR file (pass typeDir as workspace root, relativeMdPath as file path within it)
     const result = await parseIRFile(typeDir, relativeMdPath, filename, sourcePath);

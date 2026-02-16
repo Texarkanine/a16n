@@ -1,9 +1,9 @@
 ## Current Task: CodeRabbit PR #59 Fixes
 
-**Status:** COMPLETE
+**Status:** In Progress
 **PR URL:** https://github.com/Texarkanine/a16n/pull/59
 **Rate Limit Until:**
-**Last Updated:** 2026-02-15T22:52:00Z
+**Last Updated:** 2026-02-16T09:07:00Z
 
 ### Actionable Items
 - [x] ID: null-guard - Remove non-null assertion on `engine!` in CLI index.ts convert/discover actions - FIXED
@@ -16,6 +16,7 @@
 - [x] ID: jsdoc-param-a16n-emit - Fix @param root → rootOrWorkspace in plugin-a16n/src/emit.ts - FIXED
 - [x] ID: jsdoc-param-claude-emit - Fix @param root → rootOrWorkspace in plugin-claude/src/emit.ts - FIXED
 - [x] ID: jsdoc-param-a16n-discover - Fix @param root → rootOrWorkspace in plugin-a16n/src/discover.ts - FIXED
+- [x] ID: sourcepath-unique - Fix sourcePath to include filename for unique ID generation in plugin-a16n/src/discover.ts - FIXED
 
 ### Requires Human Decision
 (none)
@@ -39,3 +40,7 @@
 - ID: filter-directories - Filter readdir to directories only - Reason: Nitpick; safely caught by try/catch
 - ID: namespace-strategy-doc - Design doc mentions NAMESPACE strategy - Reason: Nitpick; design doc
 - ID: emission-warning-dups - Ensure no duplicate warnings - Reason: Nitpick; theoretical concern
+- ID: skill-path-traversal - Resource filenames not validated against path traversal - Reason: Nitpick; pre-existing
+- ID: discover-dir-validation-helper - Extract directory-validation helper shared with convert.ts - Reason: Nitpick; refactoring
+- ID: plugins-console-log-2 - plugins command uses console.log instead of CommandIO (2nd review) - Reason: Nitpick; duplicate of prior
+- ID: a16n-emit-workspace-io - Workspace resolution bypasses Workspace I/O methods - Reason: Nitpick; transitional step
