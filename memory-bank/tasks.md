@@ -2,7 +2,7 @@
 
 ## Completed Task: CodeRabbit Nitpick Fixes
 **Complexity:** Level 2
-**Status:** Complete
+**Status:** Reflected
 **Branch:** `nitpicks-postrearch`
 **File:** `packages/cli/src/commands/convert.ts`
 **Test File:** `packages/cli/test/commands/convert.test.ts`
