@@ -31,9 +31,10 @@ const defaultIO: CommandIO = {
  * the doc generator which only inspects program structure.
  *
  * @param engine - A16n engine instance, or null for structure-only usage
+ * @param io - Optional I/O adapter (defaults to console/process)
  * @returns Configured Commander program
  */
-export function createProgram(engine: A16nEngine | null): Command {
+export function createProgram(engine: A16nEngine | null, io: CommandIO = defaultIO): Command {
   const program = new Command();
 
   program
@@ -50,15 +51,15 @@ export function createProgram(engine: A16nEngine | null): Command {
     .option('--json', 'Output as JSON')
     .option('-q, --quiet', 'Suppress non-error output')
     .option('-v, --verbose', 'Show detailed output')
-    .option(
-      '--gitignore-output-with <style>',
-      'Manage git-ignore status of output files (none, ignore, exclude, hook, match)',
-      'none',
+    .addOption(
+      new Option('--gitignore-output-with <style>', 'Manage git-ignore status of output files')
+        .choices(['none', 'ignore', 'exclude', 'hook', 'match'])
+        .default('none')
     )
-    .option(
-      '--if-gitignore-conflict <resolution>',
-      'How to resolve git-ignore conflicts in match mode (skip, ignore, exclude, hook, commit)',
-      'skip',
+    .addOption(
+      new Option('--if-gitignore-conflict <resolution>', 'How to resolve git-ignore conflicts in match mode')
+        .choices(['skip', 'ignore', 'exclude', 'hook', 'commit'])
+        .default('skip')
     )
     .option(
       '--delete-source',
@@ -78,8 +79,12 @@ export function createProgram(engine: A16nEngine | null): Command {
     )
     .argument('[path]', 'Project path', '.')
     .action(async (projectPath, options) => {
-      if (!engine) return;
-      await handleConvert(engine, projectPath, options, defaultIO);
+      if (!engine) {
+        io.error('engine not initialized');
+        process.exit(1);
+        return;
+      }
+      await handleConvert(engine, projectPath, options, io);
     });
 
   program
@@ -95,16 +100,24 @@ export function createProgram(engine: A16nEngine | null): Command {
     .addOption(new Option('--to-dir <dir>', 'hidden').hideHelp())
     .argument('[path]', 'Project path', '.')
     .action(async (projectPath, options) => {
-      if (!engine) return;
-      await handleDiscover(engine, projectPath, options, defaultIO);
+      if (!engine) {
+        io.error('engine not initialized');
+        process.exit(1);
+        return;
+      }
+      await handleDiscover(engine, projectPath, options, io);
     });
 
   program
     .command('plugins')
     .description('Show available plugins')
     .action(() => {
-      if (!engine) return;
-      handlePlugins(engine, defaultIO);
+      if (!engine) {
+        io.error('engine not initialized');
+        process.exit(1);
+        return;
+      }
+      handlePlugins(engine, io);
     });
 
   return program;

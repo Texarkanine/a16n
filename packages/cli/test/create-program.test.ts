@@ -7,9 +7,10 @@
  * maintaining a hardcoded duplicate.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Command } from 'commander';
 import { createProgram } from '../src/index.js';
+import type { CommandIO } from '../src/commands/io.js';
 
 /** Helper to get option flags from a Commander command */
 function getOptionFlags(cmd: Command): string[] {
@@ -60,5 +61,53 @@ describe('createProgram', () => {
 
   it('does not throw when engine is null (structure-only usage)', () => {
     expect(() => createProgram(null)).not.toThrow();
+  });
+
+  describe('action handlers error when engine is null', () => {
+    let mockIO: CommandIO;
+    let exitSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      mockIO = {
+        log: vi.fn(),
+        error: vi.fn(),
+        setExitCode: vi.fn(),
+      };
+      exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
+    });
+
+    afterEach(() => {
+      exitSpy.mockRestore();
+    });
+
+    it('convert action emits error and exits non-zero when engine is null', async () => {
+      const program = createProgram(null, mockIO);
+      program.exitOverride();
+      try {
+        await program.parseAsync(['convert', '-f', 'cursor', '-t', 'claude'], { from: 'user' });
+      } catch { /* commander exitOverride throws */ }
+      expect(mockIO.error).toHaveBeenCalledWith(expect.stringContaining('engine not initialized'));
+      expect(exitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('discover action emits error and exits non-zero when engine is null', async () => {
+      const program = createProgram(null, mockIO);
+      program.exitOverride();
+      try {
+        await program.parseAsync(['discover', '-f', 'cursor'], { from: 'user' });
+      } catch { /* commander exitOverride throws */ }
+      expect(mockIO.error).toHaveBeenCalledWith(expect.stringContaining('engine not initialized'));
+      expect(exitSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('plugins action emits error and exits non-zero when engine is null', async () => {
+      const program = createProgram(null, mockIO);
+      program.exitOverride();
+      try {
+        await program.parseAsync(['plugins'], { from: 'user' });
+      } catch { /* commander exitOverride throws */ }
+      expect(mockIO.error).toHaveBeenCalledWith(expect.stringContaining('engine not initialized'));
+      expect(exitSpy).toHaveBeenCalledWith(1);
+    });
   });
 });
