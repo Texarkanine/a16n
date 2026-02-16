@@ -67,18 +67,6 @@ export async function handleConvert(
       if (options.verbose) io.error(`[verbose] ${msg}`);
     };
 
-    // Validate --if-gitignore-conflict flag
-    const validConflictResolutions = ['skip', 'ignore', 'exclude', 'hook', 'commit'];
-    const conflictResolution = options.ifGitignoreConflict as string;
-    if (conflictResolution && !validConflictResolutions.includes(conflictResolution)) {
-      io.error(formatError(
-        `Invalid --if-gitignore-conflict value: '${conflictResolution}'`,
-        `Must be one of: ${validConflictResolutions.join(', ')}`,
-      ));
-      io.setExitCode(1);
-      return;
-    }
-
     // Resolve split roots:
     // --from-dir overrides source, --to-dir overrides target, positional fills gaps
     const resolvedPath = path.resolve(projectPath);

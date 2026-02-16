@@ -262,20 +262,6 @@ describe('handleConvert', () => {
       expect(io.errors.some(e => e.includes('Unknown source: badplugin'))).toBe(true);
     });
 
-    it('should validate --if-gitignore-conflict values', async () => {
-      const io = createMockIO();
-      const engine = createMockEngine();
-      const options: ConvertCommandOptions = {
-        from: 'cursor',
-        to: 'claude',
-        ifGitignoreConflict: 'invalid',
-      };
-
-      await handleConvert(engine, tmpDir, options, io);
-
-      expect(io.exitCode).toBe(1);
-      expect(io.errors.some(e => e.includes('Invalid --if-gitignore-conflict'))).toBe(true);
-    });
   });
 
   describe('delete source', () => {
