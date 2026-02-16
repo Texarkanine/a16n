@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import * as path from 'path';
+import { createRequire } from 'module';
 import { Command, Option } from 'commander';
 import { A16nEngine } from '@a16njs/engine';
 import cursorPlugin from '@a16njs/plugin-cursor';
@@ -8,6 +9,9 @@ import a16nPlugin from '@a16njs/plugin-a16n';
 import { handleConvert } from './commands/convert.js';
 import { handleDiscover } from './commands/discover.js';
 import type { CommandIO } from './commands/io.js';
+
+const require = createRequire(import.meta.url);
+const pkg = require('../package.json') as { version: string };
 
 /**
  * Default CommandIO that delegates to console and process.
@@ -34,7 +38,7 @@ export function createProgram(engine: A16nEngine | null): Command {
   program
     .name('a16n')
     .description('Agent customization portability for AI coding tools')
-    .version('0.0.1');
+    .version(pkg.version);
 
   program
     .command('convert')

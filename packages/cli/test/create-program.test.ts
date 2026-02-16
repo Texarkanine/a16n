@@ -51,6 +51,13 @@ describe('createProgram', () => {
     expect(flags).toContainEqual(expect.stringContaining('--from-dir'));
   });
 
+  it('reports the version from package.json', () => {
+    const program = createProgram(null);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pkg = require('../package.json') as { version: string };
+    expect(program.version()).toBe(pkg.version);
+  });
+
   it('does not throw when engine is null (structure-only usage)', () => {
     expect(() => createProgram(null)).not.toThrow();
   });
