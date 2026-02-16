@@ -136,7 +136,8 @@ export async function handleConvert(
     result.gitIgnoreChanges = [];
 
     if (gitignoreStyle !== 'none' && result.written.length > 0) {
-      await handleGitIgnore(result, gitignoreStyle, resolvedPath, options, verbose, io);
+      const gitIgnoreOk = await handleGitIgnore(result, gitignoreStyle, resolvedPath, options, verbose, io);
+      if (!gitIgnoreOk) return;
     }
 
     // Handle --delete-source flag
@@ -205,7 +206,7 @@ async function handleGitIgnore(
   options: ConvertCommandOptions,
   verbose: (msg: string) => void,
   io: CommandIO,
-): Promise<void> {
+): Promise<boolean> {
   verbose(`Planning git-ignore style: ${gitignoreStyle}${options.dryRun ? ' (dry-run)' : ''}`);
 
   const newFiles = result.written
@@ -214,7 +215,7 @@ async function handleGitIgnore(
 
   if (newFiles.length === 0) {
     verbose('No new files to manage (all outputs are edits to existing files)');
-    return;
+    return true;
   }
 
   verbose(`${options.dryRun ? 'Would manage' : 'Managing'} ${newFiles.length} new file(s)`);
@@ -247,9 +248,11 @@ async function handleGitIgnore(
     } else if (gitignoreStyle === 'match') {
       await handleGitIgnoreMatch(result, resolvedPath, options, verbose);
     }
+    return true;
   } catch (error) {
     io.error(formatError((error as Error).message));
     io.setExitCode(1);
+    return false;
   }
 }
 
@@ -308,7 +311,7 @@ async function handleGitIgnoreMatch(
         (outputIgnored && trackedSources.length > 0);
 
       if (hasDestinationConflict) {
-        routeConflict(conflictResolution, relativePath, result, sources, ignoredSources, trackedSources, outputTracked ?? false, filesToGitignore, filesToExclude, filesToHook, filesToCommit, verbose);
+        routeConflict(conflictResolution, relativePath, result, ignoredSources, trackedSources, outputTracked ?? false, filesToGitignore, filesToExclude, filesToHook, filesToCommit, verbose);
       }
       continue;
     }
@@ -360,10 +363,8 @@ async function handleGitIgnoreMatch(
   if (filesToCommit.length > 0) {
     if (!options.dryRun) {
       await removeFromGitIgnore(resolvedPath, filesToCommit);
-      if (await isGitRepo(resolvedPath)) {
-        await removeFromGitExclude(resolvedPath, filesToCommit);
-        await removeFromPreCommitHook(resolvedPath, filesToCommit);
-      }
+      await removeFromGitExclude(resolvedPath, filesToCommit);
+      await removeFromPreCommitHook(resolvedPath, filesToCommit);
     }
   }
 }
@@ -373,7 +374,6 @@ function routeConflict(
   conflictResolution: string,
   relativePath: string,
   result: ConversionResult,
-  sources: any[],
   ignoredSources: any[],
   trackedSources: any[],
   outputTracked: boolean,

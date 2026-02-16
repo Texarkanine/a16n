@@ -65,7 +65,6 @@ describe('createProgram', () => {
 
   describe('action handlers error when engine is null', () => {
     let mockIO: CommandIO;
-    let exitSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
       mockIO = {
@@ -73,11 +72,6 @@ describe('createProgram', () => {
         error: vi.fn(),
         setExitCode: vi.fn(),
       };
-      exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
-    });
-
-    afterEach(() => {
-      exitSpy.mockRestore();
     });
 
     it('convert action emits error and exits non-zero when engine is null', async () => {
@@ -87,7 +81,7 @@ describe('createProgram', () => {
         await program.parseAsync(['convert', '-f', 'cursor', '-t', 'claude'], { from: 'user' });
       } catch { /* commander exitOverride throws */ }
       expect(mockIO.error).toHaveBeenCalledWith(expect.stringContaining('engine not initialized'));
-      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(mockIO.setExitCode).toHaveBeenCalledWith(1);
     });
 
     it('discover action emits error and exits non-zero when engine is null', async () => {
@@ -97,7 +91,7 @@ describe('createProgram', () => {
         await program.parseAsync(['discover', '-f', 'cursor'], { from: 'user' });
       } catch { /* commander exitOverride throws */ }
       expect(mockIO.error).toHaveBeenCalledWith(expect.stringContaining('engine not initialized'));
-      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(mockIO.setExitCode).toHaveBeenCalledWith(1);
     });
 
     it('plugins action emits error and exits non-zero when engine is null', async () => {
@@ -107,7 +101,7 @@ describe('createProgram', () => {
         await program.parseAsync(['plugins'], { from: 'user' });
       } catch { /* commander exitOverride throws */ }
       expect(mockIO.error).toHaveBeenCalledWith(expect.stringContaining('engine not initialized'));
-      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(mockIO.setExitCode).toHaveBeenCalledWith(1);
     });
   });
 });

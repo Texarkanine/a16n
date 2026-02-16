@@ -81,7 +81,7 @@ export function createProgram(engine: A16nEngine | null, io: CommandIO = default
     .action(async (projectPath, options) => {
       if (!engine) {
         io.error('engine not initialized');
-        process.exit(1);
+        io.setExitCode(1);
         return;
       }
       await handleConvert(engine, projectPath, options, io);
@@ -102,7 +102,7 @@ export function createProgram(engine: A16nEngine | null, io: CommandIO = default
     .action(async (projectPath, options) => {
       if (!engine) {
         io.error('engine not initialized');
-        process.exit(1);
+        io.setExitCode(1);
         return;
       }
       await handleDiscover(engine, projectPath, options, io);
@@ -114,7 +114,7 @@ export function createProgram(engine: A16nEngine | null, io: CommandIO = default
     .action(() => {
       if (!engine) {
         io.error('engine not initialized');
-        process.exit(1);
+        io.setExitCode(1);
         return;
       }
       handlePlugins(engine, io);
