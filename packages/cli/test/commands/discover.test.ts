@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
@@ -43,6 +43,10 @@ describe('handleDiscover', () => {
 
   beforeEach(async () => {
     tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'a16n-discover-test-'));
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
   describe('directory validation', () => {
@@ -130,7 +134,7 @@ describe('handleDiscover', () => {
 
       await handleDiscover(engine, tmpDir, options, io);
 
-      expect(io.logs.some(l => l.includes('1 items'))).toBe(true);
+      expect(io.logs.some(l => l.includes('1 item'))).toBe(true);
     });
   });
 

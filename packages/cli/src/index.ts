@@ -73,7 +73,8 @@ export function createProgram(engine: A16nEngine | null): Command {
     )
     .argument('[path]', 'Project path', '.')
     .action(async (projectPath, options) => {
-      await handleConvert(engine!, projectPath, options, defaultIO);
+      if (!engine) return;
+      await handleConvert(engine, projectPath, options, defaultIO);
     });
 
   program
@@ -89,7 +90,8 @@ export function createProgram(engine: A16nEngine | null): Command {
     .addOption(new Option('--to-dir <dir>', 'hidden').hideHelp())
     .argument('[path]', 'Project path', '.')
     .action(async (projectPath, options) => {
-      await handleDiscover(engine!, projectPath, options, defaultIO);
+      if (!engine) return;
+      await handleDiscover(engine, projectPath, options, defaultIO);
     });
 
   program

@@ -261,7 +261,7 @@ description: ${safeDescription}`;
  * - AgentSkills → .claude/skills/ subdirectories
  * 
  * @param models - The customizations to emit
- * @param root - The root directory to write to
+ * @param rootOrWorkspace - Root directory path or Workspace instance
  * @param options - Optional emit options (e.g., dryRun)
  */
 export async function emit(

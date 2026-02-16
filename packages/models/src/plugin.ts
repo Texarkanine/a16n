@@ -53,10 +53,6 @@ export interface EmitOptions {
 }
 
 /**
- * The plugin interface that all a16n plugins must implement.
- * Plugins bridge between a16n's internal model and a specific tool's format.
- */
-/**
  * Path patterns for a plugin, used by transformations like path rewriting
  * to identify and handle file references specific to this plugin's format.
  */
@@ -67,6 +63,10 @@ export interface PluginPathPatterns {
   extensions: string[];
 }
 
+/**
+ * The plugin interface that all a16n plugins must implement.
+ * Plugins bridge between a16n's internal model and a specific tool's format.
+ */
 export interface A16nPlugin {
   /** Unique identifier, e.g., 'cursor', 'claude', 'codex' */
   id: string;

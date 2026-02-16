@@ -77,12 +77,13 @@ export async function handleDiscover(
 
     const result = await engine.discover(options.from, resolvedPath);
 
-    verbose(`Found ${result.items.length} items`);
+    const count = result.items.length;
+    verbose(`Found ${count} ${count === 1 ? 'item' : 'items'}`);
 
     if (options.json) {
       io.log(JSON.stringify(result, null, 2));
     } else {
-      io.log(`Found ${result.items.length} items`);
+      io.log(`Found ${count} ${count === 1 ? 'item' : 'items'}`);
       for (const item of result.items) {
         io.log(`  - ${item.type}: ${item.sourcePath}`);
       }

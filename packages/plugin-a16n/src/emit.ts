@@ -47,7 +47,7 @@ async function pathExists(p: string): Promise<boolean> {
  * Emit IR items to .a16n/ directory structure.
  * 
  * @param models - IR items to emit
- * @param root - Project root directory
+ * @param rootOrWorkspace - Project root directory path or Workspace instance
  * @param options - Emission options (dryRun, etc.)
  * @returns EmitResult with written files and warnings
  */

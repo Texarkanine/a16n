@@ -86,7 +86,7 @@ For example, these are *semantically* the same rule:
 
 However, the above translation is not fully faithful to the original configuration!
 
-In the example above, it's clearly a monorepo and someone's tried to set up "global" rules for Claude *in the `foo` pacakge*. While an AI agent would encounter the same guidance if this were translated to a `FileRule` for Cursor, it is *more correct* to translate it to a `GlobalPrompt` in the same location:
+In the example above, it's clearly a monorepo and someone's tried to set up "global" rules for Claude *in the `foo` package*. While an AI agent would encounter the same guidance if this were translated to a `FileRule` for Cursor, it is *more correct* to translate it to a `GlobalPrompt` in the same location:
 
 `packages/foo/src/.cursor/rules/CLAUDE.mdc` with `alwaysApply: true`.
 
@@ -94,7 +94,7 @@ This keeps the rule as "a global rule for this package, *in this package*," whic
 
 ---
 
-It's not always posisble to do this, though! In the above example the translation is invertible: translating that Cursor rule back to Claude will produce a `CLAUDE.md` in the original directory.
+It's not always possible to do this, though! In the above example the translation is invertible: translating that Cursor rule back to Claude will produce a `CLAUDE.md` in the original directory.
 
 But what if Cursor specifies *two* `alwaysApply: true` rules in a subdirectory?
 
@@ -108,7 +108,7 @@ packages/
                 └── rule2.mdc
 ```
 
-These would need to be combined together into a single `CLAUDE.md`, but that cannot be done cleanly, nor repeatably. So, in this case, you might prefer to hoist both rules up to the root:
+These would need to be combined into a single `CLAUDE.md`, but that cannot be done cleanly, nor repeatably. So, in this case, you might prefer to hoist both rules up to the root:
 
 ```
 .claude/

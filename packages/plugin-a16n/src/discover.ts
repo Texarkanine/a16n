@@ -45,7 +45,7 @@ const VALID_TYPE_DIRS = new Set<string>(Object.values(CustomizationType));
  * Scans the .a16n/ directory in the given root, parsing each type subdirectory
  * and returning all discovered IR items with any warnings.
  * 
- * @param root - Project root directory containing .a16n/
+ * @param rootOrWorkspace - Project root directory or Workspace containing .a16n/
  * @returns DiscoveryResult with parsed IR items and warnings
  * 
  * @example

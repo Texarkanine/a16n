@@ -49,6 +49,7 @@ export async function discoverInstalledPlugins(
   const searchPaths = options?.searchPaths ?? getDefaultSearchPaths();
   const plugins: A16nPlugin[] = [];
   const errors: PluginLoadError[] = [];
+  const seenPluginIds = new Set<string>();
 
   for (const searchPath of searchPaths) {
     // Read directory entries; skip if path doesn't exist
@@ -76,7 +77,15 @@ export async function discoverInstalledPlugins(
         const candidate = mod.default ?? mod;
 
         if (isValidPlugin(candidate)) {
-          plugins.push(candidate);
+          if (seenPluginIds.has(candidate.id)) {
+            errors.push({
+              packageName: dirName,
+              error: `Duplicate plugin id: ${candidate.id} — already discovered`,
+            });
+          } else {
+            seenPluginIds.add(candidate.id);
+            plugins.push(candidate);
+          }
         } else {
           errors.push({
             packageName: dirName,
