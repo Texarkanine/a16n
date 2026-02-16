@@ -8,6 +8,7 @@ import claudePlugin from '@a16njs/plugin-claude';
 import a16nPlugin from '@a16njs/plugin-a16n';
 import { handleConvert } from './commands/convert.js';
 import { handleDiscover } from './commands/discover.js';
+import { handlePlugins } from './commands/plugins.js';
 import type { CommandIO } from './commands/io.js';
 
 const require = createRequire(import.meta.url);
@@ -103,20 +104,16 @@ export function createProgram(engine: A16nEngine | null): Command {
     .description('Show available plugins')
     .action(() => {
       if (!engine) return;
-      const plugins = engine.listPlugins();
-
-      console.log('Available plugins:\n');
-      for (const plugin of plugins) {
-        console.log(`  ${plugin.id}`);
-        console.log(`    Name: ${plugin.name}`);
-        console.log(`    Supports: ${plugin.supports.join(', ')}\n`);
-      }
+      handlePlugins(engine, defaultIO);
     });
 
   return program;
 }
 
 // Run CLI when this module is executed directly (not imported by tests/doc-gen)
+// Intentionally co-located with the entry-point guard below rather than at the
+// top of the file — these are only needed for the "am I the main module?" check
+// and grouping them here keeps the exported API visually separate.
 import { fileURLToPath } from 'url';
 import { realpathSync } from 'fs';
 
