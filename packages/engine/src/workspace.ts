@@ -1,70 +1,9 @@
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { Workspace, WorkspaceEntry } from '@a16njs/models';
 
-// Re-export the interfaces from models so existing engine consumers can still import from here
+// Re-export from models so existing engine consumers can still import from here
 export type { Workspace, WorkspaceEntry } from '@a16njs/models';
-
-/**
- * Workspace backed by the local filesystem.
- *
- * All operations delegate to Node.js fs/promises.
- *
- * @example
- * ```typescript
- * const ws = new LocalWorkspace('source', '/project');
- * const content = await ws.read('.cursor/rules/my-rule.mdc');
- * await ws.write('.claude/rules/my-rule.md', content);
- * ```
- */
-export class LocalWorkspace implements Workspace {
-  /**
-   * Create a new LocalWorkspace.
-   * @param id - Unique identifier for this workspace
-   * @param root - Absolute path to the workspace root directory
-   */
-  constructor(
-    public readonly id: string,
-    public readonly root: string,
-  ) {}
-
-  resolve(relativePath: string): string {
-    if (relativePath === '') return this.root;
-    return path.join(this.root, relativePath);
-  }
-
-  async exists(relativePath: string): Promise<boolean> {
-    try {
-      await fs.access(this.resolve(relativePath));
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  async read(relativePath: string): Promise<string> {
-    return fs.readFile(this.resolve(relativePath), 'utf-8');
-  }
-
-  async write(relativePath: string, content: string): Promise<void> {
-    const fullPath = this.resolve(relativePath);
-    await fs.mkdir(path.dirname(fullPath), { recursive: true });
-    await fs.writeFile(fullPath, content, 'utf-8');
-  }
-
-  async readdir(relativePath: string): Promise<WorkspaceEntry[]> {
-    const dirents = await fs.readdir(this.resolve(relativePath), { withFileTypes: true });
-    return dirents.map((d) => ({
-      name: d.name,
-      isFile: d.isFile(),
-      isDirectory: d.isDirectory(),
-    }));
-  }
-
-  async mkdir(relativePath: string): Promise<void> {
-    await fs.mkdir(this.resolve(relativePath), { recursive: true });
-  }
-}
+export { LocalWorkspace, toWorkspace } from '@a16njs/models';
 
 /**
  * Read-only wrapper around another workspace.

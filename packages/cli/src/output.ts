@@ -10,6 +10,7 @@ const ICONS: Record<WarningCode, string> = {
   'boundary-crossing': '⚡',
   'git-status-conflict': '⚠',
   'version-mismatch': '⚠',
+  'orphan-path-ref': '⚠',
 };
 
 const HINTS: Partial<Record<WarningCode, string>> = {
