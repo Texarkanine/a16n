@@ -277,6 +277,16 @@ async function handleGitIgnoreMatch(
   const filesToHook: string[] = [];
   const filesToCommit: string[] = [];
 
+  const ctx: ConflictRouteContext = {
+    conflictResolution,
+    result,
+    filesToGitignore,
+    filesToExclude,
+    filesToHook,
+    filesToCommit,
+    verbose,
+  };
+
   for (const written of result.written) {
     const relativePath = toGitIgnorePath(path.relative(resolvedPath, written.path));
 
@@ -311,7 +321,7 @@ async function handleGitIgnoreMatch(
         (outputIgnored && trackedSources.length > 0);
 
       if (hasDestinationConflict) {
-        routeConflict(conflictResolution, relativePath, result, ignoredSources, trackedSources, outputTracked ?? false, filesToGitignore, filesToExclude, filesToHook, filesToCommit, verbose);
+        routeConflict(ctx, relativePath, ignoredSources, trackedSources, outputTracked ?? false);
       }
       continue;
     }
@@ -319,7 +329,7 @@ async function handleGitIgnoreMatch(
     if (ignoredSources.length === sources.length) {
       const ignoreDestinations = new Set(ignoredSources.map(s => s.ignoreSource));
       if (ignoreDestinations.size > 1) {
-        routeConflictSimple(conflictResolution, relativePath, result, sources, filesToGitignore, filesToExclude, filesToHook, filesToCommit, verbose, 'sources ignored by different files');
+        routeConflictSimple(ctx, relativePath, sources, 'sources ignored by different files');
       } else {
         const ignoreDestination = ignoredSources[0]?.ignoreSource;
         if (ignoreDestination === '.git/info/exclude') {
@@ -331,7 +341,7 @@ async function handleGitIgnoreMatch(
     } else if (trackedSources.length === sources.length) {
       verbose(`  ${relativePath} not ignored (all sources tracked)`);
     } else if (ignoredSources.length > 0 && trackedSources.length > 0) {
-      routeConflictSimple(conflictResolution, relativePath, result, sources, filesToGitignore, filesToExclude, filesToHook, filesToCommit, verbose, 'sources have mixed status');
+      routeConflictSimple(ctx, relativePath, sources, 'sources have mixed status');
     }
   }
 
@@ -362,88 +372,106 @@ async function handleGitIgnoreMatch(
 
   if (filesToCommit.length > 0) {
     if (!options.dryRun) {
-      await removeFromGitIgnore(resolvedPath, filesToCommit);
-      await removeFromGitExclude(resolvedPath, filesToCommit);
-      await removeFromPreCommitHook(resolvedPath, filesToCommit);
+      try {
+        await removeFromGitIgnore(resolvedPath, filesToCommit);
+      } catch (error) {
+        result.warnings.push({
+          code: WarningCode.Approximated,
+          message: `Failed to remove from .gitignore: ${(error as Error).message}`,
+        });
+      }
+      try {
+        await removeFromGitExclude(resolvedPath, filesToCommit);
+      } catch (error) {
+        result.warnings.push({
+          code: WarningCode.Approximated,
+          message: `Failed to remove from .git/info/exclude: ${(error as Error).message}`,
+        });
+      }
+      try {
+        await removeFromPreCommitHook(resolvedPath, filesToCommit);
+      } catch (error) {
+        result.warnings.push({
+          code: WarningCode.Approximated,
+          message: `Failed to remove from pre-commit hook: ${(error as Error).message}`,
+        });
+      }
     }
   }
 }
 
+interface ConflictRouteContext {
+  conflictResolution: string;
+  result: ConversionResult;
+  filesToGitignore: string[];
+  filesToExclude: string[];
+  filesToHook: string[];
+  filesToCommit: string[];
+  verbose: (msg: string) => void;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function routeConflict(
-  conflictResolution: string,
+  ctx: ConflictRouteContext,
   relativePath: string,
-  result: ConversionResult,
   ignoredSources: any[],
   trackedSources: any[],
   outputTracked: boolean,
-  filesToGitignore: string[],
-  filesToExclude: string[],
-  filesToHook: string[],
-  filesToCommit: string[],
-  verbose: (msg: string) => void,
 ): void {
-  if (conflictResolution === 'skip') {
+  if (ctx.conflictResolution === 'skip') {
     const msg = outputTracked
       ? `Git status conflict: output '${relativePath}' is tracked, but ${ignoredSources.length} source(s) are ignored`
       : `Git status conflict: output '${relativePath}' is ignored, but ${trackedSources.length} source(s) are tracked`;
-    result.warnings.push({
+    ctx.result.warnings.push({
       code: WarningCode.GitStatusConflict,
       message: msg,
       sources: (outputTracked ? ignoredSources : trackedSources).map((s: any) => s.source.sourcePath).filter((p: any): p is string => p !== undefined),
     });
   } else {
-    applyConflictResolution(conflictResolution, relativePath, filesToGitignore, filesToExclude, filesToHook, filesToCommit);
-    verbose(`  Resolved conflict for ${relativePath} with ${conflictResolution}`);
+    applyConflictResolution(ctx.conflictResolution, relativePath, ctx);
+    ctx.verbose(`  Resolved conflict for ${relativePath} with ${ctx.conflictResolution}`);
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function routeConflictSimple(
-  conflictResolution: string,
+  ctx: ConflictRouteContext,
   relativePath: string,
-  result: ConversionResult,
   sources: any[],
-  filesToGitignore: string[],
-  filesToExclude: string[],
-  filesToHook: string[],
-  filesToCommit: string[],
-  verbose: (msg: string) => void,
   reason: string,
 ): void {
-  if (conflictResolution === 'skip') {
-    result.warnings.push({
+  if (ctx.conflictResolution === 'skip') {
+    ctx.result.warnings.push({
       code: WarningCode.GitStatusConflict,
       message: `Git status conflict: cannot determine status for '${relativePath}' (${reason})`,
       sources: sources.map((s: any) => s.sourcePath).filter((p: any): p is string => p !== undefined),
     });
   } else {
-    applyConflictResolution(conflictResolution, relativePath, filesToGitignore, filesToExclude, filesToHook, filesToCommit);
-    verbose(`  Resolved conflict for ${relativePath} with ${conflictResolution}`);
+    applyConflictResolution(ctx.conflictResolution, relativePath, ctx);
+    ctx.verbose(`  Resolved conflict for ${relativePath} with ${ctx.conflictResolution}`);
   }
 }
 
 function applyConflictResolution(
   resolution: string,
   relativePath: string,
-  filesToGitignore: string[],
-  filesToExclude: string[],
-  filesToHook: string[],
-  filesToCommit: string[],
+  ctx: ConflictRouteContext,
 ): void {
   switch (resolution) {
     case 'ignore':
-      filesToGitignore.push(relativePath);
+      ctx.filesToGitignore.push(relativePath);
       break;
     case 'exclude':
-      filesToExclude.push(relativePath);
+      ctx.filesToExclude.push(relativePath);
       break;
     case 'hook':
-      filesToHook.push(relativePath);
+      ctx.filesToHook.push(relativePath);
       break;
     case 'commit':
-      filesToCommit.push(relativePath);
+      ctx.filesToCommit.push(relativePath);
       break;
+    default:
+      throw new Error(`Unknown conflict resolution '${resolution}' for '${relativePath}'`);
   }
 }
 

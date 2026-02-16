@@ -6,6 +6,13 @@ import type { A16nEngine, ConversionResult } from '@a16njs/engine';
 import { CustomizationType } from '@a16njs/models';
 import { handleConvert, type ConvertCommandOptions } from '../../src/commands/convert.js';
 import type { CommandIO } from '../../src/commands/io.js';
+import {
+  isGitRepo,
+  getIgnoreSource,
+  removeFromGitIgnore,
+  removeFromGitExclude,
+  removeFromPreCommitHook,
+} from '../../src/git-ignore.js';
 
 /**
  * Unit tests for the convert command handler.
@@ -262,6 +269,112 @@ describe('handleConvert', () => {
       expect(io.errors.some(e => e.includes('Unknown source: badplugin'))).toBe(true);
     });
 
+  });
+
+  describe('git-ignore match mode', () => {
+    vi.mock('../../src/git-ignore.js', async (importOriginal) => {
+      const original = await importOriginal<typeof import('../../src/git-ignore.js')>();
+      return {
+        ...original,
+        isGitRepo: vi.fn(),
+        isGitIgnored: vi.fn(),
+        isGitTracked: vi.fn(),
+        getIgnoreSource: vi.fn(),
+        addToGitIgnore: vi.fn(),
+        addToGitExclude: vi.fn(),
+        updatePreCommitHook: vi.fn(),
+        removeFromGitIgnore: vi.fn(),
+        removeFromGitExclude: vi.fn(),
+        removeFromPreCommitHook: vi.fn(),
+      };
+    });
+
+    it('should error on unknown conflict resolution value', async () => {
+      vi.mocked(isGitRepo).mockResolvedValue(true);
+      // Mixed status: first source ignored via .gitignore, second not ignored
+      vi.mocked(getIgnoreSource)
+        .mockResolvedValueOnce('.gitignore')
+        .mockResolvedValueOnce(null);
+
+      const io = createMockIO();
+      const engine = createMockEngine({
+        convert: vi.fn().mockResolvedValue({
+          discovered: [
+            { type: CustomizationType.GlobalPrompt, content: 'a', sourcePath: 'src/a.mdc' },
+            { type: CustomizationType.GlobalPrompt, content: 'b', sourcePath: 'src/b.mdc' },
+          ],
+          written: [{
+            path: path.join(tmpDir, 'out/merged.md'),
+            type: CustomizationType.GlobalPrompt,
+            itemCount: 2,
+            isNewFile: true,
+            sourceItems: [
+              { type: CustomizationType.GlobalPrompt, content: 'a', sourcePath: 'src/a.mdc' },
+              { type: CustomizationType.GlobalPrompt, content: 'b', sourcePath: 'src/b.mdc' },
+            ],
+          }],
+          warnings: [],
+          unsupported: [],
+        }),
+      });
+      const options: ConvertCommandOptions = {
+        from: 'cursor',
+        to: 'claude',
+        gitignoreOutputWith: 'match',
+        ifGitignoreConflict: 'badvalue',
+      };
+
+      await handleConvert(engine, tmpDir, options, io);
+
+      expect(io.exitCode).toBe(1);
+      expect(io.errors.some(e => e.includes('badvalue'))).toBe(true);
+    });
+
+    it('should attempt all removals even if one fails', async () => {
+      vi.mocked(isGitRepo).mockResolvedValue(true);
+      // All sources ignored → all tracked means filesToCommit via 'commit' resolution
+      // Two sources, both ignored via .gitignore but with mixed ignore sources to trigger conflict
+      vi.mocked(getIgnoreSource)
+        .mockResolvedValueOnce('.gitignore')
+        .mockResolvedValueOnce(null);
+      vi.mocked(removeFromGitIgnore).mockRejectedValue(new Error('gitignore remove failed'));
+      vi.mocked(removeFromGitExclude).mockResolvedValue(undefined as any);
+      vi.mocked(removeFromPreCommitHook).mockResolvedValue(undefined as any);
+
+      const io = createMockIO();
+      const engine = createMockEngine({
+        convert: vi.fn().mockResolvedValue({
+          discovered: [
+            { type: CustomizationType.GlobalPrompt, content: 'a', sourcePath: 'src/a.mdc' },
+            { type: CustomizationType.GlobalPrompt, content: 'b', sourcePath: 'src/b.mdc' },
+          ],
+          written: [{
+            path: path.join(tmpDir, 'out/merged.md'),
+            type: CustomizationType.GlobalPrompt,
+            itemCount: 2,
+            isNewFile: true,
+            sourceItems: [
+              { type: CustomizationType.GlobalPrompt, content: 'a', sourcePath: 'src/a.mdc' },
+              { type: CustomizationType.GlobalPrompt, content: 'b', sourcePath: 'src/b.mdc' },
+            ],
+          }],
+          warnings: [],
+          unsupported: [],
+        }),
+      });
+      const options: ConvertCommandOptions = {
+        from: 'cursor',
+        to: 'claude',
+        gitignoreOutputWith: 'match',
+        ifGitignoreConflict: 'commit',
+      };
+
+      await handleConvert(engine, tmpDir, options, io);
+
+      expect(removeFromGitIgnore).toHaveBeenCalled();
+      expect(removeFromGitExclude).toHaveBeenCalled();
+      expect(removeFromPreCommitHook).toHaveBeenCalled();
+    });
   });
 
   describe('delete source', () => {
