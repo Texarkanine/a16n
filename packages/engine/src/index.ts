@@ -5,10 +5,12 @@ import type {
   Warning,
   WrittenFile,
   CustomizationType,
+  Workspace,
 } from '@a16njs/models';
 import { type PluginDiscoveryOptions } from './plugin-discovery.js';
 import { PluginRegistry } from './plugin-registry.js';
 import { PluginLoader, PluginConflictStrategy } from './plugin-loader.js';
+import { LocalWorkspace } from './workspace.js';
 import {
   type ContentTransformation,
   type TransformationContext,
@@ -31,6 +33,10 @@ export interface ConversionOptions {
   sourceRoot?: string;
   /** Override root for emission (target plugin) */
   targetRoot?: string;
+  /** Workspace for source discovery (takes precedence over sourceRoot/root) */
+  sourceWorkspace?: Workspace;
+  /** Workspace for target emission (takes precedence over targetRoot/root) */
+  targetWorkspace?: Workspace;
   /**
    * If true, rewrite path references in content during conversion.
    * @deprecated Use `transformations: [new PathRewritingTransformation()]` instead.
@@ -167,15 +173,18 @@ export class A16nEngine {
   /**
    * Discover customizations using a specific plugin.
    * @param pluginId - The plugin to use for discovery
-   * @param root - The project root to scan
+   * @param rootOrWorkspace - The project root path or Workspace to scan
    * @returns Discovery result with items and warnings
    */
-  async discover(pluginId: string, root: string): Promise<DiscoveryResult> {
+  async discover(pluginId: string, rootOrWorkspace: string | Workspace): Promise<DiscoveryResult> {
     const plugin = this.getPlugin(pluginId);
     if (!plugin) {
       throw new Error(`Unknown plugin: ${pluginId}`);
     }
-    return plugin.discover(root);
+    const workspace = typeof rootOrWorkspace === 'string'
+      ? new LocalWorkspace('discover', rootOrWorkspace)
+      : rootOrWorkspace;
+    return plugin.discover(workspace);
   }
 
   /**
@@ -194,13 +203,18 @@ export class A16nEngine {
       throw new Error(`Unknown target: ${options.target}`);
     }
 
-    // Use sourceRoot for discovery if provided, otherwise use root
+    // Resolve source and target roots/workspaces
+    // Priority: explicit workspace > explicit root override > default root
     const discoverRoot = options.sourceRoot ?? options.root;
-    // Use targetRoot for emission if provided, otherwise use root
     const emitRoot = options.targetRoot ?? options.root;
 
-    // Discover from source
-    const discovery = await sourcePlugin.discover(discoverRoot);
+    const sourceWorkspace = options.sourceWorkspace
+      ?? new LocalWorkspace('source', discoverRoot);
+    const targetWorkspace = options.targetWorkspace
+      ?? new LocalWorkspace('target', emitRoot);
+
+    // Discover from source using workspace
+    const discovery = await sourcePlugin.discover(sourceWorkspace);
 
     // Collect warnings
     const warnings: Warning[] = [...discovery.warnings];
@@ -224,10 +238,10 @@ export class A16nEngine {
           items: itemsToEmit,
           sourcePlugin,
           targetPlugin,
-          sourceRoot: discoverRoot,
-          targetRoot: emitRoot,
+          sourceRoot: sourceWorkspace.root,
+          targetRoot: targetWorkspace.root,
           trialEmit: (items) =>
-            targetPlugin.emit(items, emitRoot, { dryRun: true }),
+            targetPlugin.emit(items, targetWorkspace, { dryRun: true }),
         };
 
         const result = await transformation.transform(transformContext);
@@ -236,8 +250,8 @@ export class A16nEngine {
       }
     }
 
-    // Single emission at the end
-    const emission = await targetPlugin.emit(itemsToEmit, emitRoot, {
+    // Single emission at the end using workspace
+    const emission = await targetPlugin.emit(itemsToEmit, targetWorkspace, {
       dryRun: options.dryRun,
     });
 

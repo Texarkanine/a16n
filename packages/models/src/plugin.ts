@@ -1,5 +1,6 @@
 import type { AgentCustomization, CustomizationType } from './types.js';
 import type { Warning } from './warnings.js';
+import type { Workspace } from './workspace.js';
 
 /**
  * Result of discovering customizations from a project.
@@ -78,17 +79,17 @@ export interface A16nPlugin {
 
   /**
    * Discover all agent customizations in a directory tree.
-   * @param root - The root directory to search
+   * @param rootOrWorkspace - The root directory path or Workspace to search
    * @returns All customizations found and any warnings
    */
-  discover(root: string): Promise<DiscoveryResult>;
+  discover(rootOrWorkspace: string | Workspace): Promise<DiscoveryResult>;
 
   /**
    * Emit customization models to disk in this plugin's format.
    * @param models - The customizations to emit
-   * @param root - The root directory to write to
+   * @param rootOrWorkspace - The root directory path or Workspace to write to
    * @param options - Optional emit options (e.g., dryRun)
    * @returns Info about what was written (or would be written) and any issues
    */
-  emit(models: AgentCustomization[], root: string, options?: EmitOptions): Promise<EmitResult>;
+  emit(models: AgentCustomization[], rootOrWorkspace: string | Workspace, options?: EmitOptions): Promise<EmitResult>;
 }

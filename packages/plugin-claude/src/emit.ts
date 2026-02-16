@@ -11,6 +11,7 @@ import {
   type GlobalPrompt,
   type SimpleAgentSkill,
   type AgentSkillIO,
+  type Workspace,
   CustomizationType,
   WarningCode,
   isGlobalPrompt,
@@ -20,6 +21,7 @@ import {
   isAgentIgnore,
   isManualPrompt,
   getUniqueFilename,
+  resolveRoot,
 } from '@a16njs/models';
 
 /**
@@ -264,9 +266,10 @@ description: ${safeDescription}`;
  */
 export async function emit(
   models: AgentCustomization[],
-  root: string,
+  rootOrWorkspace: string | Workspace,
   options?: EmitOptions
 ): Promise<EmitResult> {
+  const root = resolveRoot(rootOrWorkspace);
   const dryRun = options?.dryRun ?? false;
   const written: WrittenFile[] = [];
   const warnings: Warning[] = [];

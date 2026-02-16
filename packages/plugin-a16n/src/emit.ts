@@ -20,11 +20,13 @@ import {
   type EmitOptions,
   type WrittenFile,
   type Warning,
+  type Workspace,
   CustomizationType,
   WarningCode,
   isAgentSkillIO,
   isManualPrompt,
   writeAgentSkillIO,
+  resolveRoot,
 } from '@a16njs/models';
 import { formatIRFile } from './format.js';
 import { slugify } from './utils.js';
@@ -51,9 +53,10 @@ async function pathExists(p: string): Promise<boolean> {
  */
 export async function emit(
   models: AgentCustomization[],
-  root: string,
+  rootOrWorkspace: string | Workspace,
   options?: EmitOptions
 ): Promise<EmitResult> {
+  const root = resolveRoot(rootOrWorkspace);
   const written: WrittenFile[] = [];
   const warnings: Warning[] = [];
   const unsupported: AgentCustomization[] = [];

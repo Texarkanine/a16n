@@ -24,12 +24,14 @@ import {
   type AgentSkillIO,
   type DiscoveryResult,
   type Warning,
+  type Workspace,
   CustomizationType,
   WarningCode,
   CURRENT_IR_VERSION,
   areVersionsCompatible,
   readAgentSkillIO,
   createId,
+  resolveRoot,
 } from '@a16njs/models';
 import { parseIRFile } from './parse.js';
 import { extractRelativeDir } from './utils.js';
@@ -51,7 +53,8 @@ const VALID_TYPE_DIRS = new Set<string>(Object.values(CustomizationType));
  * // result.items: AgentCustomization[]
  * // result.warnings: Warning[]
  */
-export async function discover(root: string): Promise<DiscoveryResult> {
+export async function discover(rootOrWorkspace: string | Workspace): Promise<DiscoveryResult> {
+  const root = resolveRoot(rootOrWorkspace);
   const items: AgentCustomization[] = [];
   const warnings: Warning[] = [];
 

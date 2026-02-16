@@ -49,6 +49,9 @@ export {
   getCurrentVersion,
 } from './version.js';
 
+// Workspace abstraction
+export { type Workspace, type WorkspaceEntry, resolveRoot } from './workspace.js';
+
 // AgentSkills.io utilities
 export {
   type ParsedSkillFrontmatter,
