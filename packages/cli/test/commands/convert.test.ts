@@ -374,6 +374,9 @@ describe('handleConvert', () => {
       expect(removeFromGitIgnore).toHaveBeenCalled();
       expect(removeFromGitExclude).toHaveBeenCalled();
       expect(removeFromPreCommitHook).toHaveBeenCalled();
+      // The failure from removeFromGitIgnore should surface as a warning in output
+      expect(io.logs.some(l => l.includes('Failed to remove from .gitignore'))).toBe(true);
+      expect(io.logs.some(l => l.includes('gitignore remove failed'))).toBe(true);
     });
   });
 

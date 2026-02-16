@@ -428,7 +428,7 @@ function routeConflict(
       sources: (outputTracked ? ignoredSources : trackedSources).map((s: any) => s.source.sourcePath).filter((p: any): p is string => p !== undefined),
     });
   } else {
-    applyConflictResolution(ctx.conflictResolution, relativePath, ctx);
+    applyConflictResolution(relativePath, ctx);
     ctx.verbose(`  Resolved conflict for ${relativePath} with ${ctx.conflictResolution}`);
   }
 }
@@ -447,17 +447,16 @@ function routeConflictSimple(
       sources: sources.map((s: any) => s.sourcePath).filter((p: any): p is string => p !== undefined),
     });
   } else {
-    applyConflictResolution(ctx.conflictResolution, relativePath, ctx);
+    applyConflictResolution(relativePath, ctx);
     ctx.verbose(`  Resolved conflict for ${relativePath} with ${ctx.conflictResolution}`);
   }
 }
 
 function applyConflictResolution(
-  resolution: string,
   relativePath: string,
   ctx: ConflictRouteContext,
 ): void {
-  switch (resolution) {
+  switch (ctx.conflictResolution) {
     case 'ignore':
       ctx.filesToGitignore.push(relativePath);
       break;
@@ -471,7 +470,7 @@ function applyConflictResolution(
       ctx.filesToCommit.push(relativePath);
       break;
     default:
-      throw new Error(`Unknown conflict resolution '${resolution}' for '${relativePath}'`);
+      throw new Error(`Unknown conflict resolution '${ctx.conflictResolution}' for '${relativePath}'`);
   }
 }
 
