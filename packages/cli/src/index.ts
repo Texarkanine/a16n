@@ -114,9 +114,19 @@ export function createProgram(engine: A16nEngine | null): Command {
 
 // Run CLI when this module is executed directly (not imported by tests/doc-gen)
 import { fileURLToPath } from 'url';
+import { realpathSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
-const isMainModule = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename);
+
+/**
+ * Resolve a path through symlinks, falling back to path.resolve if the
+ * target does not exist (e.g. during bundling or unusual setups).
+ */
+function resolveReal(p: string): string {
+  try { return realpathSync(p); } catch { return path.resolve(p); }
+}
+
+const isMainModule = process.argv[1] && resolveReal(process.argv[1]) === resolveReal(__filename);
 
 if (isMainModule) {
   const engine = new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin]);

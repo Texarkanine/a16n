@@ -1,9 +1,9 @@
 ## Current Task: CodeRabbit PR #59 Fixes
 
-**Status:** In Progress
+**Status:** COMPLETE
 **PR URL:** https://github.com/Texarkanine/a16n/pull/59
 **Rate Limit Until:**
-**Last Updated:** 2026-02-16T09:07:00Z
+**Last Updated:** 2026-02-16T09:08:00Z
 
 ### Actionable Items
 - [x] ID: null-guard - Remove non-null assertion on `engine!` in CLI index.ts convert/discover actions - FIXED
@@ -16,7 +16,7 @@
 - [x] ID: jsdoc-param-a16n-emit - Fix @param root → rootOrWorkspace in plugin-a16n/src/emit.ts - FIXED
 - [x] ID: jsdoc-param-claude-emit - Fix @param root → rootOrWorkspace in plugin-claude/src/emit.ts - FIXED
 - [x] ID: jsdoc-param-a16n-discover - Fix @param root → rootOrWorkspace in plugin-a16n/src/discover.ts - FIXED
-- [x] ID: sourcepath-unique - Fix sourcePath to include filename for unique ID generation in plugin-a16n/src/discover.ts - FIXED
+- [x] ID: sourcepath-unique - Fix sourcePath to include filename for unique ID generation in plugin-a16n/src/discover.ts - FIXED in 46e5177
 
 ### Requires Human Decision
 (none)
