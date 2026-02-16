@@ -108,7 +108,7 @@ packages/
                 └── rule2.mdc
 ```
 
-These would need to be combined together into a single `CLAUDE.md`, but that cannot be done cleanly, nor repeatably. So, in this case, the best choice *is* to hoist both rules up to the root:
+These would need to be combined together into a single `CLAUDE.md`, but that cannot be done cleanly, nor repeatably. So, in this case, you might prefer to hoist both rules up to the root:
 
 ```
 .claude/
@@ -125,7 +125,9 @@ paths:
 ```
 
 This sidesteps nasty edge cases around combining content into a single file (especially if there was an existing `CLAUDE.md` in that subdirectory, with its own unique content), and with repeatability.
+Of course, it still loses the "rules for the package/directory tree live in that directory tree" intent.
 
+Plugins that may run into this situation should clearly document the solution(s) they choose, and emit appropriate warnings when one of these "lossy" translations occurs.
 
 ## Example Warning Output
 

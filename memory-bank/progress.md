@@ -1,9 +1,30 @@
-# Progress: Architectural Redesign - Foundation Patterns
+# Progress: Migrate Bundled Plugins to Workspace Interface
 
 **Last Updated:** 2026-02-15
-**Status:** ALL PHASES COMPLETE (including previously deferred Phases 3c/3d)
+**Status:** IMPLEMENTATION COMPLETE — All 5 phases done
 
-## Latest Activity: Phases 3c/3d - Workspace Plugin Integration ✅ COMPLETE
+## Latest Activity: Full Plugin Migration to Workspace ✅ COMPLETE
+
+### Summary
+Replaced all direct `fs.*` calls (~72 total) in the three bundled plugins with `Workspace` interface methods. All plugins now use `toWorkspace()` at their entry points and `ws.read()`, `ws.write()`, `ws.readdir()`, `ws.mkdir()`, `ws.exists()` internally.
+
+### Completed Phases
+- **Phase 0:** Moved `LocalWorkspace` to `@a16njs/models`, added `toWorkspace()` helper
+- **Phase 1:** Migrated plugin-a16n (discover.ts, emit.ts, parse.ts) — 93 tests pass
+- **Phase 2:** Migrated plugin-claude (discover.ts, emit.ts) — 114 tests pass
+- **Phase 3:** Migrated plugin-cursor (discover.ts, emit.ts) — 119 tests pass
+- **Phase 4:** Full verification — 807 tests pass across 8 packages, zero `fs/promises` imports in plugins
+
+### Key Decisions
+- `toWorkspace(rootOrWorkspace, label)` wraps strings in `LocalWorkspace` automatically
+- `WorkspaceEntry` uses boolean properties (`.isFile`, `.isDirectory`) not methods
+- `readAgentSkillIO`/`writeAgentSkillIO` in models keep string-based APIs; plugins bridge via `ws.resolve()`
+- `path` import kept where needed for path traversal validation; `fs` fully removed
+- Existing tests unchanged for plugin-claude and plugin-cursor (public API still accepts strings)
+
+---
+
+## Previous Task: Architectural Redesign - Foundation Patterns ✅ COMPLETE
 
 ### Completed Activities
 - [x] Moved `Workspace` + `WorkspaceEntry` interfaces from engine to `@a16njs/models`

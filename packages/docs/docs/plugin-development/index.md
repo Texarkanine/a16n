@@ -16,23 +16,27 @@ Plugins implement the `A16nPlugin` interface from `@a16njs/models`; see the [Mod
 
 The key methods are:
 
-- **`discover(root)`** - Scan a directory and return found customizations
-- **`emit(models, root, options)`** - Write customizations to disk in the plugin's format
+- **`discover(rootOrWorkspace)`** - Scan a directory and return found customizations
+- **`emit(models, rootOrWorkspace, options)`** - Write customizations to disk in the plugin's format
+
+Both methods accept `string | Workspace` — a plain directory path string or a [`Workspace`](#workspace-interface) instance. When a string is passed, plugins should wrap it using `toWorkspace()` from `@a16njs/models`.
 
 ```typescript
-import type { A16nPlugin } from '@a16njs/models';
-import { CustomizationType } from '@a16njs/models';
+import type { A16nPlugin, Workspace } from '@a16njs/models';
+import { CustomizationType, toWorkspace } from '@a16njs/models';
 
 const myPlugin: A16nPlugin = {
   id: 'my-agent',
   name: 'My Agent',
   supports: [CustomizationType.GlobalPrompt, CustomizationType.FileRule],
-  
-  async discover(root: string) {
+
+  async discover(rootOrWorkspace: string | Workspace) {
+    const ws = toWorkspace(rootOrWorkspace, 'my-agent-discover');
     // Return { items: [...], warnings: [...] }
   },
-  
-  async emit(models, root, options) {
+
+  async emit(models, rootOrWorkspace, options) {
+    const ws = toWorkspace(rootOrWorkspace, 'my-agent-emit');
     // Return { written: [...], warnings: [...], unsupported: [...] }
   }
 };
@@ -46,18 +50,46 @@ export default myPlugin;
 
 Plugins declare which types they support via the `supports` array. Entries are instances of [CustomizationType](/models/#customizationtype) from `@a16njs/models`.
 
+### Workspace Interface
+
+The `Workspace` interface abstracts filesystem operations so plugins can work with real directories or in-memory workspaces (useful for testing). All paths passed to workspace methods are **relative to the workspace root**.
+
+```typescript
+import type { Workspace } from '@a16njs/models';
+
+// Available methods:
+await ws.exists('path/to/file');       // boolean
+await ws.read('path/to/file');         // string (UTF-8)
+await ws.write('path/to/file', content); // void
+await ws.readdir('path/to/dir');       // WorkspaceEntry[]
+await ws.mkdir('path/to/dir');         // void (always recursive)
+ws.resolve('path/to/file');            // absolute path string
+```
+
+`WorkspaceEntry` items returned by `readdir()` have boolean properties `isFile` and `isDirectory` (not methods).
+
+Use `toWorkspace()` to normalize the `string | Workspace` parameter at the top of your functions:
+
+```typescript
+import { toWorkspace } from '@a16njs/models';
+
+const ws = toWorkspace(rootOrWorkspace, 'my-plugin-discover');
+// ws is always a Workspace — strings are auto-wrapped in LocalWorkspace
+```
+
 ### Discovery
 
 Discovery scans a project directory and returns customizations in the intermediate representation:
 
 ```typescript
-async discover(root: string): Promise<DiscoveryResult> {
+async discover(rootOrWorkspace: string | Workspace): Promise<DiscoveryResult> {
+  const ws = toWorkspace(rootOrWorkspace, 'my-plugin-discover');
   const items: AgentCustomization[] = [];
   const warnings: Warning[] = [];
-  
-  // Scan for config files specific to this tool
+
+  // Use ws.readdir(), ws.read(), ws.exists() to scan for config files
   // Parse and convert to AgentCustomization items
-  
+
   return { items, warnings };
 }
 ```
@@ -69,16 +101,18 @@ Emission converts intermediate representation back to the plugin's native format
 ```typescript
 async emit(
   items: AgentCustomization[],
-  root: string,
+  rootOrWorkspace: string | Workspace,
   options?: EmitOptions
 ): Promise<EmitResult> {
+  const ws = toWorkspace(rootOrWorkspace, 'my-plugin-emit');
   const written: WrittenFile[] = [];
   const warnings: Warning[] = [];
   const unsupported: AgentCustomization[] = [];
 
   for (const item of items) {
     if (this.supports.includes(item.type)) {
-      // Convert and write file
+      // Use ws.mkdir(), ws.write() to write files
+      // Use ws.resolve(relPath) for written[].path
     } else {
       unsupported.push(item);
     }
