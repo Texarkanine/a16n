@@ -42,11 +42,23 @@ Addressed all actionable CodeRabbit review comments on PR #59. Fixed 14 items sp
 ## LESSONS LEARNED
 
 - Never declare failures "pre-existing" to avoid fixing them — every failing test needs a resolution plan
-- Check for module-level side effects when extracting exports
-- Read tests before implementing — they are the single best source of truth
-- Workspace migration is mechanical but error-prone at call sites
+- Check for module-level side effects when extracting exports (e.g., `program.parse()` at top level breaks test imports — guard behind `isMainModule` check)
+- Read tests before implementing — they are the single best source of truth for what the implementation needs to do
+- Workspace migration is mechanical but error-prone at call sites (e.g., `parseIRFile` 3-arg → 4-arg)
+- Unicode matters: `→` (U+2192) vs `->` (ASCII) caused a regex test failure during handler extraction
 
-## REFERENCES
+## REFLECTION DETAILS
 
-- Reflection: `memory-bank/reflection/reflection-pr-bugfixes.md` (archived)
-- Prior reflections also archived: reflection-plugin-discovery, reflection-arch-phase1, reflection-architectural-redesign, reflection-workspace-migration
+### What Went Well
+- **Tests as specification:** Existing tests served as exact specifications for `handleConvert`, `handleDiscover`, and `createProgram` contracts
+- **Incremental approach:** Fixing in dependency order (build errors → workspace migration → CLI flags → handler extraction) meant each fix unblocked the next batch
+- **Git history as reference:** Using `git merge-base`, `git log`, `git show` to find reference implementations on `main` saved significant time
+- **Clean extraction:** Convert handler preserved 300+ lines of complex conflict resolution code without behavioral changes; all 53 CLI integration tests passed first run
+
+### Challenges
+- **Module-level side effects:** `createProgram` export failed because `program.parse()` ran at module top-level. Solution: `isMainModule` guard using `import.meta.url` comparison
+- **Misidentifying failures as "pre-existing":** User correctly pushed back — broken tests must always have a fix plan, regardless of when they broke
+
+### Files Changed
+- **New:** `packages/cli/src/commands/io.ts` (CommandIO interface), `packages/cli/src/commands/convert.ts` (handleConvert), `packages/cli/src/commands/discover.ts` (handleDiscover)
+- **Modified:** `packages/cli/src/index.ts` (createProgram factory + isMainModule guard), `packages/cli/src/output.ts` (orphan-path-ref ICONS), `packages/models/src/workspace.ts` (LocalWorkspace + toWorkspace), `packages/models/src/index.ts` (exports), `packages/engine/src/workspace.ts` (re-exports), `packages/plugin-a16n/src/parse.ts` (workspace-based parseIRFile), `packages/plugin-a16n/src/discover.ts` (updated call site)
