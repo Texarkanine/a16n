@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.7.1...@a16njs/docs@0.8.0) (2026-02-17)
+
+
+### Features
+
+* make the plugin infrastructure real and good ([#59](https://github.com/Texarkanine/a16n/issues/59)) ([e3d1190](https://github.com/Texarkanine/a16n/commit/e3d1190f3097c57f56cb889881f6fdc6efb2f1cb))
+
 ## [0.7.1](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.7.0...@a16njs/docs@0.7.1) (2026-02-09)
 
 
