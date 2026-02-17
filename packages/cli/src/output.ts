@@ -11,6 +11,7 @@ const ICONS: Record<WarningCode, string> = {
   'git-status-conflict': '⚠',
   'version-mismatch': '⚠',
   'orphan-path-ref': '⚠',
+  'operation-failed': '✗',
 };
 
 const HINTS: Partial<Record<WarningCode, string>> = {

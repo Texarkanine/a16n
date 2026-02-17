@@ -20,6 +20,8 @@ export enum WarningCode {
   VersionMismatch = 'version-mismatch',
   /** A path reference in content points to a source-format file not in the conversion set */
   OrphanPathRef = 'orphan-path-ref',
+  /** A post-conversion operation (e.g. gitignore cleanup) failed */
+  OperationFailed = 'operation-failed',
 }
 
 /**
