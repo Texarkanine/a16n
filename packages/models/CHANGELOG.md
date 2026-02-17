@@ -1,5 +1,17 @@
 # @a16njs/models
 
+## [0.10.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.9.0...@a16njs/models@0.10.0) (2026-02-17)
+
+
+### Features
+
+* make the plugin infrastructure real and good ([#59](https://github.com/Texarkanine/a16n/issues/59)) ([e3d1190](https://github.com/Texarkanine/a16n/commit/e3d1190f3097c57f56cb889881f6fdc6efb2f1cb))
+
+
+### Bug Fixes
+
+* niptick feadback ([#61](https://github.com/Texarkanine/a16n/issues/61)) ([4861ec3](https://github.com/Texarkanine/a16n/commit/4861ec3efaf1a55b9cc3fe1f361d66f3eb468da0))
+
 ## [0.9.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.8.0...@a16njs/models@0.9.0) (2026-02-08)
 
 
