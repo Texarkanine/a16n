@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,6 +6,7 @@ import {
   discoverInstalledPlugins,
   isValidPlugin,
   getDefaultSearchPaths,
+  getGlobalNodeModulesFromArgv1,
 } from '../src/plugin-discovery.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -374,5 +375,80 @@ describe('getDefaultSearchPaths', () => {
     const paths = getDefaultSearchPaths();
     expect(paths.length).toBeGreaterThan(0);
     expect(paths.some((p) => p.includes('node_modules'))).toBe(true);
+  });
+
+  it('should include argv1-derived global node_modules when running from a bin/ directory', async () => {
+    // Create a fake PREFIX/bin/a16n and PREFIX/lib/node_modules structure
+    const fakePrefix = path.join(tempDir, 'fake-prefix');
+    await fs.mkdir(path.join(fakePrefix, 'bin'), { recursive: true });
+    await fs.mkdir(path.join(fakePrefix, 'lib', 'node_modules'), { recursive: true });
+
+    const originalArgv1 = process.argv[1];
+    try {
+      process.argv[1] = path.join(fakePrefix, 'bin', 'a16n');
+      const paths = getDefaultSearchPaths();
+      expect(paths).toContain(path.join(fakePrefix, 'lib', 'node_modules'));
+    } finally {
+      process.argv[1] = originalArgv1;
+    }
+  });
+
+  it('should not add duplicate paths when argv1-derived path already found via walk-up', () => {
+    // When argv1 points to a bin/ that resolves to a node_modules already
+    // found by the walk-up, the path should not appear twice
+    const paths = getDefaultSearchPaths();
+    const uniquePaths = [...new Set(paths)];
+    expect(paths).toEqual(uniquePaths);
+  });
+});
+
+describe('getGlobalNodeModulesFromArgv1', () => {
+  let originalArgv1: string | undefined;
+
+  beforeEach(async () => {
+    originalArgv1 = process.argv[1];
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    process.argv[1] = originalArgv1!;
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it('should return PREFIX/lib/node_modules when argv1 is in a bin/ directory (Unix)', async () => {
+    const fakePrefix = path.join(tempDir, 'nvm-prefix');
+    await fs.mkdir(path.join(fakePrefix, 'bin'), { recursive: true });
+    await fs.mkdir(path.join(fakePrefix, 'lib', 'node_modules'), { recursive: true });
+
+    process.argv[1] = path.join(fakePrefix, 'bin', 'a16n');
+    expect(getGlobalNodeModulesFromArgv1()).toBe(path.join(fakePrefix, 'lib', 'node_modules'));
+  });
+
+  it('should fall back to PREFIX/node_modules when PREFIX/lib/node_modules does not exist', async () => {
+    const fakePrefix = path.join(tempDir, 'win-prefix');
+    await fs.mkdir(path.join(fakePrefix, 'bin'), { recursive: true });
+    await fs.mkdir(path.join(fakePrefix, 'node_modules'), { recursive: true });
+
+    process.argv[1] = path.join(fakePrefix, 'bin', 'a16n');
+    expect(getGlobalNodeModulesFromArgv1()).toBe(path.join(fakePrefix, 'node_modules'));
+  });
+
+  it('should return null when argv1 is not in a bin/ directory', () => {
+    process.argv[1] = path.join(tempDir, 'some', 'random', 'script.js');
+    expect(getGlobalNodeModulesFromArgv1()).toBeNull();
+  });
+
+  it('should return null when process.argv[1] is undefined', () => {
+    process.argv[1] = undefined as unknown as string;
+    expect(getGlobalNodeModulesFromArgv1()).toBeNull();
+  });
+
+  it('should return null when neither PREFIX/lib/node_modules nor PREFIX/node_modules exist', async () => {
+    const fakePrefix = path.join(tempDir, 'empty-prefix');
+    await fs.mkdir(path.join(fakePrefix, 'bin'), { recursive: true });
+    // No node_modules created
+
+    process.argv[1] = path.join(fakePrefix, 'bin', 'a16n');
+    expect(getGlobalNodeModulesFromArgv1()).toBeNull();
   });
 });
