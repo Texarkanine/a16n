@@ -376,7 +376,7 @@ async function handleGitIgnoreMatch(
         await removeFromGitIgnore(resolvedPath, filesToCommit);
       } catch (error) {
         result.warnings.push({
-          code: WarningCode.Approximated,
+          code: WarningCode.OperationFailed,
           message: `Failed to remove from .gitignore: ${(error as Error).message}`,
         });
       }
@@ -384,7 +384,7 @@ async function handleGitIgnoreMatch(
         await removeFromGitExclude(resolvedPath, filesToCommit);
       } catch (error) {
         result.warnings.push({
-          code: WarningCode.Approximated,
+          code: WarningCode.OperationFailed,
           message: `Failed to remove from .git/info/exclude: ${(error as Error).message}`,
         });
       }
@@ -392,7 +392,7 @@ async function handleGitIgnoreMatch(
         await removeFromPreCommitHook(resolvedPath, filesToCommit);
       } catch (error) {
         result.warnings.push({
-          code: WarningCode.Approximated,
+          code: WarningCode.OperationFailed,
           message: `Failed to remove from pre-commit hook: ${(error as Error).message}`,
         });
       }
