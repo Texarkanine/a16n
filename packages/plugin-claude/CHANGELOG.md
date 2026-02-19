@@ -1,5 +1,12 @@
 # @a16njs/plugin-claude
 
+## [0.10.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.10.0...@a16njs/plugin-claude@0.10.1) (2026-02-19)
+
+
+### Bug Fixes
+
+* SimpleAgentSkill and AgentSkillIO invocable names were lost in translation ([#64](https://github.com/Texarkanine/a16n/issues/64)) ([3266bff](https://github.com/Texarkanine/a16n/commit/3266bff0037f411091c2b7ded55ea7db50b01eba))
+
 ## [0.10.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.9.1...@a16njs/plugin-claude@0.10.0) (2026-02-17)
 
 

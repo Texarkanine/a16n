@@ -1,6 +1,6 @@
 {
   "name": "@a16njs/plugin-cursor",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Cursor IDE plugin for a16n",
   "license": "AGPL-3.0",
   "author": "Texarkanine",

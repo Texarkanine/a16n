@@ -1,5 +1,12 @@
 # @a16njs/engine
 
+## [0.6.1](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@0.6.0...@a16njs/engine@0.6.1) (2026-02-19)
+
+
+### Bug Fixes
+
+* trailing PR feedback from discovery fixes ([#62](https://github.com/Texarkanine/a16n/issues/62)) ([38348fa](https://github.com/Texarkanine/a16n/commit/38348fa0ad415bd62a720497896451b6dff14aef))
+
 ## [0.6.0](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@0.5.0...@a16njs/engine@0.6.0) (2026-02-17)
 
 
