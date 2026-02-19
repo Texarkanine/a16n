@@ -9,8 +9,8 @@ import {
 
 describe('IRVersion', () => {
   describe('CURRENT_IR_VERSION', () => {
-    it('should be v1beta1', () => {
-      expect(CURRENT_IR_VERSION).toBe('v1beta1');
+    it('should be v1beta2', () => {
+      expect(CURRENT_IR_VERSION).toBe('v1beta2');
     });
   });
 
@@ -137,7 +137,7 @@ describe('IRVersion', () => {
     it('should return the current IR version', () => {
       // Should match CURRENT_IR_VERSION
       expect(getCurrentVersion()).toBe(CURRENT_IR_VERSION);
-      expect(getCurrentVersion()).toBe('v1beta1');
+      expect(getCurrentVersion()).toBe('v1beta2');
     });
   });
 });

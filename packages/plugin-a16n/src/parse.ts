@@ -32,6 +32,7 @@ interface IRFrontmatter {
   type?: string;
   relativeDir?: string;
   // Type-specific fields
+  name?: string;
   globs?: string[];
   description?: string;
   patterns?: string[];
@@ -131,9 +132,15 @@ export async function parseIRFile(
         if (!frontmatter.description || typeof frontmatter.description !== 'string') {
           return { error: 'SimpleAgentSkill requires description string in frontmatter' };
         }
+        // v1beta2 requires name in frontmatter; v1beta1 files may omit it — derive from filename
+        const name =
+          typeof frontmatter.name === 'string' && frontmatter.name.length > 0
+            ? frontmatter.name
+            : nameWithoutExt;
         const item: SimpleAgentSkill = {
           ...baseItem,
           type: CustomizationType.SimpleAgentSkill,
+          name,
           description: frontmatter.description,
         };
         return { item };

@@ -356,32 +356,51 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
   return { frontmatter, body };
 }
 
+interface SkillDirInfo {
+  /** Path relative to .claude/skills/ (e.g., "banana" or "category/tomato") */
+  relativePath: string;
+  /** Invocation name: immediately-containing directory name */
+  dirName: string;
+}
+
 /**
- * Find all skill directories in .claude/skills/ that contain SKILL.md.
- * Returns directory names (e.g., "testing", "secure-deploy").
+ * Recursively find all skill directories in .claude/skills/ that contain SKILL.md.
+ *
+ * If a directory contains SKILL.md, it is a skill and its subdirectories are
+ * treated as resources (not recursed for more skills). If a directory does NOT
+ * contain SKILL.md, it is a category directory and is recursed.
  */
-async function findSkillDirs(root: string): Promise<string[]> {
-  const results: string[] = [];
+async function findSkillDirs(root: string): Promise<SkillDirInfo[]> {
+  const results: SkillDirInfo[] = [];
   const skillsDir = path.join(root, '.claude', 'skills');
-  
-  try {
-    const entries = await fs.readdir(skillsDir, { withFileTypes: true });
-    
+
+  async function traverse(currentDir: string, relativePath: string): Promise<void> {
+    let entries;
+    try {
+      entries = await fs.readdir(currentDir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+
     for (const entry of entries) {
-      if (entry.isDirectory()) {
-        const skillFile = path.join(skillsDir, entry.name, 'SKILL.md');
-        try {
-          await fs.access(skillFile);
-          results.push(entry.name);
-        } catch {
-          // No SKILL.md in this directory
-        }
+      if (!entry.isDirectory()) continue;
+
+      const entryRelPath = relativePath
+        ? `${relativePath}/${entry.name}`
+        : entry.name;
+      const fullPath = path.join(currentDir, entry.name);
+      const skillFile = path.join(fullPath, 'SKILL.md');
+
+      try {
+        await fs.access(skillFile);
+        results.push({ relativePath: entryRelPath, dirName: entry.name });
+      } catch {
+        await traverse(fullPath, entryRelPath);
       }
     }
-  } catch {
-    // .claude/skills doesn't exist
   }
-  
+
+  await traverse(skillsDir, '');
   return results;
 }
 
@@ -539,17 +558,16 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
   const skillDirs = await findSkillDirs(root);
   const skillsDir = path.join(root, '.claude', 'skills');
 
-  for (const dirName of skillDirs) {
-    const skillDir = path.join(skillsDir, dirName);
-    const skillPath = `.claude/skills/${dirName}/SKILL.md`;
+  for (const { relativePath, dirName } of skillDirs) {
+    const skillDir = path.join(skillsDir, relativePath);
+    const skillPath = `.claude/skills/${relativePath}/SKILL.md`;
     const fullPath = path.join(skillDir, 'SKILL.md');
     
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
       const { frontmatter, body } = parseSkillFrontmatter(content);
       
-      // Extract skill name from frontmatter or directory
-      const skillName = frontmatter.name || dirName;
+      const displayName = frontmatter.name || dirName;
       
       // Read all other files in the skill directory
       const files = await readSkillFiles(skillDir);
@@ -563,22 +581,19 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
       // 4. description present → SimpleAgentSkill
 
       if (hasHooks) {
-        // Skills with hooks are not supported - skip with warning
         warnings.push({
           code: WarningCode.Skipped,
-          message: `Skipped skill '${skillName}': Hooks are not supported by AgentSkills.io`,
+          message: `Skipped skill '${displayName}': Hooks are not supported by AgentSkills.io`,
           sources: [skillPath],
         });
         continue;
       }
 
       if (hasExtraFiles) {
-        // AgentSkillIO - complex skill with resource files
         if (!frontmatter.description) {
-          // AgentSkillIO requires description
           warnings.push({
             code: WarningCode.Skipped,
-            message: `Skipped skill '${skillName}': Has resource files but missing description`,
+            message: `Skipped skill '${displayName}': Has resource files but missing description`,
             sources: [skillPath],
           });
           continue;
@@ -590,7 +605,7 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
           version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
-          name: skillName,
+          name: dirName,
           description: frontmatter.description,
           disableModelInvocation: frontmatter.disableModelInvocation,
           resources: Object.keys(files),
@@ -599,31 +614,26 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
         };
         items.push(agentSkillIO);
       } else if (frontmatter.disableModelInvocation === true) {
-        // ManualPrompt
         const prompt: ManualPrompt = {
           id: createId(CustomizationType.ManualPrompt, skillPath),
           type: CustomizationType.ManualPrompt,
           version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
-          promptName: skillName,
-          metadata: {
-            name: skillName,
-          },
+          promptName: displayName,
+          metadata: { name: frontmatter.name },
         };
         items.push(prompt);
       } else if (frontmatter.description) {
-        // SimpleAgentSkill
         const skill: SimpleAgentSkill = {
           id: createId(CustomizationType.SimpleAgentSkill, skillPath),
           type: CustomizationType.SimpleAgentSkill,
           version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
+          name: dirName,
           description: frontmatter.description,
-          metadata: {
-            name: skillName,
-          },
+          metadata: { name: frontmatter.name },
         };
         items.push(skill);
       }

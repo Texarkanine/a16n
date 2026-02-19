@@ -25,6 +25,7 @@ import {
   WarningCode,
   isAgentSkillIO,
   isManualPrompt,
+  isSimpleAgentSkill,
   writeAgentSkillIO,
   resolveRoot,
 } from '@a16njs/models';
@@ -122,10 +123,16 @@ async function emitStandardIR(
     throw new Error(`Invalid relativeDir "${item.relativeDir}" (escapes ${baseDir})`);
   }
 
-  // Extract name from ID and slugify for filename
-  // For ManualPrompt with path separators, extract basename only
-  const rawName = extractNameFromId(item.id);
-  const name = isManualPrompt(item) ? path.basename(rawName) : rawName;
+  // Determine filename: prefer explicit name for types that have it,
+  // then extract from ID with type-specific handling
+  let name: string;
+  if (isSimpleAgentSkill(item)) {
+    name = item.name;
+  } else if (isManualPrompt(item)) {
+    name = path.basename(extractNameFromId(item.id));
+  } else {
+    name = extractNameFromId(item.id);
+  }
   const filename = `${slugify(name)}.md`;
   const filePath = path.join(targetDir, filename);
 

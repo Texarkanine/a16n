@@ -127,8 +127,8 @@ ${content}
  * Used for .cursor/skills/ emission (Phase 7).
  */
 function formatAgentSkillMd(skill: import('@a16njs/models').SimpleAgentSkill): string {
-  const skillName = (skill.metadata?.name as string) || sanitizeFilename(skill.sourcePath || skill.id);
-  const safeName = JSON.stringify(skillName);
+  const displayName = (skill.metadata?.name as string) || skill.name;
+  const safeName = JSON.stringify(displayName);
   const safeDescription = JSON.stringify(skill.description);
 
   return `---
@@ -555,8 +555,10 @@ export async function emit(
 
   // === Emit SimpleAgentSkills as .cursor/skills/*/SKILL.md (Phase 7) ===
   for (const skill of agentSkills) {
-    // Get skill name from metadata or sourcePath
-    const skillName = (skill.metadata?.name as string) || sanitizeFilename(skill.sourcePath || skill.id);
+    // Use the invocation name (skill.name) when available; fall back to metadata.name then sourcePath
+    const skillName = skill.name
+      || (skill.metadata?.name as string)
+      || sanitizeFilename(skill.sourcePath || skill.id);
     const baseName = sanitizePromptName(skillName);
     
     // Get unique name to avoid collisions

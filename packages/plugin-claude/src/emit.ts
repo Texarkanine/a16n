@@ -115,23 +115,11 @@ ${pathsArray}
  * Name and description are quoted to handle YAML special characters.
  */
 function formatSkill(skill: SimpleAgentSkill): string {
-  // Quote values to handle YAML special characters (: # { } etc.)
   const safeDescription = JSON.stringify(skill.description);
-  const skillName = skill.metadata?.name as string | undefined;
-  
-  // Include name in frontmatter if available
-  if (skillName) {
-    const safeName = JSON.stringify(skillName);
-    return `---
-name: ${safeName}
-description: ${safeDescription}
----
-
-${skill.content}
-`;
-  }
-  
+  const displayName = (skill.metadata?.name as string) || skill.name;
+  const safeName = JSON.stringify(displayName);
   return `---
+name: ${safeName}
 description: ${safeDescription}
 ---
 
@@ -438,8 +426,10 @@ export async function emit(
   // === Emit SimpleAgentSkills as .claude/skills/*/SKILL.md ===
   if (agentSkills.length > 0) {
     for (const skill of agentSkills) {
-      // Get unique skill name to avoid directory collisions
-      const baseName = sanitizeFilename(skill.sourcePath || skill.id);
+      // Use the invocation name (skill.name) when available; fall back to sanitized sourcePath
+      const baseName = skill.name
+        ? sanitizePromptName(skill.name)
+        : sanitizeFilename(skill.sourcePath || skill.id);
       const skillName = getUniqueFilename(baseName, usedSkillNames);
 
       const skillDir = path.join(root, '.claude', 'skills', skillName);

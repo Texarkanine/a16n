@@ -37,10 +37,11 @@ export function formatIRFile(item: AgentCustomization): string {
     frontmatter.relativeDir = item.relativeDir;
   }
   
-  // Add type-specific fields (DO NOT include name, sourcePath, or metadata)
+  // Add type-specific fields (DO NOT include sourcePath or metadata)
   if (isFileRule(item)) {
     frontmatter.globs = item.globs;
   } else if (isSimpleAgentSkill(item)) {
+    frontmatter.name = item.name;
     frontmatter.description = item.description;
   } else if (isAgentIgnore(item)) {
     frontmatter.patterns = item.patterns;

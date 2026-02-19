@@ -337,6 +337,7 @@ describe('Cursor SimpleAgentSkill Emission (Phase 2)', () => {
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/auth/SKILL.md'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'auth',
           sourcePath: '.claude/skills/auth/SKILL.md',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -359,6 +360,7 @@ describe('Cursor SimpleAgentSkill Emission (Phase 2)', () => {
         {
           id: createId(CustomizationType.SimpleAgentSkill, 'auth.md'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'auth',
           sourcePath: 'auth.md',
           content: 'Use JWT for authentication.',
           description: 'Auth patterns',
@@ -377,6 +379,7 @@ describe('Cursor SimpleAgentSkill Emission (Phase 2)', () => {
         {
           id: createId(CustomizationType.SimpleAgentSkill, 'test.md'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'test',
           sourcePath: 'test.md',
           content: 'Content',
           description: 'Auth: patterns & guidelines',
@@ -423,10 +426,11 @@ describe('Cursor Mixed Emission (Phase 2 - Updated for Phase 7)', () => {
       {
         id: createId(CustomizationType.SimpleAgentSkill, 'auth.md'),
         type: CustomizationType.SimpleAgentSkill,
+        name: 'auth',
         sourcePath: 'auth.md',
         content: 'Auth content',
         description: 'Auth patterns',
-        metadata: { name: 'auth' },
+        metadata: {},
       } as SimpleAgentSkill,
     ];
 

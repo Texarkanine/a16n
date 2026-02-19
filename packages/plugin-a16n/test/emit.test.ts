@@ -56,7 +56,7 @@ describe('A16n Plugin Emission', () => {
       const content = await fs.readFile(expectedPath, 'utf-8');
       
       // Verify frontmatter contains version and type
-      expect(content).toContain('version: v1beta1');
+      expect(content).toContain('version: v1beta2');
       expect(content).toContain('type: global-prompt');
       
       // Verify content is present
@@ -153,6 +153,7 @@ describe('A16n Plugin Emission', () => {
           id: createId(CustomizationType.SimpleAgentSkill, 'deploy-helper'),
           type: CustomizationType.SimpleAgentSkill,
           version: CURRENT_IR_VERSION,
+          name: 'deploy-helper',
           description: 'Deploy application to production',
           content: '# Deploy Helper\n\nInstructions for deployment.',
           metadata: { name: 'custom-name' }, // Should NOT appear in frontmatter
@@ -170,10 +171,56 @@ describe('A16n Plugin Emission', () => {
       expect(content).toContain('description: Deploy application to production');
       expect(content).toContain('type: simple-agent-skill');
       
-      // Verify NO metadata.name in frontmatter
-      expect(content).not.toContain('name:');
+      // Verify NO metadata in frontmatter (metadata is transient)
       expect(content).not.toContain('custom-name');
       expect(content).not.toContain('metadata:');
+    });
+
+    it('should use skill.name for filename when present', async () => {
+      const models: SimpleAgentSkill[] = [
+        {
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/skills/banana/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
+          version: CURRENT_IR_VERSION,
+          name: 'banana',
+          description: 'Helps you visualize yellow fruits',
+          content: 'Print a banana emoji.',
+          metadata: {},
+        },
+      ];
+
+      const result = await a16nPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+
+      const expectedPath = path.join(tempDir, '.a16n', 'simple-agent-skill', 'banana.md');
+      const content = await fs.readFile(expectedPath, 'utf-8');
+
+      expect(content).toContain('name: banana');
+      expect(content).toContain('description: Helps you visualize yellow fruits');
+      expect(content).toContain('Print a banana emoji.');
+    });
+
+    it('should serialize name in IR frontmatter when present', async () => {
+      const models: SimpleAgentSkill[] = [
+        {
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/skills/deploy/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
+          version: CURRENT_IR_VERSION,
+          name: 'deploy',
+          description: 'Deploy helper',
+          content: 'Deploy instructions.',
+          metadata: {},
+        },
+      ];
+
+      const result = await a16nPlugin.emit(models, tempDir);
+
+      const expectedPath = path.join(tempDir, '.a16n', 'simple-agent-skill', 'deploy.md');
+      const content = await fs.readFile(expectedPath, 'utf-8');
+
+      expect(content).toContain('name: deploy');
+      expect(content).toContain('description: Deploy helper');
     });
   });
 
@@ -336,6 +383,7 @@ describe('A16n Plugin Emission', () => {
           id: createId(CustomizationType.SimpleAgentSkill, 'test3'),
           type: CustomizationType.SimpleAgentSkill,
           version: CURRENT_IR_VERSION,
+          name: 'test3',
           description: 'Simple skill',
           content: 'Simple agent skill',
           metadata: {},

@@ -359,6 +359,54 @@ describe('Integration Tests - Phase 2 FileRule and SimpleAgentSkill', () => {
       expect(skillContent).toContain('Write unit tests first');
     });
   });
+
+  describe('cursor-skill-names-to-claude', () => {
+    it('should preserve skill directory names (invocation names) through conversion', async () => {
+      const fixturePath = path.join(fixturesDir, 'cursor-skill-names-to-claude');
+      const fromDir = path.join(fixturePath, 'from-cursor');
+
+      await copyDir(fromDir, tempDir);
+
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+
+      const agentSkills = result.discovered.filter(d => d.type === 'simple-agent-skill');
+      expect(agentSkills).toHaveLength(2);
+
+      // Skill directory names should match their original invocation names
+      const bananaSkill = await fs.readFile(
+        path.join(tempDir, '.claude', 'skills', 'banana', 'SKILL.md'),
+        'utf-8'
+      );
+      expect(bananaSkill).toContain('Print a banana emoji.');
+
+      const tomatoSkill = await fs.readFile(
+        path.join(tempDir, '.claude', 'skills', 'tomato', 'SKILL.md'),
+        'utf-8'
+      );
+      expect(tomatoSkill).toContain('Print a tomato emoji.');
+    });
+
+    it('should discover nested skills under category directories', async () => {
+      const fixturePath = path.join(fixturesDir, 'cursor-skill-names-to-claude');
+      const fromDir = path.join(fixturePath, 'from-cursor');
+
+      await copyDir(fromDir, tempDir);
+
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+
+      // Both banana (top-level) and tomato (nested under veggies/) should be discovered
+      const agentSkills = result.discovered.filter(d => d.type === 'simple-agent-skill');
+      expect(agentSkills).toHaveLength(2);
+    });
+  });
 });
 
 describe('Integration Tests - Phase 3 AgentIgnore', () => {
@@ -1284,7 +1332,7 @@ This rule is from a future revision.
       );
       expect(versionWarnings).toHaveLength(1);
       expect(versionWarnings[0].message).toContain('v1beta99');
-      expect(versionWarnings[0].message).toContain('v1beta1');
+      expect(versionWarnings[0].message).toContain('v1beta2');
     });
   });
 });

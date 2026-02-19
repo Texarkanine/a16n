@@ -455,6 +455,50 @@ describe('Cursor Skills Discovery (Phase 7)', () => {
       expect(skills).toHaveLength(0);
     });
   });
+
+  describe('skill name field (invocation name)', () => {
+    it('should set name from directory name on SimpleAgentSkill', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skill = result.items.find(i => i.type === CustomizationType.SimpleAgentSkill) as import('@a16njs/models').SimpleAgentSkill;
+      expect(skill).toBeDefined();
+      expect(skill.name).toBe('deploy');
+    });
+  });
+
+  describe('recursive skill discovery (nested directories)', () => {
+    it('should discover skills nested under category directories', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-nested/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skills = result.items.filter(i => i.type === CustomizationType.SimpleAgentSkill) as import('@a16njs/models').SimpleAgentSkill[];
+      expect(skills).toHaveLength(2);
+
+      const names = skills.map(s => s.name).sort();
+      expect(names).toEqual(['banana', 'tomato']);
+    });
+
+    it('should set correct sourcePath for nested skills', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-nested/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skills = result.items.filter(i => i.type === CustomizationType.SimpleAgentSkill) as import('@a16njs/models').SimpleAgentSkill[];
+      const tomato = skills.find(s => s.name === 'tomato');
+      expect(tomato).toBeDefined();
+      expect(tomato!.sourcePath).toBe('.cursor/skills/veggies/tomato/SKILL.md');
+    });
+
+    it('should set name from immediate parent directory, not category', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-nested/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skills = result.items.filter(i => i.type === CustomizationType.SimpleAgentSkill) as import('@a16njs/models').SimpleAgentSkill[];
+      const tomato = skills.find(s => s.name === 'tomato');
+      expect(tomato).toBeDefined();
+      expect(tomato!.name).toBe('tomato');
+    });
+  });
 });
 
 describe('ManualPrompt Discovery (Phase 4 - Commands)', () => {
@@ -681,7 +725,10 @@ describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
       ) as AgentSkillIO;
       
       expect(skill).toBeDefined();
-      expect(skill.name).toBe('deploy-service');
+      // name is the directory name (invocation name), not the frontmatter display name
+      expect(skill.name).toBe('deploy');
+      // frontmatter name is preserved in metadata for display purposes
+      expect(skill.metadata?.name).toBe('deploy-service');
     });
 
     it('should extract description from frontmatter', async () => {
