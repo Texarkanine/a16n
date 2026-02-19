@@ -444,7 +444,7 @@ async function discoverSkills(root: string): Promise<{
       const { frontmatter, body } = parseSkillFrontmatter(content);
       
       // Display name from frontmatter; invocation name is always the dirName
-      const displayName = frontmatter.name || dirName;
+      const displayName = frontmatter.name?.trim() || dirName;
       
       // Read all other files in the skill directory
       const files = await readSkillFiles(skillDir);
