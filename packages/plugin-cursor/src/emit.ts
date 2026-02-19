@@ -127,8 +127,8 @@ ${content}
  * Used for .cursor/skills/ emission (Phase 7).
  */
 function formatAgentSkillMd(skill: import('@a16njs/models').SimpleAgentSkill): string {
-  const displayName = (skill.metadata?.name as string) || skill.name;
-  const safeName = JSON.stringify(displayName);
+  // skill.name is the canonical invocation name; metadata.name may carry original display name from source
+  const safeName = JSON.stringify(skill.name);
   const safeDescription = JSON.stringify(skill.description);
 
   return `---

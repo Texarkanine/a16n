@@ -610,7 +610,7 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
           disableModelInvocation: frontmatter.disableModelInvocation,
           resources: Object.keys(files),
           files,
-          metadata: { name: frontmatter.name },
+          metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
         };
         items.push(agentSkillIO);
       } else if (frontmatter.disableModelInvocation === true) {
@@ -620,8 +620,8 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
           version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
-          promptName: displayName,
-          metadata: { name: frontmatter.name },
+          promptName: dirName,
+          metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
         };
         items.push(prompt);
       } else if (frontmatter.description) {
@@ -633,9 +633,15 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
           content: body,
           name: dirName,
           description: frontmatter.description,
-          metadata: { name: frontmatter.name },
+          metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
         };
         items.push(skill);
+      } else {
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Skipped skill '${displayName}': Missing required description field`,
+          sources: [skillPath],
+        });
       }
     } catch (error) {
       warnings.push({

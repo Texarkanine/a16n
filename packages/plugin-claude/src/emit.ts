@@ -116,7 +116,8 @@ ${pathsArray}
  */
 function formatSkill(skill: SimpleAgentSkill): string {
   const safeDescription = JSON.stringify(skill.description);
-  const displayName = (skill.metadata?.name as string) || skill.name;
+  const metaName = typeof skill.metadata?.name === 'string' ? skill.metadata.name : undefined;
+  const displayName = (metaName && metaName.trim()) || skill.name;
   const safeName = JSON.stringify(displayName);
   return `---
 name: ${safeName}

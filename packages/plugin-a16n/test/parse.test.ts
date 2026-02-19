@@ -98,7 +98,7 @@ describe('parseIRFile', () => {
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
       if (result.item?.type === CustomizationType.SimpleAgentSkill) {
-        expect(result.item.name).toBe('banana');
+        expect(result.item.name).toBe('yellow-fruit');
         expect(result.item.description).toBe('Helps you visualize yellow fruits');
       }
     });

@@ -544,7 +544,7 @@ describe('Claude SimpleAgentSkill Emission (Phase 2)', () => {
 
       const skillPath = path.join(tempDir, '.claude', 'skills', 'auth', 'SKILL.md');
       const content = await fs.readFile(skillPath, 'utf-8');
-      expect(content).toContain('name:');
+      expect(content).toContain('name: "auth"');
       expect(content).toContain('description: "Authentication patterns"');
     });
   });

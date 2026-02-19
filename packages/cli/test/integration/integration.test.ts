@@ -405,6 +405,11 @@ describe('Integration Tests - Phase 2 FileRule and SimpleAgentSkill', () => {
       // Both banana (top-level) and tomato (nested under veggies/) should be discovered
       const agentSkills = result.discovered.filter(d => d.type === 'simple-agent-skill');
       expect(agentSkills).toHaveLength(2);
+
+      // Verify nested skill identity — tomato originates from veggies/ subdirectory
+      const tomatoSkill = agentSkills.find(d => d.sourcePath?.includes('veggies/'));
+      expect(tomatoSkill).toBeDefined();
+      expect(tomatoSkill?.sourcePath).toContain('tomato');
     });
   });
 });

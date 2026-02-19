@@ -134,8 +134,8 @@ export async function parseIRFile(
         }
         // v1beta2 requires name in frontmatter; v1beta1 files may omit it — derive from filename
         const name =
-          typeof frontmatter.name === 'string' && frontmatter.name.length > 0
-            ? frontmatter.name
+          typeof frontmatter.name === 'string' && frontmatter.name.trim().length > 0
+            ? frontmatter.name.trim()
             : nameWithoutExt;
         const item: SimpleAgentSkill = {
           ...baseItem,

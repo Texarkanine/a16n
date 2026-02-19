@@ -110,8 +110,7 @@ function classifyRule(
 
   // Priority 3: description present → SimpleAgentSkill
   if (frontmatter.description) {
-    const nameWithoutExt = nodePath.basename(sourcePath, nodePath.extname(sourcePath));
-    const name = relativeDir ? `${relativeDir}/${nameWithoutExt}` : nameWithoutExt;
+    const name = nodePath.basename(sourcePath, nodePath.extname(sourcePath));
     return {
       id: createId(CustomizationType.SimpleAgentSkill, sourcePath),
       type: CustomizationType.SimpleAgentSkill,
@@ -479,7 +478,7 @@ async function discoverSkills(root: string): Promise<{
           disableModelInvocation: frontmatter.disableModelInvocation,
           resources: Object.keys(files),
           files,
-          metadata: { name: frontmatter.name },
+          metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
         };
         items.push(agentSkillIO);
       } else if (frontmatter.disableModelInvocation === true) {
@@ -490,8 +489,8 @@ async function discoverSkills(root: string): Promise<{
           version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
-          promptName: displayName,
-          metadata: { name: frontmatter.name },
+          promptName: dirName,
+          metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
         } as ManualPrompt);
       } else if (frontmatter.description) {
         // SimpleAgentSkill — dirName is the invocation name
@@ -503,7 +502,7 @@ async function discoverSkills(root: string): Promise<{
           content: body,
           name: dirName,
           description: frontmatter.description,
-          metadata: { name: frontmatter.name },
+          metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
         } as SimpleAgentSkill);
       } else {
         // Skip with warning

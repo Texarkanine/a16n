@@ -170,7 +170,8 @@ describe('A16n Plugin Emission', () => {
       // Verify frontmatter contains description
       expect(content).toContain('description: Deploy application to production');
       expect(content).toContain('type: simple-agent-skill');
-      
+      expect(content).toContain('name: deploy-helper');
+
       // Verify NO metadata in frontmatter (metadata is transient)
       expect(content).not.toContain('custom-name');
       expect(content).not.toContain('metadata:');

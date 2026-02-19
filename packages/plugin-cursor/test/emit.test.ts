@@ -878,10 +878,11 @@ describe('Cursor Skills Emission (Phase 7)', () => {
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/auth/SKILL.md'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'auth-helper',
           sourcePath: '.claude/skills/auth/SKILL.md',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
-          metadata: { name: 'auth-helper' },
+          metadata: {},
         },
       ];
 
@@ -901,10 +902,11 @@ describe('Cursor Skills Emission (Phase 7)', () => {
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/db/SKILL.md'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'database',
           sourcePath: '.claude/skills/db/SKILL.md',
           content: 'Database operations',
           description: 'Database helper',
-          metadata: { name: 'database' },
+          metadata: {},
         },
       ];
 
@@ -922,10 +924,11 @@ describe('Cursor Skills Emission (Phase 7)', () => {
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/weird/SKILL.md'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'My Skill (v2)',
           sourcePath: '.claude/skills/weird/SKILL.md',
           content: 'Content',
           description: 'Test',
-          metadata: { name: 'My Skill (v2)' },
+          metadata: {},
         },
       ];
 
@@ -992,10 +995,11 @@ describe('Cursor Skills Emission (Phase 7)', () => {
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/review/SKILL.md'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'review',
           sourcePath: '.claude/skills/review/SKILL.md',
           content: 'Skill content',
           description: 'Review skill',
-          metadata: { name: 'review' },
+          metadata: {},
         } as SimpleAgentSkill,
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
@@ -1080,10 +1084,11 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
     const skill: SimpleAgentSkill = {
       id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/database.mdc'),
       type: CustomizationType.SimpleAgentSkill,
+      name: 'database',
       sourcePath: '.cursor/rules/database.mdc',
       content: 'Database operations',
       description: 'Database helper',
-      metadata: { name: 'database' },
+      metadata: {},
     };
 
     const result = await cursorPlugin.emit([skill], tempDir);

@@ -314,6 +314,7 @@ describe('formatIRFile', () => {
         id: createId(CustomizationType.SimpleAgentSkill, 'test.md'),
         type: CustomizationType.SimpleAgentSkill,
         version: CURRENT_IR_VERSION,
+        name: 'test',
         sourcePath: '.a16n/simple-agent-skill/test.md',
         content: 'Content.',
         description: 'Description with: colon and #hash',
