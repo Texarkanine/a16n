@@ -1,5 +1,13 @@
 # a16n
 
+## [0.12.1](https://github.com/Texarkanine/a16n/compare/a16n@0.12.0...a16n@0.12.1) (2026-02-19)
+
+
+### Bug Fixes
+
+* SimpleAgentSkill and AgentSkillIO invocable names were lost in translation ([#64](https://github.com/Texarkanine/a16n/issues/64)) ([3266bff](https://github.com/Texarkanine/a16n/commit/3266bff0037f411091c2b7ded55ea7db50b01eba))
+* trailing PR feedback from discovery fixes ([#62](https://github.com/Texarkanine/a16n/issues/62)) ([38348fa](https://github.com/Texarkanine/a16n/commit/38348fa0ad415bd62a720497896451b6dff14aef))
+
 ## [0.12.0](https://github.com/Texarkanine/a16n/compare/a16n@0.11.1...a16n@0.12.0) (2026-02-17)
 
 
