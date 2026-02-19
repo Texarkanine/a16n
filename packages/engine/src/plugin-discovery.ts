@@ -192,6 +192,12 @@ export function getDefaultSearchPaths(): string[] {
     dir = path.dirname(dir);
   }
 
+  // Global node_modules derived from process.argv[1] (handles npm link / symlink installs)
+  const argv1Global = getGlobalNodeModulesFromArgv1();
+  if (argv1Global && !paths.includes(argv1Global)) {
+    paths.push(argv1Global);
+  }
+
   // Local node_modules in cwd
   const localNodeModules = path.join(process.cwd(), 'node_modules');
   if (!paths.includes(localNodeModules)) {
@@ -199,4 +205,41 @@ export function getDefaultSearchPaths(): string[] {
   }
 
   return paths;
+}
+
+/**
+ * Derive the global `node_modules` directory from `process.argv[1]`.
+ *
+ * When a CLI binary is installed globally (including via `npm link`),
+ * `process.argv[1]` points to `PREFIX/bin/<cmd>`. From that we can derive
+ * `PREFIX/lib/node_modules` (Unix) or `PREFIX/node_modules` (Windows).
+ *
+ * This handles the case where the engine is symlinked from a monorepo
+ * and `import.meta.url` resolves to the real path rather than the global
+ * `node_modules` tree.
+ *
+ * @returns The global node_modules path, or null if it cannot be determined
+ */
+export function getGlobalNodeModulesFromArgv1(): string | null {
+  const argv1 = process.argv[1];
+  if (!argv1) return null;
+
+  const binDir = path.dirname(argv1);
+  if (path.basename(binDir) !== 'bin') return null;
+
+  const prefixDir = path.dirname(binDir);
+
+  // Unix: PREFIX/lib/node_modules
+  const libNm = path.join(prefixDir, 'lib', 'node_modules');
+  try {
+    if (statSync(libNm).isDirectory()) return libNm;
+  } catch { /* not found */ }
+
+  // Windows / alternate layout: PREFIX/node_modules
+  const directNm = path.join(prefixDir, 'node_modules');
+  try {
+    if (statSync(directNm).isDirectory()) return directNm;
+  } catch { /* not found */ }
+
+  return null;
 }

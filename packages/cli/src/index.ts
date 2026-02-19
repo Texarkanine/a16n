@@ -144,6 +144,7 @@ const isMainModule = process.argv[1] && resolveReal(process.argv[1]) === resolve
 
 if (isMainModule) {
   const engine = new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin]);
+  await engine.discoverAndRegisterPlugins();
   const program = createProgram(engine);
   program.parse();
 }

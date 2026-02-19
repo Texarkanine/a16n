@@ -67,6 +67,36 @@ describe('CLI', () => {
       expect(stdout).toContain('cursor');
       expect(stdout).toContain('claude');
     });
+
+    it('should discover and list third-party plugins from node_modules', async () => {
+      // Set up a fake third-party plugin in tempDir/node_modules
+      const pluginDir = path.join(tempDir, 'node_modules', 'a16n-plugin-test-disco');
+      await fs.mkdir(pluginDir, { recursive: true });
+      await fs.writeFile(
+        path.join(pluginDir, 'package.json'),
+        JSON.stringify({ name: 'a16n-plugin-test-disco', type: 'module', main: 'index.js' }),
+      );
+      await fs.writeFile(
+        path.join(pluginDir, 'index.js'),
+        `export default {
+          id: 'test-disco',
+          name: 'Test Disco Plugin',
+          supports: ['global-prompt'],
+          discover: async () => ({ items: [], warnings: [] }),
+          emit: async () => ({ written: [], warnings: [], unsupported: [] }),
+        };`,
+      );
+
+      const { stdout, exitCode } = runCli('plugins');
+
+      expect(exitCode).toBe(0);
+      // Third-party plugin should be discovered and listed
+      expect(stdout).toContain('test-disco');
+      expect(stdout).toContain('Test Disco Plugin');
+      // Bundled plugins should still be listed
+      expect(stdout).toContain('cursor');
+      expect(stdout).toContain('claude');
+    });
   });
 
   describe('discover command', () => {
