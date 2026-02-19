@@ -5,26 +5,21 @@
 ## COMPLETED TASKS
 
 ### skill-invocation-name-preservation (2026-02-19)
-**Complexity:** Level 3 (multi-package feature)
-**Summary:** Preserve skill invocation names (directory names) through discovery, IR, and conversion.
+**Complexity:** Level 3 (multi-package feature)  
+**Reflection:** `memory-bank/reflection/reflection-skill-invocation-name-preservation.md`
+
+**Summary:** Preserve skill invocation names (directory names) through discovery, IR, and conversion. `SimpleAgentSkill.name` is required; IR bumped to v1beta2.
 
 **Changes:**
-- **Model (types.ts):** Added `name?: string` to `SimpleAgentSkill` — invocation name from directory
-- **IR format (format.ts):** Serialize `name` for SimpleAgentSkill when present
-- **IR parse (parse.ts):** Deserialize `name` from frontmatter when present
-- **Cursor discover:** Made `findSkillDirs` recursive; set `name` from directory on both `SimpleAgentSkill` and `AgentSkillIO`
-- **Claude discover:** Made `findSkillDirs` recursive; set `name` from directory on both types
-- **Claude emit:** Use `skill.name` for output directory instead of `sanitizeFilename(sourcePath)`
-- **Cursor emit:** Use `skill.name` for output directory (fallback: metadata.name, then sourcePath)
-- **a16n emit:** Use `skill.name` for IR filename when present
+- **Model (types.ts):** Added required `name: string` to `SimpleAgentSkill` (invocation name)
+- **IR version (version.ts):** `CURRENT_IR_VERSION` → v1beta2 (v1beta2 reader accepts v1beta1 files; name derived from filename when missing)
+- **IR format (format.ts):** Serialize `name` for SimpleAgentSkill (required)
+- **IR parse (parse.ts):** Deserialize `name`; derive from filename for v1beta1 files without name
+- **Cursor discover:** Recursive `findSkillDirs`; set `name` from directory (skills) or filename (Phase 2 rules)
+- **Claude discover:** Recursive `findSkillDirs`; set `name` from directory
+- **Claude emit / Cursor emit / a16n emit:** Use `skill.name` for output directory or IR filename
 
-**Tests added:**
-- 4 unit tests: cursor discover (name field, recursive discovery x3)
-- 2 unit tests: claude emit (name-based dir, fallback behavior)
-- 2 unit tests: a16n emit (name-based filename, name serialization)
-- 1 unit test: a16n parse (read name from IR)
-- 2 integration tests: cursor→claude name preservation + nested discovery
-- Updated 1 existing test for AgentSkillIO name semantics change
+**Tests:** Unit tests (cursor discover, claude/a16n emit, a16n parse), integration tests (cursor→claude name preservation + nested discovery), version and discover expectations updated for v1beta2.
 
 ### plugin-discovery-wiring (2026-02-17)
 - Wire up third-party plugin auto-discovery in CLI
