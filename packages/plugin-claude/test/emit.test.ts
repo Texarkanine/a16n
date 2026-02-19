@@ -431,6 +431,7 @@ describe('Claude SimpleAgentSkill Emission (Phase 2)', () => {
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'auth',
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -450,6 +451,7 @@ describe('Claude SimpleAgentSkill Emission (Phase 2)', () => {
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'auth',
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -473,6 +475,7 @@ describe('Claude SimpleAgentSkill Emission (Phase 2)', () => {
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'auth',
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Auth content',
           description: 'Auth patterns',
@@ -480,6 +483,7 @@ describe('Claude SimpleAgentSkill Emission (Phase 2)', () => {
         },
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/database.mdc'),
+          name: 'database',
           type: CustomizationType.SimpleAgentSkill,
           sourcePath: '.cursor/rules/database.mdc',
           content: 'Database content',
@@ -507,6 +511,7 @@ describe('Claude SimpleAgentSkill Emission (Phase 2)', () => {
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'auth',
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -522,11 +527,12 @@ describe('Claude SimpleAgentSkill Emission (Phase 2)', () => {
       expect(content).toContain('description: "Authentication patterns"');
     });
 
-    it('should omit name if not present in metadata', async () => {
+    it('should include skill.name in frontmatter when metadata.name is absent', async () => {
       const models: SimpleAgentSkill[] = [
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'auth',
           sourcePath: '.cursor/rules/auth.mdc',
           content: 'Use JWT for authentication.',
           description: 'Authentication patterns',
@@ -538,8 +544,51 @@ describe('Claude SimpleAgentSkill Emission (Phase 2)', () => {
 
       const skillPath = path.join(tempDir, '.claude', 'skills', 'auth', 'SKILL.md');
       const content = await fs.readFile(skillPath, 'utf-8');
-      expect(content).not.toContain('name:');
+      expect(content).toContain('name: "auth"');
       expect(content).toContain('description: "Authentication patterns"');
+    });
+  });
+
+  describe('skill directory naming from name field', () => {
+    it('should use skill.name for the output directory when present', async () => {
+      const models: SimpleAgentSkill[] = [
+        {
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/skills/banana/SKILL.md'),
+          type: CustomizationType.SimpleAgentSkill,
+          sourcePath: '.cursor/skills/banana/SKILL.md',
+          name: 'banana',
+          content: 'Print a banana emoji.',
+          description: 'Helps you visualize yellow fruits',
+          metadata: { name: 'Banana Printer' },
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'banana', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Print a banana emoji.');
+      expect(content).toContain('description: "Helps you visualize yellow fruits"');
+    });
+
+    it('should use skill.name for output directory', async () => {
+      const models: SimpleAgentSkill[] = [
+        {
+          id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/auth.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
+          name: 'auth',
+          sourcePath: '.cursor/rules/auth.mdc',
+          content: 'Use JWT.',
+          description: 'Auth patterns',
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'auth', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Use JWT.');
     });
   });
 });
@@ -693,6 +742,7 @@ describe('Mixed Model Emission (Phase 8 A2)', () => {
       {
         id: createId(CustomizationType.SimpleAgentSkill, 'auth.mdc'),
         type: CustomizationType.SimpleAgentSkill,
+        name: 'auth',
         sourcePath: 'auth.mdc',
         content: 'Auth content',
         description: 'Auth patterns',
@@ -1195,6 +1245,7 @@ describe('Claude ManualPrompt Emission (Phase 4)', () => {
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/review.mdc'),
           type: CustomizationType.SimpleAgentSkill,
+          name: 'review',
           sourcePath: '.cursor/rules/review.mdc',
           content: 'Skill content for review',
           description: 'Review skill',
@@ -1433,6 +1484,7 @@ describe('Claude Plugin - sourceItems tracking (Phase 8 A2)', () => {
     const skill: SimpleAgentSkill = {
       id: createId(CustomizationType.SimpleAgentSkill, '.cursor/rules/database.mdc'),
       type: CustomizationType.SimpleAgentSkill,
+      name: 'database',
       sourcePath: '.cursor/rules/database.mdc',
       content: 'Database operations',
       description: 'Database helper',

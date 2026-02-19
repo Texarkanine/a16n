@@ -60,6 +60,8 @@ export interface GlobalPrompt extends AgentCustomization {
  */
 export interface SimpleAgentSkill extends AgentCustomization {
   type: CustomizationType.SimpleAgentSkill;
+  /** Invocation name — the directory name (or rule filename) used for slash-command invocation (e.g., "banana" for /banana). Required for skills to invoke properly. */
+  name: string;
   /** What triggers this skill */
   description: string;
 }

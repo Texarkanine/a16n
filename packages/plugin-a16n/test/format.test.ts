@@ -23,7 +23,7 @@ describe('formatIRFile', () => {
       const formatted = formatIRFile(gp);
       
       expect(formatted).toContain('---');
-      expect(formatted).toContain('version: v1beta1');
+      expect(formatted).toContain('version: v1beta2');
       expect(formatted).toContain('type: global-prompt');
       expect(formatted).toContain('Always use TypeScript.');
     });
@@ -126,6 +126,7 @@ describe('formatIRFile', () => {
         id: createId(CustomizationType.SimpleAgentSkill, 'database.md'),
         type: CustomizationType.SimpleAgentSkill,
         version: CURRENT_IR_VERSION,
+        name: 'database',
         sourcePath: '.a16n/simple-agent-skill/database.md',
         content: 'Database content.',
         description: 'Database operations',
@@ -134,6 +135,7 @@ describe('formatIRFile', () => {
       const formatted = formatIRFile(skill);
       
       expect(formatted).toContain('type: simple-agent-skill');
+      expect(formatted).toContain('name: database');
       expect(formatted).toContain('description: Database operations');
       expect(formatted).toContain('Database content.');
     });
@@ -143,6 +145,7 @@ describe('formatIRFile', () => {
         id: createId(CustomizationType.SimpleAgentSkill, 'test.md'),
         type: CustomizationType.SimpleAgentSkill,
         version: CURRENT_IR_VERSION,
+        name: 'test',
         sourcePath: '.a16n/simple-agent-skill/test.md',
         content: 'Content.',
         description: 'Test description',
@@ -152,19 +155,19 @@ describe('formatIRFile', () => {
       expect(formatted).toContain('description: Test description');
     });
 
-    it('should NOT include name field (filename is the identifier)', () => {
+    it('should include name in frontmatter (required for invocation)', () => {
       const skill: SimpleAgentSkill = {
         id: createId(CustomizationType.SimpleAgentSkill, 'database.md'),
         type: CustomizationType.SimpleAgentSkill,
         version: CURRENT_IR_VERSION,
+        name: 'database',
         sourcePath: '.a16n/simple-agent-skill/database.md',
         content: 'Content.',
         description: 'Database operations',
       };
       
       const formatted = formatIRFile(skill);
-      // Should NOT include "name:" field (filename IS the identifier)
-      expect(formatted).not.toMatch(/\nname:/);
+      expect(formatted).toContain('name: database');
     });
   });
 
@@ -311,6 +314,7 @@ describe('formatIRFile', () => {
         id: createId(CustomizationType.SimpleAgentSkill, 'test.md'),
         type: CustomizationType.SimpleAgentSkill,
         version: CURRENT_IR_VERSION,
+        name: 'test',
         sourcePath: '.a16n/simple-agent-skill/test.md',
         content: 'Content.',
         description: 'Description with: colon and #hash',

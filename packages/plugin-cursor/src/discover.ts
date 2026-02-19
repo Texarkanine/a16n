@@ -110,6 +110,7 @@ function classifyRule(
 
   // Priority 3: description present → SimpleAgentSkill
   if (frontmatter.description) {
+    const name = nodePath.basename(sourcePath, nodePath.extname(sourcePath));
     return {
       id: createId(CustomizationType.SimpleAgentSkill, sourcePath),
       type: CustomizationType.SimpleAgentSkill,
@@ -117,6 +118,7 @@ function classifyRule(
       sourcePath,
       relativeDir,
       content: body,
+      name,
       description: frontmatter.description,
       metadata: { ...frontmatter },
     } as SimpleAgentSkill;
@@ -333,32 +335,52 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
   return { frontmatter, body };
 }
 
+interface SkillDirInfo {
+  /** Path relative to .cursor/skills/ (e.g., "banana" or "veggies/tomato") */
+  relativePath: string;
+  /** Invocation name: immediately-containing directory name (e.g., "banana" or "tomato") */
+  dirName: string;
+}
+
 /**
- * Find all skill directories in .cursor/skills/ that contain SKILL.md.
- * Returns directory names (e.g., "deploy", "reset-db").
+ * Recursively find all skill directories in .cursor/skills/ that contain SKILL.md.
+ *
+ * If a directory contains SKILL.md, it is a skill and its subdirectories are
+ * treated as resources (not recursed for more skills). If a directory does NOT
+ * contain SKILL.md, it is a category directory and is recursed.
  */
-async function findSkillDirs(root: string): Promise<string[]> {
-  const results: string[] = [];
+async function findSkillDirs(root: string): Promise<SkillDirInfo[]> {
+  const results: SkillDirInfo[] = [];
   const skillsDir = nodePath.join(root, '.cursor', 'skills');
-  
-  try {
-    const entries = await fs.readdir(skillsDir, { withFileTypes: true });
-    
+
+  async function traverse(currentDir: string, relativePath: string): Promise<void> {
+    let entries;
+    try {
+      entries = await fs.readdir(currentDir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+
     for (const entry of entries) {
-      if (entry.isDirectory()) {
-        const skillFile = nodePath.join(skillsDir, entry.name, 'SKILL.md');
-        try {
-          await fs.access(skillFile);
-          results.push(entry.name);
-        } catch {
-          // No SKILL.md in this directory
-        }
+      if (!entry.isDirectory()) continue;
+
+      const entryRelPath = relativePath
+        ? `${relativePath}/${entry.name}`
+        : entry.name;
+      const fullPath = nodePath.join(currentDir, entry.name);
+      const skillFile = nodePath.join(fullPath, 'SKILL.md');
+
+      try {
+        await fs.access(skillFile);
+        results.push({ relativePath: entryRelPath, dirName: entry.name });
+      } catch {
+        // No SKILL.md — treat as category directory, recurse
+        await traverse(fullPath, entryRelPath);
       }
     }
-  } catch {
-    // .cursor/skills doesn't exist
   }
-  
+
+  await traverse(skillsDir, '');
   return results;
 }
 
@@ -412,17 +434,17 @@ async function discoverSkills(root: string): Promise<{
   const skillDirs = await findSkillDirs(root);
   const skillsDir = nodePath.join(root, '.cursor', 'skills');
   
-  for (const dirName of skillDirs) {
-    const skillDir = nodePath.join(skillsDir, dirName);
-    const skillPath = `.cursor/skills/${dirName}/SKILL.md`;
+  for (const { relativePath, dirName } of skillDirs) {
+    const skillDir = nodePath.join(skillsDir, relativePath);
+    const skillPath = `.cursor/skills/${relativePath}/SKILL.md`;
     const fullPath = nodePath.join(skillDir, 'SKILL.md');
     
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
       const { frontmatter, body } = parseSkillFrontmatter(content);
       
-      // Extract skill name from frontmatter or directory
-      const skillName = frontmatter.name || dirName;
+      // Display name from frontmatter; invocation name is always the dirName
+      const displayName = frontmatter.name?.trim() || dirName;
       
       // Read all other files in the skill directory
       const files = await readSkillFiles(skillDir);
@@ -437,10 +459,9 @@ async function discoverSkills(root: string): Promise<{
       if (hasExtraFiles) {
         // AgentSkillIO - complex skill with resources
         if (!frontmatter.description) {
-          // AgentSkillIO requires description
           warnings.push({
             code: WarningCode.Skipped,
-            message: `Skipped skill '${skillName}': Has resource files but missing description`,
+            message: `Skipped skill '${displayName}': Has resource files but missing description`,
             sources: [skillPath],
           });
           continue;
@@ -452,12 +473,12 @@ async function discoverSkills(root: string): Promise<{
           version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
-          name: skillName,
+          name: dirName,
           description: frontmatter.description,
           disableModelInvocation: frontmatter.disableModelInvocation,
           resources: Object.keys(files),
           files,
-          metadata: { name: frontmatter.name },
+          metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
         };
         items.push(agentSkillIO);
       } else if (frontmatter.disableModelInvocation === true) {
@@ -468,25 +489,26 @@ async function discoverSkills(root: string): Promise<{
           version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
-          promptName: skillName,
-          metadata: { name: frontmatter.name },
+          promptName: dirName,
+          metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
         } as ManualPrompt);
       } else if (frontmatter.description) {
-        // SimpleAgentSkill
+        // SimpleAgentSkill — dirName is the invocation name
         items.push({
           id: createId(CustomizationType.SimpleAgentSkill, skillPath),
           type: CustomizationType.SimpleAgentSkill,
           version: CURRENT_IR_VERSION,
           sourcePath: skillPath,
           content: body,
+          name: dirName,
           description: frontmatter.description,
-          metadata: { name: frontmatter.name },
+          metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
         } as SimpleAgentSkill);
       } else {
         // Skip with warning
         warnings.push({
           code: WarningCode.Skipped,
-          message: `Skipped skill '${skillName}': Missing description or disable-model-invocation (not convertible)`,
+          message: `Skipped skill '${displayName}': Missing required description field`,
           sources: [skillPath],
         });
       }

@@ -49,7 +49,7 @@ describe('A16n Plugin Discovery', () => {
 
       const gp = globalPrompts[0] as GlobalPrompt;
       expect(gp.type).toBe(CustomizationType.GlobalPrompt);
-      expect(gp.version).toBe(CURRENT_IR_VERSION);
+      expect(gp.version).toBe('v1beta1'); // from fixture file
       expect(gp.content).toContain('Always use TypeScript');
       expect(gp.content).toContain('functional programming');
       expect(gp.id).toContain('global-prompt:');
@@ -66,7 +66,7 @@ describe('A16n Plugin Discovery', () => {
 
       const fr = fileRules[0] as FileRule;
       expect(fr.type).toBe(CustomizationType.FileRule);
-      expect(fr.version).toBe(CURRENT_IR_VERSION);
+      expect(fr.version).toBe('v1beta1'); // from fixture file
       expect(fr.globs).toEqual(['*.ts', '*.tsx']);
       expect(fr.content).toContain('TypeScript specific rules');
     });
@@ -82,6 +82,7 @@ describe('A16n Plugin Discovery', () => {
 
       const skill = skills[0] as SimpleAgentSkill;
       expect(skill.type).toBe(CustomizationType.SimpleAgentSkill);
+      expect(skill.name).toBe('database');
       expect(skill.description).toBe('Database operations and ORM usage');
       expect(skill.content).toContain('Use Prisma');
     });
@@ -196,7 +197,7 @@ describe('A16n Plugin Discovery', () => {
       expect(skill.name).toBe('deploy-helper');
       expect(skill.description).toBe('Deploy application to production');
       expect(skill.content).toContain('deployment steps');
-      expect(skill.version).toBe(CURRENT_IR_VERSION);
+      expect(skill.version).toBe(CURRENT_IR_VERSION); // AgentSkillIO has no version in file, we set current
     });
 
     it('should include resource files in AgentSkillIO items', async () => {
@@ -268,16 +269,16 @@ Just the SKILL.md content.
   });
 
   describe('version compatibility', () => {
-    it('should accept items with current version (v1beta1)', async () => {
+    it('should accept compatible older version (v1beta1) without warning', async () => {
       const fixturePath = path.join(fixturesDir, 'discover-version-mismatch');
       const result = await discover(fixturePath);
 
-      // current.md has v1beta1, should be discovered without version warning
+      // current.md has v1beta1; v1beta2 reader accepts it, no version warning
       const items = result.items.filter(
         (i) => i.content.includes('Current version content')
       );
       expect(items).toHaveLength(1);
-      expect(items[0].version).toBe(CURRENT_IR_VERSION);
+      expect(items[0].version).toBe('v1beta1');
     });
 
     it('should warn on incompatible version (file newer than reader)', async () => {

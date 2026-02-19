@@ -82,13 +82,25 @@ describe('parseIRFile', () => {
       }
     });
 
-    it('should NOT expect name in frontmatter (filename is the name)', async () => {
-      // Filename IS the name, no name field should be present in frontmatter
+    it('should derive name from filename when missing in v1beta1 (backward compatibility)', async () => {
       const result = await parseIRFile(ws, 'parse-simpleAgentSkill/database.md', 'database.md', '.a16n/simple-agent-skill');
 
       expect(result.error).toBeUndefined();
       expect(result.item).toBeDefined();
-      // Parse should succeed even without name field in frontmatter
+      if (result.item?.type === CustomizationType.SimpleAgentSkill) {
+        expect(result.item.name).toBe('database');
+      }
+    });
+
+    it('should read name from frontmatter when present', async () => {
+      const result = await parseIRFile(ws, 'parse-simpleAgentSkill/banana.md', 'banana.md', '.a16n/simple-agent-skill');
+
+      expect(result.error).toBeUndefined();
+      expect(result.item).toBeDefined();
+      if (result.item?.type === CustomizationType.SimpleAgentSkill) {
+        expect(result.item.name).toBe('yellow-fruit');
+        expect(result.item.description).toBe('Helps you visualize yellow fruits');
+      }
     });
   });
 

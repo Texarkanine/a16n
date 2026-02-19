@@ -28,8 +28,9 @@ export interface ParsedIRVersion {
 
 /**
  * The current IR version used by this version of a16n.
+ * v1beta2: SimpleAgentSkill.name is required (was optional in v1beta1).
  */
-export const CURRENT_IR_VERSION: IRVersion = 'v1beta1' as IRVersion;
+export const CURRENT_IR_VERSION: IRVersion = 'v1beta2' as IRVersion;
 
 /**
  * Parse an IR version string into its components.

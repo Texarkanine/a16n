@@ -20,7 +20,8 @@ import {
  * Format: ---\n{yaml}---\n\n{content}\n
  * 
  * Includes: version, type, relativeDir (if present), type-specific fields
- * Excludes: sourcePath (omitted from IR format), metadata (not serialized), name (filename is the identifier)
+ * Excludes: sourcePath (omitted from IR format), metadata (not serialized)
+ * Note: name is included for SimpleAgentSkill (required in v1beta2); for other types it remains filename-only.
  * 
  * @param item - The IR item to format
  * @returns Formatted markdown string with YAML frontmatter
@@ -37,10 +38,11 @@ export function formatIRFile(item: AgentCustomization): string {
     frontmatter.relativeDir = item.relativeDir;
   }
   
-  // Add type-specific fields (DO NOT include name, sourcePath, or metadata)
+  // Add type-specific fields (DO NOT include sourcePath or metadata)
   if (isFileRule(item)) {
     frontmatter.globs = item.globs;
   } else if (isSimpleAgentSkill(item)) {
+    frontmatter.name = item.name;
     frontmatter.description = item.description;
   } else if (isAgentIgnore(item)) {
     frontmatter.patterns = item.patterns;
