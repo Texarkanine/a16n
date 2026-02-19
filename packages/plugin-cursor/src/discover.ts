@@ -508,7 +508,7 @@ async function discoverSkills(root: string): Promise<{
         // Skip with warning
         warnings.push({
           code: WarningCode.Skipped,
-          message: `Skipped skill '${displayName}': Missing description or disable-model-invocation (not convertible)`,
+          message: `Skipped skill '${displayName}': Missing required description field`,
           sources: [skillPath],
         });
       }
