@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.2](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.8.1...@a16njs/docs@0.8.2) (2026-02-23)
+
+
+### Bug Fixes
+
+* **docs:** frontmatter in "understanding conversions" was incorrect. ([89ae2ba](https://github.com/Texarkanine/a16n/commit/89ae2baaa5a25488b9051e79b66792bef28431d9))
+
 ## [0.8.1](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.8.0...@a16njs/docs@0.8.1) (2026-02-23)
 
 
