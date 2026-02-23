@@ -1,5 +1,12 @@
 # @a16njs/plugin-claude
 
+## [0.11.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.10.1...@a16njs/plugin-claude@0.11.0) (2026-02-23)
+
+
+### Features
+
+* support name field on GlobalPrompts ([#68](https://github.com/Texarkanine/a16n/issues/68)) ([399f596](https://github.com/Texarkanine/a16n/commit/399f59638c2363395f9e455da1d1e35e5e1f6c8e))
+
 ## [0.10.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.10.0...@a16njs/plugin-claude@0.10.1) (2026-02-19)
 
 
