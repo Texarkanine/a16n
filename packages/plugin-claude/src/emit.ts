@@ -291,7 +291,7 @@ export async function emit(
     for (const gp of globalPrompts) {
       // Get unique filename to avoid collisions
       // Qualify with relativeDir to prevent false collisions across subdirectories
-      const baseName = sanitizeFilename(gp.sourcePath || gp.id);
+      const baseName = sanitizeFilename(gp.name);
       const qualifiedName = gp.relativeDir ? `${gp.relativeDir}/${baseName}` : baseName;
       const qualifiedFilename = getUniqueFilename(qualifiedName, usedFilenames, '.md');
       const filename = gp.relativeDir ? path.basename(qualifiedFilename) : qualifiedFilename;

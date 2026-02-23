@@ -24,6 +24,7 @@ import {
   CustomizationType,
   WarningCode,
   isAgentSkillIO,
+  isGlobalPrompt,
   isManualPrompt,
   isSimpleAgentSkill,
   writeAgentSkillIO,
@@ -130,6 +131,8 @@ async function emitStandardIR(
     name = item.name;
   } else if (isManualPrompt(item)) {
     name = path.basename(extractNameFromId(item.id));
+  } else if (isGlobalPrompt(item)) {
+    name = item.name;
   } else {
     name = extractNameFromId(item.id);
   }

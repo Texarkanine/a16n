@@ -3,6 +3,7 @@ import * as path from 'path';
 import {
   type AgentCustomization,
   type AgentIgnore,
+  type GlobalPrompt,
   type SimpleAgentSkill,
   type AgentSkillIO,
   type FileRule,
@@ -15,6 +16,7 @@ import {
   createId,
   resolveRoot,
   CURRENT_IR_VERSION,
+  inferGlobalPromptName,
 } from '@a16njs/models';
 
 /**
@@ -538,12 +540,13 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
         type: CustomizationType.GlobalPrompt,
         version: CURRENT_IR_VERSION,
         sourcePath: normalizedPath,
+        name: inferGlobalPromptName(normalizedPath),
         content,
         metadata: {
           nested: isNested,
           depth,
         },
-      });
+      } as GlobalPrompt);
     } catch (error) {
       // File couldn't be read - add warning and continue
       warnings.push({
@@ -698,13 +701,14 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
           version: CURRENT_IR_VERSION,
           sourcePath: normalizedPath,
           relativeDir,
+          name: inferGlobalPromptName(normalizedPath),
           content: body,
           metadata: {
             nested: false,
             depth: 0,
             ...frontmatter,
           },
-        });
+        } as GlobalPrompt);
       } else {
         // FileRule
         const fileRule: FileRule = {

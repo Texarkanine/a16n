@@ -31,12 +31,34 @@ describe('Cursor Plugin Emission', () => {
   });
 
   describe('single GlobalPrompt', () => {
+    it('should emit GlobalPrompt using gp.name for output filename', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, '.cursorrules'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: '.cursorrules',
+          name: 'cursorrules',
+          content: 'My cursor rules.',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      expect(result.warnings).toHaveLength(0);
+
+      const filename = path.basename(result.written[0]!.path);
+      expect(filename).toBe('cursorrules.mdc');
+    });
+
     it('should emit a single GlobalPrompt as .mdc file', async () => {
       const models: GlobalPrompt[] = [
         {
           id: createId(CustomizationType.GlobalPrompt, 'CLAUDE.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'CLAUDE.md',
+          name: 'CLAUDE',
           content: 'Always use TypeScript.',
           metadata: {},
         },
@@ -63,6 +85,7 @@ describe('Cursor Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'source.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'source.md',
+          name: 'source',
           content: 'Test content',
           metadata: {},
         },
@@ -83,6 +106,7 @@ describe('Cursor Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'first.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'first.md',
+          name: 'first',
           content: 'First rule',
           metadata: {},
         },
@@ -90,6 +114,7 @@ describe('Cursor Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'second.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'second.md',
+          name: 'second',
           content: 'Second rule',
           metadata: {},
         },
@@ -115,6 +140,7 @@ describe('Cursor Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'path/to/CLAUDE.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'path/to/CLAUDE.md',
+          name: 'CLAUDE',
           content: 'Nested content',
           metadata: {},
         },
@@ -134,6 +160,7 @@ describe('Cursor Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'My Rules (v2).md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'My Rules (v2).md',
+          name: 'My Rules (v2)',
           content: 'Content',
           metadata: {},
         },
@@ -153,6 +180,7 @@ describe('Cursor Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, '!!!.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: '!!!.md',
+          name: '!!!',
           content: 'Content from special-only filename',
           metadata: {},
         },
@@ -172,6 +200,7 @@ describe('Cursor Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'dir1/CLAUDE.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'dir1/CLAUDE.md',
+          name: 'CLAUDE',
           content: 'First',
           metadata: {},
         },
@@ -179,6 +208,7 @@ describe('Cursor Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'dir2/CLAUDE.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'dir2/CLAUDE.md',
+          name: 'CLAUDE',
           content: 'Second',
           metadata: {},
         },
@@ -186,6 +216,7 @@ describe('Cursor Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'dir3/claude.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'dir3/claude.md',
+          name: 'claude',
           content: 'Third',
           metadata: {},
         },
@@ -213,6 +244,7 @@ describe('Cursor Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'a/test.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'a/test.md',
+          name: 'test',
           content: 'First',
           metadata: {},
         },
@@ -220,6 +252,7 @@ describe('Cursor Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'b/test.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'b/test.md',
+          name: 'test',
           content: 'Second',
           metadata: {},
         },
@@ -412,6 +445,7 @@ describe('Cursor Mixed Emission (Phase 2 - Updated for Phase 7)', () => {
         id: createId(CustomizationType.GlobalPrompt, 'global.md'),
         type: CustomizationType.GlobalPrompt,
         sourcePath: 'global.md',
+        name: 'global',
         content: 'Global content',
         metadata: {},
       } as GlobalPrompt,
@@ -608,6 +642,7 @@ describe('Cursor AgentIgnore Emission (Phase 3)', () => {
           id: createId(CustomizationType.GlobalPrompt, 'global.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'global.md',
+          name: 'global',
           content: 'Use TypeScript.',
           metadata: {},
         } as GlobalPrompt,
@@ -734,6 +769,7 @@ describe('Cursor ManualPrompt Emission (Phase 4 - Updated to Skills in Phase 7)'
           id: createId(CustomizationType.GlobalPrompt, 'global.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: 'global.md',
+          name: 'global',
           content: 'Use TypeScript.',
           metadata: {},
         } as GlobalPrompt,
@@ -1040,6 +1076,7 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
       id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/test.mdc'),
       type: CustomizationType.GlobalPrompt,
       sourcePath: '.cursor/rules/test.mdc',
+      name: 'test',
       content: 'Test content',
       metadata: {},
     };
@@ -1314,6 +1351,7 @@ describe('Cursor AgentSkillIO Emission (Phase 8 B4)', () => {
           type: CustomizationType.GlobalPrompt,
           sourcePath: '.claude/rules/shared/niko/main.md',
           relativeDir: 'shared/niko',
+          name: 'main',
           content: 'Main Niko rule.',
           metadata: {},
         },
@@ -1358,6 +1396,7 @@ describe('Cursor AgentSkillIO Emission (Phase 8 B4)', () => {
           id: createId(CustomizationType.GlobalPrompt, '.claude/rules/general.md'),
           type: CustomizationType.GlobalPrompt,
           sourcePath: '.claude/rules/general.md',
+          name: 'general',
           content: 'General rule.',
           metadata: {},
         },
@@ -1380,6 +1419,7 @@ describe('Cursor AgentSkillIO Emission (Phase 8 B4)', () => {
           type: CustomizationType.GlobalPrompt,
           sourcePath: '.claude/rules/shared/niko/main.md',
           relativeDir: 'shared/niko',
+          name: 'main',
           content: 'Main Niko rule.',
           metadata: {},
         },

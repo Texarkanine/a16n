@@ -14,6 +14,7 @@ import {
   CustomizationType,
   WarningCode,
   createId,
+  inferGlobalPromptName,
   resolveRoot,
   CURRENT_IR_VERSION,
 } from '@a16njs/models';
@@ -84,6 +85,7 @@ function classifyRule(
       version: CURRENT_IR_VERSION,
       sourcePath,
       relativeDir,
+      name: inferGlobalPromptName(sourcePath),
       content: body,
       metadata: { ...frontmatter },
     } as GlobalPrompt;

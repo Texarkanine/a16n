@@ -58,6 +58,7 @@ describe('GlobalPrompt', () => {
       id: 'gp-1',
       type: CustomizationType.GlobalPrompt,
       sourcePath: 'CLAUDE.md',
+      name: 'CLAUDE',
       content: 'Always use TypeScript',
       metadata: {},
     };

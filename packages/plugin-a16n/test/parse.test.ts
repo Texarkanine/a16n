@@ -232,6 +232,16 @@ describe('parseIRFile', () => {
       expect(result.item).toBeDefined();
     });
 
+    it('should set name from filename (without extension)', async () => {
+      const result = await parseIRFile(ws, 'parse-globalPrompt/basic.md', 'basic.md', '.a16n/global-prompt');
+
+      expect(result.error).toBeUndefined();
+      expect(result.item?.type).toBe(CustomizationType.GlobalPrompt);
+      if (result.item?.type === CustomizationType.GlobalPrompt) {
+        expect(result.item.name).toBe('basic');
+      }
+    });
+
     it('should NOT expect sourcePath field (not in IR format)', async () => {
       // sourcePath is NOT in IR format (omitted during emission)
       const result = await parseIRFile(ws, 'parse-globalPrompt/basic.md', 'basic.md', '.a16n/global-prompt');

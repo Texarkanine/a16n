@@ -1,3 +1,4 @@
+import * as path from 'path';
 import {
   type AgentCustomization,
   type GlobalPrompt,
@@ -8,6 +9,40 @@ import {
   type ManualPrompt,
   CustomizationType,
 } from './types.js';
+
+/**
+ * Infer the canonical emission name for a GlobalPrompt from its source file path.
+ *
+ * Set at discovery time by all discovery plugins. Used by emission plugins for
+ * output filename. Discovery plugins MUST call this (or provide an equivalent
+ * domain-specific name) when constructing a GlobalPrompt.
+ *
+ * Handles edge cases:
+ * - Leading-dot filenames:   `.cursorrules`    → `cursorrules`
+ * - Double extensions:       `.cursorrules.md` → `cursorrules`
+ * - Standard files:          `CLAUDE.md`       → `CLAUDE`
+ * - Dot-less basenames:      `AGENTS.md`       → `AGENTS`
+ * - Rule files:              `my-rule.mdc`     → `my-rule`
+ *
+ * @param sourcePath - The source file path; only the basename is used.
+ * @returns The name to use for emission filenames (non-empty string).
+ */
+export function inferGlobalPromptName(sourcePath: string): string {
+  const basename = path.basename(sourcePath);
+
+  if (basename.startsWith('.')) {
+    // Leading-dot filename (e.g. `.cursorrules`, `.cursorrules.md`):
+    // strip the leading dot first, then strip any remaining extension.
+    const noDot = basename.slice(1);
+    const ext = path.extname(noDot);
+    return ext ? noDot.slice(0, -ext.length) : noDot;
+  } else {
+    // Normal filename (e.g. `CLAUDE.md`, `my-rule.mdc`, `foo.bar.mdc`):
+    // strip only the last extension.
+    const ext = path.extname(basename);
+    return ext ? basename.slice(0, -ext.length) : basename;
+  }
+}
 
 /**
  * Type guard to check if an item is a GlobalPrompt.

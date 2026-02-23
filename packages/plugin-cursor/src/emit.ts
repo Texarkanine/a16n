@@ -445,7 +445,8 @@ export async function emit(
 
   // Emit each GlobalPrompt as a separate .mdc file
   for (const gp of globalPrompts) {
-    const baseName = sanitizeFilename(gp.sourcePath || gp.id) + '.mdc';
+    const basename = sanitizeFilename(gp.name);
+    const baseName = basename + '.mdc';
     // Qualify with relativeDir to prevent false collisions across subdirectories
     const qualifiedName = gp.relativeDir ? `${gp.relativeDir}/${baseName}` : baseName;
     const { filename: qualifiedFilename, collision } = getUniqueFilename(qualifiedName, usedFilenames);

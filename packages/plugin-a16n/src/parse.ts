@@ -112,6 +112,7 @@ export async function parseIRFile(
         const item: GlobalPrompt = {
           ...baseItem,
           type: CustomizationType.GlobalPrompt,
+          name: nameWithoutExt,
         };
         return { item };
       }
