@@ -194,6 +194,25 @@ describe('Cursor Plugin Emission', () => {
       expect(filename).toBe('rule.mdc');
     });
 
+    it('should preserve multi-part stems (dots become hyphens, not stripped)', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'react.hooks.mdc'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: 'react.hooks.mdc',
+          name: 'react.hooks',
+          content: 'React hooks rules.',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      const filename = path.basename(result.written[0]!.path);
+      expect(filename).toBe('react-hooks.mdc');
+    });
+
     it('should handle filename collisions by appending counter', async () => {
       const models: GlobalPrompt[] = [
         {

@@ -249,6 +249,19 @@ describe('inferGlobalPromptName', () => {
     // plugin-a16n emits cursorrules.md; re-discovery must round-trip to "cursorrules"
     expect(inferGlobalPromptName('cursorrules.md')).toBe('cursorrules');
   });
+
+  it('returns extension-less basename as-is for files with no extension', () => {
+    expect(inferGlobalPromptName('README')).toBe('README');
+    expect(inferGlobalPromptName('my-rule')).toBe('my-rule');
+  });
+
+  it('returns fallback for empty string input', () => {
+    expect(inferGlobalPromptName('')).toBe('global-prompt');
+  });
+
+  it('returns fallback for "." input (leading dot with empty stem)', () => {
+    expect(inferGlobalPromptName('.')).toBe('global-prompt');
+  });
 });
 
 describe('isSimpleAgentSkill', () => {

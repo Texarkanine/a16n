@@ -25,19 +25,22 @@ import {
  */
 export function inferGlobalPromptName(sourcePath: string): string {
   const basename = path.basename(sourcePath);
+  let name: string;
 
   if (basename.startsWith('.')) {
     // Leading-dot filename (e.g. `.cursorrules`, `.cursorrules.md`):
     // strip the leading dot first, then strip any remaining extension.
     const noDot = basename.slice(1);
     const ext = path.extname(noDot);
-    return ext ? noDot.slice(0, -ext.length) : noDot;
+    name = ext ? noDot.slice(0, -ext.length) : noDot;
   } else {
     // Normal filename (e.g. `CLAUDE.md`, `my-rule.mdc`, `foo.bar.mdc`):
     // strip only the last extension.
     const ext = path.extname(basename);
-    return ext ? basename.slice(0, -ext.length) : basename;
+    name = ext ? basename.slice(0, -ext.length) : basename;
   }
+
+  return name || 'global-prompt';
 }
 
 /**

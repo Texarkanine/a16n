@@ -526,7 +526,7 @@ describe('A16n Plugin Emission', () => {
   });
 
   describe('name slugification', () => {
-    it('should slugify filenames from item IDs', async () => {
+    it('should slugify filenames from item name', async () => {
       const models: GlobalPrompt[] = [
         {
           id: createId(CustomizationType.GlobalPrompt, 'My RULE Name!!!'),

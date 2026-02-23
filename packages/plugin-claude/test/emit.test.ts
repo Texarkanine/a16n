@@ -54,6 +54,26 @@ describe('Claude Plugin Emission', () => {
       expect(content).toContain('Always use TypeScript.');
     });
 
+    it('should preserve multi-part stems (dots become hyphens, not stripped)', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'react.hooks.mdc'),
+          type: CustomizationType.GlobalPrompt,
+          name: 'react.hooks',
+          sourcePath: 'react.hooks.mdc',
+          content: 'React hooks rules.',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      const rulePath = path.join(tempDir, '.claude', 'rules', 'react-hooks.md');
+      const content = await fs.readFile(rulePath, 'utf-8');
+      expect(content).toContain('React hooks rules.');
+    });
+
     it('should include source header in output', async () => {
       const models: GlobalPrompt[] = [
         {

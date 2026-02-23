@@ -51,8 +51,10 @@ function convertPatternToReadRule(pattern: string): string | null {
 }
 
 /**
- * Sanitize a filename from a source path.
- * Extracts base name and makes it filesystem-safe.
+ * Sanitize a source file path to a safe filesystem stem.
+ * Extracts basename, strips the last extension, and normalizes characters.
+ * Intended for full source paths (FileRule, AgentSkillIO fallback).
+ * For pre-derived name stems (e.g., gp.name), use sanitizeName instead.
  */
 function sanitizeFilename(sourcePath: string): string {
   const basename = path.basename(sourcePath);
@@ -62,6 +64,19 @@ function sanitizeFilename(sourcePath: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
   return sanitized || 'rule';
+}
+
+/**
+ * Sanitize a pre-derived name stem to be safe for the filesystem.
+ * Unlike sanitizeFilename, does not extract a basename or strip extensions —
+ * the input is already a clean stem (e.g., from inferGlobalPromptName).
+ */
+function sanitizeName(name: string): string {
+  const sanitized = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return sanitized || 'global-prompt';
 }
 
 /**
@@ -291,7 +306,7 @@ export async function emit(
     for (const gp of globalPrompts) {
       // Get unique filename to avoid collisions
       // Qualify with relativeDir to prevent false collisions across subdirectories
-      const baseName = sanitizeFilename(gp.name);
+      const baseName = sanitizeName(gp.name);
       const qualifiedName = gp.relativeDir ? `${gp.relativeDir}/${baseName}` : baseName;
       const qualifiedFilename = getUniqueFilename(qualifiedName, usedFilenames, '.md');
       const filename = gp.relativeDir ? path.basename(qualifiedFilename) : qualifiedFilename;

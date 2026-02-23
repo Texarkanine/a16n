@@ -22,8 +22,10 @@ import {
 } from '@a16njs/models';
 
 /**
- * Sanitize a filename to be safe for the filesystem.
- * Converts to lowercase, replaces spaces and special chars with hyphens.
+ * Sanitize a source file path to a safe filesystem stem.
+ * Extracts basename, strips the last extension, lowercases, and replaces
+ * unsafe characters with hyphens. Intended for full source paths (FileRule,
+ * AgentSkillIO fallback). For pre-derived name stems, use sanitizePromptName.
  * Returns 'rule' if sanitization produces an empty string.
  */
 function sanitizeFilename(sourcePath: string): string {
@@ -445,8 +447,10 @@ export async function emit(
 
   // Emit each GlobalPrompt as a separate .mdc file
   for (const gp of globalPrompts) {
-    const basename = sanitizeFilename(gp.name);
-    const baseName = basename + '.mdc';
+    // gp.name is already a clean stem; apply dot-to-hyphen normalization
+    // without extension stripping (sanitizeFilename would double-strip).
+    const stem = gp.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'rule';
+    const baseName = stem + '.mdc';
     // Qualify with relativeDir to prevent false collisions across subdirectories
     const qualifiedName = gp.relativeDir ? `${gp.relativeDir}/${baseName}` : baseName;
     const { filename: qualifiedFilename, collision } = getUniqueFilename(qualifiedName, usedFilenames);
