@@ -11,11 +11,7 @@ import {
 } from './types.js';
 
 /**
- * Infer the canonical emission name for a GlobalPrompt from its source file path.
- *
- * Set at discovery time by all discovery plugins. Used by emission plugins for
- * output filename. Discovery plugins MUST call this (or provide an equivalent
- * domain-specific name) when constructing a GlobalPrompt.
+ * Derives a canonical emission name from a source file path.
  *
  * Handles edge cases:
  * - Leading-dot filenames:   `.cursorrules`    → `cursorrules`
