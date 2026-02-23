@@ -1,102 +1,130 @@
 ---
+
 title: Understanding Conversions
 description: How a16n converts agent customization between different AI coding tools
----
+------------------------------------------------------------------------------------
 
 # Understanding Conversions
 
-Different AI coding tools have different capabilities. a16n handles this as transparently as possible, converting what it can and warning you about limitations.
+Different AI coding tools model agent customization differently. a16n translates between them with one primary goal:
+
+**preserve behavior whenever possible.**
+
+This page explains why conversions sometimes change structure, produce warnings, or cannot be performed at all. The goal is to help you reason about what you see after running a conversion.
 
 ## The Concepts
 
-a16n understands the following kinds of agent customizations:
+a16n recognizes several common kinds of agent configuration.
 
-- **Global Prompts** - prompts that are always injected into the agent's context each time the agent is invoked, e.g.
-    - CLAUDE.md
-    - Cursor Rules with `alwaysApply: true`
-- **File-specific rules** - prompts that are injected into the agent's context when working with specific files, e.g.
-    - Cursor Rules with `globs: [...]`
-- **Skills** - prompts that are injected into the agent's context when the agent decides they're needed, e.g.
-    - Cursor Rules with `description: ...`
-    - Claude Code skills
-    - [AgentSkills.io](https://agentskills.io) skills
-- **Manual prompts** - prompts that are injected into the agent's context when the user invokes them, e.g.
-    - Cursor Commands
-    - Cursor Rules with no `globs` or `description`, when `@mention`'d
-    - AgentSkills with `disable-model-invocation: true`
-- **Ignore patterns** - patterns that are ignored by the agent, e.g.
-    - `.cursorignore`
-    - Claude Code `permissions.deny` Read rules
+* **Global Prompts** - always injected when the agent runs
 
-See the [Models](/models) page for more details.
+  * `CLAUDE.md`
+  * Cursor rules with `alwaysApply: true`
+
+* **File Rules** - injected when working on matching files
+
+  * Cursor rules with `globs: [...]`
+  * Claude rules using `paths:`
+
+* **Skills** - invoked when the model decides they are useful
+
+  * Cursor rules with `description:`
+  * Claude Code skills
+  * AgentSkills.io skills
+
+* **Manual Prompts** - invoked directly by the user
+
+  * Cursor commands
+  * Rules without `globs` or `description` when `@mention`ed
+  * AgentSkills with `disable-model-invocation: true`
+
+* **Ignore Patterns** - limit what the agent can read or modify
+
+  * `.cursorignore`
+  * Claude `permissions.deny` rules
+
+See the [Models](/models) page for the full capability matrix.
 
 ## What Translates Cleanly
 
-Some concepts map cleanly between tools, including but not necessarily limited to:
+Some concepts have clear equivalents across tools.
 
-| Concept               | Cursor                                       | Claude Code                                  |
-|-----------------------|----------------------------------------------|----------------------------------------------|
-| Global Prompts        | `alwaysApply: true` rules                    | `.claude/rules/*.md` (no `paths:`)           |
-| File Rules            | `globs: [...]` rules                         | `.claude/rules/*.md` with `paths:` frontmatter |
-| Skills                | `description: ...` rules                     | Skills                                       |
-| AgentSkills.io Skills | `.cursor/skills/*/SKILL.md`                  | `.claude/skills/*/SKILL.md`                  |
-| Manual Prompts        | Commands in `.cursor/commands/*.md`          | Skills with `disable-model-invocation: true` |
-| Ignore patterns       | `.cursorignore`                              | `permissions.deny` Read rules                |
+| Concept               | Cursor                      | Claude Code                                  |
+| --------------------- | --------------------------- | -------------------------------------------- |
+| Global Prompts        | `alwaysApply: true` rules   | `.claude/rules/*.md` (no `paths:`)           |
+| File Rules            | `globs: [...]` rules        | `.claude/rules/*.md` with `paths:`           |
+| Skills                | `description:` rules        | Skills                                       |
+| AgentSkills.io Skills | `.cursor/skills/*/SKILL.md` | `.claude/skills/*/SKILL.md`                  |
+| Manual Prompts        | `.cursor/commands/*.md`     | Skills with `disable-model-invocation: true` |
+| Ignore Patterns       | `.cursorignore`             | `permissions.deny` rules                     |
 
+These translations preserve both meaning and behavior, though file layout may differ.
 
 ## What Gets Approximated
 
-Some features don't have perfect equivalents. a16n converts them as closely as possible and warns you about such situations.
+Some features exist in both ecosystems but behave slightly differently. In these cases a16n chooses the closest equivalent and warns you.
 
-Some lossy conversions include, but are not necessarily limited to:
+| Feature         | From   | To     | Behavior                             |
+| --------------- | ------ | ------ | ------------------------------------ |
+| Ignore patterns | Cursor | Claude | ≈ Converted to read-deny permissions |
 
-| Feature                     | From   | To     | Behavior                                      |
-|-----------------------------|--------|--------|-----------------------------------------------|
-| Ignore patterns             | Cursor | Claude | ≈ Converted to Read permission denials        |
+Approximate translations are chosen to keep **agent behavior as close as possible** to the original configuration.
 
 ## What Gets Skipped
 
-Not all concepts exist across all toolchains. a16n warns you and skips impossible conversions.
+Some features simply do not exist in the target toolchain. These are skipped and reported.
 
-Some impossible conversions include, but are not necessarily limited to:
+| Feature           | From   | To     | Reason                                                    |
+| ----------------- | ------ | ------ | --------------------------------------------------------- |
+| Complex Commands  | Cursor | Claude | `$ARGUMENTS`, `!`, and `allowed-tools` have no equivalent |
+| Skills with hooks | Claude | Cursor | Hooks are Claude-specific                                 |
 
-| Feature                 | From   | To     | Reason                                                                      |
-|-------------------------|--------|--------|-----------------------------------------------------------------------------|
-| Complex Commands        | Cursor | Claude | Commands with `$ARGUMENTS`, `!`, or `allowed-tools` have no equivalent |
-| Skills with hooks       | Claude | Cursor | skills with hooks are unique to Claude Code                                          |
+## Structural Differences and Non-Invertibility
 
-## Non-Invertible
+Because a16n prioritizes behavior, the translated configuration may not always look like the original.
 
-a16n *translates* from one toolchain to another, and like all translations, running it back-and-forth, or through several iterations, does not always result in the original input.
+Two related effects cause this:
 
-For example, `CLAUDE.md` converts into a Cursor Rule with `alwaysApply: true`. But, converting a Cursor `alwaysApply: true` rule back into Claude will produce 
-`.claude/rules/*.md` file, rather than appending or creating a `CLAUDE.md` file.
+* **Structural differences** - the configuration is reorganized but still behaves the same
+* **Non-invertibility** - converting and then converting *back* again cannot reproduce the exact original layout
 
-Since a16n doesn't know what conversions you may attempt after the first, it cannot warn you about such non-invertible (or multi-step) lossiness like this.
+These are related, but not the same.
 
-### GlobalPrompts in Subdirectories are FileRules
+### Structural Differences
 
-A `GlobalPrompt` in a subdirectory is semantically the same as a `FileRule` in the root with globs that match the subdirectory.
+Some configurations have multiple valid representations across tools. a16n selects the form that best preserves behavior and intent.
 
-For example, these are *semantically* the same rule:
+#### Example: Global Prompts in Subdirectories
 
-| Claude Code | Cursor |
-| - | - |
-| `packages/foo/src/CLAUDE.md` | `.cursor/rules/CLAUDE.mdc`<br>with <code>globs: packages/foo/src/**</code> |
+A subdirectory `CLAUDE.md` is behaviorally equivalent to a file-scoped rule at the root.
 
-However, the above translation is not fully faithful to the original configuration!
+| Claude Code                  | Cursor                                                       |
+| ---------------------------- | ------------------------------------------------------------ |
+| `packages/foo/src/CLAUDE.md` | `.cursor/rules/CLAUDE.mdc` with `globs: packages/foo/src/**` |
 
-In the example above, it's clearly a monorepo and someone's tried to set up "global" rules for Claude *in the `foo` package*. While an AI agent would encounter the same guidance if this were translated to a `FileRule` for Cursor, it is *more correct* to translate it to a `GlobalPrompt` in the same location:
+However, this loses important structural meaning: the rule was clearly intended to live inside the package.
 
-`packages/foo/src/.cursor/rules/CLAUDE.mdc` with `alwaysApply: true`.
+A more faithful translation is to create `packages/foo/src/.cursor/rules/CLAUDE.mdc`
 
-This keeps the rule as "a global rule for this package, *in this package*," which is closer to the original rule's intent.
+with
+
+```yaml
+---
+alwaysApply: true
+---
+```
+
+This preserves the "global rule for this package" structure while maintaining identical agent behavior.
 
 ---
 
-It's not always possible to do this, though! In the above example the translation is invertible: translating that Cursor rule back to Claude will produce a `CLAUDE.md` in the original directory.
+### Non-Invertible Translations
 
-But what if Cursor specifies *two* `alwaysApply: true` rules in a subdirectory?
+Some layouts cannot be converted back to their exact original form.
+
+This typically happens when multiple sources collapse into one representation.
+
+Example Cursor layout:
 
 ```
 packages/
@@ -108,7 +136,9 @@ packages/
                 └── rule2.mdc
 ```
 
-These would need to be combined into a single `CLAUDE.md`, but that cannot be done cleanly, nor repeatably. So, in this case, you might prefer to hoist both rules up to the root:
+Claude supports only a single `CLAUDE.md` per directory. Merging these rules is ambiguous and not repeatable.
+
+A *safer translation* is to hoist them:
 
 ```
 .claude/
@@ -117,21 +147,24 @@ These would need to be combined into a single `CLAUDE.md`, but that cannot be do
     └── rule2.md
 ```
 
-where each of the rules has `paths:` in its frontmatter:
+with
 
 ```yaml
 paths:
   - "packages/foo/src/**"
 ```
 
-This sidesteps nasty edge cases around combining content into a single file (especially if there was an existing `CLAUDE.md` in that subdirectory, with its own unique content), and with repeatability.
-Of course, it still loses the "rules for the package/directory tree live in that directory tree" intent.
+This keeps conversions predictable but loses the original directory-local structure.
 
-Plugins that may run into this situation should clearly document the solution(s) they choose, and emit appropriate warnings when one of these "lossy" translations occurs.
+Once this happens, converting back cannot recreate the exact original layout.
+
+Plugins should consider such edge cases and make sure to emit warnings when appropriate, especially if a less-faithful ("lossy") translation is chosen.
+
+Unfortunately, a single translation event cannot know what other translations may happenn in the future, so warning about non-invertibility is not always possible.
 
 ## Example Warning Output
 
-When you run a conversion, a16n shows you exactly what happened:
+When you run a conversion, a16n reports what happened:
 
 ```text
 ≈ AgentIgnore approximated as permissions.deny (behavior may differ slightly)
@@ -147,32 +180,30 @@ Summary: 4 discovered, 4 written, 1 warning
 
 ## Warning Codes
 
-a16n emits warnings when conversions can't be perfect. These appear in CLI output (with icons) and in JSON output under the `warnings` array.
+Warnings describe situations where translation cannot be exact.
 
-| Code | Icon | Meaning |
-|------|------|---------|
-| `merged` | ⚠ | Multiple sources were combined into one output |
-| `approximated` | ≈ | Feature was converted to nearest equivalent |
-| `skipped` | ⊘ | Feature could not be converted |
-| `overwritten` | ↺ | Existing file was replaced |
-| `file-renamed` | → | File was renamed to avoid collision |
-| `boundary-crossing` | ⚠ | Git-ignored source produced a tracked output |
-| `git-status-conflict` | ⚠ | Sources for one output have conflicting git-ignore status |
-| `version-mismatch` | ⚠ | IR file version is incompatible with current reader |
-| `orphan-path-ref` | ⚠ | Content references a source-format path not in the conversion set |
+| Code                  | Icon | Meaning                        |
+| --------------------- | ---- | ------------------------------ |
+| `merged`              | ⚠    | Multiple sources combined      |
+| `approximated`        | ≈    | Nearest equivalent used        |
+| `skipped`             | ⊘    | Feature unsupported            |
+| `overwritten`         | ↺    | Existing file replaced         |
+| `file-renamed`        | →    | Renamed to avoid collision     |
+| `boundary-crossing`   | ⚠    | Git-ignore boundary crossed    |
+| `git-status-conflict` | ⚠    | Mixed git-ignore states        |
+| `version-mismatch`    | ⚠    | IR version mismatch            |
+| `orphan-path-ref`     | ⚠    | Missing referenced source path |
 
-**Note**: Warnings don't affect the exit code. The CLI exits 0 on success (even with warnings) and 1 on error.
+Warnings do not affect exit codes.
 
-### JSON Output Example
-
-With `--json`, warnings appear in the output:
+## JSON Output Example
 
 ```json
 {
   "warnings": [
     {
       "code": "approximated",
-      "message": "AgentIgnore approximated as permissions.deny (behavior may differ slightly)"
+      "message": "AgentIgnore approximated as permissions.deny"
     }
   ]
 }
@@ -180,23 +211,31 @@ With `--json`, warnings appear in the output:
 
 ## Path Reference Rewriting
 
-When converting between formats, your configuration files may reference other configuration files by their source-format paths. For example, a Cursor rule might say:
+Some configurations reference files using source-format paths.
+
+Example:
 
 ```
 Load: .cursor/rules/shared/auth.mdc
 ```
 
-After conversion to Claude, the file lives at `.claude/rules/auth.md` - but the reference in content still says `.cursor/rules/shared/auth.mdc`.
+After conversion the file may live at:
 
-Use `--rewrite-path-refs` to automatically fix these references:
-
-```bash
-a16n convert --from cursor --to claude --rewrite-path-refs .
+```
+.claude/rules/auth.md
 ```
 
-If a reference points to a source-format path that wasn't part of the conversion (e.g., a deleted or missing file), a16n emits an `orphan-path-ref` warning so you know to fix it manually.
+Use:
+
+```bash
+a16n convert --rewrite-path-refs .
+```
+
+This updates references automatically.
+
+If a referenced file was not part of the conversion, a16n emits an `orphan-path-ref` warning.
 
 ## Learn More
 
-- [CLI Reference](/cli/reference) - Full command documentation
-- [FAQ](/faq) - Common questions
+* [CLI Reference](/cli/reference)
+* [FAQ](/faq)
