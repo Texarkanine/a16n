@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.8.0...@a16njs/docs@0.8.1) (2026-02-23)
+
+
+### Bug Fixes
+
+* **docs:** reorganize "Understanding Conversions" a bit better ([b1dec85](https://github.com/Texarkanine/a16n/commit/b1dec8540dda05fe79a4c16de884921498e5d6cc))
+
 ## [0.8.0](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.7.1...@a16njs/docs@0.8.0) (2026-02-17)
 
 
