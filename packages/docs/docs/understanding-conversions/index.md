@@ -1,14 +1,13 @@
 ---
-
 title: Understanding Conversions
 description: How a16n converts agent customization between different AI coding tools
-------------------------------------------------------------------------------------
+---
 
 # Understanding Conversions
 
 Different AI coding tools model agent customization differently. a16n translates between them with one primary goal:
 
-**preserve behavior whenever possible.**
+> **preserve behavior whenever possible**
 
 This page explains why conversions sometimes change structure, produce warnings, or cannot be performed at all. The goal is to help you reason about what you see after running a conversion.
 
@@ -104,15 +103,7 @@ A subdirectory `CLAUDE.md` is behaviorally equivalent to a file-scoped rule at t
 
 However, this loses important structural meaning: the rule was clearly intended to live inside the package.
 
-A more faithful translation is to create `packages/foo/src/.cursor/rules/CLAUDE.mdc`
-
-with
-
-```yaml
----
-alwaysApply: true
----
-```
+A more faithful translation is to create `packages/foo/src/.cursor/rules/CLAUDE.mdc` with `alwaysApply: true` frontmatter.
 
 This preserves the "global rule for this package" structure while maintaining identical agent behavior.
 
@@ -156,11 +147,11 @@ paths:
 
 This keeps conversions predictable but loses the original directory-local structure.
 
-Once this happens, converting back cannot recreate the exact original layout.
+Once this happens, converting back cannot recreate the exact original layout. The intuitive translation would be to place both of the rules in `.cursor/rules/`, and use `globs:` to match the `paths:` spec. However identical *behavior* would come from emitting them to `.cursor/rules/foo/src/`, with no globs, just `alwaysApply: true` frontmatter.
+
+At translation time, the Cursor plugin cannot determine that what it sees in `.claude/rules/` was hoisted from a previous Cursor layout that was nested. Whichever output format it chooses will be *uninformed*, and this is likely to lead to drift when trying to "round-trip" translations.
 
 Plugins should consider such edge cases and make sure to emit warnings when appropriate, especially if a less-faithful ("lossy") translation is chosen.
-
-Unfortunately, a single translation event cannot know what other translations may happenn in the future, so warning about non-invertibility is not always possible.
 
 ## Example Warning Output
 
