@@ -9,6 +9,7 @@ import {
   isManualPrompt,
   getUniqueFilename,
   createId,
+  inferGlobalPromptName,
   type AgentCustomization,
   type GlobalPrompt,
   type SimpleAgentSkill,
@@ -24,6 +25,7 @@ describe('isGlobalPrompt', () => {
       id: 'test',
       type: CustomizationType.GlobalPrompt,
       sourcePath: 'test.md',
+      name: 'test',
       content: 'content',
       metadata: {},
     };
@@ -205,6 +207,63 @@ describe('createId', () => {
   });
 });
 
+describe('inferGlobalPromptName', () => {
+  // Leading-dot filenames: the dot is part of the filename, not a separator.
+  // Stripping the dot gives the canonical name; then strip the last extension if any.
+
+  it('returns "cursorrules" for .cursorrules', () => {
+    expect(inferGlobalPromptName('.cursorrules')).toBe('cursorrules');
+  });
+
+  it('returns "cursorrules" for .cursorrules.md (double-extension variant)', () => {
+    expect(inferGlobalPromptName('.cursorrules.md')).toBe('cursorrules');
+  });
+
+  it('returns "cursorrules" for .cursorrules.txt (double-extension variant)', () => {
+    expect(inferGlobalPromptName('.cursorrules.txt')).toBe('cursorrules');
+  });
+
+  it('returns "CLAUDE" for CLAUDE.md', () => {
+    expect(inferGlobalPromptName('CLAUDE.md')).toBe('CLAUDE');
+  });
+
+  it('returns "AGENTS" for AGENTS.md', () => {
+    expect(inferGlobalPromptName('AGENTS.md')).toBe('AGENTS');
+  });
+
+  it('returns stem for a normal rule file', () => {
+    expect(inferGlobalPromptName('my-rule.mdc')).toBe('my-rule');
+  });
+
+  it('preserves multi-part stems (strips only the last extension)', () => {
+    expect(inferGlobalPromptName('foo.bar.mdc')).toBe('foo.bar');
+  });
+
+  it('works with full paths — only the basename matters', () => {
+    expect(inferGlobalPromptName('/home/user/project/.cursorrules')).toBe('cursorrules');
+    expect(inferGlobalPromptName('.cursor/rules/my-rule.mdc')).toBe('my-rule');
+    expect(inferGlobalPromptName('packages/foo/CLAUDE.md')).toBe('CLAUDE');
+  });
+
+  it('works with IR format filenames (no leading dot)', () => {
+    // plugin-a16n emits cursorrules.md; re-discovery must round-trip to "cursorrules"
+    expect(inferGlobalPromptName('cursorrules.md')).toBe('cursorrules');
+  });
+
+  it('returns extension-less basename as-is for files with no extension', () => {
+    expect(inferGlobalPromptName('README')).toBe('README');
+    expect(inferGlobalPromptName('my-rule')).toBe('my-rule');
+  });
+
+  it('returns fallback for empty string input', () => {
+    expect(inferGlobalPromptName('')).toBe('global-prompt');
+  });
+
+  it('returns fallback for "." input (leading dot with empty stem)', () => {
+    expect(inferGlobalPromptName('.')).toBe('global-prompt');
+  });
+});
+
 describe('isSimpleAgentSkill', () => {
   /**
    * Type guard for SimpleAgentSkill (renamed from isAgentSkill).
@@ -228,6 +287,7 @@ describe('isSimpleAgentSkill', () => {
       id: 'test',
       type: CustomizationType.GlobalPrompt,
       sourcePath: 'test.md',
+      name: 'test',
       content: 'content',
       metadata: {},
     };
@@ -274,6 +334,7 @@ describe('isAgentSkillIO', () => {
       id: 'test',
       type: CustomizationType.GlobalPrompt,
       sourcePath: 'test.md',
+      name: 'test',
       content: 'content',
       metadata: {},
     };

@@ -49,6 +49,12 @@ export interface AgentCustomization {
  */
 export interface GlobalPrompt extends AgentCustomization {
   type: CustomizationType.GlobalPrompt;
+  /**
+   * Canonical name for emission output filename (e.g. `'cursorrules'`, `'CLAUDE'`).
+   * Set at discovery time using `inferGlobalPromptName(sourcePath)` from `@a16njs/models`.
+   * Emission plugins use this directly — no re-derivation from source paths needed.
+   */
+  name: string;
 }
 
 /**

@@ -20,6 +20,19 @@ describe('Cursor Plugin Discovery', () => {
       expect(result.items[0]?.content).toContain('Prefer functional components');
       expect(result.warnings).toHaveLength(0);
     });
+
+    it('should set name from source filename (without extension) on GlobalPrompt', async () => {
+      const root = path.join(fixturesDir, 'cursor-basic/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      expect(result.items).toHaveLength(1);
+      const gp = result.items[0];
+      expect(gp?.type).toBe(CustomizationType.GlobalPrompt);
+      if (gp?.type === CustomizationType.GlobalPrompt) {
+        // sourcePath is '.cursor/rules/general.mdc' → name should be 'general'
+        expect(gp.name).toBe('general');
+      }
+    });
   });
 
   describe('multiple .mdc files', () => {

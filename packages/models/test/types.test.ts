@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   CustomizationType,
+  CURRENT_IR_VERSION,
   type AgentCustomization,
   type GlobalPrompt,
   type ManualPrompt,
@@ -57,7 +58,9 @@ describe('GlobalPrompt', () => {
     const globalPrompt: GlobalPrompt = {
       id: 'gp-1',
       type: CustomizationType.GlobalPrompt,
+      version: CURRENT_IR_VERSION,
       sourcePath: 'CLAUDE.md',
+      name: 'CLAUDE',
       content: 'Always use TypeScript',
       metadata: {},
     };

@@ -35,6 +35,7 @@ describe('Claude Plugin Emission', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/test.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'test',
           sourcePath: '.cursor/rules/test.mdc',
           content: 'Always use TypeScript.',
           metadata: {},
@@ -53,11 +54,32 @@ describe('Claude Plugin Emission', () => {
       expect(content).toContain('Always use TypeScript.');
     });
 
+    it('should preserve multi-part stems (dots become hyphens, not stripped)', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'react.hooks.mdc'),
+          type: CustomizationType.GlobalPrompt,
+          name: 'react.hooks',
+          sourcePath: 'react.hooks.mdc',
+          content: 'React hooks rules.',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      const rulePath = path.join(tempDir, '.claude', 'rules', 'react-hooks.md');
+      const content = await fs.readFile(rulePath, 'utf-8');
+      expect(content).toContain('React hooks rules.');
+    });
+
     it('should include source header in output', async () => {
       const models: GlobalPrompt[] = [
         {
           id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/test.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'test',
           sourcePath: '.cursor/rules/test.mdc',
           content: 'Test content',
           metadata: {},
@@ -71,11 +93,34 @@ describe('Claude Plugin Emission', () => {
       expect(content).toContain('.cursor/rules/test.mdc');
     });
 
+    it('should use gp.name for output filename (not re-derived from sourcePath)', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, '.cursorrules'),
+          type: CustomizationType.GlobalPrompt,
+          name: 'cursorrules',
+          sourcePath: '.cursorrules',
+          content: 'Cursor rules content.',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+
+      // Should use gp.name ('cursorrules'), not re-derived from sourcePath ('.cursorrules' → 'rule')
+      const rulePath = path.join(tempDir, '.claude', 'rules', 'cursorrules.md');
+      const content = await fs.readFile(rulePath, 'utf-8');
+      expect(content).toContain('Cursor rules content.');
+    });
+
     it('should NOT include frontmatter in GlobalPrompt files', async () => {
       const models: GlobalPrompt[] = [
         {
           id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/test.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'test',
           sourcePath: '.cursor/rules/test.mdc',
           content: 'Test content',
           metadata: {},
@@ -97,6 +142,7 @@ describe('Claude Plugin Emission', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, 'rule1.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'rule1',
           sourcePath: 'rule1.mdc',
           content: 'First rule',
           metadata: {},
@@ -104,6 +150,7 @@ describe('Claude Plugin Emission', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, 'rule2.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'rule2',
           sourcePath: 'rule2.mdc',
           content: 'Second rule',
           metadata: {},
@@ -111,6 +158,7 @@ describe('Claude Plugin Emission', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, 'rule3.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'rule3',
           sourcePath: 'rule3.mdc',
           content: 'Third rule',
           metadata: {},
@@ -141,6 +189,7 @@ describe('Claude Plugin Emission', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, 'a.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'a',
           sourcePath: 'a.mdc',
           content: 'A',
           metadata: {},
@@ -148,6 +197,7 @@ describe('Claude Plugin Emission', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, 'b.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'b',
           sourcePath: 'b.mdc',
           content: 'B',
           metadata: {},
@@ -165,6 +215,7 @@ describe('Claude Plugin Emission', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, 'rule1.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'rule1',
           sourcePath: 'rule1.mdc',
           content: 'First rule',
           metadata: {},
@@ -183,6 +234,7 @@ describe('Claude Plugin Emission', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/test.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'test',
           sourcePath: '.cursor/rules/test.mdc',
           content: 'First test',
           metadata: {},
@@ -190,6 +242,7 @@ describe('Claude Plugin Emission', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/shared/test.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'test',
           sourcePath: '.cursor/rules/shared/test.mdc',
           content: 'Second test',
           metadata: {},
@@ -727,6 +780,7 @@ describe('Mixed Model Emission (Phase 8 A2)', () => {
       {
         id: createId(CustomizationType.GlobalPrompt, 'global.mdc'),
         type: CustomizationType.GlobalPrompt,
+        name: 'global',
         sourcePath: 'global.mdc',
         content: 'Global content',
         metadata: {},
@@ -1007,6 +1061,7 @@ describe('Claude AgentIgnore Emission (Phase 3)', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, 'global.md'),
           type: CustomizationType.GlobalPrompt,
+          name: 'global',
           sourcePath: 'global.md',
           content: 'Use TypeScript.',
           metadata: {},
@@ -1210,6 +1265,7 @@ describe('Claude ManualPrompt Emission (Phase 4)', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, 'global.md'),
           type: CustomizationType.GlobalPrompt,
+          name: 'global',
           sourcePath: 'global.md',
           content: 'Use TypeScript.',
           metadata: {},
@@ -1375,6 +1431,7 @@ describe('Claude Plugin - sourceItems tracking (Phase 8 A2)', () => {
     const gp1: GlobalPrompt = {
       id: createId(CustomizationType.GlobalPrompt, 'rule1.mdc'),
       type: CustomizationType.GlobalPrompt,
+      name: 'rule1',
       sourcePath: 'rule1.mdc',
       content: 'Rule 1',
       metadata: {},
@@ -1382,6 +1439,7 @@ describe('Claude Plugin - sourceItems tracking (Phase 8 A2)', () => {
     const gp2: GlobalPrompt = {
       id: createId(CustomizationType.GlobalPrompt, 'rule2.mdc'),
       type: CustomizationType.GlobalPrompt,
+      name: 'rule2',
       sourcePath: 'rule2.mdc',
       content: 'Rule 2',
       metadata: {},
@@ -1389,6 +1447,7 @@ describe('Claude Plugin - sourceItems tracking (Phase 8 A2)', () => {
     const gp3: GlobalPrompt = {
       id: createId(CustomizationType.GlobalPrompt, 'rule3.mdc'),
       type: CustomizationType.GlobalPrompt,
+      name: 'rule3',
       sourcePath: 'rule3.mdc',
       content: 'Rule 3',
       metadata: {},
@@ -1705,6 +1764,7 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/shared/niko/main.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'main',
           sourcePath: '.cursor/rules/shared/niko/main.mdc',
           relativeDir: 'shared/niko',
           content: 'Main Niko rule.',
@@ -1750,6 +1810,7 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/general.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'general',
           sourcePath: '.cursor/rules/general.mdc',
           content: 'General rule.',
           metadata: {},
@@ -1771,6 +1832,7 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
         {
           id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/shared/niko/main.mdc'),
           type: CustomizationType.GlobalPrompt,
+          name: 'main',
           sourcePath: '.cursor/rules/shared/niko/main.mdc',
           relativeDir: 'shared/niko',
           content: 'Main Niko rule.',

@@ -33,6 +33,29 @@ describe('A16n Plugin Emission', () => {
   });
 
   describe('GlobalPrompt emission', () => {
+    it('should use gp.name directly for output filename (no re-derivation from ID)', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, '.cursorrules'),
+          type: CustomizationType.GlobalPrompt,
+          version: CURRENT_IR_VERSION,
+          sourcePath: '.cursorrules',
+          name: 'cursorrules',
+          content: 'My cursor rules',
+          metadata: {},
+        },
+      ];
+
+      const result = await a16nPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      expect(result.warnings).toHaveLength(0);
+
+      const expectedPath = path.join(tempDir, '.a16n', 'global-prompt', 'cursorrules.md');
+      const content = await fs.readFile(expectedPath, 'utf-8');
+      expect(content).toContain('My cursor rules');
+    });
+
     it('should emit GlobalPrompt to .a16n/global-prompt/ with IR frontmatter', async () => {
       const models: GlobalPrompt[] = [
         {
@@ -40,6 +63,7 @@ describe('A16n Plugin Emission', () => {
           type: CustomizationType.GlobalPrompt,
           version: CURRENT_IR_VERSION,
           sourcePath: '.cursor/rules/coding-standards.mdc', // Should NOT appear in output
+          name: 'coding-standards',
           content: '# Coding Standards\n\nAlways use TypeScript strict mode.',
           metadata: { tool: 'cursor' }, // Should NOT appear in output
         },
@@ -75,6 +99,7 @@ describe('A16n Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'nested-rule'),
           type: CustomizationType.GlobalPrompt,
           version: CURRENT_IR_VERSION,
+          name: 'nested-rule',
           content: 'Nested rule content',
           metadata: {},
           relativeDir: 'foo/bar', // Should create .a16n/global-prompt/foo/bar/
@@ -369,6 +394,7 @@ describe('A16n Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'test1'),
           type: CustomizationType.GlobalPrompt,
           version: CURRENT_IR_VERSION,
+          name: 'test1',
           content: 'Global prompt',
           metadata: {},
         },
@@ -414,6 +440,7 @@ describe('A16n Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'test'),
           type: CustomizationType.GlobalPrompt,
           version: CURRENT_IR_VERSION,
+          name: 'test',
           content: 'Test content',
           metadata: {},
         },
@@ -435,6 +462,7 @@ describe('A16n Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'test'),
           type: CustomizationType.GlobalPrompt,
           version: CURRENT_IR_VERSION,
+          name: 'test',
           content: 'Test',
           metadata: { tool: 'cursor', custom: 'value' },
         },
@@ -458,6 +486,7 @@ describe('A16n Plugin Emission', () => {
           type: CustomizationType.GlobalPrompt,
           version: CURRENT_IR_VERSION,
           sourcePath: '.cursor/rules/original.mdc',
+          name: 'test',
           content: 'Test',
           metadata: {},
         },
@@ -480,6 +509,7 @@ describe('A16n Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'test'),
           type: CustomizationType.GlobalPrompt,
           version: CURRENT_IR_VERSION,
+          name: 'test',
           content: 'Test content',
           metadata: {},
         },
@@ -496,12 +526,13 @@ describe('A16n Plugin Emission', () => {
   });
 
   describe('name slugification', () => {
-    it('should slugify filenames from item IDs', async () => {
+    it('should slugify filenames from item name', async () => {
       const models: GlobalPrompt[] = [
         {
           id: createId(CustomizationType.GlobalPrompt, 'My RULE Name!!!'),
           type: CustomizationType.GlobalPrompt,
           version: CURRENT_IR_VERSION,
+          name: 'My RULE Name!!!',
           content: 'Test',
           metadata: {},
         },
@@ -520,12 +551,15 @@ describe('A16n Plugin Emission', () => {
 
   describe('malformed ID handling', () => {
     it('should produce warning for malformed ID with empty name after type prefix', async () => {
-      const models: GlobalPrompt[] = [
+      // FileRule is used here because it derives filename from ID (has no name field).
+      // GlobalPrompts always use gp.name now, so they never reach extractNameFromId.
+      const models: FileRule[] = [
         {
           // Malformed ID: just type prefix with no name, resulting in empty name after stripping extension
-          id: 'global-prompt:.md',
-          type: CustomizationType.GlobalPrompt,
+          id: 'file-rule:.md',
+          type: CustomizationType.FileRule,
           version: CURRENT_IR_VERSION,
+          globs: ['*.ts'],
           content: 'Test',
           metadata: {},
         },
@@ -543,12 +577,14 @@ describe('A16n Plugin Emission', () => {
     });
 
     it('should produce warning for ID with just type and colon', async () => {
-      const models: GlobalPrompt[] = [
+      // FileRule is used here because it derives filename from ID (has no name field).
+      const models: FileRule[] = [
         {
           // ID with just type: prefix and nothing else
-          id: 'global-prompt:',
-          type: CustomizationType.GlobalPrompt,
+          id: 'file-rule:',
+          type: CustomizationType.FileRule,
           version: CURRENT_IR_VERSION,
+          globs: ['*.ts'],
           content: 'Test',
           metadata: {},
         },
@@ -572,6 +608,7 @@ describe('A16n Plugin Emission', () => {
           id: createId(CustomizationType.GlobalPrompt, 'test'),
           type: CustomizationType.GlobalPrompt,
           version: CURRENT_IR_VERSION,
+          name: 'test',
           content: 'Test',
           metadata: {},
         },

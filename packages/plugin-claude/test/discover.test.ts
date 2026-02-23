@@ -27,6 +27,13 @@ describe('Claude Plugin Discovery', () => {
       expect(result.items[0]?.metadata).toHaveProperty('nested', false);
       expect(result.items[0]?.metadata).toHaveProperty('depth', 0);
     });
+
+    it('should set name from source filename (without extension) on root CLAUDE.md GlobalPrompt', async () => {
+      const root = path.join(fixturesDir, 'claude-basic/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      expect(result.items[0]?.name).toBe('CLAUDE');
+    });
   });
 
   describe('nested CLAUDE.md files', () => {
@@ -639,11 +646,20 @@ describe('Claude Rules Discovery (Phase 8 A1)', () => {
       const root = path.join(fixturesDir, 'claude-rules-basic/from-claude');
       const result = await claudePlugin.discover(root);
 
-      const globalPrompts = result.items.filter(i => 
-        i.type === CustomizationType.GlobalPrompt && 
+      const globalPrompts = result.items.filter(i =>
+        i.type === CustomizationType.GlobalPrompt &&
         i.sourcePath.startsWith('.claude/rules/')
       );
       expect(globalPrompts.length).toBeGreaterThan(0);
+    });
+
+    it('should set name from source filename (without extension) on .claude/rules/ GlobalPrompt', async () => {
+      const root = path.join(fixturesDir, 'claude-rules-basic/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const styleRule = result.items.find(i => i.sourcePath === '.claude/rules/style.md');
+      expect(styleRule).toBeDefined();
+      expect(styleRule?.name).toBe('style');
     });
 
     it('should classify rules with paths as FileRule', async () => {
