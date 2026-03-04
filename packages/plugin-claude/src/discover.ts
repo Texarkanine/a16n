@@ -101,6 +101,8 @@ function parseClaudeRuleFrontmatter(content: string): ParsedClaudeRule {
         frontmatter.paths = [raw];
       } else if (Array.isArray(raw)) {
         frontmatter.paths = raw.filter((p): p is string => typeof p === 'string');
+      } else {
+        frontmatter.paths = [];
       }
     }
 
