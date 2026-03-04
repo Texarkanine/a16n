@@ -149,6 +149,8 @@ interface SkillFrontmatter {
   description?: string;
   name?: string;
   hooks?: Record<string, unknown>;
+  /** True when the hooks key is present in frontmatter (even if empty). Used to skip skills. */
+  hasHooks?: boolean;
   disableModelInvocation?: boolean;
 }
 
@@ -169,8 +171,11 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
       if (typeof data['disable-model-invocation'] === 'boolean') {
         frontmatter.disableModelInvocation = data['disable-model-invocation'];
       }
-      if (data.hooks !== undefined && typeof data.hooks === 'object' && data.hooks !== null && !Array.isArray(data.hooks)) {
-        frontmatter.hooks = data.hooks as Record<string, unknown>;
+      if (Object.prototype.hasOwnProperty.call(data, 'hooks')) {
+        frontmatter.hasHooks = true;
+        if (data.hooks !== undefined && typeof data.hooks === 'object' && data.hooks !== null && !Array.isArray(data.hooks)) {
+          frontmatter.hooks = data.hooks as Record<string, unknown>;
+        }
       }
     }
 
@@ -403,8 +408,8 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
       // Read all other files in the skill directory
       const files = await readSkillFiles(skillDir);
       const hasExtraFiles = Object.keys(files).length > 0;
-      const hasHooks = frontmatter.hooks && Object.keys(frontmatter.hooks).length > 0;
-      
+      const hasHooks = frontmatter.hasHooks === true;
+
       // Classification priority:
       // 1. Has hooks → SKIP (hooks are not supported by AgentSkills.io)
       // 2. Has extra files → AgentSkillIO (with description required)
