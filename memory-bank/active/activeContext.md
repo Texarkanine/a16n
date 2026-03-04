@@ -1,14 +1,15 @@
 # Active Context
 
 ## Current Task: issue-70 — Replace regex frontmatter with YAML parser (Claude plugin)
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Complexity determined: Level 1 (Quick Bug Fix). Bug fix affecting a single component (`packages/plugin-claude/src/discover.ts`); no architectural impact.
-- Ephemeral memory-bank files created; project brief captured from GitHub issue #70.
+- Replaced regex-based `parseClaudeRuleFrontmatter`, `parseSkillFrontmatter`, and `parseHooksSection` with gray-matter-based parsing
+- Added gray-matter dependency to plugin-claude
+- Added YAML edge-case fixture and tests (comments in paths, folded multi-line description)
+- Post-review hardening: removed redundant paths normalization in discover loop, added fallback for unexpected YAML types, added `hasHooks` boolean flag for presence-based skip, surfaced parse errors as warnings instead of silently swallowing
+- Final cleanup: removed dead `hooks` field from SkillFrontmatter, simplified hooks detection to `'hooks' in data`, removed redundant `if (data)` guard, typed `raw` as `unknown` for clarity
 
-## Next Step
-- Execute Level 1 Build: add gray-matter dependency, replace `parseClaudeRuleFrontmatter`, `parseSkillFrontmatter`, and `parseHooksSection` with gray-matter-based parsing; run tests; then QA.
-
-## Build complete
-- Replaced regex parsers with gray-matter in `discover.ts`. All 122 plugin-claude tests pass; full suite passed. YAML edge-case tests added (rule with comments, skill with folded multi-line description).
+## Outcome
+- All 122 plugin-claude tests pass; full monorepo build and test suite green
+- Level 1 task complete; no reflect/archive needed per workflow
