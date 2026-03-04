@@ -20,22 +20,16 @@ import {
   inferGlobalPromptName,
 } from '@a16njs/models';
 
-/**
- * Frontmatter structure for Claude rules files.
- * Contains paths field for conditional file-based activation.
- * After parseClaudeRuleFrontmatter, paths is always string[] when present.
- */
+/** Post-normalization frontmatter for Claude rules files. */
 interface ClaudeRuleFrontmatter {
   paths?: string[];
   [key: string]: unknown;
 }
 
-/**
- * Parsed Claude rule with frontmatter and body content.
- */
 interface ParsedClaudeRule {
   frontmatter: ClaudeRuleFrontmatter;
   body: string;
+  parseError?: string;
 }
 
 /**
@@ -82,21 +76,18 @@ async function findClaudeRules(root: string): Promise<string[]> {
 }
 
 /**
- * Parse YAML frontmatter from a Claude rule file.
- * Uses gray-matter for standards-compliant YAML (multi-line, quoted, comments, nested).
- *
- * @param content - Full file content including frontmatter
- * @returns Parsed frontmatter and body content
+ * Parse YAML frontmatter from a Claude rule file via gray-matter.
+ * Normalises `paths` to `string[]` (or removes it) so callers never see raw YAML types.
  */
 function parseClaudeRuleFrontmatter(content: string): ParsedClaudeRule {
   try {
     const parsed = matter(content);
-    const data = parsed.data as Record<string, unknown> | undefined;
-    const frontmatter: ClaudeRuleFrontmatter = data ? { ...data } : {};
+    const data: Record<string, unknown> = parsed.data ?? {};
+    const frontmatter: ClaudeRuleFrontmatter = { ...data };
 
-    // Normalize paths to array
-    if (frontmatter.paths !== undefined) {
-      const raw = frontmatter.paths;
+    // gray-matter can yield any YAML type for `paths`; coerce to string[].
+    const raw: unknown = data.paths;
+    if (raw !== undefined) {
       if (typeof raw === 'string') {
         frontmatter.paths = [raw];
       } else if (Array.isArray(raw)) {
@@ -106,15 +97,12 @@ function parseClaudeRuleFrontmatter(content: string): ParsedClaudeRule {
       }
     }
 
-    return {
-      frontmatter,
-      body: parsed.content.trim(),
-    };
-  } catch {
-    // No valid frontmatter or parse error: treat whole content as body
+    return { frontmatter, body: parsed.content.trim() };
+  } catch (err) {
     return {
       frontmatter: {},
       body: content.trim(),
+      parseError: err instanceof Error ? err.message : String(err),
     };
   }
 }
@@ -141,15 +129,10 @@ function convertReadRuleToPattern(rule: string): string | null {
   return pattern;
 }
 
-/**
- * Parse YAML frontmatter from a SKILL.md file.
- * Uses gray-matter for standards-compliant YAML (multi-line, quoted, comments, nested hooks).
- */
 interface SkillFrontmatter {
   description?: string;
   name?: string;
-  hooks?: Record<string, unknown>;
-  /** True when the hooks key is present in frontmatter (even if empty). Used to skip skills. */
+  /** True when the `hooks` key is declared in frontmatter (even if empty). */
   hasHooks?: boolean;
   disableModelInvocation?: boolean;
 }
@@ -157,36 +140,32 @@ interface SkillFrontmatter {
 interface ParsedSkill {
   frontmatter: SkillFrontmatter;
   body: string;
+  parseError?: string;
 }
 
+/**
+ * Parse YAML frontmatter from a SKILL.md file via gray-matter.
+ * Only extracts the fields the discovery pipeline needs.
+ */
 function parseSkillFrontmatter(content: string): ParsedSkill {
   try {
     const parsed = matter(content);
-    const data = parsed.data as Record<string, unknown> | undefined;
+    const data: Record<string, unknown> = parsed.data ?? {};
     const frontmatter: SkillFrontmatter = {};
 
-    if (data) {
-      if (typeof data.name === 'string') frontmatter.name = data.name;
-      if (typeof data.description === 'string') frontmatter.description = data.description;
-      if (typeof data['disable-model-invocation'] === 'boolean') {
-        frontmatter.disableModelInvocation = data['disable-model-invocation'];
-      }
-      if (Object.prototype.hasOwnProperty.call(data, 'hooks')) {
-        frontmatter.hasHooks = true;
-        if (data.hooks !== undefined && typeof data.hooks === 'object' && data.hooks !== null && !Array.isArray(data.hooks)) {
-          frontmatter.hooks = data.hooks as Record<string, unknown>;
-        }
-      }
+    if (typeof data.name === 'string') frontmatter.name = data.name;
+    if (typeof data.description === 'string') frontmatter.description = data.description;
+    if (typeof data['disable-model-invocation'] === 'boolean') {
+      frontmatter.disableModelInvocation = data['disable-model-invocation'];
     }
+    if ('hooks' in data) frontmatter.hasHooks = true;
 
-    return {
-      frontmatter,
-      body: parsed.content.trim(),
-    };
-  } catch {
+    return { frontmatter, body: parsed.content.trim() };
+  } catch (err) {
     return {
       frontmatter: {},
       body: content.trim(),
+      parseError: err instanceof Error ? err.message : String(err),
     };
   }
 }
@@ -401,8 +380,18 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
     
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
-      const { frontmatter, body } = parseSkillFrontmatter(content);
-      
+      const parsedSkill = parseSkillFrontmatter(content);
+
+      if (parsedSkill.parseError) {
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Skipped skill '${dirName}': Invalid frontmatter: ${parsedSkill.parseError}`,
+          sources: [skillPath],
+        });
+        continue;
+      }
+
+      const { frontmatter, body } = parsedSkill;
       const displayName = frontmatter.name || dirName;
       
       // Read all other files in the skill directory
@@ -505,8 +494,18 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
     
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
-      const { frontmatter, body } = parseClaudeRuleFrontmatter(content);
+      const parsedRule = parseClaudeRuleFrontmatter(content);
 
+      if (parsedRule.parseError) {
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Skipped rule ${normalizedPath}: Invalid frontmatter: ${parsedRule.parseError}`,
+          sources: [normalizedPath],
+        });
+        continue;
+      }
+
+      const { frontmatter, body } = parsedRule;
       const paths = frontmatter.paths ?? [];
 
       // Compute relativeDir from subdirectory path under .claude/rules/
