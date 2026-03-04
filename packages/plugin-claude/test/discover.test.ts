@@ -710,6 +710,37 @@ describe('Claude Rules Discovery (Phase 8 A1)', () => {
     });
   });
 
+  describe('YAML frontmatter (gray-matter)', () => {
+    it('should parse rule frontmatter with YAML comments and multiple paths', async () => {
+      const root = path.join(fixturesDir, 'claude-yaml-edge-cases/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const rule = result.items.find(i =>
+        i.sourcePath === '.claude/rules/with-yaml-edge.md'
+      ) as import('@a16njs/models').FileRule;
+
+      expect(rule).toBeDefined();
+      expect(rule.type).toBe(CustomizationType.FileRule);
+      expect(rule.globs).toContain('src/**/*.ts');
+      expect(rule.globs).toContain('lib/**/*.js');
+      expect(rule.content).toContain('YAML edge-case rule');
+    });
+
+    it('should parse skill frontmatter with multi-line (folded) description', async () => {
+      const root = path.join(fixturesDir, 'claude-yaml-edge-cases/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skill = result.items.find(i =>
+        i.type === CustomizationType.SimpleAgentSkill && i.sourcePath.includes('multiline-desc')
+      ) as SimpleAgentSkill;
+
+      expect(skill).toBeDefined();
+      expect(skill.description).toContain('Use TDD when writing tests');
+      expect(skill.description).toContain('Prefer descriptive test names');
+      expect(skill.content).toContain('Body content here');
+    });
+  });
+
   describe('integration with existing discovery', () => {
     it('should discover rules alongside CLAUDE.md files', async () => {
       const root = path.join(fixturesDir, 'claude-rules-mixed/from-claude');
