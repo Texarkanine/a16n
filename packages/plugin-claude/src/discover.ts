@@ -23,9 +23,10 @@ import {
 /**
  * Frontmatter structure for Claude rules files.
  * Contains paths field for conditional file-based activation.
+ * After parseClaudeRuleFrontmatter, paths is always string[] when present.
  */
 interface ClaudeRuleFrontmatter {
-  paths?: string | string[];
+  paths?: string[];
   [key: string]: unknown;
 }
 
@@ -498,17 +499,9 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
       const { frontmatter, body } = parseClaudeRuleFrontmatter(content);
-      
-      // Normalize paths to array
-      let paths: string[] = [];
-      if (frontmatter.paths) {
-        if (typeof frontmatter.paths === 'string') {
-          paths = [frontmatter.paths];
-        } else if (Array.isArray(frontmatter.paths)) {
-          paths = frontmatter.paths;
-        }
-      }
-      
+
+      const paths = frontmatter.paths ?? [];
+
       // Compute relativeDir from subdirectory path under .claude/rules/
       // e.g., '.claude/rules/niko/Core/file-verification.md' → 'niko/Core'
       const ruleRelPath = normalizedPath.replace(/^\.claude\/rules\//, '');
