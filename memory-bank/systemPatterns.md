@@ -1,70 +1,59 @@
-# Memory Bank: System Patterns
+# System Patterns
 
-## Architecture Pattern
+## How This System Works
 
-Plugin-based conversion engine with intermediate representation (IR):
+a16n is a plugin-based conversion engine. The core flow:
 
-```
-Source Plugin.discover() → AgentCustomization[] (IR) → Target Plugin.emit()
-```
-
-## Error Handling Philosophy
-
-1. **Fail fast on invalid input** - Bad syntax, missing fields → error
-2. **Warn and continue on capability gaps** - Unsupported features → warning + skip/approximate
-3. **Never silently drop data** - Every skipped item produces a warning
-4. **Aggregate warnings** - Show all issues at end, not one at a time
-
-## Warning System
-
-```typescript
-enum WarningCode {
-  Merged = 'merged',           // Multiple items collapsed into one
-  Approximated = 'approximated', // Feature translated imperfectly
-  Skipped = 'skipped',         // Feature not supported, omitted
-  Overwritten = 'overwritten', // Existing file replaced
-  FileRenamed = 'file-renamed', // Filename collision resolved
-}
+```mermaid
+flowchart LR
+    A["Source Plugin.discover(root)"] --> B["AgentCustomization[] (IR)"]
+    B --> C["Target Plugin.emit(root)"]
 ```
 
-## Plugin Interface Pattern
+A **source plugin** reads tool-specific configuration files from disk and normalizes them into an intermediate representation (IR). A **target plugin** takes that IR and writes it out as configuration files for a different tool. The **engine** orchestrates this: it resolves plugins by id, runs discovery, applies an optional transformation pipeline (e.g., path rewriting), then runs emission.
 
-```typescript
-interface A16nPlugin {
-  id: string;
-  name: string;
-  supports: CustomizationType[];
-  discover(root: string): Promise<DiscoveryResult>;
-  emit(models: AgentCustomization[], root: string): Promise<EmitResult>;
-}
-```
+Three plugins are bundled: `cursor`, `claude`, and `a16n` (the IR format itself, stored under `.a16n/`). Installed plugins (npm packages named `a16n-plugin-*`) are discovered at runtime, but bundled plugins win on id conflict by default.
 
-## IR Type Classification (Cursor)
+**Before you touch anything, know this:**
 
-Priority order for MDC files:
+- The `A16nPlugin` interface (`discover` + `emit`) is the contract everything depends on. Changing it ripples through every plugin and the engine.
+- IR types live in `@a16njs/models`. Adding a new `CustomizationType` requires updates to every plugin that should support it.
+- `discover` and `emit` accept `string | Workspace`. The engine passes `LocalWorkspace`; tests use `MemoryWorkspace` / `ReadOnlyWorkspace`.
+- `metadata` on IR items is transient — it is never serialized. It carries tool-specific hints between discover and emit within a single conversion.
+- `relativeDir` on IR items preserves subdirectory structure across conversion (e.g., `.cursor/rules/shared/foo.mdc` → `.claude/rules/shared/foo.md`). Emit validates it to prevent path traversal.
+- `WrittenFile.sourceItems` links each emitted file back to its source IR items. This powers path-reference rewriting and `--delete-source`.
+
+## Discovery/Emit Asymmetries
+
+Plugins do not necessarily round-trip to the same file locations. These asymmetries are intentional, with the goal of preserving accuracy and intent. Do not "fix" them without understanding why they exist.
+
+## Classification Priority Orders
+
+Both plugins classify source files into IR types using strict priority orders. Reordering these changes behavior.
+
+**Cursor MDC files** (`.cursor/rules/**/*.mdc`):
 1. `alwaysApply: true` → GlobalPrompt
-2. `globs:` present → FileRule
-3. `description:` present (no globs) → SimpleAgentSkill
-4. `disable-model-invocation: true` → ManualPrompt
-5. None of above → GlobalPrompt (fallback)
+2. Non-empty `globs` → FileRule
+3. `description` present → SimpleAgentSkill
+4. None of the above → ManualPrompt
 
-## File Structure Conventions
+**Claude SKILL.md files** (`.claude/skills/**/SKILL.md`):
+1. `hooks:` present → **SKIP** (warning: not supported by AgentSkills.io)
+2. Extra files in skill directory → AgentSkillIO
+3. `disable-model-invocation: true` → ManualPrompt
+4. `description` present → SimpleAgentSkill
+5. None of the above → **SKIP** (warning: missing description)
 
-- Nested CLAUDE.md ↔ Nested .cursor/rules/ (structure preserved)
-- Skills: `.claude/skills/<name>/SKILL.md` ↔ `.cursor/skills/<name>/SKILL.md` (recursive discovery; directory with `SKILL.md` = skill, otherwise recurse)
-- Skill resources: `readSkillFiles()` recursively reads subdirectories (scripts/, references/, assets/)
-- Generated artifacts: `.a16n/` directory
+## Skill Directory Model
 
-## CLI Output Conventions
+Skills follow the pattern `.<tool>/skills/<name>/SKILL.md`. The first directory containing a `SKILL.md` is the skill root; its subdirectories are resource directories (read recursively by `readSkillFiles()`), not nested skills. Directories without `SKILL.md` are treated as categories and recursed into.
 
-- Human-friendly by default
-- `--json` for scripting
-- `--dry-run` for preview ("Would" prefix)
-- Exit 0 on success (even with warnings)
-- Exit 1 on errors
+The skill's **invocation name** is always the immediate parent directory name of `SKILL.md`, not any `name` field in frontmatter.
 
-## Testing Pattern
+## Warn-and-Continue Error Philosophy
 
-- Unit tests per package via Vitest
-- Integration tests with fixtures in `test/integration/fixtures/`
-- Fixture naming: `<tool>-<feature>/from-<tool>/` and `expected-<tool>/`
+The system fails fast on invalid input (bad syntax, missing required fields) but warns and continues on capability gaps. Every skipped or approximated item produces a warning. Warnings are aggregated and reported at the end, not inline. See `WarningCode` in `@a16njs/models` for the canonical set.
+
+## Fixture-Based Integration Testing
+
+Integration tests use fixture directories: `test/integration/fixtures/<tool>-<feature>/from-<tool>/` with expected output in `expected-<tool>/`. This convention is consistent across all packages.

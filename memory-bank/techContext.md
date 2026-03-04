@@ -1,108 +1,40 @@
-# Memory Bank: Technical Context
+# Tech Context
 
-## Technology Stack
+TypeScript ESM-only monorepo managed by pnpm workspaces, built with Turborepo, tested with Vitest, and documented with Docusaurus.
 
-| Concern | Choice | Rationale |
-|---------|--------|-----------|
-| Language | TypeScript | Type safety for plugin interfaces |
-| Package Manager | pnpm | workspace:* protocol, strict node_modules, fast |
-| Build Orchestration | Turborepo | Minimal config, aggressive caching |
-| Versioning | Release-Please | Automated semantic versioning via GitHub Actions |
-| Testing | Vitest | Fast, modern, great TypeScript support |
-| Glob Matching | micromatch | Battle-tested, comprehensive glob support |
-| Documentation | Docusaurus | Versioned API docs, MDX support |
-| CLI Framework | Commander | Standard Node.js CLI library |
+## Environment Setup
 
-## Package Structure
+- Node version pinned in `.nvmrc`
+- pnpm version pinned in root `package.json` `packageManager` field
+- All packages use `"type": "module"` (ESM-only)
+- Minimum Node version declared in root `package.json` `engines` field
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `a16n` | 0.6.0 | CLI tool |
-| `@a16njs/models` | 0.5.0 | IR types, plugin interface |
-| `@a16njs/engine` | 0.3.0 | Conversion orchestration |
-| `@a16njs/plugin-cursor` | 0.5.0 | Cursor IDE support |
-| `@a16njs/plugin-claude` | 0.5.0 | Claude Code support |
-| `@a16njs/glob-hook` | 0.1.0 | Glob matcher for Claude hooks |
-| `docs` | — | Docusaurus documentation site |
+## Build Tools
 
-## Intermediate Representation (IR) Types
+- **pnpm** — workspace dependency management (`pnpm-workspace.yaml` includes `packages/*`)
+- **Turborepo** — build orchestration and caching (`turbo.json`); `test` depends on `build`
+- **TypeScript** — strict mode, composite projects for monorepo references
+- **Docusaurus** — documentation site in `packages/docs/`; excluded from default `pnpm build` (use `pnpm build:full` to include)
 
-```typescript
-enum CustomizationType {
-  GlobalPrompt = 'global-prompt',           // Always-applied prompts
-  SimpleAgentSkill = 'simple-agent-skill',  // Description-triggered skills
-  AgentSkillIO = 'agent-skill-io',          // Complex skills with resources
-  FileRule = 'file-rule',                   // Glob-triggered rules
-  AgentIgnore = 'agent-ignore',             // Exclusion patterns
-  ManualPrompt = 'manual-prompt',           // User-requested prompts (slash commands)
-}
-```
+## Testing Process
 
-## Tool Mappings
-
-### Cursor Sources/Targets
-
-Refer to [../packages/docs/docs/plugin-cursor/index.md](../packages/docs/docs/plugin-cursor/index.md) for more details.
-
-| IR Type | Cursor Location | Notes |
-|---------|-----------------|-------|
-| GlobalPrompt | `.cursor/rules/*.mdc` | `alwaysApply: true` |
-| FileRule | `.cursor/rules/*.mdc` | `globs:` frontmatter |
-| SimpleAgentSkill | `.cursor/skills/<name>/SKILL.md` | `description:` only |
-| AgentSkillIO | `.cursor/skills/<name>/` | Multi-file skills |
-| AgentIgnore | `.cursorignore` | gitignore-style patterns |
-| ManualPrompt | `.cursor/commands/**/*.md` | Simple commands only |
-
-### Claude Sources/Targets
-
-Refer to [../packages/docs/docs/plugin-claude/index.md](../packages/docs/docs/plugin-claude/index.md) for more details.
-
-| IR Type | Claude Location | Notes |
-|---------|-----------------|-------|
-| GlobalPrompt | `CLAUDE.md` (nestable) | Merges multiple |
-| FileRule | `.claude/settings.local.json` + `.a16n/rules/` | Via glob-hook |
-| SimpleAgentSkill | `.claude/skills/<name>/SKILL.md` | Standard format |
-| AgentSkillIO | `.claude/skills/<name>/` | Multi-file skills |
-| AgentIgnore | `.claude/settings.json` | `permissions.deny` |
-| ManualPrompt | `.claude/skills/<name>/SKILL.md` | Emitted only, never discovered |
-
-## Key Technical Decisions
-
-| Decision | Rationale |
-|----------|-----------|
-| Warn on lossy conversion, don't fail | Better UX than blocking |
-| FileRule via hooks + glob-hook | Deterministic matching |
-| MDC frontmatter via regex | Cursor's format isn't standard YAML |
-| Skip skills with hooks | Hooks are Claude-specific, not AgentSkills.io |
-| `.a16n/` for generated artifacts | Clean separation from tool configs |
-| `--delete-source` conservative | Only delete fully-used sources |
-
-## Build Commands
-
-```bash
-# Full build and test
-pnpm install
-pnpm build
-pnpm test
-
-# Development
-pnpm build            # Build all (excludes docs)
-pnpm build:full       # Build all including docs
-pnpm test             # Run all tests
-pnpm lint             # Lint all packages
-pnpm typecheck        # Type check all packages
-```
+- **Vitest** — unit and integration tests, configured via root `vitest.config.ts` with per-package overrides
+- Integration tests use fixture directories (see `test/integration/fixtures/` in each package)
+- Full validation: `pnpm install && pnpm build && pnpm test && pnpm lint && pnpm typecheck`
+- TDD process and test-running practices are defined in `.cursor/rules/shared/always-tdd.mdc` and `.cursor/rules/shared/test-running-practices.mdc` — do not duplicate those here
 
 ## CI/CD
 
-- **ci.yaml**: Build, test, lint on PRs and pushes
-- **release.yaml**: Release-please automation for versioning
-- **docs.yaml**: Deploy Docusaurus to GitHub Pages
-- **release-lockfile-sync.yaml**: Sync pnpm lockfile after releases
+- **ci.yaml** — build, typecheck, test with coverage, docs build, Codecov upload (per-package flags) on PRs and pushes to main
+- **release.yaml** — Release-Please automation for semantic versioning
+- **docs.yaml** — deploy Docusaurus to GitHub Pages
+- **release-lockfile-sync.yaml** — sync pnpm lockfile after releases
 
-## File Conventions
+## Notable Technical Decisions
 
-- **ESM-only**: All packages use `"type": "module"`
-- **Node 18+**: Required for native ESM support
-- **Vitest config**: Root `vitest.config.ts` with per-package overrides
-- **TypeScript**: Strict mode, composite projects for monorepo
+- MDC frontmatter is parsed with regex, not a YAML parser, because Cursor's format is not standards-compliant YAML
+- Claude frontmatter (both `.claude/rules/*.md` and `.claude/skills/*/SKILL.md`) is also parsed with regex, though Claude uses standard YAML — this should be migrated to a proper YAML parser (see GitHub issue)
+- `@a16njs/glob-hook` is a standalone utility package for Claude Code hooks; it is **not** used by the conversion pipeline (FileRules are emitted as native `.claude/rules/*.md` with `paths:` frontmatter)
+- Generated IR artifacts (when converting to/from the `a16n` format) are written under `.a16n/`
+- The `--delete-source` flag is conservative: it only deletes sources that were fully consumed during conversion
+- IR version is tracked (currently `v1beta2`); `areVersionsCompatible()` warns on mismatch but still processes items

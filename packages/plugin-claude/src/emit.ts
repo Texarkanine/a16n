@@ -260,10 +260,13 @@ description: ${safeDescription}`;
 
 /**
  * Emit agent customizations to Claude format.
- * - GlobalPrompts → CLAUDE.md
- * - FileRules → .a16n/rules/ + .claude/settings.local.json
- * - AgentSkills → .claude/skills/ subdirectories
- * 
+ * - GlobalPrompts -> .claude/rules/*.md (no frontmatter)
+ * - FileRules -> .claude/rules/*.md (with paths: frontmatter)
+ * - SimpleAgentSkills -> .claude/skills/SKILL.md
+ * - AgentSkillIO -> .claude/skills/ (SKILL.md + resource files)
+ * - ManualPrompts -> .claude/skills/SKILL.md (disable-model-invocation)
+ * - AgentIgnore -> .claude/settings.json (permissions.deny)
+ *
  * @param models - The customizations to emit
  * @param rootOrWorkspace - Root directory path or Workspace instance
  * @param options - Optional emit options (e.g., dryRun)

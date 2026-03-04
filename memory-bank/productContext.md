@@ -1,28 +1,38 @@
-# Memory Bank: Product Context
+# Product Context
 
-## Problem Space
-Development teams use multiple AI coding agents (Cursor, Claude Code, Codex, Windsurf). Each tool has its own customization format. Switching tools or using multiple tools means duplicating or losing carefully-crafted agent configurations.
+## Target Audience
 
-## Target Users
-1. **Primary**: Individual developers wanting to switch or try new AI coding tools
-2. **Secondary**: Team leads standardizing agent configurations across diverse tooling
-3. **Tertiary**: Tool authors wanting to ease migration into their tools
-4. **Emerging**: OSS maintainers wanting to ship agent customization following AgentSkills.io
+1. **Individual developers** wanting to switch between or try new AI coding tools without losing their carefully-crafted agent configurations
+2. **Team leads** standardizing agent configurations across teams that use diverse tooling
+3. **Tool authors** wanting to ease migration into their tools from competing products
+4. **OSS maintainers** wanting to ship agent customization with their libraries in a tool-agnostic format
 
-## User Stories
-- **Developer Migration**: "I've used Cursor for 6 months with custom rules. My company got Claude Code licenses. I don't want to start over."
-- **Team Consistency**: "Half my team uses Cursor, half uses Claude Code. We want shared coding standards."
-- **OSS Maintainer**: "I want to ship agent customization with my library for any tool."
-- **Multi-tool User**: "I use Cursor for some projects and Claude for others. I want my skills everywhere."
+## Use Cases
 
-## Non-Goals
-- Authoring tools for agent customization (use native tools)
-- Real-time config sync
-- Perfect round-trip fidelity (documented lossy conversions are acceptable)
-- Replacing tool-specific documentation
+- **Tool migration**: A developer with months of Cursor rules gets Claude Code licenses and needs to bring their configuration along
+- **Multi-tool teams**: Half the team uses Cursor, half uses Claude Code; the team wants shared coding standards regardless of tool
+- **Library distribution**: An OSS maintainer ships agent customization that works with any supported tool
+- **Tool evaluation**: A developer wants to try a new tool without the cost of manually recreating their configuration
+- **Canonical IR storage**: A team uses the `a16n` IR format as a single source of truth, emitting to whichever tool each member uses
 
-## Success Metrics
-- Adoption (downloads, stars, community plugins)
-- Conversion success rate
-- User satisfaction (faster tool onboarding)
-- Ecosystem growth (third-party plugins, AgentSkills.io adoption)
+## Key Benefits
+
+- Eliminates manual re-creation of agent customization when switching tools
+- Enables a single source of truth for team coding standards across heterogeneous tooling
+- Lowers the barrier to adopting or evaluating new AI coding tools
+- Provides a plugin architecture that can grow to support new tools as they emerge
+- The `discover` command lets users audit their existing configurations without converting
+
+## Success Criteria
+
+- Conversion success rate: supported customization types convert correctly between tools
+- Adoption: downloads, GitHub stars, community-contributed plugins
+- User satisfaction: measurably faster tool onboarding
+- Ecosystem growth: third-party plugins
+
+## Key Constraints
+
+- No authoring tools for agent customization — users author in native tool formats
+- No real-time configuration sync
+- Perfect round-trip fidelity is a non-goal; documented lossy conversions are acceptable
+- Must not replace or compete with tool-specific documentation
