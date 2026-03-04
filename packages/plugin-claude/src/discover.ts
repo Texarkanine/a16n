@@ -1,5 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import matter from 'gray-matter';
 import {
   type AgentCustomization,
   type AgentIgnore,
@@ -19,21 +20,16 @@ import {
   inferGlobalPromptName,
 } from '@a16njs/models';
 
-/**
- * Frontmatter structure for Claude rules files.
- * Contains paths field for conditional file-based activation.
- */
+/** Post-normalization frontmatter for Claude rules files. */
 interface ClaudeRuleFrontmatter {
-  paths?: string | string[];
+  paths?: string[];
   [key: string]: unknown;
 }
 
-/**
- * Parsed Claude rule with frontmatter and body content.
- */
 interface ParsedClaudeRule {
   frontmatter: ClaudeRuleFrontmatter;
   body: string;
+  parseError?: string;
 }
 
 /**
@@ -80,116 +76,35 @@ async function findClaudeRules(root: string): Promise<string[]> {
 }
 
 /**
- * Parse YAML frontmatter from a Claude rule file.
- * Extracts the paths field and other frontmatter metadata.
- * 
- * @param content - Full file content including frontmatter
- * @returns Parsed frontmatter and body content
+ * Parse YAML frontmatter from a Claude rule file via gray-matter.
+ * Normalises `paths` to `string[]` (or removes it) so callers never see raw YAML types.
  */
 function parseClaudeRuleFrontmatter(content: string): ParsedClaudeRule {
-  const lines = content.split('\n');
-  
-  let frontmatterStart = -1;
-  let frontmatterEnd = -1;
-  
-  // Find frontmatter delimiters (---)
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]?.trim();
-    if (line === '---') {
-      if (frontmatterStart === -1) {
-        frontmatterStart = i;
+  try {
+    const parsed = matter(content);
+    const data: Record<string, unknown> = parsed.data ?? {};
+    const frontmatter: ClaudeRuleFrontmatter = { ...data };
+
+    // gray-matter can yield any YAML type for `paths`; coerce to string[].
+    const raw: unknown = data.paths;
+    if (raw !== undefined) {
+      if (typeof raw === 'string') {
+        frontmatter.paths = [raw];
+      } else if (Array.isArray(raw)) {
+        frontmatter.paths = raw.filter((p): p is string => typeof p === 'string');
       } else {
-        frontmatterEnd = i;
-        break;
+        frontmatter.paths = [];
       }
     }
-  }
-  
-  // No frontmatter found
-  if (frontmatterStart === -1 || frontmatterEnd === -1) {
+
+    return { frontmatter, body: parsed.content.trim() };
+  } catch (err) {
     return {
       frontmatter: {},
       body: content.trim(),
+      parseError: err instanceof Error ? err.message : String(err),
     };
   }
-  
-  const frontmatter: ClaudeRuleFrontmatter = {};
-  
-  // Parse frontmatter lines
-  let i = frontmatterStart + 1;
-  while (i < frontmatterEnd) {
-    const line = lines[i];
-    if (!line) {
-      i++;
-      continue;
-    }
-    
-    // Check for paths: field
-    const pathsMatch = line.match(/^paths:\s*$/);
-    if (pathsMatch) {
-      // Multi-line array format
-      const paths: string[] = [];
-      i++;
-      while (i < frontmatterEnd) {
-        const pathLine = lines[i];
-        if (!pathLine) {
-          i++;
-          continue;
-        }
-        const arrayItemMatch = pathLine.match(/^\s*-\s*["']?(.+?)["']?\s*$/);
-        if (arrayItemMatch) {
-          paths.push(arrayItemMatch[1]!);
-          i++;
-        } else {
-          // End of array
-          break;
-        }
-      }
-      if (paths.length > 0) {
-        frontmatter.paths = paths;
-      }
-      continue;
-    }
-    
-    // Check for paths: "value" or paths: ["value1", "value2"] (inline format)
-    const pathsInlineMatch = line.match(/^paths:\s*(.+)$/);
-    if (pathsInlineMatch) {
-      const value = pathsInlineMatch[1]!.trim();
-      // Try to parse as JSON array
-      if (value.startsWith('[')) {
-        try {
-          const parsed = JSON.parse(value) as unknown;
-          if (Array.isArray(parsed)) {
-            frontmatter.paths = parsed.filter((p): p is string => typeof p === 'string');
-          }
-        } catch {
-          // Not valid JSON, treat as single string
-          frontmatter.paths = [value.replace(/^["']|["']$/g, '')];
-        }
-      } else {
-        // Single string value
-        frontmatter.paths = [value.replace(/^["']|["']$/g, '')];
-      }
-      i++;
-      continue;
-    }
-    
-    // Store other frontmatter fields generically (allow hyphenated keys like disable-model-invocation)
-    const keyValueMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.+)$/);
-    if (keyValueMatch) {
-      const key = keyValueMatch[1]!;
-      const value = keyValueMatch[2]!.trim().replace(/^["']|["']$/g, '');
-      frontmatter[key] = value;
-    }
-    
-    i++;
-  }
-  
-  // Extract body (everything after second ---)
-  const bodyLines = lines.slice(frontmatterEnd + 1);
-  const body = bodyLines.join('\n').trim();
-  
-  return { frontmatter, body };
 }
 
 /**
@@ -214,148 +129,45 @@ function convertReadRuleToPattern(rule: string): string | null {
   return pattern;
 }
 
-/**
- * Parse YAML-like frontmatter from a SKILL.md file.
- * Returns the frontmatter key-values and body content.
- */
 interface SkillFrontmatter {
   description?: string;
   name?: string;
-  hooks?: Record<string, unknown>;
+  /** True when the `hooks` key is declared in frontmatter (even if empty). */
+  hasHooks?: boolean;
   disableModelInvocation?: boolean;
 }
 
 interface ParsedSkill {
   frontmatter: SkillFrontmatter;
   body: string;
+  parseError?: string;
 }
 
 /**
- * Parse hooks section from frontmatter lines.
- * Returns the hooks object and the line index after the hooks section.
+ * Parse YAML frontmatter from a SKILL.md file via gray-matter.
+ * Only extracts the fields the discovery pipeline needs.
  */
-function parseHooksSection(lines: string[], startIndex: number, endIndex: number): { hooks: Record<string, unknown>; nextIndex: number } {
-  const hooks: Record<string, unknown> = {};
-  let i = startIndex;
-  
-  while (i < endIndex) {
-    const line = lines[i];
-    if (!line) {
-      i++;
-      continue;
-    }
-    
-    // Check if this is a hook name (e.g., "  pre-commit:")
-    const hookMatch = line.match(/^  (\S+):\s*$/);
-    if (hookMatch) {
-      const hookName = hookMatch[1]!;
-      const hookItems: unknown[] = [];
-      i++;
-      
-      // Parse hook items (e.g., "    - run: ./script.sh")
-      while (i < endIndex) {
-        const itemLine = lines[i];
-        if (!itemLine || !itemLine.startsWith('    ')) break;
-        
-        const itemMatch = itemLine.match(/^\s+-\s+(\w+):\s*(.+)$/);
-        if (itemMatch) {
-          hookItems.push({ [itemMatch[1]!]: itemMatch[2]! });
-        }
-        i++;
-      }
-      
-      hooks[hookName] = hookItems;
-      continue;
-    }
-    
-    // If we hit a non-indented line, we're done with hooks
-    if (!line.startsWith(' ')) {
-      break;
-    }
-    i++;
-  }
-  
-  return { hooks, nextIndex: i };
-}
-
 function parseSkillFrontmatter(content: string): ParsedSkill {
-  const lines = content.split('\n');
-  
-  let frontmatterStart = -1;
-  let frontmatterEnd = -1;
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]?.trim();
-    if (line === '---') {
-      if (frontmatterStart === -1) {
-        frontmatterStart = i;
-      } else {
-        frontmatterEnd = i;
-        break;
-      }
+  try {
+    const parsed = matter(content);
+    const data: Record<string, unknown> = parsed.data ?? {};
+    const frontmatter: SkillFrontmatter = {};
+
+    if (typeof data.name === 'string') frontmatter.name = data.name;
+    if (typeof data.description === 'string') frontmatter.description = data.description;
+    if (typeof data['disable-model-invocation'] === 'boolean') {
+      frontmatter.disableModelInvocation = data['disable-model-invocation'];
     }
-  }
-  
-  // No frontmatter found
-  if (frontmatterStart === -1 || frontmatterEnd === -1) {
+    if ('hooks' in data) frontmatter.hasHooks = true;
+
+    return { frontmatter, body: parsed.content.trim() };
+  } catch (err) {
     return {
       frontmatter: {},
       body: content.trim(),
+      parseError: err instanceof Error ? err.message : String(err),
     };
   }
-  
-  const frontmatter: SkillFrontmatter = {};
-  
-  // Parse frontmatter lines
-  let i = frontmatterStart + 1;
-  while (i < frontmatterEnd) {
-    const line = lines[i];
-    if (!line) {
-      i++;
-      continue;
-    }
-    
-    // Check for hooks: key (indicates skill-scoped hooks)
-    if (line.match(/^hooks:\s*$/)) {
-      i++;
-      const { hooks, nextIndex } = parseHooksSection(lines, i, frontmatterEnd);
-      frontmatter.hooks = hooks;
-      i = nextIndex;
-      continue;
-    }
-    
-    // Parse description: "..."
-    const descriptionMatch = line.match(/^description:\s*["']?(.+?)["']?\s*$/);
-    if (descriptionMatch) {
-      frontmatter.description = descriptionMatch[1];
-      i++;
-      continue;
-    }
-    
-    // Parse name: "..."
-    const nameMatch = line.match(/^name:\s*["']?(.+?)["']?\s*$/);
-    if (nameMatch) {
-      frontmatter.name = nameMatch[1];
-      i++;
-      continue;
-    }
-
-    // Parse disable-model-invocation: true
-    const disableMatch = line.match(/^disable-model-invocation:\s*(true|false)\s*$/);
-    if (disableMatch) {
-      frontmatter.disableModelInvocation = disableMatch[1] === 'true';
-      i++;
-      continue;
-    }
-    
-    i++;
-  }
-  
-  // Extract body (everything after second ---)
-  const bodyLines = lines.slice(frontmatterEnd + 1);
-  const body = bodyLines.join('\n').trim();
-  
-  return { frontmatter, body };
 }
 
 interface SkillDirInfo {
@@ -568,15 +380,25 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
     
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
-      const { frontmatter, body } = parseSkillFrontmatter(content);
-      
+      const parsedSkill = parseSkillFrontmatter(content);
+
+      if (parsedSkill.parseError) {
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Skipped skill '${dirName}': Invalid frontmatter: ${parsedSkill.parseError}`,
+          sources: [skillPath],
+        });
+        continue;
+      }
+
+      const { frontmatter, body } = parsedSkill;
       const displayName = frontmatter.name || dirName;
       
       // Read all other files in the skill directory
       const files = await readSkillFiles(skillDir);
       const hasExtraFiles = Object.keys(files).length > 0;
-      const hasHooks = frontmatter.hooks && Object.keys(frontmatter.hooks).length > 0;
-      
+      const hasHooks = frontmatter.hasHooks === true;
+
       // Classification priority:
       // 1. Has hooks → SKIP (hooks are not supported by AgentSkills.io)
       // 2. Has extra files → AgentSkillIO (with description required)
@@ -672,18 +494,20 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
     
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
-      const { frontmatter, body } = parseClaudeRuleFrontmatter(content);
-      
-      // Normalize paths to array
-      let paths: string[] = [];
-      if (frontmatter.paths) {
-        if (typeof frontmatter.paths === 'string') {
-          paths = [frontmatter.paths];
-        } else if (Array.isArray(frontmatter.paths)) {
-          paths = frontmatter.paths;
-        }
+      const parsedRule = parseClaudeRuleFrontmatter(content);
+
+      if (parsedRule.parseError) {
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Skipped rule ${normalizedPath}: Invalid frontmatter: ${parsedRule.parseError}`,
+          sources: [normalizedPath],
+        });
+        continue;
       }
-      
+
+      const { frontmatter, body } = parsedRule;
+      const paths = frontmatter.paths ?? [];
+
       // Compute relativeDir from subdirectory path under .claude/rules/
       // e.g., '.claude/rules/niko/Core/file-verification.md' → 'niko/Core'
       const ruleRelPath = normalizedPath.replace(/^\.claude\/rules\//, '');
