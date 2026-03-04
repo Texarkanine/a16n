@@ -4,10 +4,15 @@
 Issue #71 — ManualPrompt emit to Cursor commands
 
 ## Phase
-COMPLEXITY-ANALYSIS - COMPLETE
+BUILD - COMPLETE
 
 ## What Was Done
-Complexity level determined: Level 1 (bug fix, single component — Cursor plugin emit logic)
+- Replaced ManualPrompt emission from `.cursor/skills/*/SKILL.md` (with `disable-model-invocation: true`) to `.cursor/commands/<name>.md` (plain content, no frontmatter)
+- Removed `formatManualPromptSkillMd()` — replaced with `getUniqueCommandFilename()`
+- Added `relativeDir` support and path-traversal validation for command emission
+- Decoupled ManualPrompt namespace from skill namespace (no more false collisions)
+- Updated 15 tests; added 3 new tests (relativeDir nesting, path-traversal relativeDir, no-frontmatter)
+- All 129 plugin-cursor tests pass; full monorepo build and test suite green
 
 ## Next Step
-Load Level 1 workflow and proceed to planning/build
+QA phase
