@@ -1,5 +1,12 @@
 # @a16njs/plugin-cursor
 
+## [0.11.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@0.11.0...@a16njs/plugin-cursor@0.11.1) (2026-03-05)
+
+
+### Bug Fixes
+
+* **plugin-cursor:** emit ManualPrompts to Commands, not Skills ([#75](https://github.com/Texarkanine/a16n/issues/75)) ([8917612](https://github.com/Texarkanine/a16n/commit/891761229e1947cedb4878f7c1aad724270218ff))
+
 ## [0.11.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@0.10.1...@a16njs/plugin-cursor@0.11.0) (2026-02-23)
 
 
