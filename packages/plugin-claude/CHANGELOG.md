@@ -1,5 +1,12 @@
 # @a16njs/plugin-claude
 
+## [0.11.2](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.11.1...@a16njs/plugin-claude@0.11.2) (2026-03-05)
+
+
+### Bug Fixes
+
+* **plugin-claude:** do not include From line in emitted rules ([#77](https://github.com/Texarkanine/a16n/issues/77)) ([4c9f271](https://github.com/Texarkanine/a16n/commit/4c9f271786b2e54f4f5852d9d1160efb4edcde76))
+
 ## [0.11.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.11.0...@a16njs/plugin-claude@0.11.1) (2026-03-05)
 
 

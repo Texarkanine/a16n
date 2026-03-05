@@ -1,5 +1,12 @@
 # a16n
 
+## [0.12.2](https://github.com/Texarkanine/a16n/compare/a16n@0.12.1...a16n@0.12.2) (2026-03-05)
+
+
+### Bug Fixes
+
+* **plugin-claude:** do not include From line in emitted rules ([#77](https://github.com/Texarkanine/a16n/issues/77)) ([4c9f271](https://github.com/Texarkanine/a16n/commit/4c9f271786b2e54f4f5852d9d1160efb4edcde76))
+
 ## [0.12.1](https://github.com/Texarkanine/a16n/compare/a16n@0.12.0...a16n@0.12.1) (2026-02-19)
 
 
