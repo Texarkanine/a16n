@@ -456,17 +456,8 @@ export async function emit(
     // without extension stripping (sanitizeFilename would double-strip).
     const stem = gp.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'rule';
     const baseName = stem + '.mdc';
-    // Qualify with relativeDir to prevent false collisions across subdirectories
-    const qualifiedName = gp.relativeDir ? `${gp.relativeDir}/${baseName}` : baseName;
-    const { filename: qualifiedFilename, collision } = getUniqueFilename(qualifiedName, usedFilenames);
-    const filename = gp.relativeDir ? path.basename(qualifiedFilename) : qualifiedFilename;
-    
-    if (collision) {
-      if (gp.sourcePath) collisionSources.push(gp.sourcePath);
-    }
 
-    // Use relativeDir for subdirectory nesting when present
-    // Validate that relativeDir doesn't escape rulesDir via path traversal
+    // Resolve target directory and validate before collision detection
     const targetDir = gp.relativeDir
       ? path.join(rulesDir, gp.relativeDir)
       : rulesDir;
@@ -480,6 +471,20 @@ export async function emit(
       });
       continue;
     }
+
+    // Normalize relativeDir via resolved paths so equivalent forms
+    // (e.g. "shared/niko" vs "shared/niko/") produce identical collision keys
+    const normalizedDir = gp.relativeDir
+      ? path.relative(resolvedRules, resolvedTarget)
+      : undefined;
+    const qualifiedName = normalizedDir ? `${normalizedDir}/${baseName}` : baseName;
+    const { filename: qualifiedFilename, collision } = getUniqueFilename(qualifiedName, usedFilenames);
+    const filename = normalizedDir ? path.basename(qualifiedFilename) : qualifiedFilename;
+
+    if (collision) {
+      if (gp.sourcePath) collisionSources.push(gp.sourcePath);
+    }
+
     if (!dryRun) {
       await fs.mkdir(targetDir, { recursive: true });
     }
@@ -511,17 +516,8 @@ export async function emit(
   // Emit each FileRule as a separate .mdc file with globs
   for (const fr of fileRules) {
     const baseName = sanitizeFilename(fr.sourcePath || fr.id) + '.mdc';
-    // Qualify with relativeDir to prevent false collisions across subdirectories
-    const qualifiedName = fr.relativeDir ? `${fr.relativeDir}/${baseName}` : baseName;
-    const { filename: qualifiedFilename, collision } = getUniqueFilename(qualifiedName, usedFilenames);
-    const filename = fr.relativeDir ? path.basename(qualifiedFilename) : qualifiedFilename;
-    
-    if (collision) {
-      if (fr.sourcePath) collisionSources.push(fr.sourcePath);
-    }
 
-    // Use relativeDir for subdirectory nesting when present
-    // Validate that relativeDir doesn't escape rulesDir via path traversal
+    // Resolve target directory and validate before collision detection
     const targetDir = fr.relativeDir
       ? path.join(rulesDir, fr.relativeDir)
       : rulesDir;
@@ -535,6 +531,18 @@ export async function emit(
       });
       continue;
     }
+
+    const normalizedDir = fr.relativeDir
+      ? path.relative(resolvedRules, resolvedTarget)
+      : undefined;
+    const qualifiedName = normalizedDir ? `${normalizedDir}/${baseName}` : baseName;
+    const { filename: qualifiedFilename, collision } = getUniqueFilename(qualifiedName, usedFilenames);
+    const filename = normalizedDir ? path.basename(qualifiedFilename) : qualifiedFilename;
+
+    if (collision) {
+      if (fr.sourcePath) collisionSources.push(fr.sourcePath);
+    }
+
     if (!dryRun) {
       await fs.mkdir(targetDir, { recursive: true });
     }
@@ -670,9 +678,12 @@ export async function emit(
       continue;
     }
 
-    const qualifiedName = prompt.relativeDir ? `${prompt.relativeDir}/${commandFileName}` : commandFileName;
+    const normalizedDir = prompt.relativeDir
+      ? path.relative(resolvedCommands, resolvedTarget)
+      : undefined;
+    const qualifiedName = normalizedDir ? `${normalizedDir}/${commandFileName}` : commandFileName;
     const { filename, collision } = getUniqueCommandFilename(qualifiedName, usedCommandNames);
-    const finalFileName = prompt.relativeDir ? path.basename(filename) : filename;
+    const finalFileName = normalizedDir ? path.basename(filename) : filename;
     if (collision) {
       if (prompt.sourcePath) collisionSources.push(prompt.sourcePath);
     }

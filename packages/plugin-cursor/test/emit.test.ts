@@ -824,6 +824,46 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
       expect(content).toBe('Generate a React component.');
     });
 
+    it('should detect collision between equivalent relativeDir forms (trailing slash)', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/frontend/component.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/frontend/component.md',
+          relativeDir: 'frontend',
+          content: 'First component prompt',
+          promptName: 'component',
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/frontend-v2/component.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/frontend-v2/component.md',
+          relativeDir: 'frontend/',
+          content: 'Second component prompt',
+          promptName: 'component',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      // Both items written — second renamed to avoid overwrite
+      expect(result.written).toHaveLength(2);
+
+      const firstPath = path.join(tempDir, '.cursor', 'commands', 'frontend', 'component.md');
+      const firstContent = await fs.readFile(firstPath, 'utf-8');
+      expect(firstContent).toBe('First component prompt');
+
+      const secondPath = path.join(tempDir, '.cursor', 'commands', 'frontend', 'component-1.md');
+      const secondContent = await fs.readFile(secondPath, 'utf-8');
+      expect(secondContent).toBe('Second component prompt');
+
+      // Collision warning emitted
+      const collisionWarnings = result.warnings.filter(w => w.message.includes('collision'));
+      expect(collisionWarnings).toHaveLength(1);
+    });
+
     it('should skip ManualPrompt with path-traversal relativeDir', async () => {
       const models: ManualPrompt[] = [
         {
