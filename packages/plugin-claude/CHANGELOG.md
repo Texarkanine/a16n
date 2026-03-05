@@ -1,5 +1,12 @@
 # @a16njs/plugin-claude
 
+## [0.11.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.11.0...@a16njs/plugin-claude@0.11.1) (2026-03-05)
+
+
+### Bug Fixes
+
+* **plugin-claude:** replace regex frontmatter parsing with gray-matter (closes [#70](https://github.com/Texarkanine/a16n/issues/70)) ([#72](https://github.com/Texarkanine/a16n/issues/72)) ([9e79385](https://github.com/Texarkanine/a16n/commit/9e79385630d1525c57abdeaace60407ee2f96f1f))
+
 ## [0.11.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.10.1...@a16njs/plugin-claude@0.11.0) (2026-02-23)
 
 
