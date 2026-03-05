@@ -96,20 +96,18 @@ function sanitizePromptName(promptName: string): string {
 /**
  * Format a GlobalPrompt as a Claude rule file.
  * GlobalPrompts are emitted as plain markdown without frontmatter.
- * Includes source header for traceability.
- * 
+ *
  * @param gp - The GlobalPrompt to format
  * @returns Formatted markdown content
  */
 function formatGlobalPromptAsClaudeRule(gp: GlobalPrompt): string {
-  const header = `## From: ${gp.sourcePath}`;
-  return `${header}\n\n${gp.content}`;
+  return gp.content;
 }
 
 /**
  * Format a FileRule as a Claude rule file with paths frontmatter.
  * FileRules are emitted with YAML frontmatter containing the globs as paths.
- * 
+ *
  * @param fr - The FileRule to format
  * @returns Formatted markdown with YAML frontmatter
  */
@@ -121,8 +119,7 @@ paths:
 ${pathsArray}
 ---`;
   
-  const header = `## From: ${fr.sourcePath}`;
-  return `${frontmatter}\n\n${header}\n\n${fr.content}`;
+  return `${frontmatter}\n\n${fr.content}`;
 }
 
 /**

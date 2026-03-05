@@ -74,7 +74,7 @@ describe('Claude Plugin Emission', () => {
       expect(content).toContain('React hooks rules.');
     });
 
-    it('should include source header in output', async () => {
+    it('should NOT include From line in emitted rule content', async () => {
       const models: GlobalPrompt[] = [
         {
           id: createId(CustomizationType.GlobalPrompt, '.cursor/rules/test.mdc'),
@@ -90,7 +90,9 @@ describe('Claude Plugin Emission', () => {
 
       const rulePath = path.join(tempDir, '.claude', 'rules', 'test.md');
       const content = await fs.readFile(rulePath, 'utf-8');
-      expect(content).toContain('.cursor/rules/test.mdc');
+      expect(content).not.toContain('## From:');
+      expect(content).not.toContain('.cursor/rules/test.mdc');
+      expect(content).toContain('Test content');
     });
 
     it('should use gp.name for output filename (not re-derived from sourcePath)', async () => {
@@ -311,6 +313,27 @@ describe('Claude FileRule Emission (Phase 8 A2)', () => {
       expect(content).toContain('paths:');
       expect(content).toContain('**/*.tsx');
       expect(content).toContain('**/*.jsx');
+      expect(content).toContain('Use React best practices.');
+    });
+
+    it('should NOT include From line in emitted FileRule content', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, '.cursor/rules/react.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: '.cursor/rules/react.mdc',
+          content: 'Use React best practices.',
+          globs: ['**/*.tsx'],
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const rulePath = path.join(tempDir, '.claude', 'rules', 'react.md');
+      const content = await fs.readFile(rulePath, 'utf-8');
+      expect(content).not.toContain('## From:');
+      expect(content).not.toContain('.cursor/rules/react.mdc');
       expect(content).toContain('Use React best practices.');
     });
 
