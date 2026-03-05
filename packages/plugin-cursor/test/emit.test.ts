@@ -689,7 +689,7 @@ describe('Cursor AgentIgnore Emission (Phase 3)', () => {
   });
 });
 
-describe('Cursor ManualPrompt Emission (Phase 4 - Updated to Skills in Phase 7)', () => {
+describe('Cursor ManualPrompt Emission (Commands)', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -699,7 +699,7 @@ describe('Cursor ManualPrompt Emission (Phase 4 - Updated to Skills in Phase 7)'
   });
 
   describe('single ManualPrompt', () => {
-    it('should emit ManualPrompt as .cursor/skills/*/SKILL.md file', async () => {
+    it('should emit ManualPrompt as .cursor/commands/<name>.md file', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
@@ -716,13 +716,12 @@ describe('Cursor ManualPrompt Emission (Phase 4 - Updated to Skills in Phase 7)'
       expect(result.written).toHaveLength(1);
       expect(result.written[0]?.type).toBe(CustomizationType.ManualPrompt);
 
-      // Verify file was created in skills directory
-      const skillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
-      const content = await fs.readFile(skillPath, 'utf-8');
-      expect(content).toContain('Review this code for security vulnerabilities.');
+      const commandPath = path.join(tempDir, '.cursor', 'commands', 'review.md');
+      const content = await fs.readFile(commandPath, 'utf-8');
+      expect(content).toBe('Review this code for security vulnerabilities.');
     });
 
-    it('should create .cursor/skills directory if it does not exist', async () => {
+    it('should create .cursor/commands directory if it does not exist', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/test.md'),
@@ -736,14 +735,35 @@ describe('Cursor ManualPrompt Emission (Phase 4 - Updated to Skills in Phase 7)'
 
       await cursorPlugin.emit(models, tempDir);
 
-      const skillsDir = path.join(tempDir, '.cursor', 'skills');
-      const stat = await fs.stat(skillsDir);
+      const commandsDir = path.join(tempDir, '.cursor', 'commands');
+      const stat = await fs.stat(commandsDir);
       expect(stat.isDirectory()).toBe(true);
+    });
+
+    it('should write ManualPrompt content directly without frontmatter', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.claude/skills/deploy/SKILL.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.claude/skills/deploy/SKILL.md',
+          content: 'Deploy instructions here.',
+          promptName: 'deploy',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      const commandPath = path.join(tempDir, '.cursor', 'commands', 'deploy.md');
+      const content = await fs.readFile(commandPath, 'utf-8');
+      expect(content).not.toContain('---');
+      expect(content).not.toContain('disable-model-invocation');
+      expect(content).toBe('Deploy instructions here.');
     });
   });
 
   describe('multiple ManualPrompts', () => {
-    it('should emit multiple commands as separate skill directories', async () => {
+    it('should emit multiple commands as separate .md files', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
@@ -768,16 +788,100 @@ describe('Cursor ManualPrompt Emission (Phase 4 - Updated to Skills in Phase 7)'
       expect(result.written).toHaveLength(2);
 
       const reviewContent = await fs.readFile(
-        path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md'),
+        path.join(tempDir, '.cursor', 'commands', 'review.md'),
         'utf-8'
       );
       const explainContent = await fs.readFile(
-        path.join(tempDir, '.cursor', 'skills', 'explain', 'SKILL.md'),
+        path.join(tempDir, '.cursor', 'commands', 'explain.md'),
         'utf-8'
       );
 
-      expect(reviewContent).toContain('Review content');
-      expect(explainContent).toContain('Explain content');
+      expect(reviewContent).toBe('Review content');
+      expect(explainContent).toBe('Explain content');
+    });
+  });
+
+  describe('relativeDir nesting', () => {
+    it('should emit ManualPrompt with relativeDir to subdirectory under .cursor/commands/', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/frontend/component.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/frontend/component.md',
+          relativeDir: 'frontend',
+          content: 'Generate a React component.',
+          promptName: 'component',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+
+      const commandPath = path.join(tempDir, '.cursor', 'commands', 'frontend', 'component.md');
+      const content = await fs.readFile(commandPath, 'utf-8');
+      expect(content).toBe('Generate a React component.');
+    });
+
+    it('should detect collision between equivalent relativeDir forms (trailing slash)', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/frontend/component.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/frontend/component.md',
+          relativeDir: 'frontend',
+          content: 'First component prompt',
+          promptName: 'component',
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/frontend-v2/component.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/frontend-v2/component.md',
+          relativeDir: 'frontend/',
+          content: 'Second component prompt',
+          promptName: 'component',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      // Both items written — second renamed to avoid overwrite
+      expect(result.written).toHaveLength(2);
+
+      const firstPath = path.join(tempDir, '.cursor', 'commands', 'frontend', 'component.md');
+      const firstContent = await fs.readFile(firstPath, 'utf-8');
+      expect(firstContent).toBe('First component prompt');
+
+      const secondPath = path.join(tempDir, '.cursor', 'commands', 'frontend', 'component-1.md');
+      const secondContent = await fs.readFile(secondPath, 'utf-8');
+      expect(secondContent).toBe('Second component prompt');
+
+      // Collision warning emitted
+      const collisionWarnings = result.warnings.filter(w => w.message.includes('collision'));
+      expect(collisionWarnings).toHaveLength(1);
+    });
+
+    it('should skip ManualPrompt with path-traversal relativeDir', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/evil.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/evil.md',
+          relativeDir: '../../etc',
+          content: 'Malicious',
+          promptName: 'evil',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(0);
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0]?.code).toBe('skipped');
     });
   });
 
@@ -806,12 +910,11 @@ describe('Cursor ManualPrompt Emission (Phase 4 - Updated to Skills in Phase 7)'
 
       expect(result.written).toHaveLength(2);
 
-      // Verify both exist
       const rulesExist = await fs.stat(path.join(tempDir, '.cursor', 'rules')).catch(() => null);
-      const skillExists = await fs.stat(path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md')).catch(() => null);
+      const commandExists = await fs.stat(path.join(tempDir, '.cursor', 'commands', 'review.md')).catch(() => null);
 
       expect(rulesExist).not.toBeNull();
-      expect(skillExists).not.toBeNull();
+      expect(commandExists).not.toBeNull();
     });
   });
 
@@ -832,11 +935,9 @@ describe('Cursor ManualPrompt Emission (Phase 4 - Updated to Skills in Phase 7)'
 
       expect(result.written).toHaveLength(1);
 
-      // Should NOT create file outside .cursor/skills/
-      const skillsDir = path.join(tempDir, '.cursor', 'skills');
-      const entries = await fs.readdir(skillsDir);
+      const commandsDir = path.join(tempDir, '.cursor', 'commands');
+      const entries = await fs.readdir(commandsDir);
       expect(entries).toHaveLength(1);
-      // Name should be sanitized to safe characters only
       expect(entries[0]).not.toContain('..');
       expect(entries[0]).not.toContain('/');
     });
@@ -857,9 +958,8 @@ describe('Cursor ManualPrompt Emission (Phase 4 - Updated to Skills in Phase 7)'
 
       expect(result.written).toHaveLength(1);
 
-      // Should NOT create file outside .cursor/skills/
-      const skillsDir = path.join(tempDir, '.cursor', 'skills');
-      const entries = await fs.readdir(skillsDir);
+      const commandsDir = path.join(tempDir, '.cursor', 'commands');
+      const entries = await fs.readdir(commandsDir);
       expect(entries).toHaveLength(1);
       expect(entries[0]).not.toContain('\\');
     });
@@ -880,13 +980,12 @@ describe('Cursor ManualPrompt Emission (Phase 4 - Updated to Skills in Phase 7)'
 
       expect(result.written).toHaveLength(1);
 
-      // Should use fallback name 'command'
-      const skillPath = path.join(tempDir, '.cursor', 'skills', 'command', 'SKILL.md');
-      const content = await fs.readFile(skillPath, 'utf-8');
-      expect(content).toContain('Content');
+      const commandPath = path.join(tempDir, '.cursor', 'commands', 'command.md');
+      const content = await fs.readFile(commandPath, 'utf-8');
+      expect(content).toBe('Content');
     });
 
-    it('should handle prompt name collisions with sanitization and de-duplication', async () => {
+    it('should handle prompt name collisions with de-duplication', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
@@ -910,10 +1009,9 @@ describe('Cursor ManualPrompt Emission (Phase 4 - Updated to Skills in Phase 7)'
 
       expect(result.written).toHaveLength(2);
 
-      // First should be 'review', second should be 'review-1'
-      const skillsDir = path.join(tempDir, '.cursor', 'skills');
-      const entries = await fs.readdir(skillsDir);
-      expect(entries.sort()).toEqual(['review', 'review-1']);
+      const commandsDir = path.join(tempDir, '.cursor', 'commands');
+      const entries = await fs.readdir(commandsDir);
+      expect(entries.sort()).toEqual(['review-1.md', 'review.md']);
     });
   });
 });
@@ -998,8 +1096,8 @@ describe('Cursor Skills Emission (Phase 7)', () => {
     });
   });
 
-  describe('ManualPrompt emission to .cursor/skills/', () => {
-    it('should emit ManualPrompt to .cursor/skills/<name>/SKILL.md with disable flag', async () => {
+  describe('ManualPrompt emission to .cursor/commands/', () => {
+    it('should emit ManualPrompt to .cursor/commands/<name>.md', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.claude/skills/review/SKILL.md'),
@@ -1016,14 +1114,12 @@ describe('Cursor Skills Emission (Phase 7)', () => {
       expect(result.written).toHaveLength(1);
       expect(result.written[0]?.type).toBe(CustomizationType.ManualPrompt);
 
-      // Verify skill directory structure
-      const skillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
-      const content = await fs.readFile(skillPath, 'utf-8');
-      expect(content).toContain('Review this code.');
-      expect(content).toContain('disable-model-invocation: true');
+      const commandPath = path.join(tempDir, '.cursor', 'commands', 'review.md');
+      const content = await fs.readFile(commandPath, 'utf-8');
+      expect(content).toBe('Review this code.');
     });
 
-    it('should include name and description in ManualPrompt skill', async () => {
+    it('should write ManualPrompt content directly without frontmatter', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/deploy.md'),
@@ -1037,15 +1133,17 @@ describe('Cursor Skills Emission (Phase 7)', () => {
 
       await cursorPlugin.emit(models, tempDir);
 
-      const skillPath = path.join(tempDir, '.cursor', 'skills', 'deploy', 'SKILL.md');
-      const content = await fs.readFile(skillPath, 'utf-8');
-      expect(content).toContain('name:');
-      expect(content).toContain('deploy');
+      const commandPath = path.join(tempDir, '.cursor', 'commands', 'deploy.md');
+      const content = await fs.readFile(commandPath, 'utf-8');
+      expect(content).not.toContain('---');
+      expect(content).not.toContain('name:');
+      expect(content).not.toContain('disable-model-invocation');
+      expect(content).toBe('Deploy instructions');
     });
   });
 
   describe('collision handling', () => {
-    it('should handle collisions between SimpleAgentSkill and ManualPrompt with same name', async () => {
+    it('should not collide between SimpleAgentSkill and ManualPrompt with same name', async () => {
       const models = [
         {
           id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/review/SKILL.md'),
@@ -1070,11 +1168,18 @@ describe('Cursor Skills Emission (Phase 7)', () => {
 
       expect(result.written).toHaveLength(2);
 
-      // Both should exist with unique names
-      const skillsDir = path.join(tempDir, '.cursor', 'skills');
-      const entries = await fs.readdir(skillsDir);
-      expect(entries).toHaveLength(2);
-      expect(entries.sort()).toEqual(['review', 'review-1']);
+      // Skill goes to .cursor/skills/, command goes to .cursor/commands/ — no collision
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
+      const skillContent = await fs.readFile(skillPath, 'utf-8');
+      expect(skillContent).toContain('Skill content');
+
+      const commandPath = path.join(tempDir, '.cursor', 'commands', 'review.md');
+      const commandContent = await fs.readFile(commandPath, 'utf-8');
+      expect(commandContent).toBe('Prompt content');
+
+      // No collision warning (they're in different namespaces)
+      const collisionWarnings = result.warnings.filter(w => w.message.includes('collision'));
+      expect(collisionWarnings).toHaveLength(0);
     });
   });
 });
@@ -1200,8 +1305,6 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
   });
 
   it('should populate sourceItems for ManualPrompt → .md (1:1)', async () => {
-    // Test that WrittenFile for each ManualPrompt .md includes
-    // sourceItems array with single ManualPrompt
     const command: ManualPrompt = {
       id: createId(CustomizationType.ManualPrompt, '.cursor/commands/build.md'),
       type: CustomizationType.ManualPrompt,
@@ -1220,6 +1323,9 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
     expect(written?.sourceItems).toBeDefined();
     expect(written?.sourceItems).toHaveLength(1);
     expect(written?.sourceItems?.[0]).toBe(command);
+
+    // Verify it's written to .cursor/commands/, not .cursor/skills/
+    expect(written?.path).toBe(path.join(tempDir, '.cursor', 'commands', 'build.md'));
   });
 });
 

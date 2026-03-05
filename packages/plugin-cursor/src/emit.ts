@@ -143,22 +143,27 @@ ${skill.content}
 }
 
 /**
- * Format ManualPrompt as a SKILL.md file with disable-model-invocation.
- * Used for .cursor/skills/ emission (Phase 7).
+ * Generate a unique command filename by appending a counter if needed.
+ * Returns the unique filename and whether a collision occurred.
  */
-function formatManualPromptSkillMd(prompt: import('@a16njs/models').ManualPrompt): string {
-  const safeName = JSON.stringify(prompt.promptName);
-  const description = `Invoke with /${prompt.promptName}`;
-  const safeDescription = JSON.stringify(description);
+function getUniqueCommandFilename(
+  baseName: string,
+  usedNames: Set<string>
+): { filename: string; collision: boolean } {
+  if (!usedNames.has(baseName)) {
+    usedNames.add(baseName);
+    return { filename: baseName, collision: false };
+  }
 
-  return `---
-name: ${safeName}
-description: ${safeDescription}
-disable-model-invocation: true
----
-
-${prompt.content}
-`;
+  const stem = baseName.replace(/\.md$/, '');
+  let counter = 1;
+  let uniqueName = `${stem}-${counter}.md`;
+  while (usedNames.has(uniqueName)) {
+    counter++;
+    uniqueName = `${stem}-${counter}.md`;
+  }
+  usedNames.add(uniqueName);
+  return { filename: uniqueName, collision: true };
 }
 
 /**
@@ -426,10 +431,10 @@ export async function emit(
   // Items that go to .cursor/rules/*.mdc
   const mdcItems = [...globalPrompts, ...fileRules];
   // Items that go to .cursor/skills/*/SKILL.md (Phase 7)
-  const skillItems = [...agentSkills, ...manualPrompts];
+  const skillItems = [...agentSkills];
   
-  // Early return only if no items at all (including agentIgnores and agentSkillIOs)
-  if (mdcItems.length === 0 && skillItems.length === 0 && agentSkillIOs.length === 0 && agentIgnores.length === 0) {
+  // Early return only if no items at all (including agentIgnores, agentSkillIOs, and manualPrompts)
+  if (mdcItems.length === 0 && skillItems.length === 0 && agentSkillIOs.length === 0 && agentIgnores.length === 0 && manualPrompts.length === 0) {
     return { written, warnings, unsupported };
   }
 
@@ -451,17 +456,8 @@ export async function emit(
     // without extension stripping (sanitizeFilename would double-strip).
     const stem = gp.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'rule';
     const baseName = stem + '.mdc';
-    // Qualify with relativeDir to prevent false collisions across subdirectories
-    const qualifiedName = gp.relativeDir ? `${gp.relativeDir}/${baseName}` : baseName;
-    const { filename: qualifiedFilename, collision } = getUniqueFilename(qualifiedName, usedFilenames);
-    const filename = gp.relativeDir ? path.basename(qualifiedFilename) : qualifiedFilename;
-    
-    if (collision) {
-      if (gp.sourcePath) collisionSources.push(gp.sourcePath);
-    }
 
-    // Use relativeDir for subdirectory nesting when present
-    // Validate that relativeDir doesn't escape rulesDir via path traversal
+    // Resolve target directory and validate before collision detection
     const targetDir = gp.relativeDir
       ? path.join(rulesDir, gp.relativeDir)
       : rulesDir;
@@ -475,6 +471,20 @@ export async function emit(
       });
       continue;
     }
+
+    // Normalize relativeDir via resolved paths so equivalent forms
+    // (e.g. "shared/niko" vs "shared/niko/") produce identical collision keys
+    const normalizedDir = gp.relativeDir
+      ? path.relative(resolvedRules, resolvedTarget)
+      : undefined;
+    const qualifiedName = normalizedDir ? `${normalizedDir}/${baseName}` : baseName;
+    const { filename: qualifiedFilename, collision } = getUniqueFilename(qualifiedName, usedFilenames);
+    const filename = normalizedDir ? path.basename(qualifiedFilename) : qualifiedFilename;
+
+    if (collision) {
+      if (gp.sourcePath) collisionSources.push(gp.sourcePath);
+    }
+
     if (!dryRun) {
       await fs.mkdir(targetDir, { recursive: true });
     }
@@ -506,17 +516,8 @@ export async function emit(
   // Emit each FileRule as a separate .mdc file with globs
   for (const fr of fileRules) {
     const baseName = sanitizeFilename(fr.sourcePath || fr.id) + '.mdc';
-    // Qualify with relativeDir to prevent false collisions across subdirectories
-    const qualifiedName = fr.relativeDir ? `${fr.relativeDir}/${baseName}` : baseName;
-    const { filename: qualifiedFilename, collision } = getUniqueFilename(qualifiedName, usedFilenames);
-    const filename = fr.relativeDir ? path.basename(qualifiedFilename) : qualifiedFilename;
-    
-    if (collision) {
-      if (fr.sourcePath) collisionSources.push(fr.sourcePath);
-    }
 
-    // Use relativeDir for subdirectory nesting when present
-    // Validate that relativeDir doesn't escape rulesDir via path traversal
+    // Resolve target directory and validate before collision detection
     const targetDir = fr.relativeDir
       ? path.join(rulesDir, fr.relativeDir)
       : rulesDir;
@@ -530,6 +531,18 @@ export async function emit(
       });
       continue;
     }
+
+    const normalizedDir = fr.relativeDir
+      ? path.relative(resolvedRules, resolvedTarget)
+      : undefined;
+    const qualifiedName = normalizedDir ? `${normalizedDir}/${baseName}` : baseName;
+    const { filename: qualifiedFilename, collision } = getUniqueFilename(qualifiedName, usedFilenames);
+    const filename = normalizedDir ? path.basename(qualifiedFilename) : qualifiedFilename;
+
+    if (collision) {
+      if (fr.sourcePath) collisionSources.push(fr.sourcePath);
+    }
+
     if (!dryRun) {
       await fs.mkdir(targetDir, { recursive: true });
     }
@@ -644,42 +657,53 @@ export async function emit(
     }
   }
 
-  // === Emit ManualPrompts as .cursor/skills/*/SKILL.md (Phase 7) ===
+  // === Emit ManualPrompts as .cursor/commands/*.md ===
+  const commandsDir = path.join(root, '.cursor', 'commands');
+  const usedCommandNames = new Set<string>();
   for (const prompt of manualPrompts) {
-    // Sanitize prompt name to prevent path traversal
     const baseName = sanitizePromptName(prompt.promptName);
-    
-    // Get unique name to avoid collisions (shared with AgentSkills)
-    let dirName = baseName;
-    if (usedSkillNames.has(dirName)) {
+    const commandFileName = baseName + '.md';
+
+    const targetDir = prompt.relativeDir
+      ? path.join(commandsDir, prompt.relativeDir)
+      : commandsDir;
+    const resolvedTarget = path.resolve(targetDir);
+    const resolvedCommands = path.resolve(commandsDir);
+    if (prompt.relativeDir && resolvedTarget !== resolvedCommands && !resolvedTarget.startsWith(resolvedCommands + path.sep)) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Skipped command with unsafe relativeDir: ${prompt.relativeDir}`,
+        sources: prompt.sourcePath ? [prompt.sourcePath] : [],
+      });
+      continue;
+    }
+
+    const normalizedDir = prompt.relativeDir
+      ? path.relative(resolvedCommands, resolvedTarget)
+      : undefined;
+    const qualifiedName = normalizedDir ? `${normalizedDir}/${commandFileName}` : commandFileName;
+    const { filename, collision } = getUniqueCommandFilename(qualifiedName, usedCommandNames);
+    const finalFileName = normalizedDir ? path.basename(filename) : filename;
+    if (collision) {
       if (prompt.sourcePath) collisionSources.push(prompt.sourcePath);
-      let counter = 1;
-      while (usedSkillNames.has(`${baseName}-${counter}`)) {
-        counter++;
-      }
-      dirName = `${baseName}-${counter}`;
     }
-    usedSkillNames.add(dirName);
 
-    const skillDir = path.join(root, '.cursor', 'skills', dirName);
     if (!dryRun) {
-      await fs.mkdir(skillDir, { recursive: true });
+      await fs.mkdir(targetDir, { recursive: true });
     }
 
-    const filepath = path.join(skillDir, 'SKILL.md');
-    const content = formatManualPromptSkillMd(prompt);
+    const filepath = path.join(targetDir, finalFileName);
 
-    // Check if file exists before writing
     let isNewFile = true;
     try {
       await fs.access(filepath);
-      isNewFile = false; // File exists
+      isNewFile = false;
     } catch {
-      isNewFile = true; // File does not exist
+      isNewFile = true;
     }
 
     if (!dryRun) {
-      await fs.writeFile(filepath, content, 'utf-8');
+      await fs.writeFile(filepath, prompt.content, 'utf-8');
     }
 
     written.push({
