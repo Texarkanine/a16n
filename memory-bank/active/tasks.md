@@ -13,9 +13,10 @@ Fix critical issues, clean up garbage tests, improve first-impression UX, and po
 - **`packages/plugin-claude/src/emit.ts`**: AgentSkillIO emission → add path traversal validation for resource filenames (security fix)
 - **`packages/cli/src/commands/convert.ts`**: git-ignore conflict routing → replace `any` types with proper interfaces; improve engine error handling for unknown plugins
 - **`packages/cli/src/output.ts`**: Warning formatting → no changes needed (already supports suggestions)
-- **`packages/cli/src/index.ts`**: Commander program setup → no structural changes needed (error is caught in convert.ts)
+- **`packages/cli/src/index.ts`**: Commander program setup → dynamic plugin-sourced descriptions for `--from`/`--to`
 - **`packages/cli/test/cli.test.ts`**: Stubbed test bodies → implement or delete 11 empty tests
-- **`packages/cli/package.json`**: Missing `engines` field
+- **`packages/*/package.json`** (all published): Missing or outdated `engines` field → align to `>=20.0.0`
+- **`.github/workflows/docs.yaml`**: Hardcoded `node-version: '22'` → defer to `.nvmrc`
 - **`packages/docs/docs/plugin-development/index.md`**: Broken link to `/plugin-cursorrules`
 - **`packages/docs/docs/intro.md`**: "CLI Reference" link points to `/cli` (overview) instead of reference
 - **`README.md`**: Pitch wording and badge additions
@@ -108,27 +109,21 @@ The 11 stubbed tests fall into two groups:
 
 ### Step 2: Fix `any` types in convert.ts
 
-**No TDD cycle needed** — this is a type-only refactor with no behavioral change. Existing tests cover the behavior.
+**No TDD cycle needed** — this is a pure type-annotation change with zero behavioral impact. No new runtime code, no new tests needed. Existing tests cover the behavior.
 
 - **Files**: `packages/cli/src/commands/convert.ts`
 - **Changes**:
-  1. Add import: `import type { AgentCustomization } from '@a16njs/models';` (alongside existing `WarningCode` import)
-  2. Define local interface near `ConflictRouteContext` (~line 403):
-     ```typescript
-     interface SourceStatusEntry {
-       source: AgentCustomization;
-       ignoreSource: string | null;
-     }
-     ```
-  3. Change `routeConflict` signature (line 414):
-     - `ignoredSources: any[]` → `ignoredSources: SourceStatusEntry[]`
-     - `trackedSources: any[]` → `trackedSources: SourceStatusEntry[]`
+  1. Add to existing import line 9: `import { WarningCode } from '@a16njs/models';` → `import { WarningCode, type AgentCustomization } from '@a16njs/models';`
+  2. Change `routeConflict` signature (line 414):
+     - `ignoredSources: any[]` → `ignoredSources: { source: AgentCustomization; ignoreSource: string | null }[]`
+     - `trackedSources: any[]` → `trackedSources: { source: AgentCustomization; ignoreSource: string | null }[]`
      - Remove `// eslint-disable-next-line @typescript-eslint/no-explicit-any` above the function
-     - Remove `(s: any)` casts inside the function — TypeScript will infer correctly
-  4. Change `routeConflictSimple` signature (line 437):
+     - Remove `(s: any)` casts on line 428 — TypeScript infers correctly from the typed params
+  3. Change `routeConflictSimple` signature (line 437):
      - `sources: any[]` → `sources: AgentCustomization[]`
      - Remove `// eslint-disable-next-line @typescript-eslint/no-explicit-any` above the function
-     - Remove `(s: any)` and `(p: any)` casts inside the function
+     - Remove `(s: any)` and `(p: any)` casts on line 447
+  4. **No new interface/type alias.** The inline object type is used in two params of one function — not enough repetition to justify a named type. `ConflictRouteContext` (line 403) is a named interface because it's shared across 3 functions; these types are used in exactly one.
 - **Verification**: `pnpm --filter a16n typecheck && pnpm --filter a16n test`
 
 ### Step 3: Improve invalid --from/--to error messages
@@ -137,21 +132,24 @@ The 11 stubbed tests fall into two groups:
 
 - **Files**: `packages/cli/src/commands/convert.ts`, `packages/cli/src/commands/discover.ts`, `packages/cli/test/cli.test.ts`
 - **Changes in convert.ts** (catch block, line 193-196):
-  - Replace generic `formatError((error as Error).message)` with:
+  - The `engine` is in scope (passed to `handleConvert`). Build a dynamic suggestion from the actual registered plugins:
     ```typescript
     const msg = (error as Error).message;
-    const suggestion = msg.startsWith('Unknown source') || msg.startsWith('Unknown target')
-      ? "Run 'a16n plugins' to see available agents."
-      : undefined;
+    let suggestion: string | undefined;
+    if (msg.startsWith('Unknown source') || msg.startsWith('Unknown target')) {
+      const ids = engine.listPlugins().map(p => p.id).join(', ');
+      suggestion = `Available agents: ${ids}`;
+    }
     io.error(formatError(msg, suggestion));
     ```
-- **Changes in discover.ts**: Same pattern for the discover command's catch block.
-- **Changes in index.ts** (lines 48-49, 93): Update `--from` and `--to` option descriptions to hint at valid values:
-  - `'Source agent'` → `'Source agent (built-in: cursor, claude, a16n)'`
-  - `'Target agent'` → `'Target agent (built-in: cursor, claude, a16n)'`
-  - `'Agent to discover'` → `'Agent to discover (built-in: cursor, claude, a16n)'`
-  - This doesn't use `.choices()` (which would break community plugins) — it's purely descriptive.
-- **Changes in cli.test.ts**: Update the two existing error tests to also assert the suggestion text is present in stderr.
+  - This means the error message lists the REAL plugins (including any community plugins the user has installed), not a hardcoded list.
+- **Changes in discover.ts**: Same pattern — `engine` is already passed to `handleDiscover`.
+- **Changes in index.ts** (lines 48-49, 93): Update `--from` and `--to` option descriptions dynamically from the engine:
+  - In `createProgram(engine, io)`, compute the plugin list: `const pluginIds = engine?.listPlugins().map(p => p.id).join(', ') ?? 'cursor, claude, a16n';`
+  - Use it in descriptions: `'Source agent'` → `` `Source agent (available: ${pluginIds})` ``
+  - Same for `'Target agent'` and `'Agent to discover'`
+  - When `engine` is null (doc-gen mode), falls back to the hardcoded list. When engine is populated, lists whatever's actually registered.
+- **Changes in cli.test.ts**: Update the two existing error tests to also assert the suggestion text is present in stderr (e.g., `expect(stderr).toContain('Available agents:')`).
 - **Verification**: `pnpm --filter a16n test`
 
 ### Step 4: Implement stubbed tests in cli.test.ts
@@ -177,11 +175,22 @@ The 11 stubbed tests fall into two groups:
 
 - **Verification**: `pnpm --filter a16n test`
 
-### Step 5: Add `engines` to CLI package.json
+### Step 5: Align `engines` across all packages to `>=20.0.0`
 
-- **Files**: `packages/cli/package.json`
-- **Changes**: Add `"engines": { "node": ">=20.0.0" }` to match root `package.json`
-- **Verification**: `pnpm install` (no errors)
+Node 20 is the oldest version we'll attempt to support. `.nvmrc` (24) is the development version; `engines` is the minimum supported version. CI already defers to `.nvmrc` via `node-version-file`.
+
+- **Files**:
+  - `package.json` (root): `>=18.0.0` → `>=20.0.0`
+  - `packages/cli/package.json`: missing → add `"engines": { "node": ">=20.0.0" }`
+  - `packages/engine/package.json`: missing → add `"engines": { "node": ">=20.0.0" }`
+  - `packages/models/package.json`: missing → add `"engines": { "node": ">=20.0.0" }`
+  - `packages/plugin-cursor/package.json`: missing → add `"engines": { "node": ">=20.0.0" }`
+  - `packages/plugin-claude/package.json`: missing → add `"engines": { "node": ">=20.0.0" }`
+  - `packages/plugin-a16n/package.json`: missing → add `"engines": { "node": ">=20.0.0" }`
+  - `packages/glob-hook/package.json`: `>=18.0.0` → `>=20.0.0`
+  - `packages/docs/package.json`: `>=18.0` → `>=20.0.0`
+  - `.github/workflows/docs.yaml`: hardcoded `node-version: '22'` → `node-version-file: ".nvmrc"` (align with other workflows)
+- **Verification**: `pnpm install` (no errors), `git --no-pager diff` to confirm all changes
 
 ### Step 6: Create CONTRIBUTING.md
 
