@@ -1781,6 +1781,136 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
     });
   });
 
+  describe('resource file path traversal prevention', () => {
+    it('should reject resource files with absolute paths', async () => {
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/evil/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/evil/SKILL.md',
+          content: 'Evil skill',
+          name: 'evil',
+          description: 'Tries to escape',
+          files: {
+            '/etc/passwd': 'hacked',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      const skipWarnings = result.warnings.filter(w => w.code === WarningCode.Skipped);
+      expect(skipWarnings.length).toBeGreaterThanOrEqual(1);
+      expect(skipWarnings.some(w => w.message.includes('/etc/passwd'))).toBe(true);
+
+      // SKILL.md should still be written
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'evil', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Evil skill');
+
+      // The malicious file should NOT exist anywhere under the skill dir
+      const skillDir = path.join(tempDir, '.claude', 'skills', 'evil');
+      const files = await fs.readdir(skillDir);
+      expect(files).toEqual(['SKILL.md']);
+    });
+
+    it('should reject resource files with .. in path', async () => {
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/evil/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/evil/SKILL.md',
+          content: 'Evil skill',
+          name: 'evil',
+          description: 'Tries to escape',
+          files: {
+            '../../../etc/passwd': 'hacked',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      const skipWarnings = result.warnings.filter(w => w.code === WarningCode.Skipped);
+      expect(skipWarnings.length).toBeGreaterThanOrEqual(1);
+      expect(skipWarnings.some(w => w.message.includes('..'))).toBe(true);
+
+      // SKILL.md should still be written
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'evil', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Evil skill');
+
+      // No files outside the skill directory
+      const skillDir = path.join(tempDir, '.claude', 'skills', 'evil');
+      const files = await fs.readdir(skillDir);
+      expect(files).toEqual(['SKILL.md']);
+    });
+
+    it('should reject resource files that resolve outside skill directory', async () => {
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/evil/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/evil/SKILL.md',
+          content: 'Evil skill',
+          name: 'evil',
+          description: 'Tries to escape via symlink-like path',
+          files: {
+            'subdir/../../sibling/payload.sh': 'hacked',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      const skipWarnings = result.warnings.filter(w => w.code === WarningCode.Skipped);
+      expect(skipWarnings.length).toBeGreaterThanOrEqual(1);
+
+      // SKILL.md should still be written
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'evil', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Evil skill');
+    });
+
+    it('should accept valid resource filenames including nested paths', async () => {
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/deploy/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/deploy/SKILL.md',
+          content: 'Deployment process',
+          name: 'deploy',
+          description: 'Deployment helper',
+          files: {
+            'checklist.md': '- [ ] Run tests',
+            'resources/helper.sh': '#!/bin/bash\necho "deploying"',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      // No skip warnings for valid files
+      const skipWarnings = result.warnings.filter(w => w.code === WarningCode.Skipped);
+      expect(skipWarnings).toHaveLength(0);
+
+      // All files should exist
+      const skillDir = path.join(tempDir, '.claude', 'skills', 'deploy');
+      const skillContent = await fs.readFile(path.join(skillDir, 'SKILL.md'), 'utf-8');
+      expect(skillContent).toContain('Deployment process');
+
+      const checklist = await fs.readFile(path.join(skillDir, 'checklist.md'), 'utf-8');
+      expect(checklist).toContain('Run tests');
+
+      const helper = await fs.readFile(path.join(skillDir, 'resources', 'helper.sh'), 'utf-8');
+      expect(helper).toContain('deploying');
+    });
+  });
+
   describe('relativeDir nesting support', () => {
     it('should emit GlobalPrompt with relativeDir to subdirectory under .claude/rules/', async () => {
       const models: GlobalPrompt[] = [

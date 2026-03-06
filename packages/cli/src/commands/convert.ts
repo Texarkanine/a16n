@@ -6,7 +6,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { A16nEngine, ConversionResult } from '@a16njs/engine';
-import { WarningCode } from '@a16njs/models';
+import { WarningCode, type AgentCustomization } from '@a16njs/models';
 import { formatWarning, formatError, formatSummary } from '../output.js';
 import {
   isGitRepo,
@@ -410,12 +410,16 @@ interface ConflictRouteContext {
   verbose: (msg: string) => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface SourceStatusEntry {
+  source: AgentCustomization;
+  ignoreSource: string | null;
+}
+
 function routeConflict(
   ctx: ConflictRouteContext,
   relativePath: string,
-  ignoredSources: any[],
-  trackedSources: any[],
+  ignoredSources: SourceStatusEntry[],
+  trackedSources: SourceStatusEntry[],
   outputTracked: boolean,
 ): void {
   if (ctx.conflictResolution === 'skip') {
@@ -425,7 +429,7 @@ function routeConflict(
     ctx.result.warnings.push({
       code: WarningCode.GitStatusConflict,
       message: msg,
-      sources: (outputTracked ? ignoredSources : trackedSources).map((s: any) => s.source.sourcePath).filter((p: any): p is string => p !== undefined),
+      sources: (outputTracked ? ignoredSources : trackedSources).map(s => s.source.sourcePath).filter((p): p is string => p !== undefined),
     });
   } else {
     applyConflictResolution(relativePath, ctx);
@@ -433,18 +437,17 @@ function routeConflict(
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function routeConflictSimple(
   ctx: ConflictRouteContext,
   relativePath: string,
-  sources: any[],
+  sources: AgentCustomization[],
   reason: string,
 ): void {
   if (ctx.conflictResolution === 'skip') {
     ctx.result.warnings.push({
       code: WarningCode.GitStatusConflict,
       message: `Git status conflict: cannot determine status for '${relativePath}' (${reason})`,
-      sources: sources.map((s: any) => s.sourcePath).filter((p: any): p is string => p !== undefined),
+      sources: sources.map(s => s.sourcePath).filter((p): p is string => p !== undefined),
     });
   } else {
     applyConflictResolution(relativePath, ctx);

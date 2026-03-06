@@ -177,7 +177,8 @@ async function emitAgentSkillIO(
   skill: AgentSkillIO,
   root: string,
   dryRun: boolean,
-  usedSkillNames: Set<string>
+  usedSkillNames: Set<string>,
+  warnings: Warning[],
 ): Promise<WrittenFile[]> {
   const written: WrittenFile[] = [];
 
@@ -228,23 +229,46 @@ description: ${safeDescription}`;
   });
 
   // Write all resource files
+  const baseDir = path.resolve(skillDir);
   for (const [filename, content] of Object.entries(skill.files)) {
-    const filePath = path.join(skillDir, filename);
-    
+    if (path.isAbsolute(filename) || filename.includes('..')) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Skipped resource with unsafe path: ${filename}`,
+        sources: skill.sourcePath ? [skill.sourcePath] : [],
+      });
+      continue;
+    }
+
+    const resolvedPath = path.resolve(skillDir, filename);
+    if (!resolvedPath.startsWith(baseDir + path.sep) && resolvedPath !== baseDir) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Skipped resource outside skill directory: ${filename}`,
+        sources: skill.sourcePath ? [skill.sourcePath] : [],
+      });
+      continue;
+    }
+
+    const parentDir = path.dirname(resolvedPath);
+    if (!dryRun && parentDir !== skillDir) {
+      await fs.mkdir(parentDir, { recursive: true });
+    }
+
     let isResourceNewFile = true;
     try {
-      await fs.access(filePath);
+      await fs.access(resolvedPath);
       isResourceNewFile = false;
     } catch {
       isResourceNewFile = true;
     }
 
     if (!dryRun) {
-      await fs.writeFile(filePath, content, 'utf-8');
+      await fs.writeFile(resolvedPath, content, 'utf-8');
     }
 
     written.push({
-      path: filePath,
+      path: resolvedPath,
       type: CustomizationType.AgentSkillIO,
       itemCount: 1,
       isNewFile: isResourceNewFile,
@@ -602,7 +626,7 @@ export async function emit(
   // === Emit AgentSkillIOs (Phase 8 B4) ===
   if (agentSkillIOs.length > 0) {
     for (const skillIO of agentSkillIOs) {
-      const skillIOWritten = await emitAgentSkillIO(skillIO, root, dryRun, usedSkillNames);
+      const skillIOWritten = await emitAgentSkillIO(skillIO, root, dryRun, usedSkillNames, warnings);
       written.push(...skillIOWritten);
     }
   }
