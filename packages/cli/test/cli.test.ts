@@ -493,18 +493,21 @@ describe('CLI', () => {
       }
     });
 
-    it('should skip gitignore management and emit warning when new output has conflicting sources (Case 3)', async () => {
-      // Case 3 requires a single output with multiple sourceItems of mixed git status.
-      // In cursor-to-claude, all types produce 1:1 source→output mappings except
-      // AgentIgnore→settings.json (but cursor only has one .cursorignore).
-      // We verify the warning path using --json on a scenario where the conflict
-      // detection code path in routeConflictSimple is exercised.
-      // The unit tests in convert.test.ts cover the multi-source case directly.
+    it('should independently mirror git status for each output when sources have different statuses', async () => {
+      // NOTE: This is NOT a test of the Case 3 multi-source conflict path (one output,
+      // multiple sourceItems with mixed git status). In cursor-to-claude, every rule type
+      // produces 1:1 source→output mappings — there is no cursor scenario that naturally
+      // produces a WrittenFile with multiple sourceItems of mixed status. That branch
+      // (routeConflictSimple) is exercised at the unit level in convert.test.ts.
+      //
+      // What this test covers instead: when two independent outputs exist side-by-side,
+      // one whose source is git-ignored and one whose source is tracked, match mode must
+      // treat each output independently — gitignoring the ignored-source output and leaving
+      // the tracked-source output uncommitted.
       spawnSync('git', ['init'], { cwd: tempDir });
       spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
       spawnSync('git', ['config', 'user.name', 'Test'], { cwd: tempDir });
 
-      // Create two source rules: one in an ignored dir, one tracked
       await fs.writeFile(path.join(tempDir, '.gitignore'), '.cursor/rules/private/\n');
 
       const privateDir = path.join(tempDir, '.cursor', 'rules', 'private');
@@ -519,7 +522,6 @@ describe('CLI', () => {
         '---\nalwaysApply: true\n---\nPublic rule.'
       );
 
-      // Track the public source
       spawnSync('git', ['add', '.cursor/rules/public.mdc', '.gitignore'], { cwd: tempDir });
       spawnSync('git', ['commit', '-m', 'initial', '--no-gpg-sign'], { cwd: tempDir });
 
@@ -528,20 +530,13 @@ describe('CLI', () => {
       expect(exitCode).toBe(0);
       const result = JSON.parse(stdout);
 
-      // The ignored source (secret.mdc) should produce an output added to .gitignore
-      // The tracked source (public.mdc) should produce an output NOT added to .gitignore
-      // Each has its own 1:1 output, so no multi-source conflict—but we verify the
-      // match mode correctly differentiates them
       const gitIgnoreChanges = result.gitIgnoreChanges || [];
       const gitignored = gitIgnoreChanges.flatMap((c: { added: string[] }) => c.added);
 
-      // The secret rule's output should be gitignored
-      const secretOutput = gitignored.some((f: string) => f.includes('secret'));
-      expect(secretOutput).toBe(true);
-
-      // The public rule's output should NOT be gitignored
-      const publicOutput = gitignored.some((f: string) => f.includes('public'));
-      expect(publicOutput).toBe(false);
+      // Output from the gitignored source should be added to .gitignore
+      expect(gitignored.some((f: string) => f.includes('secret'))).toBe(true);
+      // Output from the tracked source should NOT be added to .gitignore
+      expect(gitignored.some((f: string) => f.includes('public'))).toBe(false);
     });
   });
 
