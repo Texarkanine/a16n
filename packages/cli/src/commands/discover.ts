@@ -100,7 +100,7 @@ export async function handleDiscover(
     if (msg.startsWith('Unknown source')) {
       try {
         const ids = engine.listPlugins().map(p => p.id).join(', ');
-        suggestion = `Available agents: ${ids}`;
+        suggestion = `Available tools: ${ids}`;
       } catch { /* engine may not be fully initialized */ }
     }
     io.error(formatError(msg, suggestion));

@@ -197,7 +197,7 @@ describe('CLI', () => {
 
       expect(exitCode).toBe(1);
       expect(stderr).toContain('Unknown source');
-      expect(stderr).toContain('Available agents:');
+      expect(stderr).toContain('Available tools:');
     });
 
     it('should error on unknown target', () => {
@@ -205,7 +205,7 @@ describe('CLI', () => {
 
       expect(exitCode).toBe(1);
       expect(stderr).toContain('Unknown target');
-      expect(stderr).toContain('Available agents:');
+      expect(stderr).toContain('Available tools:');
     });
 
     it('should support --verbose flag', async () => {

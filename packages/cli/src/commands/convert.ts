@@ -196,7 +196,7 @@ export async function handleConvert(
     if (msg.startsWith('Unknown source') || msg.startsWith('Unknown target')) {
       try {
         const ids = engine.listPlugins().map(p => p.id).join(', ');
-        suggestion = `Available agents: ${ids}`;
+        suggestion = `Available tools: ${ids}`;
       } catch { /* engine may not be fully initialized */ }
     }
     io.error(formatError(msg, suggestion));
