@@ -46,8 +46,8 @@ export function createProgram(engine: A16nEngine | null, io: CommandIO = default
   program
     .command('convert')
     .description('Convert agent customization between tools')
-    .requiredOption('-f, --from <agent>', `Source agent (available: ${pluginIds})`)
-    .requiredOption('-t, --to <agent>', `Target agent (available: ${pluginIds})`)
+    .requiredOption('-f, --from <tool>', `Source tool (available: ${pluginIds})`)
+    .requiredOption('-t, --to <tool>', `Target tool (available: ${pluginIds})`)
     .option('--dry-run', 'Show what would happen without writing')
     .option('--json', 'Output as JSON')
     .option('-q, --quiet', 'Suppress non-error output')
@@ -91,7 +91,7 @@ export function createProgram(engine: A16nEngine | null, io: CommandIO = default
   program
     .command('discover')
     .description('List agent customization without converting')
-    .requiredOption('-f, --from <agent>', `Agent to discover (available: ${pluginIds})`)
+    .requiredOption('-f, --from <tool>', `Tool to discover (available: ${pluginIds})`)
     .option('--json', 'Output as JSON')
     .option('-v, --verbose', 'Show detailed output')
     .option(

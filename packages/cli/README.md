@@ -33,8 +33,8 @@ a16n convert --from cursor --to claude --json .
 ```
 
 Options:
-- `-f, --from <agent>` - Source agent (required)
-- `-t, --to <agent>` - Target agent (required)
+- `-f, --from <tool>` - Source tool (required)
+- `-t, --to <tool>` - Target tool (required)
 - `--dry-run` - Show what would happen without writing
 - `--json` - Output as JSON
 - `-q, --quiet` - Suppress non-error output
@@ -49,7 +49,7 @@ a16n discover --from claude . --json
 ```
 
 Options:
-- `-f, --from <agent>` - Agent to discover (required)
+- `-f, --from <tool>` - Tool to discover (required)
 - `--json` - Output as JSON
 
 ### plugins
@@ -60,9 +60,9 @@ Show available plugins.
 a16n plugins
 ```
 
-## Supported Agents
+## Supported Tools
 
-| Agent | Plugin | Status |
+| Tool | Plugin | Status |
 |-------|--------|--------|
 | Cursor | @a16njs/plugin-cursor | ✅ Bundled |
 | Claude Code | @a16njs/plugin-claude | ✅ Bundled |
