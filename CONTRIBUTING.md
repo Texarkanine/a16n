@@ -36,7 +36,7 @@ This is a pnpm monorepo managed with Turborepo. Packages live under `packages/`:
 
 ```bash
 pnpm test              # Run all tests
-pnpm test --filter a16n   # Run CLI tests only
+pnpm --filter a16n test   # Run CLI tests only
 pnpm typecheck         # Check types across all packages
 ```
 
