@@ -4,7 +4,7 @@
 Launch Readiness Polish (task-id: `launch-readiness`)
 
 ## Phase
-PLAN - COMPLETE
+PREFLIGHT - COMPLETE (PASS with advisory)
 
 ## Complexity
 Level 3
@@ -22,5 +22,9 @@ Level 3
 - README pitch: Widen to communicate plugin extensibility, not just two tools
 - Docs links: Remove cursorrules link (no docs page exists), fix intro label
 
+## Preflight Findings
+- Plan amended: `emitAgentSkillIO` needs a `warnings: Warning[]` parameter to report path traversal violations (was returning only `WrittenFile[]`)
+- Plan amended: `--from`/`--to` help descriptions updated to list built-in agents (non-breaking, purely descriptive)
+
 ## Next Step
-Proceed to Preflight phase to validate the plan, then await operator approval for Build.
+Awaiting operator review of the plan. When approved, run `/niko-build` to begin implementation.

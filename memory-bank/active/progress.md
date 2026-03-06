@@ -13,5 +13,12 @@
 - Implementation plan: 8 ordered steps
 - No new technology required
 
+### Preflight Phase
+- Convention compliance: PASS — all edits in existing files or expected new locations
+- Dependency impact: PASS — no unaccounted downstream impacts
+- Conflict detection: PASS — no overlapping implementations
+- Completeness: PASS — all 9 requirements mapped to concrete steps
+- Plan amended: `emitAgentSkillIO` needs `warnings` param; `--from`/`--to` help text improvements added
+
 ## Current Phase
-- **PLAN COMPLETE** — Awaiting preflight validation
+- **PREFLIGHT COMPLETE** — Awaiting operator review for Build phase

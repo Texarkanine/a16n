@@ -80,14 +80,29 @@ The 11 stubbed tests fall into two groups:
 **TDD cycle**: Write tests for B1-B4 in `packages/plugin-claude/test/emit.test.ts`, then implement the fix.
 
 - **Files**: `packages/plugin-claude/src/emit.ts`, `packages/plugin-claude/test/emit.test.ts`
-- **Changes in emit.ts** (function `emitAgentSkillIO`, lines ~230-253):
-  - Before the resource file writing loop, compute `const baseDir = path.resolve(skillDir);`
-  - Inside the loop, before `path.join(skillDir, filename)`:
-    1. Check `path.isAbsolute(filename)` — if true, push `WarningCode.Skipped` warning, `continue`
-    2. Check `filename.includes('..')` — if true, push `WarningCode.Skipped` warning, `continue`
-    3. Compute `const resolvedPath = path.resolve(skillDir, filename);` and check `!resolvedPath.startsWith(baseDir + path.sep) && resolvedPath !== baseDir` — if true, push `WarningCode.Skipped` warning, `continue`
-    4. Add `await fs.mkdir(path.dirname(resolvedPath), { recursive: true });` for nested resource paths (guarded by `!dryRun`)
+- **Changes in emit.ts**:
+  - **Function signature** (line 176): Add `warnings: Warning[]` parameter to `emitAgentSkillIO`:
+    ```typescript
+    async function emitAgentSkillIO(
+      skill: AgentSkillIO,
+      root: string,
+      dryRun: boolean,
+      usedSkillNames: Set<string>,
+      warnings: Warning[],
+    ): Promise<WrittenFile[]> {
+    ```
+  - **Call site** (line 605): Pass `warnings` from the outer `emit()` scope:
+    ```typescript
+    const skillIOWritten = await emitAgentSkillIO(skillIO, root, dryRun, usedSkillNames, warnings);
+    ```
+  - **Resource file loop** (lines ~230-253): Before the `path.join(skillDir, filename)` line:
+    1. Compute `const baseDir = path.resolve(skillDir);` (before the loop)
+    2. Check `path.isAbsolute(filename)` — if true, push `WarningCode.Skipped` warning to `warnings`, `continue`
+    3. Check `filename.includes('..')` — if true, push `WarningCode.Skipped` warning to `warnings`, `continue`
+    4. Compute `const resolvedPath = path.resolve(skillDir, filename);` and check `!resolvedPath.startsWith(baseDir + path.sep) && resolvedPath !== baseDir` — if true, push warning, `continue`
+    5. Add `await fs.mkdir(path.dirname(resolvedPath), { recursive: true });` for nested resource paths (guarded by `!dryRun`)
   - This matches the pattern in `packages/plugin-cursor/src/emit.ts` lines 345-380.
+  - **Import**: Add `WarningCode` and `Warning` to imports if not already present.
 - **Changes in emit.test.ts**: Add test cases for B1-B4 within the existing AgentSkillIO emission describe block.
 - **Verification**: `pnpm --filter @a16njs/plugin-claude test`
 
@@ -131,6 +146,11 @@ The 11 stubbed tests fall into two groups:
     io.error(formatError(msg, suggestion));
     ```
 - **Changes in discover.ts**: Same pattern for the discover command's catch block.
+- **Changes in index.ts** (lines 48-49, 93): Update `--from` and `--to` option descriptions to hint at valid values:
+  - `'Source agent'` → `'Source agent (built-in: cursor, claude, a16n)'`
+  - `'Target agent'` → `'Target agent (built-in: cursor, claude, a16n)'`
+  - `'Agent to discover'` → `'Agent to discover (built-in: cursor, claude, a16n)'`
+  - This doesn't use `.choices()` (which would break community plugins) — it's purely descriptive.
 - **Changes in cli.test.ts**: Update the two existing error tests to also assert the suggestion text is present in stderr.
 - **Verification**: `pnpm --filter a16n test`
 
@@ -160,7 +180,7 @@ The 11 stubbed tests fall into two groups:
 ### Step 5: Add `engines` to CLI package.json
 
 - **Files**: `packages/cli/package.json`
-- **Changes**: Add `"engines": { "node": ">=18.0.0" }` to match root `package.json`
+- **Changes**: Add `"engines": { "node": ">=20.0.0" }` to match root `package.json`
 - **Verification**: `pnpm install` (no errors)
 
 ### Step 6: Create CONTRIBUTING.md
