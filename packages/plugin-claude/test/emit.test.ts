@@ -1873,6 +1873,12 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
       const skillPath = path.join(tempDir, '.claude', 'skills', 'evil', 'SKILL.md');
       const content = await fs.readFile(skillPath, 'utf-8');
       expect(content).toContain('Evil skill');
+
+      // The path 'subdir/../../sibling/payload.sh' would escape to .claude/skills/sibling/
+      // if not blocked — verify it was never created
+      await expect(
+        fs.access(path.join(tempDir, '.claude', 'skills', 'sibling', 'payload.sh'))
+      ).rejects.toThrow();
     });
 
     it('should reject resource files with empty, dot, or dot-slash paths that resolve to the skill dir', async () => {
@@ -1905,6 +1911,14 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
         const skillPath = path.join(tempDir, '.claude', 'skills', 'evil', 'SKILL.md');
         const content = await fs.readFile(skillPath, 'utf-8');
         expect(content).toContain('Evil skill');
+
+        // No extra files should exist in the skill directory
+        const skillDir = path.join(tempDir, '.claude', 'skills', 'evil');
+        const files = await fs.readdir(skillDir);
+        expect(files, `unexpected files after ${JSON.stringify(filename)} iteration`).toEqual(['SKILL.md']);
+
+        // Clean up between iterations so each starts with a fresh skill directory
+        await fs.rm(path.join(tempDir, '.claude'), { recursive: true, force: true });
       }
     });
 
@@ -1941,6 +1955,39 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
 
       const helper = await fs.readFile(path.join(skillDir, 'resources', 'helper.sh'), 'utf-8');
       expect(helper).toContain('deploying');
+    });
+
+    it('should accept filenames that contain ".." as part of a basename (not a path segment)', async () => {
+      // "notes..md" contains the substring ".." but it is NOT a traversal segment —
+      // it is a valid filename. A raw substring check would falsely reject it.
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/notes/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/notes/SKILL.md',
+          content: 'Notes skill',
+          name: 'notes',
+          description: 'Takes notes',
+          files: {
+            'notes..md': 'double-dot basename',
+            'v1..2.bak': 'versioned backup',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      // No skip warnings — these are valid filenames
+      const skipWarnings = result.warnings.filter(w => w.code === WarningCode.Skipped);
+      expect(skipWarnings).toHaveLength(0);
+
+      const skillDir = path.join(tempDir, '.claude', 'skills', 'notes');
+      const notes = await fs.readFile(path.join(skillDir, 'notes..md'), 'utf-8');
+      expect(notes).toContain('double-dot basename');
+
+      const bak = await fs.readFile(path.join(skillDir, 'v1..2.bak'), 'utf-8');
+      expect(bak).toContain('versioned backup');
     });
   });
 

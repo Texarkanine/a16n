@@ -674,6 +674,13 @@ describe('CLI', () => {
       expect(updatedContent).not.toMatch(
         /# BEGIN a16n managed[\s\S]*conflict\.md[\s\S]*# END a16n managed/
       );
+
+      // Verify git itself no longer considers the file ignored
+      const checkIgnore = spawnSync(
+        'git', ['check-ignore', '-q', '.claude/rules/conflict.md'],
+        { cwd: tempDir }
+      );
+      expect(checkIgnore.status).not.toBe(0); // exit 0 means ignored; non-zero means not ignored
     });
 
     it('should only apply to match mode (ignored in other modes)', async () => {

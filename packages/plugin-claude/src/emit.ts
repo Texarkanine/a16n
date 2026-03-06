@@ -231,7 +231,8 @@ description: ${safeDescription}`;
   // Write all resource files
   const baseDir = path.resolve(skillDir);
   for (const [filename, content] of Object.entries(skill.files)) {
-    if (path.isAbsolute(filename) || filename.includes('..')) {
+    const hasDotDotSegment = filename.split(/[/\\]/).some(seg => seg === '..');
+    if (path.isAbsolute(filename) || hasDotDotSegment) {
       warnings.push({
         code: WarningCode.Skipped,
         message: `Skipped resource with unsafe path: ${filename}`,
