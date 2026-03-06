@@ -18,7 +18,7 @@ import { join, dirname } from 'node:path';
 
 /** Information about a CLI option */
 export interface OptionInfo {
-  /** Option flags (e.g., '-f, --from <agent>') */
+  /** Option flags (e.g., '-f, --from <tool>') */
   flags: string;
   /** Option description */
   description: string;

@@ -6,7 +6,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { A16nEngine, ConversionResult } from '@a16njs/engine';
-import { WarningCode } from '@a16njs/models';
+import { WarningCode, type AgentCustomization } from '@a16njs/models';
 import { formatWarning, formatError, formatSummary } from '../output.js';
 import {
   isGitRepo,
@@ -191,7 +191,15 @@ export async function handleConvert(
       io.log(formatSummary(result.discovered.length, result.written.length, result.warnings.length));
     }
   } catch (error) {
-    io.error(formatError((error as Error).message));
+    const msg = (error as Error).message;
+    let suggestion: string | undefined;
+    if (msg.startsWith('Unknown source') || msg.startsWith('Unknown target')) {
+      try {
+        const ids = engine.listPlugins().map(p => p.id).join(', ');
+        suggestion = `Available tools: ${ids}`;
+      } catch { /* engine may not be fully initialized */ }
+    }
+    io.error(formatError(msg, suggestion));
     io.setExitCode(1);
   }
 }
@@ -208,6 +216,19 @@ async function handleGitIgnore(
   io: CommandIO,
 ): Promise<boolean> {
   verbose(`Planning git-ignore style: ${gitignoreStyle}${options.dryRun ? ' (dry-run)' : ''}`);
+
+  // Match mode handles both new AND existing files (conflict detection on
+  // existing tracked outputs), so it bypasses the new-files-only early return.
+  if (gitignoreStyle === 'match') {
+    try {
+      await handleGitIgnoreMatch(result, resolvedPath, options, verbose);
+      return true;
+    } catch (error) {
+      io.error(formatError((error as Error).message));
+      io.setExitCode(1);
+      return false;
+    }
+  }
 
   const newFiles = result.written
     .filter(w => w.isNewFile)
@@ -245,8 +266,6 @@ async function handleGitIgnore(
         await updatePreCommitHook(resolvedPath, newFiles);
       }
       result.gitIgnoreChanges!.push(plannedResult);
-    } else if (gitignoreStyle === 'match') {
-      await handleGitIgnoreMatch(result, resolvedPath, options, verbose);
     }
     return true;
   } catch (error) {
@@ -410,12 +429,16 @@ interface ConflictRouteContext {
   verbose: (msg: string) => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface SourceStatusEntry {
+  source: AgentCustomization;
+  ignoreSource: string | null;
+}
+
 function routeConflict(
   ctx: ConflictRouteContext,
   relativePath: string,
-  ignoredSources: any[],
-  trackedSources: any[],
+  ignoredSources: SourceStatusEntry[],
+  trackedSources: SourceStatusEntry[],
   outputTracked: boolean,
 ): void {
   if (ctx.conflictResolution === 'skip') {
@@ -425,7 +448,7 @@ function routeConflict(
     ctx.result.warnings.push({
       code: WarningCode.GitStatusConflict,
       message: msg,
-      sources: (outputTracked ? ignoredSources : trackedSources).map((s: any) => s.source.sourcePath).filter((p: any): p is string => p !== undefined),
+      sources: (outputTracked ? ignoredSources : trackedSources).map(s => s.source.sourcePath).filter((p): p is string => p !== undefined),
     });
   } else {
     applyConflictResolution(relativePath, ctx);
@@ -433,18 +456,17 @@ function routeConflict(
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function routeConflictSimple(
   ctx: ConflictRouteContext,
   relativePath: string,
-  sources: any[],
+  sources: AgentCustomization[],
   reason: string,
 ): void {
   if (ctx.conflictResolution === 'skip') {
     ctx.result.warnings.push({
       code: WarningCode.GitStatusConflict,
       message: `Git status conflict: cannot determine status for '${relativePath}' (${reason})`,
-      sources: sources.map((s: any) => s.sourcePath).filter((p: any): p is string => p !== undefined),
+      sources: sources.map(s => s.sourcePath).filter((p): p is string => p !== undefined),
     });
   } else {
     applyConflictResolution(relativePath, ctx);

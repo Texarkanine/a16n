@@ -66,7 +66,7 @@ npx a16n discover --from cursor
 
 ## Next Steps
 
-- [CLI Reference](/cli) - Full command documentation
+- [CLI Overview](/cli) - Full command documentation
 - [Understanding Conversions](/understanding-conversions) - How conversion mapping works
 - [FAQ](/faq) - Common questions and answers
 
