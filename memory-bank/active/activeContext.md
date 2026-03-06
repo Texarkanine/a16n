@@ -4,27 +4,34 @@
 Launch Readiness Polish (task-id: `launch-readiness`)
 
 ## Phase
-PREFLIGHT - COMPLETE (PASS with advisory)
+BUILD - COMPLETE
 
 ## Complexity
 Level 3
 
 ## What Was Done
-- Complexity analysis: Level 3 determined (multiple components across 5+ packages, moderate risk)
-- Creative phase: Full codebase audit completed, findings documented in `memory-bank/active/creative/creative-launch-readiness.md`
-- Plan phase: Complete implementation plan with 8 ordered steps, test plan, component analysis
+- **Step 1**: Security fix — ported path traversal validation from plugin-cursor to plugin-claude's `emitAgentSkillIO`. Added `warnings` parameter and 3-layer validation (absolute path, `..`, resolved prefix). 4 new tests (B1-B4).
+- **Step 2**: Replaced `any` types in `routeConflict` and `routeConflictSimple` with `SourceStatusEntry` and `AgentCustomization` interfaces. Removed eslint-disable comments.
+- **Step 3**: Added dynamic plugin suggestion to `--from`/`--to` error messages. Updated `--from`/`--to`/`--from` help descriptions to list available agents. Made `listPlugins()` call defensive with try/catch.
+- **Step 4**: Implemented all 11 stubbed tests in cli.test.ts (4 conflict detection + 7 conflict resolution). Fixed pre-existing bug: match mode bypassed new-files-only early return in `handleGitIgnore`. Increased CLI test timeout to 15s.
+- **Step 5**: Aligned `engines` to `>=22.0.0` across all 9 packages. Updated docs.yaml to use `.nvmrc` via `node-version-file`.
+- **Step 6**: Created `CONTRIBUTING.md` with prerequisites, getting started, project structure, test commands, PR expectations.
+- **Step 7**: Removed broken `/plugin-cursorrules` link. Fixed "CLI Reference" label to "CLI Overview" in intro.md.
+- **Step 8**: Widened README pitch to communicate plugin extensibility. Added aggregate Codecov badge. Added "Your tool here" row to Supported Tools table.
 
 ## Key Decisions
-- Security fix: Port path traversal validation from plugin-cursor to plugin-claude (exact same pattern)
-- `any` types: Confirmed illegitimate — proper types (`SourceStatusEntry`, `AgentCustomization`) are available and should be used
-- Stubbed tests: All 11 should be **implemented** (not deleted) — they test real, implemented functionality
-- Codecov badge: Default URL (no `?flag=`) shows aggregate coverage across all flags
-- README pitch: Widen to communicate plugin extensibility, not just two tools
-- Docs links: Remove cursorrules link (no docs page exists), fix intro label
+- Fixed pre-existing bug in `handleGitIgnore`: match mode now bypasses the new-files-only early return, enabling conflict detection on existing tracked outputs
+- CLI test timeout increased from default 5s to 15s (git-based integration tests need ~9s)
+- `listPlugins()` wrapped in try/catch for defensive error handling (mock engines may not implement it)
 
-## Preflight Findings
-- Plan amended: `emitAgentSkillIO` needs a `warnings: Warning[]` parameter to report path traversal violations (was returning only `WrittenFile[]`)
-- Plan amended: `--from`/`--to` help descriptions updated to list built-in agents (non-breaking, purely descriptive)
+## Deviations from Plan
+- Step 4 revealed a pre-existing bug (match mode early return) — fixed as part of test implementation
+- No other deviations; all 8 steps built to plan
+
+## Integration Test Results
+- All 865+ tests passing across 8 packages (37 test files)
+- Build passes, typecheck passes
+- No regressions
 
 ## Next Step
-Awaiting operator review of the plan. When approved, run `/niko-build` to begin implementation.
+QA review will now run automatically.

@@ -20,5 +20,12 @@
 - Completeness: PASS — all 9 requirements mapped to concrete steps
 - Plan amended: `emitAgentSkillIO` needs `warnings` param; `--from`/`--to` help text improvements added
 
+### Build Phase
+- Implementation steps completed: 8/8
+- Components built: plugin-claude/emit.ts, cli/convert.ts, cli/discover.ts, cli/index.ts, cli/cli.test.ts, 9x package.json, docs.yaml, CONTRIBUTING.md, README.md, docs links
+- Tests passing: 865+ (including 15 new: 4 security, 11 stubbed-now-implemented)
+- Bug fix: match mode early return in handleGitIgnore (pre-existing)
+- No deviations from plan
+
 ## Current Phase
-- **PREFLIGHT COMPLETE** — Awaiting operator review for Build phase
+- **BUILD COMPLETE** — QA review next
