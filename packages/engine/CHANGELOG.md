@@ -1,5 +1,12 @@
 # @a16njs/engine
 
+## [0.7.0](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@0.6.1...@a16njs/engine@0.7.0) (2026-03-06)
+
+
+### Features
+
+* various polish ([#79](https://github.com/Texarkanine/a16n/issues/79)) ([c42cc28](https://github.com/Texarkanine/a16n/commit/c42cc28731013ae34a767bc1a9a47bc526150e7e))
+
 ## [0.6.1](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@0.6.0...@a16njs/engine@0.6.1) (2026-02-19)
 
 
