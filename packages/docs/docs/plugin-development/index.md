@@ -207,6 +207,6 @@ The `@a16njs/plugin-*` scoped packages are reserved for bundled plugins maintain
 	- [Plugin: Cursor](/plugin-cursor) - Cursor implementation details
 	- [Plugin: Claude](/plugin-claude) - Claude implementation details
 	- [Plugin: a16n](/plugin-a16n) - a16n implementation details
-	- [Plugin: cursorrules](/plugin-cursorrules) - cursorrules implementation details
+	- Community plugins following the `a16n-plugin-*` naming convention can be built using this guide
 - [Understanding Conversions](/understanding-conversions) - Translation can be hard!
 - [GitHub Repository](https://github.com/Texarkanine/a16n) - Source code

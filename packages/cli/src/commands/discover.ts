@@ -98,8 +98,10 @@ export async function handleDiscover(
     const msg = (error as Error).message;
     let suggestion: string | undefined;
     if (msg.startsWith('Unknown source')) {
-      const ids = engine.listPlugins().map(p => p.id).join(', ');
-      suggestion = `Available agents: ${ids}`;
+      try {
+        const ids = engine.listPlugins().map(p => p.id).join(', ');
+        suggestion = `Available agents: ${ids}`;
+      } catch { /* engine may not be fully initialized */ }
     }
     io.error(formatError(msg, suggestion));
     io.setExitCode(1);

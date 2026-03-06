@@ -1,10 +1,11 @@
 # a16n
 
 [![npm version](https://img.shields.io/npm/v/a16n.svg)](https://www.npmjs.com/package/a16n)
+[![codecov](https://codecov.io/github/Texarkanine/a16n/graph/badge.svg)](https://codecov.io/github/Texarkanine/a16n)
 
 **Agent customization portability for AI coding tools.**
 
-Convert your Cursor rules to Claude Code config, or vice versa. Take your agent customization anywhere.
+Convert AI coding agent customizations between tools. Cursor and Claude Code are built-in; more tools are supported via plugins.
 
 ## Quick Start
 
@@ -36,8 +37,9 @@ npm install -g a16n
 
 | Tool | Status |
 |------|--------|
-| Cursor | ✅ Supported |
-| Claude Code | ✅ Supported |
+| Cursor | ✅ Built-in |
+| Claude Code | ✅ Built-in |
+| Your tool here | [Build a plugin](https://texarkanine.github.io/a16n/plugin-development) |
 
 ## Documentation
 
