@@ -1,19 +1,27 @@
 # Active Context
 
 ## Current Task: CLI Coverage Hardening
-**Phase:** PLAN - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Analyzed vitest coverage config across all packages (consistent `v8` provider, `src/**/*.ts` include pattern)
-- Researched vitest subprocess coverage: confirmed it's a known limitation (issue #7064, p2-nice-to-have). `NODE_V8_COVERAGE` workaround exists but requires custom merge tooling — not worth the complexity for this project.
-- Identified `io.ts` as the only pure-interface file needing exclusion
-- Planned 10 specific behavioral tests (B1-B10) for handleDeleteSource and handleGitIgnoreMatch
-- All tests extend existing `convert.test.ts` using established mock patterns
+- Excluded `src/commands/io.ts` from coverage in `packages/cli/vitest.config.ts`
+- Documented E2E coverage limitation in `packages/cli/test/cli.test.ts` (vitest#7064)
+- Added 10 new behavioral unit tests (B1-B10) in `packages/cli/test/commands/convert.test.ts`:
+  - B1-B3: handleDeleteSource safety guards (path traversal, skippedSources, unlink failure)
+  - B4-B10: handleGitIgnoreMatch routing (gitignore, exclude, tracked, mixed-status, different-files, existing-file conflicts)
 
-## Key Decisions
-- E2E coverage: **not pursuing** — cost/complexity of custom merge tooling outweighs benefit given we're adding unit tests for the critical paths
-- output.ts: **not testing** per user directive — whitebox testing of warning rendering is brittle
-- All new tests go in existing `convert.test.ts` — no new test files
+## Files Modified
+- `packages/cli/vitest.config.ts` — added io.ts to coverage exclude
+- `packages/cli/test/cli.test.ts` — added NOTE about E2E coverage limitation
+- `packages/cli/test/commands/convert.test.ts` — added 10 new tests, 3 new imports
+
+## Coverage Impact
+- Overall: 78.19% → 86.59% (+8.4pp)
+- convert.ts: 64.38% → 81.83% (+17.5pp), functions 88.88% → 100%
+- io.ts removed from report (pure interface)
+
+## Deviations from Plan
+- Added `beforeEach(() => vi.clearAllMocks())` inside the routing describe block — needed to prevent mock state leaking between tests in the shared vi.mock scope. Standard vitest practice.
 
 ## Next Step
-- Preflight validation, then build
+- QA review

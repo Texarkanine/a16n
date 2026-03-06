@@ -8,7 +8,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const tempDir = path.join(__dirname, '.temp-cli-test');
 const cliPath = path.join(__dirname, '..', 'dist', 'index.js');
 
-// Helper to run CLI
+// NOTE: These E2E tests spawn the CLI as a subprocess via spawnSync, so they
+// do NOT contribute to v8 coverage (vitest-dev/vitest#7064). Behavioral
+// coverage of the code paths exercised here is handled by unit tests in
+// commands/convert.test.ts and commands/discover.test.ts.
 function runCli(args: string, cwd: string = tempDir): { stdout: string; stderr: string; exitCode: number } {
   const result = spawnSync('node', [cliPath, ...args.split(' ')], {
     cwd,
