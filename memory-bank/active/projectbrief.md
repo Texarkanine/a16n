@@ -12,7 +12,7 @@ As the maintainer of a16n preparing for a public announcement (Show HN / LinkedI
 2. **Missing CONTRIBUTING.md** — README links to it, it doesn't exist
 3. **Broken docs links** — `/plugin-cursorrules` 404, CLI reference mismatch, intro link mismatch
 4. **Improve invalid --from/--to error messages** — Add suggestion text when engine throws "Unknown source/target"
-5. **Add `engines` to CLI package.json** — `"node": ">=20.0.0"`, ensure all packages are updated to match and .nvmrc & CI (should defer to .nvmrc for Node version); Node 20 is the oldest version we'll attempt to support.
+5. **Align `engines` across all packages** — `"node": ">=22.0.0"` (Node 22 is active LTS, Node 20 goes EOL April 2026). All published packages get the field. `.nvmrc` (24) stays as the dev version. CI defers to `.nvmrc`; `docs.yaml` needs fixing (hardcodes node 22 instead of `.nvmrc`).
 
 ### Added by operator
 

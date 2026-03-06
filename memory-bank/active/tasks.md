@@ -109,21 +109,27 @@ The 11 stubbed tests fall into two groups:
 
 ### Step 2: Fix `any` types in convert.ts
 
-**No TDD cycle needed** — this is a pure type-annotation change with zero behavioral impact. No new runtime code, no new tests needed. Existing tests cover the behavior.
+**No TDD cycle needed** — this is a pure type-annotation change with zero behavioral impact. No new runtime code, no new tests needed. Existing tests cover the behavior. The type alias is a compile-time construct only (like `ConflictRouteContext` already in this file).
 
 - **Files**: `packages/cli/src/commands/convert.ts`
 - **Changes**:
   1. Add to existing import line 9: `import { WarningCode } from '@a16njs/models';` → `import { WarningCode, type AgentCustomization } from '@a16njs/models';`
-  2. Change `routeConflict` signature (line 414):
-     - `ignoredSources: any[]` → `ignoredSources: { source: AgentCustomization; ignoreSource: string | null }[]`
-     - `trackedSources: any[]` → `trackedSources: { source: AgentCustomization; ignoreSource: string | null }[]`
+  2. Add named type alias near `ConflictRouteContext` (~line 403) for readability:
+     ```typescript
+     interface SourceStatusEntry {
+       source: AgentCustomization;
+       ignoreSource: string | null;
+     }
+     ```
+  3. Change `routeConflict` signature (line 414):
+     - `ignoredSources: any[]` → `ignoredSources: SourceStatusEntry[]`
+     - `trackedSources: any[]` → `trackedSources: SourceStatusEntry[]`
      - Remove `// eslint-disable-next-line @typescript-eslint/no-explicit-any` above the function
      - Remove `(s: any)` casts on line 428 — TypeScript infers correctly from the typed params
-  3. Change `routeConflictSimple` signature (line 437):
+  4. Change `routeConflictSimple` signature (line 437):
      - `sources: any[]` → `sources: AgentCustomization[]`
      - Remove `// eslint-disable-next-line @typescript-eslint/no-explicit-any` above the function
      - Remove `(s: any)` and `(p: any)` casts on line 447
-  4. **No new interface/type alias.** The inline object type is used in two params of one function — not enough repetition to justify a named type. `ConflictRouteContext` (line 403) is a named interface because it's shared across 3 functions; these types are used in exactly one.
 - **Verification**: `pnpm --filter a16n typecheck && pnpm --filter a16n test`
 
 ### Step 3: Improve invalid --from/--to error messages
@@ -175,20 +181,20 @@ The 11 stubbed tests fall into two groups:
 
 - **Verification**: `pnpm --filter a16n test`
 
-### Step 5: Align `engines` across all packages to `>=20.0.0`
+### Step 5: Align `engines` across all packages to `>=22.0.0`
 
-Node 20 is the oldest version we'll attempt to support. `.nvmrc` (24) is the development version; `engines` is the minimum supported version. CI already defers to `.nvmrc` via `node-version-file`.
+The code technically only needs Node 18+, but Node 18 is already EOL and Node 20 goes EOL in April 2026. Node 22 is the active LTS (EOL April 2027) — the right floor for a project launching in March 2026. `.nvmrc` (24) is the development version; `engines` is the minimum supported version. CI already defers to `.nvmrc` via `node-version-file`.
 
 - **Files**:
-  - `package.json` (root): `>=18.0.0` → `>=20.0.0`
-  - `packages/cli/package.json`: missing → add `"engines": { "node": ">=20.0.0" }`
-  - `packages/engine/package.json`: missing → add `"engines": { "node": ">=20.0.0" }`
-  - `packages/models/package.json`: missing → add `"engines": { "node": ">=20.0.0" }`
-  - `packages/plugin-cursor/package.json`: missing → add `"engines": { "node": ">=20.0.0" }`
-  - `packages/plugin-claude/package.json`: missing → add `"engines": { "node": ">=20.0.0" }`
-  - `packages/plugin-a16n/package.json`: missing → add `"engines": { "node": ">=20.0.0" }`
-  - `packages/glob-hook/package.json`: `>=18.0.0` → `>=20.0.0`
-  - `packages/docs/package.json`: `>=18.0` → `>=20.0.0`
+  - `package.json` (root): `>=18.0.0` → `>=22.0.0`
+  - `packages/cli/package.json`: missing → add `"engines": { "node": ">=22.0.0" }`
+  - `packages/engine/package.json`: missing → add `"engines": { "node": ">=22.0.0" }`
+  - `packages/models/package.json`: missing → add `"engines": { "node": ">=22.0.0" }`
+  - `packages/plugin-cursor/package.json`: missing → add `"engines": { "node": ">=22.0.0" }`
+  - `packages/plugin-claude/package.json`: missing → add `"engines": { "node": ">=22.0.0" }`
+  - `packages/plugin-a16n/package.json`: missing → add `"engines": { "node": ">=22.0.0" }`
+  - `packages/glob-hook/package.json`: `>=18.0.0` → `>=22.0.0`
+  - `packages/docs/package.json`: `>=18.0` → `>=22.0.0`
   - `.github/workflows/docs.yaml`: hardcoded `node-version: '22'` → `node-version-file: ".nvmrc"` (align with other workflows)
 - **Verification**: `pnpm install` (no errors), `git --no-pager diff` to confirm all changes
 
