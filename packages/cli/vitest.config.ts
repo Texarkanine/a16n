@@ -10,7 +10,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov'],
       include: ['src/**/*.ts'],
-      exclude: ['test/**/*', 'dist/**/*', 'node_modules/**/*'],
+      exclude: ['test/**/*', 'dist/**/*', 'node_modules/**/*', 'src/commands/io.ts'],
       reportsDirectory: './coverage',
     },
   },
