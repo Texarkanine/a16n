@@ -95,7 +95,13 @@ export async function handleDiscover(
       }
     }
   } catch (error) {
-    io.error(formatError((error as Error).message));
+    const msg = (error as Error).message;
+    let suggestion: string | undefined;
+    if (msg.startsWith('Unknown source')) {
+      const ids = engine.listPlugins().map(p => p.id).join(', ');
+      suggestion = `Available agents: ${ids}`;
+    }
+    io.error(formatError(msg, suggestion));
     io.setExitCode(1);
   }
 }

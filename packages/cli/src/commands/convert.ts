@@ -191,7 +191,13 @@ export async function handleConvert(
       io.log(formatSummary(result.discovered.length, result.written.length, result.warnings.length));
     }
   } catch (error) {
-    io.error(formatError((error as Error).message));
+    const msg = (error as Error).message;
+    let suggestion: string | undefined;
+    if (msg.startsWith('Unknown source') || msg.startsWith('Unknown target')) {
+      const ids = engine.listPlugins().map(p => p.id).join(', ');
+      suggestion = `Available agents: ${ids}`;
+    }
+    io.error(formatError(msg, suggestion));
     io.setExitCode(1);
   }
 }
@@ -208,6 +214,19 @@ async function handleGitIgnore(
   io: CommandIO,
 ): Promise<boolean> {
   verbose(`Planning git-ignore style: ${gitignoreStyle}${options.dryRun ? ' (dry-run)' : ''}`);
+
+  // Match mode handles both new AND existing files (conflict detection on
+  // existing tracked outputs), so it bypasses the new-files-only early return.
+  if (gitignoreStyle === 'match') {
+    try {
+      await handleGitIgnoreMatch(result, resolvedPath, options, verbose);
+      return true;
+    } catch (error) {
+      io.error(formatError((error as Error).message));
+      io.setExitCode(1);
+      return false;
+    }
+  }
 
   const newFiles = result.written
     .filter(w => w.isNewFile)
@@ -245,8 +264,6 @@ async function handleGitIgnore(
         await updatePreCommitHook(resolvedPath, newFiles);
       }
       result.gitIgnoreChanges!.push(plannedResult);
-    } else if (gitignoreStyle === 'match') {
-      await handleGitIgnoreMatch(result, resolvedPath, options, verbose);
     }
     return true;
   } catch (error) {
