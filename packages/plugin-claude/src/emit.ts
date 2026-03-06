@@ -186,13 +186,13 @@ async function emitAgentSkillIO(
   const baseName = sanitizeFilename(skill.name);
   const skillName = getUniqueFilename(baseName, usedSkillNames);
 
-  const skillDir = path.join(root, '.claude', 'skills', skillName);
+  const skillDir = path.resolve(root, '.claude', 'skills', skillName);
   if (!dryRun) {
     await fs.mkdir(skillDir, { recursive: true });
   }
 
   // Write SKILL.md with full frontmatter
-  const skillPath = path.join(skillDir, 'SKILL.md');
+  const skillPath = path.resolve(skillDir, 'SKILL.md');
   const safeName = JSON.stringify(skill.name);
   const safeDescription = JSON.stringify(skill.description);
   
@@ -246,6 +246,16 @@ description: ${safeDescription}`;
       warnings.push({
         code: WarningCode.Skipped,
         message: `Skipped resource outside skill directory: ${filename}`,
+        sources: skill.sourcePath ? [skill.sourcePath] : [],
+      });
+      continue;
+    }
+
+    if (path.basename(resolvedPath).toLowerCase() === 'skill.md' &&
+        path.dirname(resolvedPath) === skillDir) {
+      warnings.push({
+        code: WarningCode.Skipped,
+        message: `Skipped resource that would overwrite canonical SKILL.md: ${filename}`,
         sources: skill.sourcePath ? [skill.sourcePath] : [],
       });
       continue;

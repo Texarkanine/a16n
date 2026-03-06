@@ -1957,6 +1957,50 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
       expect(helper).toContain('deploying');
     });
 
+    it('should reject resource files named SKILL.md (case-insensitive) to prevent overwriting the canonical skill file', async () => {
+      const canonicalContent = 'The real skill description';
+      const overwriteAttempts: Record<string, string> = {
+        'SKILL.md': 'overwritten-uppercase',
+        'skill.md': 'overwritten-lowercase',
+        'Skill.MD': 'overwritten-mixed',
+      };
+
+      for (const [filename, badContent] of Object.entries(overwriteAttempts)) {
+        const models: AgentSkillIO[] = [
+          {
+            id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/target/SKILL.md'),
+            type: CustomizationType.AgentSkillIO,
+            sourcePath: '.cursor/skills/target/SKILL.md',
+            content: canonicalContent,
+            name: 'target',
+            description: 'Real skill',
+            files: {
+              [filename]: badContent,
+            },
+            metadata: {},
+          },
+        ];
+
+        const result = await claudePlugin.emit(models, tempDir);
+
+        // A skip warning must be emitted
+        const skipWarnings = result.warnings.filter(w => w.code === WarningCode.Skipped);
+        expect(
+          skipWarnings.length,
+          `expected skip warning for resource named ${JSON.stringify(filename)}`
+        ).toBeGreaterThanOrEqual(1);
+
+        // The canonical SKILL.md must contain the original content, not the resource content
+        const skillPath = path.join(tempDir, '.claude', 'skills', 'target', 'SKILL.md');
+        const written = await fs.readFile(skillPath, 'utf-8');
+        expect(written, `canonical SKILL.md was overwritten by resource ${JSON.stringify(filename)}`).toContain(canonicalContent);
+        expect(written).not.toContain(badContent);
+
+        // Clean up between iterations
+        await fs.rm(path.join(tempDir, '.claude'), { recursive: true, force: true });
+      }
+    });
+
     it('should accept filenames that contain ".." as part of a basename (not a path segment)', async () => {
       // "notes..md" contains the substring ".." but it is NOT a traversal segment —
       // it is a valid filename. A raw substring check would falsely reject it.
