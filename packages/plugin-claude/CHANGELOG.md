@@ -1,5 +1,12 @@
 # @a16njs/plugin-claude
 
+## [0.12.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.11.2...@a16njs/plugin-claude@0.12.0) (2026-03-06)
+
+
+### Features
+
+* various polish ([#79](https://github.com/Texarkanine/a16n/issues/79)) ([c42cc28](https://github.com/Texarkanine/a16n/commit/c42cc28731013ae34a767bc1a9a47bc526150e7e))
+
 ## [0.11.2](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.11.1...@a16njs/plugin-claude@0.11.2) (2026-03-05)
 
 
