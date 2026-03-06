@@ -1875,6 +1875,39 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
       expect(content).toContain('Evil skill');
     });
 
+    it('should reject resource files with empty, dot, or dot-slash paths that resolve to the skill dir', async () => {
+      const dangerousFilenames = ['', '.', './'];
+      for (const filename of dangerousFilenames) {
+        const models: AgentSkillIO[] = [
+          {
+            id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/evil/SKILL.md'),
+            type: CustomizationType.AgentSkillIO,
+            sourcePath: '.cursor/skills/evil/SKILL.md',
+            content: 'Evil skill',
+            name: 'evil',
+            description: 'Tries to write to skill dir itself',
+            files: {
+              [filename]: 'would cause EISDIR',
+            },
+            metadata: {},
+          },
+        ];
+
+        const result = await claudePlugin.emit(models, tempDir);
+
+        const skipWarnings = result.warnings.filter(w => w.code === WarningCode.Skipped);
+        expect(
+          skipWarnings.some(w => w.message.includes('unsafe') || w.message.includes('outside')),
+          `expected filename ${JSON.stringify(filename)} to be skipped`
+        ).toBe(true);
+
+        // SKILL.md should still be written
+        const skillPath = path.join(tempDir, '.claude', 'skills', 'evil', 'SKILL.md');
+        const content = await fs.readFile(skillPath, 'utf-8');
+        expect(content).toContain('Evil skill');
+      }
+    });
+
     it('should accept valid resource filenames including nested paths', async () => {
       const models: AgentSkillIO[] = [
         {

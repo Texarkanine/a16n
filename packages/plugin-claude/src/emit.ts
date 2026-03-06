@@ -241,7 +241,7 @@ description: ${safeDescription}`;
     }
 
     const resolvedPath = path.resolve(skillDir, filename);
-    if (!resolvedPath.startsWith(baseDir + path.sep) && resolvedPath !== baseDir) {
+    if (!resolvedPath.startsWith(baseDir + path.sep)) {
       warnings.push({
         code: WarningCode.Skipped,
         message: `Skipped resource outside skill directory: ${filename}`,
