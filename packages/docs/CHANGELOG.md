@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.9.0...@a16njs/docs@0.10.0) (2026-03-15)
+
+
+### Features
+
+* **docs:** Why Not Hooks ([#82](https://github.com/Texarkanine/a16n/issues/82)) ([3ea32ae](https://github.com/Texarkanine/a16n/commit/3ea32ae2b3d31c2b3c362a1039240c98d50d0e4d))
+
 ## [0.9.0](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.8.2...@a16njs/docs@0.9.0) (2026-03-06)
 
 
