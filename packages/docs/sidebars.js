@@ -20,7 +20,14 @@ const sidebars = {
       label: 'a16n',
       items: [
         'intro',
-        'understanding-conversions/index',
+        {
+          type: 'category',
+          label: 'Understanding Conversions',
+          items: [
+            'understanding-conversions/index',
+            'understanding-conversions/hooks',
+          ],
+        },
         'plugin-development/index',
         'faq',
       ],
