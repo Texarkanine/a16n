@@ -1,9 +1,9 @@
 ---
-title: Understanding Conversions
+title: Core Concepts
 description: How a16n converts agent customization between different AI coding tools
 ---
 
-# Understanding Conversions
+# Core Concepts
 
 Different AI coding tools model agent customization differently. a16n translates between them with one primary goal:
 
@@ -77,6 +77,7 @@ Some features simply do not exist in the target toolchain. These are skipped and
 | ----------------- | ------ | ------ | --------------------------------------------------------- |
 | Complex Commands  | Cursor | Claude | `$ARGUMENTS`, `!`, and `allowed-tools` have no equivalent |
 | Skills with hooks | Claude | Cursor | Hooks are Claude-specific                                 |
+| Hooks             | Any    | Any    | [Not convertible](./hooks)                                |
 
 ## Structural Differences and Non-Invertibility
 
