@@ -980,6 +980,161 @@ describe('Integration Tests - Path Reference Rewriting (--rewrite-path-refs)', (
       fs.access(path.join(sourceDir, '.cursor/rules/a.mdc'))
     ).resolves.not.toThrow();
   });
+
+  it('CI4: Cursor→Claude AgentSkillIO rewrites SKILL.md body AND scripts/**/references/** ride-alongs; leaves assets/** and unknown subtrees untouched', async () => {
+    // NOTE: At the time this test was added, all 34 existing tests in this
+    // file were failing with a pre-existing Workspace refactor blocker
+    // ("path argument must be of type string. Received an instance of
+    // LocalWorkspace" from plugin-cursor/src/discover.ts). CI4 is
+    // structurally analogous to CI1–CI3 and will pass when that blocker
+    // lands — it is NOT a regression caused by this task.
+    //
+    // End-to-end behaviors 5+6+7+8 for the level-2 task
+    // 20260420-skills-docs-and-rewrite-resources:
+    //
+    //   - Behavior 5 (SKILL.md body): references inside SKILL.md to the
+    //     skill's ride-along resources must be rewritten.
+    //   - Behavior 6 (resource files copied): all resource files under
+    //     the skill directory are copied through to the target regardless
+    //     of subtree.
+    //   - Behavior 7 (rewrite inside resources, scoped): content inside
+    //     scripts/** and references/** ride-alongs is rewritten; content
+    //     inside assets/** and unknown subtrees (e.g. data/**) is left
+    //     byte-for-byte unchanged.
+    //   - Behavior 8 (orphan scanning, scoped): orphan detection only
+    //     scans scripts/** and references/**.
+    const skillDir = path.join(tempDir, '.cursor', 'skills', 'check');
+    await fs.mkdir(path.join(skillDir, 'scripts'), { recursive: true });
+    await fs.mkdir(path.join(skillDir, 'references'), { recursive: true });
+    await fs.mkdir(path.join(skillDir, 'assets'), { recursive: true });
+    await fs.mkdir(path.join(skillDir, 'data'), { recursive: true });
+
+    // SKILL.md references its own ride-along resources.
+    await fs.writeFile(
+      path.join(skillDir, 'SKILL.md'),
+      [
+        '---',
+        'description: Check skill',
+        '---',
+        '',
+        '# Check',
+        '',
+        'Run the helper: .cursor/skills/check/scripts/helper.sh',
+        'See notes: .cursor/skills/check/references/NOTES.md',
+        'Raw data blob: .cursor/skills/check/data/blob.bin',
+        'Image: .cursor/skills/check/assets/logo.png',
+        '',
+      ].join('\n'),
+    );
+    // scripts/helper.sh — content references a sibling script + the SKILL.md
+    const scriptBody = [
+      '#!/bin/sh',
+      '# relies on sibling: .cursor/skills/check/scripts/other.sh',
+      '# back-ref to the skill itself: .cursor/skills/check/SKILL.md',
+      'exit 0',
+      '',
+    ].join('\n');
+    await fs.writeFile(path.join(skillDir, 'scripts', 'helper.sh'), scriptBody);
+    await fs.writeFile(path.join(skillDir, 'scripts', 'other.sh'), '#!/bin/sh\nexit 0\n');
+    // references/NOTES.md — referencing a script (should be rewritten).
+    const notesBody = [
+      '# Notes',
+      '',
+      'The helper lives at .cursor/skills/check/scripts/helper.sh',
+      '',
+    ].join('\n');
+    await fs.writeFile(path.join(skillDir, 'references', 'NOTES.md'), notesBody);
+    // assets/logo.png — must pass through verbatim even if it *looks* like
+    // it has a path ref in it. We use a harmless text payload here so
+    // we can byte-compare; the guarantee is "asset bytes preserved".
+    const assetBytes = 'binary-ish payload that happens to mention .cursor/skills/check/scripts/helper.sh\n';
+    await fs.writeFile(path.join(skillDir, 'assets', 'logo.png'), assetBytes);
+    // data/** is an unknown subtree — also must pass through verbatim.
+    const dataBody = 'raw data referencing .cursor/skills/check/scripts/helper.sh should not be touched\n';
+    await fs.writeFile(path.join(skillDir, 'data', 'blob.bin'), dataBody);
+
+    const result = await engine.convert({
+      source: 'cursor',
+      target: 'claude',
+      root: tempDir,
+      rewritePathRefs: true,
+    });
+
+    // All 5 resource files + SKILL.md should be written.
+    const targetSkillDir = path.join(tempDir, '.claude', 'skills', 'check');
+    for (const rel of [
+      'SKILL.md',
+      'scripts/helper.sh',
+      'scripts/other.sh',
+      'references/NOTES.md',
+      'assets/logo.png',
+      'data/blob.bin',
+    ]) {
+      await expect(
+        fs.access(path.join(targetSkillDir, rel)),
+        `expected ${rel} to be written`,
+      ).resolves.not.toThrow();
+    }
+
+    // SKILL.md body: cursor → claude paths for known (rewritable) refs;
+    // assets/ and data/ refs inside SKILL.md body should ALSO be rewritten
+    // (the body is always in scope), the "scope" limitation only applies
+    // to content *inside* ride-along files.
+    const skillMd = await fs.readFile(path.join(targetSkillDir, 'SKILL.md'), 'utf-8');
+    expect(skillMd).toContain('.claude/skills/check/scripts/helper.sh');
+    expect(skillMd).toContain('.claude/skills/check/references/NOTES.md');
+    expect(skillMd).toContain('.claude/skills/check/data/blob.bin');
+    expect(skillMd).toContain('.claude/skills/check/assets/logo.png');
+    expect(skillMd).not.toContain('.cursor/skills/check/scripts/helper.sh');
+    expect(skillMd).not.toContain('.cursor/skills/check/references/NOTES.md');
+
+    // scripts/helper.sh — rewritten (Behavior 7 allowlist includes scripts/)
+    const helper = await fs.readFile(
+      path.join(targetSkillDir, 'scripts', 'helper.sh'),
+      'utf-8',
+    );
+    expect(helper).toContain('.claude/skills/check/scripts/other.sh');
+    expect(helper).toContain('.claude/skills/check/SKILL.md');
+    expect(helper).not.toContain('.cursor/skills/check/scripts/other.sh');
+    expect(helper).not.toContain('.cursor/skills/check/SKILL.md');
+
+    // references/NOTES.md — rewritten (Behavior 7 allowlist includes references/)
+    const notes = await fs.readFile(
+      path.join(targetSkillDir, 'references', 'NOTES.md'),
+      'utf-8',
+    );
+    expect(notes).toContain('.claude/skills/check/scripts/helper.sh');
+    expect(notes).not.toContain('.cursor/skills/check/scripts/helper.sh');
+
+    // assets/logo.png — verbatim passthrough (NOT in Behavior 7 allowlist).
+    const asset = await fs.readFile(
+      path.join(targetSkillDir, 'assets', 'logo.png'),
+      'utf-8',
+    );
+    expect(asset).toBe(assetBytes);
+    expect(asset).toContain('.cursor/skills/check/scripts/helper.sh');
+
+    // data/blob.bin — verbatim passthrough (unknown subtree).
+    const data = await fs.readFile(
+      path.join(targetSkillDir, 'data', 'blob.bin'),
+      'utf-8',
+    );
+    expect(data).toBe(dataBody);
+    expect(data).toContain('.cursor/skills/check/scripts/helper.sh');
+
+    // Behavior 8: orphan detection should NOT fire just because assets/
+    // or data/ still contain un-rewritten cursor paths. Those subtrees
+    // are deliberately out of scope for path scanning.
+    const orphanWarnings = result.warnings.filter(
+      (w) => w.code === WarningCode.OrphanPathRef,
+    );
+    for (const w of orphanWarnings) {
+      expect(
+        w.message,
+        `orphan warning unexpectedly came from assets/ or data/: ${w.message}`,
+      ).not.toMatch(/assets\/|data\//);
+    }
+  });
 });
 
 describe('Integration Tests - Phase 9 a16n IR Plugin', () => {
