@@ -1779,6 +1779,68 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
       const file1 = await fs.readFile(path.join(skillDir, 'file1.txt'), 'utf-8');
       expect(file1).toBe('Content 1');
     });
+
+    it('should populate sourcePaths on resource WrittenFiles (not on SKILL.md)', async () => {
+      // Behavior 4 (Level 2 task 20260420-skills-docs-and-rewrite-resources):
+      // Symmetric to cursor Behavior 3. Resource WrittenFiles must carry
+      // explicit sourcePaths so path-rewriter.buildMapping keys them
+      // correctly. SKILL.md keeps legacy sourceItems-only plumbing.
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/check/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/check/SKILL.md',
+          content: 'Check skill',
+          name: 'check',
+          description: 'Check skill',
+          files: {
+            'scripts/gotthis.sh': '#!/bin/sh\necho hi',
+            'references/NOTES.md': 'Some notes',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      const skillMd = result.written.find((w) => w.path.endsWith('SKILL.md'));
+      const scriptFile = result.written.find((w) => w.path.endsWith('gotthis.sh'));
+      const refFile = result.written.find((w) => w.path.endsWith('NOTES.md'));
+
+      expect(skillMd).toBeDefined();
+      expect(scriptFile).toBeDefined();
+      expect(refFile).toBeDefined();
+
+      // SKILL.md keeps legacy sourceItems-only plumbing
+      expect(skillMd!.sourcePaths).toBeUndefined();
+
+      // Resource files carry explicit sourcePaths (POSIX separators)
+      expect(scriptFile!.sourcePaths).toEqual(['.cursor/skills/check/scripts/gotthis.sh']);
+      expect(refFile!.sourcePaths).toEqual(['.cursor/skills/check/references/NOTES.md']);
+    });
+
+    it('should omit sourcePaths when skill has no sourcePath (IR-built test case)', async () => {
+      // Edge case: skill built in-memory without a sourcePath. The resource
+      // WrittenFile must simply omit sourcePaths — no crash, no bogus entry.
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, 'ir-built/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          content: 'IR-built skill',
+          name: 'irbuilt',
+          description: 'IR-built skill',
+          files: {
+            'scripts/a.sh': '#!/bin/sh\n',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+      const scriptFile = result.written.find((w) => w.path.endsWith('a.sh'));
+      expect(scriptFile).toBeDefined();
+      expect(scriptFile!.sourcePaths).toBeUndefined();
+    });
   });
 
   describe('resource file path traversal prevention', () => {
