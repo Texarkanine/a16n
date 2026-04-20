@@ -25,10 +25,13 @@ npm install @a16njs/plugin-cursor
 	* `globs: ...`: FileRule
 	* `description: "..."`: [SimpleAgentSkill](/models#simpleagentskill)
 * [Cursor Skills](https://cursor.com/docs/context/skills): `.cursor/skills/**/*.md`
-	* Simple Skills
-		* `disable-model-invocation: true`: [ManualPrompt](/models#manualprompt)
-		* others: [SimpleAgentSkill](/models#simpleagentskill)
-	* Complex Skills (more than one file): Skipped
+	* **Complex Skills** (SKILL.md + ride-along files in the skill directory):
+		* `description:` present → [AgentSkillIO](/models#agentskillio) (SKILL.md **and** every ride-along file under `scripts/`, `references/`, `assets/`, etc. are all converted)
+		* `description:` missing → Skipped w/ Warning (regardless of `disable-model-invocation`)
+	* **Simple Skills** (only SKILL.md, no ride-along files):
+		* `disable-model-invocation: true` → [ManualPrompt](/models#manualprompt)
+		* `description:` present → [SimpleAgentSkill](/models#simpleagentskill)
+		* Neither → Skipped w/ Warning
 * [Cursor Commands](https://cursor.com/docs/context/commands): `.cursor/commands/**/*.md`
 	* Simple Commands: [ManualPrompt](/models#manualprompt)
 	* Complex Commands (placeholders, $ARGUMENTS, $1, etc.): Skipped
@@ -40,6 +43,7 @@ npm install @a16njs/plugin-cursor
 * [GlobalPrompt](/models#globalprompt): Cursor Rule with `alwaysApply: true`
 * [FileRule](/models#filerule): Cursor Rule with `globs: ...`
 * [SimpleAgentSkill](/models#simpleagentskill): Cursor Skill
+* [AgentSkillIO](/models#agentskillio): Cursor Skill directory (SKILL.md **and** all ride-along files under `scripts/`, `references/`, `assets/`, etc.)
 * [AgentIgnore](/models#agentignore): `.cursorignore` entry
 * [ManualPrompt](/models#manualprompt): Cursor Command
 
