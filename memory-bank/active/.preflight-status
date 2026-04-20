@@ -17,6 +17,8 @@ advisory_findings:
     end-to-end. Symmetric, small extension to existing work.
   - systemPatterns.md documents the Claude SKILL.md classification priority but not the
     Cursor one. A follow-up (out of scope) could add the Cursor priority order for parity.
-  - Broader refactor (out of scope): every plugin could populate `WrittenFile.sourcePaths`
-    explicitly, allowing `buildMapping` to drop its `sourceItems`-based fallback. Would
-    unify the mapping derivation to a single code path but touches every plugin emit.
+  - [PROMOTED] Broader refactor: every plugin could populate `WrittenFile.sourcePaths`
+    explicitly, allowing `buildMapping` to drop its `sourceItems`-based fallback. Captured
+    as a Level 3 follow-up in `planning/writtenfile-clean-break.md`. Do NOT attempt in
+    this task. The Behavior 2b collision-detection lint (added 2026-04-20 amendment)
+    gives us runtime safety in the interim.

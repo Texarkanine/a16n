@@ -40,6 +40,15 @@ Skip conditions are derived directly from the priority order in `packages/plugin
 * [input/action] `WrittenFile` with **both** `sourceItems` (pointing at S) and explicit `sourcePaths: [R]` → [expected] mapping contains `R → target`; the `sourceItems` path `S` is **NOT** mapped via that WrittenFile (prevents the clobber described above).
 * [input/action] `WrittenFile` with no `sourcePaths` and `sourceItems: [item]` → [expected] mapping uses `item.sourcePath` (existing behavior preserved).
 
+**Behavior 2b — Ambiguous-mapping collision detection (engine):**
+
+Defensive lint to surface the class of bug this task fixes if another 1:N-emit pattern is introduced in the future without populating `sourcePaths`.
+
+* [input/action] Two `WrittenFile`s in the same `buildMapping` call whose derived source paths collide on the SAME key but map to DIFFERENT targets → [expected] `buildMapping` returns a mapping (last-writer-wins, today's behaviour) AND emits a `Warning` with `WarningCode.Approximated` (or a dedicated code if introduced during build) whose message names the colliding source path, both candidate targets, and advises populating `sourcePaths` explicitly on the emitting plugin.
+* [input/action] Two `WrittenFile`s whose derived source paths collide on the same key AND map to the same target (legitimate duplicate — e.g., idempotent merge) → [expected] no warning.
+* [input/action] Same-key collisions produced from `sourcePaths` (not the `sourceItems` fallback) → [expected] still warned, for symmetry (a plugin author could make this mistake in the explicit path too).
+* Contract change: `buildMapping` currently returns `PathMapping` directly. Tactical option A: change return type to `{ mapping: PathMapping; warnings: Warning[] }`. Option B: keep the return type and accept an optional `warnings: Warning[]` out-parameter. **Decision: Option A** — cleaner, no mutation, matches the `detectOrphans` style. The single production caller is `packages/engine/src/transformation.ts:112` — it destructures and merges the returned warnings into the overall conversion result. Existing `buildMapping` unit tests (`path-rewriter.test.ts` P1–P4) all call `mapping.get(...)` directly; they need a one-line update to `buildMapping(...).mapping.get(...)`.
+
 **Behavior 3 — cursor-plugin emit populates `sourcePaths` for resources:**
 * [input/action] Emit a cursor `AgentSkillIO` with `sourcePath: '.cursor/skills/check/SKILL.md'` and one resource file `'scripts/gotthis.sh'` → [expected] the resource's `WrittenFile.sourcePaths` contains `'.cursor/skills/check/scripts/gotthis.sh'` (POSIX separators). SKILL.md `WrittenFile` still uses `sourceItems` only (existing).
 * Edge case: skill with no resources → no new `sourcePaths` entries; no regression.
@@ -54,8 +63,9 @@ Skip conditions are derived directly from the priority order in `packages/plugin
 * [expected] No orphan-ref warning for that path.
 
 **Behavior 6 — existing path-rewriter behavior preserved (regression):**
-* Existing `path-rewriter.test.ts` tests (P1–P12 or equivalent) continue to pass unchanged.
+* Existing `path-rewriter.test.ts` tests (P1–P12 or equivalent) continue to pass, updated only to destructure the new `{ mapping, warnings }` return shape (no semantic change).
 * Existing cursor/claude `emit.test.ts` assertions on `sourceItems` continue to pass (we are *adding* `sourcePaths`, not replacing `sourceItems`).
+* `transformation.test.ts` continues to pass; any tests asserting the exact `warnings` array may need to account for new collision warnings if fixtures happen to trigger them (unlikely given current plugins, but verify).
 
 ### Test Infrastructure
 
@@ -94,10 +104,14 @@ Rules for Option C:
     * Changes: add `sourcePaths?: string[]` to `WrittenFile`. JSDoc: *"Explicit source-relative paths this output file represents, used by path-rewriting. When set, takes precedence over `sourceItems[*].sourcePath` for mapping purposes. Use for outputs that correspond to source paths that are not first-class `AgentCustomization`s (e.g., AgentSkillIO resource files)."*
     * Test: not directly testable at model layer; covered by step 2.
 
-2. **Update `buildMapping` to honour `sourcePaths`.**
-    * Files: `packages/engine/src/path-rewriter.ts`; tests in `packages/engine/test/path-rewriter.test.ts`.
-    * Changes: in the `for (const file of written)` loop, compute the source-path iterable as: `file.sourcePaths && file.sourcePaths.length > 0 ? file.sourcePaths : (file.sourceItems ?? []).map(s => s.sourcePath).filter(Boolean)`. Normalize each to POSIX separators (existing pattern). Emit mapping entries.
-    * Tests first: add cases matching Behavior 2 above.
+2. **Update `buildMapping` to honour `sourcePaths` + detect ambiguous collisions.**
+    * Files: `packages/engine/src/path-rewriter.ts`; callers in `packages/engine/src/transformation.ts` (line 112); tests in `packages/engine/test/path-rewriter.test.ts` (update P1–P4 to destructure; add new cases for Behavior 2 and 2b) and `packages/engine/test/transformation.test.ts` (verify warnings propagate).
+    * Changes:
+        1. In the `for (const file of written)` loop, compute the source-path iterable as: `file.sourcePaths && file.sourcePaths.length > 0 ? file.sourcePaths : (file.sourceItems ?? []).map(s => s.sourcePath).filter(Boolean)`. Normalize each to POSIX separators (existing pattern).
+        2. Before `mapping.set(normalizedSourcePath, targetRelative)`, check `mapping.get(normalizedSourcePath)`. If a DIFFERENT target is already set for that key, push a `Warning` (code `WarningCode.Approximated`) describing the ambiguity: `` `Ambiguous path mapping: '${normalizedSourcePath}' maps to both '${existing}' and '${targetRelative}'. The plugin emitting these WrittenFiles should populate sourcePaths explicitly.` ``. Same-target overwrites (idempotent) do NOT warn.
+        3. Change `buildMapping`'s return type from `PathMapping` to `{ mapping: PathMapping; warnings: Warning[] }`.
+        4. Update all callers to destructure and merge the returned warnings into the conversion result's warnings array.
+    * Tests first: add cases matching Behavior 2 and 2b above.
 
 3. **Cursor emit: set `sourcePaths` on resource WrittenFiles.**
     * Files: `packages/plugin-cursor/src/emit.ts` (inside `emitAgentSkillIO`'s resource loop); tests in `packages/plugin-cursor/test/emit.test.ts`.
@@ -153,6 +167,7 @@ No new technology - validation not required. All edits are in-place on existing 
 * **Challenge:** POSIX-vs-Windows path separators on Windows CI. **Mitigation:** use `path.posix` explicitly; unit tests on Linux CI are sufficient for the separator logic because the inputs we derive from are already POSIX-normalized (sourcePath is constructed with forward slashes in discover; filename uses the POSIX form emitted by `readSkillFiles`). If a `filename` ever contains a backslash it is already converted to `/` via `split(path.sep).join('/')`.
 * **Challenge:** Orphan-ref detector might emit false warnings if we only partially rewrite. **Mitigation:** after the fix, resource-file paths ARE in the mapping, so `detectOrphans` won't flag them.
 * **Challenge:** Docs drift — there's also `packages/docs/docs/understanding-conversions/index.md`. **Mitigation:** already reviewed — that page's "Skills with hooks → Cursor" entry is correct; no change needed there.
+* **Challenge:** The collision-warning lint (Behavior 2b) could produce noisy warnings on well-formed existing fixtures if the sourceItems-fallback path legitimately produces duplicate-key overwrites with the same target (e.g., a plugin that emits two WrittenFiles both tagged with `sourceItems: [itemA]` and both pointing at the same output path — though this is a degenerate case). **Mitigation:** the warning only fires when the target path differs; same-target duplicates are silently idempotent. Verify via the transformation-test suite after implementation that no new spurious warnings appear.
 
 ## Status
 
