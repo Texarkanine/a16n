@@ -18,7 +18,7 @@ BUILD - COMPLETE
   - Step 5: CI4 end-to-end integration test (currently blocked alongside CI1–CI3 by a pre-existing Workspace refactor failure; no regression).
   - Step 6 + 7: corrected complex-skill classification docs in `plugin-cursor/index.md` + `plugin-claude/index.md`.
   - Step 8: documented `--rewrite-path-refs` scope for AgentSkillIO ride-alongs in `cli/index.md` + `understanding-conversions/index.md`.
-  - Step 9: full validation — build 7/7, typecheck 12/12, tests 684 pass / 1 fail (pre-existing engine plugin-discovery test, unrelated). Docusaurus site build deferred to user.
+  - Step 9: full validation — build 7/7, typecheck 12/12, **all 15 turbo test tasks pass on Node 22** (the project's only supported runtime). Docusaurus site build deferred to user.
 
 ## Next Step
 Proceed to REFLECT phase when the user is ready.
