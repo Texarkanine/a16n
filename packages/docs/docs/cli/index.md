@@ -85,6 +85,12 @@ a16n convert --from cursor --to claude --rewrite-path-refs .
 
 **Orphan warnings:** If a file references a source-format path that isn't in the conversion set (e.g., `.cursor/rules/missing.mdc` where `missing.mdc` doesn't exist), a16n emits an `orphan-path-ref` warning so you can fix it manually.
 
+**What gets rewritten (scope):**
+
+For every customization a16n discovers — rules, commands, settings, simple skills, `.cursorignore`/`.claude/settings.json`, etc. — the output content gets rewritten.
+
+There is one intentional exception: [AgentSkillIO](/models#agentskillio) (complex skills that bundle `SKILL.md` with ride-along files). An AgentSkillIO's `SKILL.md` body is always rewritten, but its ride-along files are rewritten **only if they live under `scripts/` or `references/`**. Those two directories are the subtrees the [AgentSkills.io spec](https://agentskills.io/specification#optional-directories) guarantees contain text (executable code and additional documentation respectively). Content inside other subtrees — including the spec-designated `assets/` (templates, images, data files) and any non-spec subtree the skill author ships — is copied through byte-for-byte, even if the bytes happen to contain path-like strings. This prevents a16n from corrupting binary data, rewriting intentional placeholders, or otherwise mutating content it has no spec-level guarantee about. Orphan-reference scanning is scoped to those same two subtrees plus the `SKILL.md` body, so un-rewritten paths inside `assets/` or unknown subtrees never produce spurious orphan warnings.
+
 ## Output Format
 
 ### Standard Output
