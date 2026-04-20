@@ -108,13 +108,17 @@ export class PathRewritingTransformation implements ContentTransformation {
       };
     }
 
-    // Build mapping from source paths to target paths
-    const mapping = buildMapping(
+    // Build mapping from source paths to target paths. Any collision
+    // warnings emitted during mapping construction (ambiguous source-path
+    // keys mapping to different targets) are merged into the conversion
+    // result warnings so the operator sees them.
+    const { mapping, warnings: mappingWarnings } = buildMapping(
       context.items,
       trialResult.written,
       context.sourceRoot,
       context.targetRoot,
     );
+    warnings.push(...mappingWarnings);
 
     // Rewrite path references in content
     const rewriteResult = rewriteContent(context.items, mapping);
