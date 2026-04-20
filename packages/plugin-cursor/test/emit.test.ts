@@ -1433,6 +1433,85 @@ describe('Cursor AgentSkillIO Emission (Phase 8 B4)', () => {
       expect(configContent).toContain('production');
     });
 
+    it('should set sourcePaths on each emitted resource WrittenFile (not on SKILL.md itself)', async () => {
+      // Behavior 3: resource WrittenFiles must populate `sourcePaths` so that
+      // buildMapping can produce source→target entries for the ride-along
+      // files. Without this, --rewrite-path-refs cannot rewrite references
+      // to those resources.
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/check/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/check/SKILL.md',
+          content: 'Check skill body',
+          name: 'check',
+          description: 'Check skill',
+          files: {
+            'scripts/gotthis.sh': '#!/bin/bash\necho ok\n',
+            'references/notes.md': '# notes\n',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      // Find SKILL.md and the two resource files in written output
+      const skillMd = result.written.find((w) => w.path.endsWith('SKILL.md'));
+      const scriptWritten = result.written.find((w) =>
+        w.path.endsWith(path.join('scripts', 'gotthis.sh'))
+      );
+      const refWritten = result.written.find((w) =>
+        w.path.endsWith(path.join('references', 'notes.md'))
+      );
+
+      expect(skillMd).toBeDefined();
+      expect(scriptWritten).toBeDefined();
+      expect(refWritten).toBeDefined();
+
+      // SKILL.md WrittenFile uses sourceItems (no explicit sourcePaths)
+      expect(skillMd!.sourceItems).toBeDefined();
+      expect(skillMd!.sourcePaths).toBeUndefined();
+
+      // Resource WrittenFiles must set sourcePaths to the POSIX source path
+      expect(scriptWritten!.sourcePaths).toEqual([
+        '.cursor/skills/check/scripts/gotthis.sh',
+      ]);
+      expect(refWritten!.sourcePaths).toEqual([
+        '.cursor/skills/check/references/notes.md',
+      ]);
+
+      // sourceItems is still populated on resource WrittenFiles (unchanged)
+      expect(scriptWritten!.sourceItems).toBeDefined();
+      expect(scriptWritten!.sourceItems![0]!.type).toBe(CustomizationType.AgentSkillIO);
+    });
+
+    it('should not set sourcePaths on resource WrittenFiles when the skill has no sourcePath (IR-built skill)', async () => {
+      // Edge case: skill constructed in tests without a sourcePath → we cannot
+      // derive a source-relative resource path, so sourcePaths is omitted.
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, 'ir-only'),
+          type: CustomizationType.AgentSkillIO,
+          // No sourcePath
+          content: 'body',
+          name: 'ir',
+          description: 'ir only',
+          files: {
+            'scripts/x.sh': 'x',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+      const scriptWritten = result.written.find((w) =>
+        w.path.endsWith(path.join('scripts', 'x.sh'))
+      );
+      expect(scriptWritten).toBeDefined();
+      expect(scriptWritten!.sourcePaths).toBeUndefined();
+    });
+
     it('should include all resource files from files map', async () => {
       // Verify all files in AgentSkillIO.files are written
       const models: AgentSkillIO[] = [

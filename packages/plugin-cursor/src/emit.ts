@@ -382,12 +382,26 @@ description: ${safeDescription}`;
         await fs.writeFile(resolvedPath, content, 'utf-8');
       }
 
+      // Compute explicit source-relative path for this resource so
+      // path-rewriter.buildMapping can key it correctly. Without this the
+      // mapping would (a) miss source→target entries for resource files and
+      // (b) clobber the SKILL.md→SKILL.md entry because every resource's
+      // sourceItems[0].sourcePath points at the skill's SKILL.md.
+      // POSIX separators per the buildMapping contract.
+      const resourceSourcePath = skill.sourcePath
+        ? path.posix.join(
+            path.posix.dirname(skill.sourcePath.split(path.sep).join('/')),
+            filename.split(path.sep).join('/'),
+          )
+        : undefined;
+
       written.push({
         path: resolvedPath,
         type: CustomizationType.AgentSkillIO,
         itemCount: 1,
         isNewFile: isResourceNewFile,
         sourceItems: [skill],
+        ...(resourceSourcePath !== undefined && { sourcePaths: [resourceSourcePath] }),
       });
     }
   }
