@@ -1,0 +1,22 @@
+status: PASS_WITH_ADVISORY
+task_id: 20260420-skills-docs-and-rewrite-resources
+date: 2026-04-20
+amendments_applied:
+  - tasks.md Behavior 1: replaced 2-condition skip summary with full classification priority
+    for both Cursor and Claude, derived directly from discover.ts source.
+  - tasks.md Step 6 (plugin-cursor docs): now enumerates complex + simple skill outcomes
+    matching the discover.ts priority order; calls out that complex-skill skip is on
+    missing `description` regardless of `disable-model-invocation`.
+  - tasks.md Step 7 (plugin-claude docs): now enumerates the hooks-first priority and
+    all three skip conditions (hooks, complex-missing-description, simple-no-activation).
+  - tasks.md Step 8: added `pnpm --filter @a16njs/docs build` to validation since docs
+    changes are central to this task and Docusaurus is excluded from default `pnpm build`.
+advisory_findings:
+  - Consider adding a claude→cursor AgentSkillIO integration test (mirror of the planned
+    cursor→claude CI test) in step 5 to cover the Behavior 4 (claude emit) code path
+    end-to-end. Symmetric, small extension to existing work.
+  - systemPatterns.md documents the Claude SKILL.md classification priority but not the
+    Cursor one. A follow-up (out of scope) could add the Cursor priority order for parity.
+  - Broader refactor (out of scope): every plugin could populate `WrittenFile.sourcePaths`
+    explicitly, allowing `buildMapping` to drop its `sourceItems`-based fallback. Would
+    unify the mapping derivation to a single code path but touches every plugin emit.

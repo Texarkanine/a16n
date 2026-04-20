@@ -9,3 +9,4 @@ Fix two related issues:
 
 ## History
 - 2026-04-20: Task classified as Level 2 after intent clarification.
+- 2026-04-20: Preflight PASS w/ ADVISORY. Plan amended (Behavior 1, step 6, step 7, step 8) to capture full classification priority for both Cursor and Claude skip conditions and to include docs-site build in validation. Three advisory findings recorded.

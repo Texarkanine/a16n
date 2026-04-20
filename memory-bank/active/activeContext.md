@@ -4,12 +4,13 @@
 Fix plugin-{cursor,claude} docs for complex skills + fix `--rewrite-path-refs` for ride-along resource file references.
 
 ## Phase
-COMPLEXITY-ANALYSIS - COMPLETE
+PLAN - COMPLETE
 
 ## What Was Done
-- Validated user's intent (docs inaccuracy on complex-skill handling + path-rewriter omission for ride-along resource references).
-- Confirmed behavior by reading `plugin-cursor/src/discover.ts`, `plugin-claude/src/discover.ts`, `plugin-claude/src/emit.ts`, and `engine/src/path-rewriter.ts`.
-- Complexity: **Level 2** — bug fix across multiple components (docs + engine, with plugin emit touching possible). Some design thought required for the path-rewriter fix ("don't pollute IR or output"), but no architectural implications.
+- Level 2 plan written to `memory-bank/active/tasks.md`.
+- Design decision for Bug 2: add optional `WrittenFile.sourcePaths?: string[]` (Option C); rejected phantom-IR-items (Option A) and extending `AgentSkillIO` IR (Option B) as IR pollution.
+- 6 testable behaviors enumerated; TDD cycle planned across engine, both plugins, and integration tests.
+- 8 implementation steps sequenced so each cycle is independently verifiable.
 
 ## Next Step
-Load Level 2 workflow and enter PLAN phase.
+Run Preflight validation on the plan.
