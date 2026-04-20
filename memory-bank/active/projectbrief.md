@@ -28,9 +28,10 @@ Root cause (from `packages/engine/src/path-rewriter.ts`): the mapping is built f
 
 1. Make the docs accurately describe complex-skill handling for both plugins.
 2. Fix `--rewrite-path-refs` so references to ride-along resource files in the SKILL.md body are rewritten to their new target paths — without polluting the IR (`AgentSkillIO`) or the output, and without overcomplicating the engine.
+3. Also rewrite path references *inside* ride-along files that live in the two AgentSkills.io-spec-designated text subtrees: `scripts/` (executable code) and `references/` (additional docs). `assets/` and any other subtree are left untouched (may be binary / placeholder-laden / non-text by convention). Document this behaviour and its scope clearly in the `--rewrite-path-refs` documentation.
 
 ## Non-Goals
 
 - Changing the `AgentSkillIO` IR shape unless strictly necessary.
-- Rewriting references inside the ride-along files themselves (out of scope for this task).
+- Rewriting references inside `assets/**` or any ride-along subtree other than `scripts/` and `references/` (per the [AgentSkills.io spec](https://agentskills.io/specification#optional-directories), these are the spec's two text-by-convention subtrees).
 - Handling Claude → Cursor or cross-format symmetry beyond what falls out naturally from a minimal fix.

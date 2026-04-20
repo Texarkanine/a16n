@@ -22,3 +22,24 @@ advisory_findings:
     as a Level 3 follow-up in `planning/writtenfile-clean-break.md`. Do NOT attempt in
     this task. The Behavior 2b collision-detection lint (added 2026-04-20 amendment)
     gives us runtime safety in the interim.
+post_preflight_scope_expansion:
+  date: 2026-04-20
+  trigger: user request (https://agentskills.io/specification#optional-directories)
+  amendment:
+    - Flipped "Rewriting references inside the ride-along files themselves" from
+      non-goal to bounded in-scope goal. Bounded to the two AgentSkills.io-spec-designated
+      text subtrees: `scripts/` and `references/`. `assets/` and any other subtree
+      remain untouched (spec permits arbitrary non-text content).
+    - Added Behavior 7 (`rewriteContent` files-map rewrite w/ subtree allowlist) and
+      Behavior 8 (`detectOrphans` files-map scan w/ same allowlist) to the test plan.
+    - Added Step 2b (engine: rewriteContent + detectOrphans extension w/ local
+      `isRewritableSkillResource` helper). Helper kept private to
+      `packages/engine/src/path-rewriter.ts` to minimize blast radius; promote to
+      `@a16njs/models` only if a second caller appears.
+    - Expanded Behavior 5 / Step 5 integration test to cover positive cases
+      (scripts/, references/) and negative cases (assets/, data/ — must not be rewritten).
+    - Added Step 8 (docs): document the subtree policy in
+      `packages/docs/docs/cli/index.md` §Path Reference Rewriting with a "What gets
+      rewritten" table; mirror a shorter note in understanding-conversions.
+    - Complexity stays Level 2: ~30 lines of engine code + tests + docs, no new design surface.
+    - `projectbrief.md` non-goals list updated accordingly.
