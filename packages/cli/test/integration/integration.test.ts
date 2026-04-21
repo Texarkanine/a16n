@@ -1034,10 +1034,20 @@ describe('Integration Tests - Path Reference Rewriting (--rewrite-path-refs)', (
     // assets/logo.png — must pass through verbatim even if it *looks* like
     // it has a path ref in it. We use a harmless text payload here so
     // we can byte-compare; the guarantee is "asset bytes preserved".
-    const assetBytes = 'binary-ish payload that happens to mention .cursor/skills/check/scripts/helper.sh\n';
+    //
+    // The cursor-path fragment below is INTENTIONALLY unmapped (the file
+    // `.cursor/rules/missing-from-asset.mdc` doesn't exist in the source
+    // tree). If a future regression taught `detectOrphans` to scan assets/,
+    // this unmapped ref would show up in an orphan warning — the final
+    // assertion in this test pins that behaviour closed.
+    const orphanFromAsset = '.cursor/rules/missing-from-asset.mdc';
+    const orphanFromData = '.cursor/rules/missing-from-data.mdc';
+    const assetBytes =
+      `binary-ish payload that happens to mention ${orphanFromAsset}\n`;
     await fs.writeFile(path.join(skillDir, 'assets', 'logo.png'), assetBytes);
     // data/** is an unknown subtree — also must pass through verbatim.
-    const dataBody = 'raw data referencing .cursor/skills/check/scripts/helper.sh should not be touched\n';
+    const dataBody =
+      `raw data referencing ${orphanFromData} should not be touched\n`;
     await fs.writeFile(path.join(skillDir, 'data', 'blob.bin'), dataBody);
 
     const result = await engine.convert({
@@ -1099,7 +1109,7 @@ describe('Integration Tests - Path Reference Rewriting (--rewrite-path-refs)', (
       'utf-8',
     );
     expect(asset).toBe(assetBytes);
-    expect(asset).toContain('.cursor/skills/check/scripts/helper.sh');
+    expect(asset).toContain(orphanFromAsset);
 
     // data/blob.bin — verbatim passthrough (unknown subtree).
     const data = await fs.readFile(
@@ -1107,20 +1117,32 @@ describe('Integration Tests - Path Reference Rewriting (--rewrite-path-refs)', (
       'utf-8',
     );
     expect(data).toBe(dataBody);
-    expect(data).toContain('.cursor/skills/check/scripts/helper.sh');
+    expect(data).toContain(orphanFromData);
 
     // Behavior 8: orphan detection should NOT fire just because assets/
     // or data/ still contain un-rewritten cursor paths. Those subtrees
     // are deliberately out of scope for path scanning.
+    //
+    // We assert on the *found path* (embedded in the warning message via
+    // `Orphan path reference: '${foundPath}' is not in the conversion set`)
+    // rather than on the subtree name. The asset/data payloads above contain
+    // unmapped cursor paths that WOULD be reported as orphans if their
+    // subtrees were scanned; pinning their absence here is a proper
+    // regression guard. An assertion on `assets/|data/` would be vacuously
+    // true — orphan warnings report the found *path*, not the file that
+    // contained it.
     const orphanWarnings = result.warnings.filter(
       (w) => w.code === WarningCode.OrphanPathRef,
     );
-    for (const w of orphanWarnings) {
-      expect(
-        w.message,
-        `orphan warning unexpectedly came from assets/ or data/: ${w.message}`,
-      ).not.toMatch(/assets\/|data\//);
-    }
+    const orphanMessages = orphanWarnings.map((w) => w.message).join('\n');
+    expect(
+      orphanMessages,
+      `unmapped ref inside assets/ leaked into an orphan warning: ${orphanMessages}`,
+    ).not.toContain(orphanFromAsset);
+    expect(
+      orphanMessages,
+      `unmapped ref inside data/ leaked into an orphan warning: ${orphanMessages}`,
+    ).not.toContain(orphanFromData);
   });
 });
 

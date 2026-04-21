@@ -238,6 +238,47 @@ describe('PathRewriter', () => {
       expect(warnings[0]!.code).toBe(WarningCode.Approximated);
       expect(warnings[0]!.message).toContain('.cursor/skills/check/scripts/shared.sh');
     });
+
+    // --- Empty-string safety (PR #84 review r3119786280) ---
+
+    it('P27: filters empty strings out of explicit sourcePaths (no empty-key mapping)', () => {
+      // A third-party plugin could populate sourcePaths with '' by accident
+      // (root-level file, uninitialized field normalized to ''). An empty
+      // mapping key hangs applyMapping because indexOf('') always returns 0.
+      const item = makeItem({ content: 'x', sourcePath: '.cursor/skills/check/SKILL.md' });
+      const written: WrittenFile[] = [
+        makeWritten({
+          path: '/out/.claude/skills/check/scripts/helper.sh',
+          sourceItems: [item],
+          sourcePaths: ['', '.cursor/skills/check/scripts/helper.sh', ''],
+        }),
+      ];
+
+      const { mapping, warnings } = buildMapping([item], written, '/in', '/out');
+
+      expect(mapping.has('')).toBe(false);
+      expect(mapping.get('.cursor/skills/check/scripts/helper.sh')).toBe(
+        '.claude/skills/check/scripts/helper.sh'
+      );
+      expect(warnings).toHaveLength(0);
+    });
+
+    it('P28: all-empty explicit sourcePaths produces no mapping entry (no fallback to sourceItems)', () => {
+      // Precedence: if sourcePaths is present (even if all entries are empty
+      // and get filtered out), we do NOT fall back to sourceItems. This
+      // matches the documented "explicit REPLACES sourceItems" contract.
+      const item = makeItem({ content: 'x', sourcePath: '.cursor/skills/check/SKILL.md' });
+      const written: WrittenFile[] = [
+        makeWritten({
+          path: '/out/.claude/skills/check/scripts/helper.sh',
+          sourceItems: [item],
+          sourcePaths: [''],
+        }),
+      ];
+
+      const { mapping } = buildMapping([item], written, '/in', '/out');
+      expect(mapping.size).toBe(0);
+    });
   });
 
   describe('rewriteContent', () => {

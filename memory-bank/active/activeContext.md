@@ -48,3 +48,12 @@ Explicit scope decisions:
 
 ## Next Step
 Reflection written to `memory-bank/active/reflection/reflection-20260421-preserve-filename-case.md`. Reconcile-persistent check: no updates (systemPatterns.md already current from prior task's reconcile; no factual invalidation from this task in productContext.md or techContext.md). Ready for `/niko-archive` (both `20260420-skills-docs-and-rewrite-resources` and this task can be archived back-to-back since they ship in the same PR #84).
+
+## Post-reflection amendments (PR #84 review, 2026-04-21)
+Two small follow-ups in response to reviewer feedback on the combined PR. Both relate to the prior task's (`20260420-skills-docs-and-rewrite-resources`) path-rewriter / integration-test work, not this filename-case task. Captured as "Post-reflection amendments" in that task's reflection doc.
+
+- `packages/engine/src/path-rewriter.ts` — `buildMapping` now filters empty strings from the explicit `file.sourcePaths` branch (mirrors the `sourceItems` fallback's existing `.filter(Boolean)`). `applyMapping` now skips empty `sourcePath` keys as defence-in-depth. An empty mapping key would otherwise hang `applyMapping` (`indexOf('') === 0` and `idx += 0` never advances). Public API unaffected.
+- `packages/engine/test/path-rewriter.test.ts` — added `P27` (empty entries filtered from mixed `sourcePaths`) and `P28` (all-empty explicit `sourcePaths` produces no mapping; "explicit REPLACES sourceItems" still holds).
+- `packages/cli/test/integration/integration.test.ts` — CI4 Behaviour 8 orphan-scope assertion was vacuously true (asserted warning-message shape rather than found-path content, and payloads used mapped refs). Now uses **unmapped** refs (`missing-from-asset.mdc`, `missing-from-data.mdc`) in the asset/data payloads and asserts those specific paths don't appear in any orphan warning. This properly pins "detectOrphans does not scan assets/ or data/".
+
+Validation: engine tests 175/175 pass, CLI integration 35/35 pass, full typecheck + lint clean on Node 22.

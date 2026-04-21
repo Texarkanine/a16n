@@ -97,9 +97,16 @@ export function buildMapping(
     // Prefer explicit sourcePaths when populated; otherwise fall back to
     // sourceItems[*].sourcePath (legacy behaviour). Explicit sourcePaths
     // REPLACE the sourceItems-based derivation for this file (see JSDoc).
+    //
+    // Empty-string entries are filtered from BOTH branches: an empty mapping
+    // key would hang `applyMapping`, since `indexOf('')` always returns 0 and
+    // `idx += 0` never advances. The fallback branch has always filtered
+    // falsy values; mirror that defence in the explicit branch since
+    // `WrittenFile.sourcePaths` is part of `@a16njs/models`'s public API and
+    // a third-party plugin could populate it with ''.
     let sourcePathCandidates: string[];
     if (file.sourcePaths && file.sourcePaths.length > 0) {
-      sourcePathCandidates = file.sourcePaths;
+      sourcePathCandidates = file.sourcePaths.filter((p) => p.length > 0);
     } else if (file.sourceItems) {
       sourcePathCandidates = file.sourceItems
         .map((s) => s.sourcePath)
@@ -144,7 +151,12 @@ function applyMapping(
   let current = content;
   let replaced = 0;
   for (const [sourcePath, targetPath] of sortedEntries) {
-    // Count occurrences before replacement
+    // Defence-in-depth against an empty key slipping past buildMapping:
+    // `indexOf('')` returns 0 and `idx += 0` never advances, producing an
+    // infinite loop. buildMapping filters empties at the boundary; this
+    // second guard means `applyMapping` is safe against any caller that
+    // constructs a mapping by hand.
+    if (sourcePath.length === 0) continue;
     let count = 0;
     let idx = 0;
     while ((idx = current.indexOf(sourcePath, idx)) !== -1) {
