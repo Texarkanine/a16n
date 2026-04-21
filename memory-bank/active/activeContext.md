@@ -4,7 +4,7 @@
 Fix plugin-{cursor,claude} docs for complex skills + fix `--rewrite-path-refs` for ride-along resource file references.
 
 ## Phase
-BUILD - COMPLETE
+REFLECT - COMPLETE
 
 ## What Was Done
 - Level 2 plan written to `memory-bank/active/tasks.md`.
@@ -21,4 +21,4 @@ BUILD - COMPLETE
   - Step 9: full validation — build 7/7, typecheck 12/12, **all 15 turbo test tasks pass on Node 22** (the project's only supported runtime). Docusaurus site build deferred to user.
 
 ## Next Step
-Proceed to REFLECT phase when the user is ready.
+Reflection written to `memory-bank/active/reflection/reflection-20260420-skills-docs-and-rewrite-resources.md`. Operator to run `/niko-archive` to finalize. Key insight: Node-version drift during Build polluted the memory-bank narrative with a false "CI4 blocker" that QA had to chase down; validation runs should assert the Node version explicitly before committing any phase narrative. Bonus: latent CLI symlink no-op bug in `cli/src/index.ts` surfaced during QA full-suite run, fixed via inode-based `isSameFile` comparison. Long-term cleanup (split library `index.ts` from executable `run.ts`) captured in `planning/cli-entry-point-split.md`.

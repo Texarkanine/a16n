@@ -226,3 +226,4 @@ No new technology - validation not required. All edits are in-place on existing 
 - [x] Post-preflight scope expansion (user request): rewrite inside `scripts/` + `references/` ride-alongs; see `.preflight-status` addendum
 - [x] Build
 - [x] QA (PASS with trivial cleanup — see `.qa-validation-status`)
+- [x] Reflect (see `reflection/reflection-20260420-skills-docs-and-rewrite-resources.md`)
