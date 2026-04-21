@@ -1,24 +1,26 @@
 # Active Context
 
-## Current Task
-Fix plugin-{cursor,claude} docs for complex skills + fix `--rewrite-path-refs` for ride-along resource file references.
+## Task
+Preserve filename case in rule emit (Cursor + Claude) — rework follow-up from PR #84 feedback.
+
+## Task ID
+20260421-preserve-filename-case
+
+## Complexity
+Level 2
 
 ## Phase
-REFLECT - COMPLETE
+PLAN - COMPLETE
 
-## What Was Done
-- Level 2 plan written to `memory-bank/active/tasks.md`.
-- Design decision for Bug 2: add optional `WrittenFile.sourcePaths?: string[]` (Option C); rejected phantom-IR-items (Option A) and extending `AgentSkillIO` IR (Option B) as IR pollution.
-- 8 testable behaviors enumerated; TDD cycle executed across engine, both plugins, and integration tests.
-- 9 implementation steps executed, each committed independently (commits 6c7337c5..327c4ee2):
-  - Step 1: `WrittenFile.sourcePaths?: string[]` in `packages/models`.
-  - Step 2 + 2b: `buildMapping` honors `sourcePaths` + collision detection; `rewriteContent`/`detectOrphans` extended to `scripts/**` + `references/**` ride-alongs.
-  - Step 3: plugin-cursor emit populates `sourcePaths` on AgentSkillIO resource WrittenFiles.
-  - Step 4: plugin-claude emit populates `sourcePaths` on AgentSkillIO resource WrittenFiles (symmetric).
-  - Step 5: CI4 end-to-end integration test green on Node 22 (CI1–CI4 all passing; the "Workspace refactor blocker" noted mid-build turned out to be a Node 20 artifact, not a real failure).
-  - Step 6 + 7: corrected complex-skill classification docs in `plugin-cursor/index.md` + `plugin-claude/index.md`.
-  - Step 8: documented `--rewrite-path-refs` scope for AgentSkillIO ride-alongs in `cli/index.md` + `understanding-conversions/index.md`.
-  - Step 9: full validation — build 7/7, typecheck 12/12, **all 15 turbo test tasks pass on Node 22** (the project's only supported runtime). Docusaurus site build deferred to user.
+## Summary
+Rule filenames (`.claude/rules/**/*.md`, `.cursor/rules/**/*.mdc`) are being lowercased unnecessarily during emit, e.g. `activeContext.mdc` → `activecontext.md`. The only spec-mandated lowercasing is on AgentSkills.io skill **directory** names (which must match `^[a-z0-9-]+$` per the spec's `name` field). Split normalization by intent: `sanitizeSkillDirName` for skill dir names (keeps lowercasing per spec), `sanitizeRuleFilename` / `sanitizeRuleStem` for rule filenames (preserve source case). Symmetric change across `plugin-claude` and `plugin-cursor`. Adds case-insensitive collision detection in `getUniqueFilename` so case-only differences never silently overwrite on case-insensitive filesystems.
+
+Explicit scope decisions:
+- Out of scope: extending a16n's rewrite allowlist to cover `resources/` (reviewer's Finding 1). Niko uses a non-spec `resources/` dir; that's a Niko-repo bug to rename to `references/` (which a16n already handles).
+- Out of scope: Cursor skill directory case preservation. Cursor's `sanitizePromptName` continues to lowercase skill dirs; revisit as a separate mini-task if the operator decides it's needed.
+
+## Prior Task Archive Status
+`20260420-skills-docs-and-rewrite-resources` completed Reflect on 2026-04-21 but not yet archived — both tasks ship in the same PR (#84, branch `discover-skills-with-files`). Archive can batch both or run them back-to-back once this follow-up task completes.
 
 ## Next Step
-Reflection written to `memory-bank/active/reflection/reflection-20260420-skills-docs-and-rewrite-resources.md`. Operator to run `/niko-archive` to finalize. Key insight: Node-version drift during Build polluted the memory-bank narrative with a false "CI4 blocker" that QA had to chase down; validation runs should assert the Node version explicitly before committing any phase narrative. Bonus: latent CLI symlink no-op bug in `cli/src/index.ts` surfaced during QA full-suite run, fixed via inode-based `isSameFile` comparison. Long-term cleanup (split library `index.ts` from executable `run.ts`) captured in `planning/cli-entry-point-split.md`.
+Proceed to PREFLIGHT phase when the operator is ready.
