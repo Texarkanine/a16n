@@ -15,7 +15,7 @@ BUILD - COMPLETE
   - Step 2 + 2b: `buildMapping` honors `sourcePaths` + collision detection; `rewriteContent`/`detectOrphans` extended to `scripts/**` + `references/**` ride-alongs.
   - Step 3: plugin-cursor emit populates `sourcePaths` on AgentSkillIO resource WrittenFiles.
   - Step 4: plugin-claude emit populates `sourcePaths` on AgentSkillIO resource WrittenFiles (symmetric).
-  - Step 5: CI4 end-to-end integration test (currently blocked alongside CI1–CI3 by a pre-existing Workspace refactor failure; no regression).
+  - Step 5: CI4 end-to-end integration test green on Node 22 (CI1–CI4 all passing; the "Workspace refactor blocker" noted mid-build turned out to be a Node 20 artifact, not a real failure).
   - Step 6 + 7: corrected complex-skill classification docs in `plugin-cursor/index.md` + `plugin-claude/index.md`.
   - Step 8: documented `--rewrite-path-refs` scope for AgentSkillIO ride-alongs in `cli/index.md` + `understanding-conversions/index.md`.
   - Step 9: full validation — build 7/7, typecheck 12/12, **all 15 turbo test tasks pass on Node 22** (the project's only supported runtime). Docusaurus site build deferred to user.

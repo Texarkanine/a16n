@@ -1,0 +1,70 @@
+status: PASS
+task_id: 20260420-skills-docs-and-rewrite-resources
+date: 2026-04-21
+phase: QA
+summary: >
+  Semantic review of the build output against the original plan. All 9 plan
+  steps implemented in full with test coverage. Integration test CI4 verified
+  to pass on Node 22 (the project's supported runtime) alongside CI1–CI3,
+  contradicting the mid-build narrative that it was "blocked by a pre-existing
+  Workspace refactor failure." That narrative was a Node-20-artifact mistake,
+  not a real blocker. Trivial cleanup applied directly; no substantive issues
+  found requiring a return to Build or Plan.
+findings:
+  - code: Integrity
+    finding: >
+      `packages/cli/test/integration/integration.test.ts` CI4 test had a ~9-line
+      NOTE comment block describing a nonexistent "Workspace refactor blocker"
+      that was never real. Development-scaffolding commentary that does not
+      belong in the final commit.
+    severity: trivial
+    action: >
+      Fixed inline. Replaced the stale NOTE with a concise 8-line summary of
+      the behaviors being covered. Re-ran CI4 on Node 22 — still passes.
+  - code: Documentation
+    finding: >
+      `memory-bank/active/activeContext.md` step-5 bullet and
+      `memory-bank/active/progress.md` final history entry both repeated the
+      false "CI4 blocked" narrative, leaving the memory bank in an inaccurate
+      state that would mislead future Reflect/Archive phases.
+    severity: trivial
+    action: >
+      Fixed inline. Both entries now accurately record that CI1–CI4 pass on
+      Node 22 and identify the original "blocker" as a Node 20 artifact. A
+      new QA-dated progress entry was added capturing this correction and the
+      unrelated pre-existing `CLI --help symlink` test failure (out of scope).
+  - code: KISS / DRY / YAGNI / Regression / Completeness
+    finding: >
+      No issues. Engine code (`path-rewriter.ts` + `transformation.ts`) is
+      clean: `isRewritableSkillResource` helper is local to `path-rewriter.ts`
+      as planned (minimize blast radius), `applyMapping` eliminates the
+      content/files duplication, and `buildMapping` now returns the documented
+      `{ mapping, warnings }` shape with the single caller updated. Plugin
+      emit changes are symmetric across cursor and claude and match the plan
+      (resource `WrittenFile.sourcePaths` populated only when a skill
+      `sourcePath` is available, using POSIX separators, spread-conditional
+      to avoid `sourcePaths: undefined` noise). Tests cover P14–P26 per plan;
+      plugin emit tests cover populate + edge-case (no sourcePath);
+      integration test CI4 covers the full end-to-end behavior matrix with
+      explicit positive (scripts/, references/) + negative (assets/, data/)
+      cases. Docs (`plugin-cursor/index.md`, `plugin-claude/index.md`,
+      `cli/index.md`, `understanding-conversions/index.md`) all reflect the
+      shipping behavior.
+    severity: none
+    action: none
+test_status:
+  node_version: v22.15.0
+  engine: 173/173 pass
+  plugin-cursor: 132/132 pass
+  plugin-claude: 132/132 pass
+  cli_excluding_pre_existing: 174/175 pass
+  pre_existing_failure: >
+    `CLI > --help > should show help when invoked through a symlink` — fails
+    because `a16n` binary launched through a bash symlink returns empty stdout
+    in this environment. Unrelated to this task; present before BUILD began.
+deferred_to_user:
+  - Docusaurus site build (`pnpm --filter @a16njs/docs build`) — plan step 9
+    called it out but the build-phase operator deferred it. Still deferred;
+    user can run when convenient. No MDX structural changes expected given
+    the docs diffs.
+next_phase: Reflect

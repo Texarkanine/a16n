@@ -982,27 +982,14 @@ describe('Integration Tests - Path Reference Rewriting (--rewrite-path-refs)', (
   });
 
   it('CI4: Cursor→Claude AgentSkillIO rewrites SKILL.md body AND scripts/**/references/** ride-alongs; leaves assets/** and unknown subtrees untouched', async () => {
-    // NOTE: At the time this test was added, all 34 existing tests in this
-    // file were failing with a pre-existing Workspace refactor blocker
-    // ("path argument must be of type string. Received an instance of
-    // LocalWorkspace" from plugin-cursor/src/discover.ts). CI4 is
-    // structurally analogous to CI1–CI3 and will pass when that blocker
-    // lands — it is NOT a regression caused by this task.
-    //
-    // End-to-end behaviors 5+6+7+8 for the level-2 task
-    // 20260420-skills-docs-and-rewrite-resources:
-    //
-    //   - Behavior 5 (SKILL.md body): references inside SKILL.md to the
-    //     skill's ride-along resources must be rewritten.
-    //   - Behavior 6 (resource files copied): all resource files under
-    //     the skill directory are copied through to the target regardless
-    //     of subtree.
-    //   - Behavior 7 (rewrite inside resources, scoped): content inside
-    //     scripts/** and references/** ride-alongs is rewritten; content
+    // End-to-end coverage for Behaviors 5–8 of the AgentSkillIO +
+    // --rewrite-path-refs fix:
+    //   - SKILL.md body references to ride-along resources are rewritten.
+    //   - All ride-along files are copied to the target regardless of subtree.
+    //   - Content inside scripts/** and references/** is rewritten; content
     //     inside assets/** and unknown subtrees (e.g. data/**) is left
     //     byte-for-byte unchanged.
-    //   - Behavior 8 (orphan scanning, scoped): orphan detection only
-    //     scans scripts/** and references/**.
+    //   - Orphan scanning is scoped to scripts/** and references/** only.
     const skillDir = path.join(tempDir, '.cursor', 'skills', 'check');
     await fs.mkdir(path.join(skillDir, 'scripts'), { recursive: true });
     await fs.mkdir(path.join(skillDir, 'references'), { recursive: true });

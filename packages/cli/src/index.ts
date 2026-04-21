@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import * as path from 'path';
 import { createRequire } from 'module';
 import { Command, Option } from 'commander';
 import { A16nEngine } from '@a16njs/engine';
@@ -129,19 +128,28 @@ export function createProgram(engine: A16nEngine | null, io: CommandIO = default
 // top of the file — these are only needed for the "am I the main module?" check
 // and grouping them here keeps the exported API visually separate.
 import { fileURLToPath } from 'url';
-import { realpathSync } from 'fs';
+import { statSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 
 /**
- * Resolve a path through symlinks, falling back to path.resolve if the
- * target does not exist (e.g. during bundling or unusual setups).
+ * Are two paths the same file on disk? Compares device+inode from `statSync`
+ * (which follows symlinks). This is symlink-transparent, which matters
+ * because Node's ESM loader sets `import.meta.url` to the resolved real
+ * path while leaving `process.argv[1]` as whatever the user invoked — e.g.
+ * `node_modules/.bin/a16n`, which is a symlink under every normal install.
  */
-function resolveReal(p: string): string {
-  try { return realpathSync(p); } catch { return path.resolve(p); }
+function isSameFile(a: string, b: string): boolean {
+  try {
+    const sa = statSync(a);
+    const sb = statSync(b);
+    return sa.dev === sb.dev && sa.ino === sb.ino;
+  } catch {
+    return false;
+  }
 }
 
-const isMainModule = process.argv[1] && resolveReal(process.argv[1]) === resolveReal(__filename);
+const isMainModule = Boolean(process.argv[1]) && isSameFile(process.argv[1]!, __filename);
 
 if (isMainModule) {
   const engine = new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin]);

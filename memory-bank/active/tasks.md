@@ -224,5 +224,5 @@ No new technology - validation not required. All edits are in-place on existing 
 - [x] Technology validation complete
 - [x] Preflight (PASS w/ ADVISORY — plan amended inline; see `.preflight-status`)
 - [x] Post-preflight scope expansion (user request): rewrite inside `scripts/` + `references/` ride-alongs; see `.preflight-status` addendum
-- [ ] Build
-- [ ] QA
+- [x] Build
+- [x] QA (PASS with trivial cleanup — see `.qa-validation-status`)
