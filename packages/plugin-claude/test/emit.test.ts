@@ -1779,6 +1779,68 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
       const file1 = await fs.readFile(path.join(skillDir, 'file1.txt'), 'utf-8');
       expect(file1).toBe('Content 1');
     });
+
+    it('should populate sourcePaths on resource WrittenFiles (not on SKILL.md)', async () => {
+      // Behavior 4 (Level 2 task 20260420-skills-docs-and-rewrite-resources):
+      // Symmetric to cursor Behavior 3. Resource WrittenFiles must carry
+      // explicit sourcePaths so path-rewriter.buildMapping keys them
+      // correctly. SKILL.md keeps legacy sourceItems-only plumbing.
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/check/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/check/SKILL.md',
+          content: 'Check skill',
+          name: 'check',
+          description: 'Check skill',
+          files: {
+            'scripts/gotthis.sh': '#!/bin/sh\necho hi',
+            'references/NOTES.md': 'Some notes',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      const skillMd = result.written.find((w) => w.path.endsWith('SKILL.md'));
+      const scriptFile = result.written.find((w) => w.path.endsWith('gotthis.sh'));
+      const refFile = result.written.find((w) => w.path.endsWith('NOTES.md'));
+
+      expect(skillMd).toBeDefined();
+      expect(scriptFile).toBeDefined();
+      expect(refFile).toBeDefined();
+
+      // SKILL.md keeps legacy sourceItems-only plumbing
+      expect(skillMd!.sourcePaths).toBeUndefined();
+
+      // Resource files carry explicit sourcePaths (POSIX separators)
+      expect(scriptFile!.sourcePaths).toEqual(['.cursor/skills/check/scripts/gotthis.sh']);
+      expect(refFile!.sourcePaths).toEqual(['.cursor/skills/check/references/NOTES.md']);
+    });
+
+    it('should omit sourcePaths when skill has no sourcePath (IR-built test case)', async () => {
+      // Edge case: skill built in-memory without a sourcePath. The resource
+      // WrittenFile must simply omit sourcePaths — no crash, no bogus entry.
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, 'ir-built/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          content: 'IR-built skill',
+          name: 'irbuilt',
+          description: 'IR-built skill',
+          files: {
+            'scripts/a.sh': '#!/bin/sh\n',
+          },
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+      const scriptFile = result.written.find((w) => w.path.endsWith('a.sh'));
+      expect(scriptFile).toBeDefined();
+      expect(scriptFile!.sourcePaths).toBeUndefined();
+    });
   });
 
   describe('resource file path traversal prevention', () => {
@@ -2122,6 +2184,290 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
       // WrittenFile.path should reflect the nested path (critical for path rewriter)
       const expectedPath = path.join(tempDir, '.claude', 'rules', 'shared', 'niko', 'main.md');
       expect(result.written[0]?.path).toBe(expectedPath);
+    });
+  });
+});
+
+describe('Claude Filename Case Preservation (20260421-preserve-filename-case)', () => {
+  beforeEach(async () => {
+    await fs.mkdir(tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('B1 — FileRule preserves source filename case', () => {
+    it('should preserve CamelCase stem when emitting FileRule', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, '.cursor/rules/shared/niko/memory-bank/active/activeContext.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: '.cursor/rules/shared/niko/memory-bank/active/activeContext.mdc',
+          relativeDir: 'shared/niko/memory-bank/active',
+          content: 'Active context.',
+          globs: ['**/*'],
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      const writtenPath = result.written[0]?.path ?? '';
+      expect(writtenPath.endsWith(path.join('active', 'activeContext.md'))).toBe(true);
+      expect(writtenPath.endsWith(path.join('active', 'activecontext.md'))).toBe(false);
+    });
+
+    it('should normalize dots to hyphens while preserving case', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, 'foo.Bar.Baz.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: 'foo.Bar.Baz.mdc',
+          content: 'Dotted content.',
+          globs: ['**/*'],
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      expect(result.written[0]?.path).toBe(path.join(tempDir, '.claude', 'rules', 'foo-Bar-Baz.md'));
+    });
+
+    it('should fall back to "rule" for empty/only-special-chars stem', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, '___.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: '___.mdc',
+          content: 'Fallback content.',
+          globs: ['**/*'],
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      const rulePath = path.join(tempDir, '.claude', 'rules', 'rule.md');
+      const content = await fs.readFile(rulePath, 'utf-8');
+      expect(content).toContain('Fallback content.');
+    });
+  });
+
+  describe('B2 — GlobalPrompt preserves name case', () => {
+    it('should preserve CamelCase name when emitting GlobalPrompt', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'productContext.mdc'),
+          type: CustomizationType.GlobalPrompt,
+          name: 'productContext',
+          sourcePath: 'productContext.mdc',
+          content: 'Product context.',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      expect(result.written[0]?.path).toBe(path.join(tempDir, '.claude', 'rules', 'productContext.md'));
+    });
+  });
+
+  describe('B3 — AgentSkillIO skill directory stays lowercase (spec compliance)', () => {
+    it('should lowercase uppercase skill name for directory', async () => {
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/Pdf-Processing/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/Pdf-Processing/SKILL.md',
+          content: 'PDF processing content',
+          name: 'Pdf-Processing',
+          description: 'Process PDFs',
+          files: {},
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      // Skill dir must be lowercase per AgentSkills.io spec §name
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'pdf-processing', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('PDF processing content');
+    });
+
+    it('should leave already-lowercase skill name unchanged', async () => {
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/niko-archive/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.cursor/skills/niko-archive/SKILL.md',
+          content: 'Archive content',
+          name: 'niko-archive',
+          description: 'Archive skill',
+          files: {},
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'niko-archive', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Archive content');
+    });
+  });
+
+  describe('B4 — SimpleAgentSkill skill directory stays lowercase', () => {
+    it('should lowercase CamelCase name for skill directory', async () => {
+      const models: SimpleAgentSkill[] = [
+        {
+          id: createId(CustomizationType.SimpleAgentSkill, 'MyNiceSkill.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
+          name: 'MyNiceSkill',
+          sourcePath: 'MyNiceSkill.mdc',
+          content: 'Skill content',
+          description: 'Nice skill',
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'myniceskill', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Skill content');
+    });
+
+    it('should lowercase sourcePath-derived name when skill.name is missing (fallback branch)', async () => {
+      // Bypass the name-required SimpleAgentSkill type to exercise the fallback branch
+      const models = [
+        {
+          id: createId(CustomizationType.SimpleAgentSkill, 'MySkill.mdc'),
+          type: CustomizationType.SimpleAgentSkill,
+          sourcePath: 'MySkill.mdc',
+          content: 'Fallback skill',
+          description: 'Skill from sourcePath',
+          metadata: {},
+        } as unknown as SimpleAgentSkill,
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'myskill', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Fallback skill');
+    });
+  });
+
+  describe('B5 — ManualPrompt skill directory stays lowercase', () => {
+    it('should lowercase CamelCase promptName for skill directory', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/MyCommand.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/MyCommand.md',
+          content: 'Command content',
+          promptName: 'MyCommand',
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'mycommand', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Command content');
+    });
+  });
+
+  describe('B9 — case-insensitive collision safety', () => {
+    it('should treat case-only differences as collisions for FileRules', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, 'activeContext.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: 'activeContext.mdc',
+          content: 'CamelCase content.',
+          globs: ['**/*'],
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.FileRule, 'activecontext.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: 'activecontext.mdc',
+          content: 'lowercase content.',
+          globs: ['**/*'],
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+      const paths = result.written.map(w => w.path);
+      // Two distinct filenames should land — not a silent overwrite
+      const uniqueLower = new Set(paths.map(p => p.toLowerCase()));
+      expect(uniqueLower.size).toBe(2);
+
+      // First preserves original case; second gets a -1 suffix (preserving its original case)
+      expect(paths.some(p => p.endsWith(path.sep + 'activeContext.md'))).toBe(true);
+      expect(paths.some(p => p.endsWith(path.sep + 'activecontext-1.md'))).toBe(true);
+    });
+
+    it('should NOT treat truly different names as collisions', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, 'activeContext.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: 'activeContext.mdc',
+          content: 'Context.',
+          globs: ['**/*'],
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.FileRule, 'foo.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: 'foo.mdc',
+          content: 'Foo.',
+          globs: ['**/*'],
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+      const paths = result.written.map(w => w.path);
+      expect(paths.some(p => p.endsWith(path.sep + 'activeContext.md'))).toBe(true);
+      expect(paths.some(p => p.endsWith(path.sep + 'foo.md'))).toBe(true);
+    });
+  });
+
+  describe('B11 — leading-dot filenames sanitize as before', () => {
+    it('should strip leading dot and preserve rest', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, '.dotfile.mdc'),
+          type: CustomizationType.FileRule,
+          sourcePath: '.dotfile.mdc',
+          content: 'Dotfile content.',
+          globs: ['**/*'],
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      const rulePath = path.join(tempDir, '.claude', 'rules', 'dotfile.md');
+      const content = await fs.readFile(rulePath, 'utf-8');
+      expect(content).toContain('Dotfile content.');
     });
   });
 });

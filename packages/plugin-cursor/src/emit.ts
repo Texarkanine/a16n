@@ -22,25 +22,30 @@ import {
 } from '@a16njs/models';
 
 /**
- * Sanitize a source file path to a safe filesystem stem.
- * Extracts basename, strips the last extension, lowercases, and replaces
- * unsafe characters with hyphens. Intended for full source paths (FileRule,
- * AgentSkillIO fallback). For pre-derived name stems, use sanitizePromptName.
- * Returns 'rule' if sanitization produces an empty string.
+ * Sanitize a source file path to a safe *rule filename* stem, preserving
+ * source case. Extracts basename, strips the last extension, normalizes
+ * non-alphanumerics to hyphens, and trims leading/trailing hyphens. Returns
+ * 'rule' when the result would be empty.
+ *
+ * Case is preserved because `.cursor/rules/**` filenames carry no spec
+ * requirement on case — lowercasing would be an a16n-imposed convention, not
+ * a target-format requirement (see task 20260421-preserve-filename-case).
+ * Skill directory names still use `sanitizePromptName`, which lowercases per
+ * the AgentSkills.io spec (Cursor implements that spec; skill dir name must
+ * match `[a-z0-9-]+`).
  */
 function sanitizeFilename(sourcePath: string): string {
   // Get just the filename without directory
   const basename = path.basename(sourcePath);
-  
+
   // Remove extension
   const nameWithoutExt = basename.replace(/\.[^.]+$/, '');
-  
-  // Convert to lowercase and replace unsafe characters
+
+  // Replace unsafe characters; preserve case
   const sanitized = nameWithoutExt
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/[^A-Za-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, ''); // Trim leading/trailing hyphens
-  
+
   // Return fallback if empty
   return sanitized || 'rule';
 }
@@ -62,24 +67,31 @@ function sanitizePromptName(promptName: string): string {
 /**
  * Generate a unique filename by appending a counter if needed.
  * Returns the unique filename and whether a collision occurred.
+ *
+ * Case-insensitive: treats case-only differences as collisions so that a
+ * case-insensitive filesystem (macOS, Windows) cannot silently overwrite one
+ * rule file with another whose stem differs only in case. The returned
+ * filename preserves the ORIGINAL-case `baseName`; only the Set key is
+ * lowercased. Kept plugin-local because case policy is plugin-internal
+ * business (see task 20260421-preserve-filename-case).
  */
 function getUniqueFilename(
   baseName: string,
   usedNames: Set<string>
 ): { filename: string; collision: boolean } {
-  if (!usedNames.has(baseName)) {
-    usedNames.add(baseName);
+  if (!usedNames.has(baseName.toLowerCase())) {
+    usedNames.add(baseName.toLowerCase());
     return { filename: baseName, collision: false };
   }
 
   // Collision detected - find unique name
   let counter = 2;
   let uniqueName = `${baseName.replace(/\.mdc$/, '')}-${counter}.mdc`;
-  while (usedNames.has(uniqueName)) {
+  while (usedNames.has(uniqueName.toLowerCase())) {
     counter++;
     uniqueName = `${baseName.replace(/\.mdc$/, '')}-${counter}.mdc`;
   }
-  usedNames.add(uniqueName);
+  usedNames.add(uniqueName.toLowerCase());
   return { filename: uniqueName, collision: true };
 }
 
@@ -382,12 +394,26 @@ description: ${safeDescription}`;
         await fs.writeFile(resolvedPath, content, 'utf-8');
       }
 
+      // Compute explicit source-relative path for this resource so
+      // path-rewriter.buildMapping can key it correctly. Without this the
+      // mapping would (a) miss source→target entries for resource files and
+      // (b) clobber the SKILL.md→SKILL.md entry because every resource's
+      // sourceItems[0].sourcePath points at the skill's SKILL.md.
+      // POSIX separators per the buildMapping contract.
+      const resourceSourcePath = skill.sourcePath
+        ? path.posix.join(
+            path.posix.dirname(skill.sourcePath.split(path.sep).join('/')),
+            filename.split(path.sep).join('/'),
+          )
+        : undefined;
+
       written.push({
         path: resolvedPath,
         type: CustomizationType.AgentSkillIO,
         itemCount: 1,
         isNewFile: isResourceNewFile,
         sourceItems: [skill],
+        ...(resourceSourcePath !== undefined && { sourcePaths: [resourceSourcePath] }),
       });
     }
   }
@@ -454,7 +480,8 @@ export async function emit(
   for (const gp of globalPrompts) {
     // gp.name is already a clean stem; apply dot-to-hyphen normalization
     // without extension stripping (sanitizeFilename would double-strip).
-    const stem = gp.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'rule';
+    // Case preserved (see task 20260421-preserve-filename-case).
+    const stem = gp.name.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'rule';
     const baseName = stem + '.mdc';
 
     // Resolve target directory and validate before collision detection

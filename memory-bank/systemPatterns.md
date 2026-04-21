@@ -21,7 +21,7 @@ Three plugins are bundled: `cursor`, `claude`, and `a16n` (the IR format itself,
 - `discover` and `emit` accept `string | Workspace`. The engine passes `LocalWorkspace`; tests use `MemoryWorkspace` / `ReadOnlyWorkspace`.
 - `metadata` on IR items is transient — it is never serialized. It carries tool-specific hints between discover and emit within a single conversion.
 - `relativeDir` on IR items preserves subdirectory structure across conversion (e.g., `.cursor/rules/shared/foo.mdc` → `.claude/rules/shared/foo.md`). Emit validates it to prevent path traversal.
-- `WrittenFile.sourceItems` links each emitted file back to its source IR items. This powers path-reference rewriting and `--delete-source`.
+- `WrittenFile.sourceItems` links each emitted file back to its source IR items (powers `--delete-source` and git-ignore match mode). Path-reference rewriting prefers the optional `WrittenFile.sourcePaths` when a plugin sets it (required for 1:N emit patterns like `AgentSkillIO` resource files, where the sole `sourceItem` points at the parent `SKILL.md`); it falls back to `sourceItems[*].sourcePath` otherwise. `buildMapping` warns (`Approximated`) when two `WrittenFile`s derive the same source key but map to different targets.
 
 ## Discovery/Emit Asymmetries
 

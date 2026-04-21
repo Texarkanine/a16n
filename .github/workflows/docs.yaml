@@ -46,7 +46,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build documentation site
-        run: pnpm --filter docs build
+        run: pnpm --filter docs run docs:build:all
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

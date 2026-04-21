@@ -30,6 +30,20 @@ export interface WrittenFile {
    * Enables accurate git-ignore conflict detection in match mode.
    */
   sourceItems?: AgentCustomization[];
+  /**
+   * Explicit source-relative paths this output file represents, used by
+   * path-rewriting. When set (and non-empty), takes precedence over
+   * `sourceItems[*].sourcePath` for `buildMapping` purposes.
+   *
+   * Use for outputs that correspond to source paths that are not first-class
+   * `AgentCustomization`s — e.g., AgentSkillIO resource files (scripts/*,
+   * references/*, assets/*) whose underlying `sourceItems` points at the
+   * skill's SKILL.md.
+   *
+   * Paths must use POSIX separators to match the normalization applied in
+   * `buildMapping`.
+   */
+  sourcePaths?: string[];
 }
 
 /**

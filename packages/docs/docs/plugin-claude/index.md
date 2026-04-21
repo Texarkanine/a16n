@@ -26,10 +26,14 @@ npm install @a16njs/plugin-claude
 	* Rules without `paths:` frontmatter: [GlobalPrompt](/models#globalprompt)
 	* Rules with `paths:` frontmatter: [FileRule](/models#filerule)
 * [Claude Skills](https://docs.anthropic.com/en/docs/claude-code/skills): `.claude/skills/*/SKILL.md`
-	* Simple Skills (single SKILL.md file only)
-		* `disable-model-invocation: true`: [ManualPrompt](/models#manualprompt)
-		* others: [SimpleAgentSkill](/models#simpleagentskill)
-	* Complex Skills (hooks, multiple files, resources): Skipped w/ Warning
+	* **Simple Skills** (only SKILL.md, no ride-along files):
+		* `disable-model-invocation: true` → [ManualPrompt](/models#manualprompt)
+		* `description:` present → [SimpleAgentSkill](/models#simpleagentskill)
+		* Neither → Skipped w/ Warning
+	* **Complex Skills** (SKILL.md + 1 or more additional files in [optional directories](https://agentskills.io/specification#optional-directories)):
+		* `description:` present → [AgentSkillIO](/models#agentskillio)
+		* `description:` missing → Skipped w/ Warning
+	* **Skills with hooks** → Skipped w/ Warning (skill hooks are unique to Claude Code & can't translate, but also [hooks can't translate](../understanding-conversions/hooks))
 * [Claude Settings](https://docs.anthropic.com/en/docs/claude-code/settings): `.claude/settings.json`
 	* `permissions.deny` with `Read()`: [AgentIgnore](/models#agentignore)
 	* Other permission types: Skipped
@@ -39,6 +43,7 @@ npm install @a16njs/plugin-claude
 * [GlobalPrompt](/models#globalprompt): `.claude/rules/<name>.md` (individual files)
 * [FileRule](/models#filerule): `.claude/rules/<name>.md` with `paths:` YAML frontmatter (native support)
 * [SimpleAgentSkill](/models#simpleagentskill): `.claude/skills/<name>/SKILL.md`
+* [AgentSkillIO](/models#agentskillio): `.claude/skills/<name>/` directory (SKILL.md **and** all ride-along files under `scripts/`, `references/`, `assets/`, etc.)
 * [AgentIgnore](/models#agentignore): `.claude/settings.json` with `permissions.deny`
 * [ManualPrompt](/models#manualprompt): `.claude/skills/<name>/SKILL.md` with `enable-model-invocation: false`
 

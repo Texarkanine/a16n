@@ -227,6 +227,19 @@ This updates references automatically.
 
 If a referenced file was not part of the conversion, a16n emits an `orphan-path-ref` warning.
 
+### Scope for AgentSkillIO ride-along files
+
+[AgentSkillIO](/models#agentskillio) skills bundle a `SKILL.md` entry point with optional ride-along resource files. The `SKILL.md` body is always rewritten (and scanned for orphan refs), but the ride-along files themselves are **only** rewritten if they live under the two [AgentSkills.io spec-designated text subtrees](https://agentskills.io/specification#optional-directories):
+
+| Subtree | Purpose per spec | Content rewritten? | Orphan scanning? |
+| --- | --- | --- | --- |
+| `scripts/` | Executable code | **Yes** | **Yes** |
+| `references/` | Additional documentation | **Yes** | **Yes** |
+| `assets/` | Templates, images, data files | No (byte-for-byte passthrough) | No |
+| any other subtree | Not covered by the spec | No (byte-for-byte passthrough) | No |
+
+Ride-along files outside `scripts/` and `references/` are always copied through to the target unchanged, even if they happen to contain path-like strings. This is intentional: a16n has no spec-level guarantee that those files contain text, so rewriting could corrupt binary data (e.g. a `.png` in `assets/`) or mutate intentional placeholder strings. Orphan scanning is similarly scoped so that un-rewritten cursor paths inside `assets/` or unknown subtrees never produce spurious warnings.
+
 ## Learn More
 
 * [CLI Reference](/cli/reference)
