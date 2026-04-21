@@ -20,7 +20,6 @@ import {
   isAgentSkillIO,
   isAgentIgnore,
   isManualPrompt,
-  getUniqueFilename,
   resolveRoot,
 } from '@a16njs/models';
 
@@ -51,12 +50,51 @@ function convertPatternToReadRule(pattern: string): string | null {
 }
 
 /**
- * Sanitize a source file path to a safe filesystem stem.
- * Extracts basename, strips the last extension, and normalizes characters.
- * Intended for full source paths (FileRule, AgentSkillIO fallback).
- * For pre-derived name stems (e.g., gp.name), use sanitizeName instead.
+ * Normalize a stem (no basename extraction, no extension stripping) preserving
+ * original case. Shared between sanitizeRuleFilename and sanitizeRuleStem so
+ * the regex widening + hyphen-trim logic lives in exactly one place.
  */
-function sanitizeFilename(sourcePath: string): string {
+function normalizeStemPreservingCase(stem: string): string {
+  return stem
+    .replace(/[^A-Za-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * Sanitize a source file path to a safe *rule filename* stem, preserving case.
+ * Extracts basename, strips the last extension, normalizes non-alphanumerics
+ * to hyphens, and trims leading/trailing hyphens. Falls back to 'rule' on an
+ * empty result.
+ *
+ * Case is preserved because `.claude/rules/**` filenames carry no spec
+ * requirement on case — lowercasing would be an a16n-imposed convention, not
+ * a target-format requirement (see task 20260421-preserve-filename-case).
+ */
+function sanitizeRuleFilename(sourcePath: string): string {
+  const basename = path.basename(sourcePath);
+  const nameWithoutExt = basename.replace(/\.[^.]+$/, '');
+  return normalizeStemPreservingCase(nameWithoutExt) || 'rule';
+}
+
+/**
+ * Sanitize a pre-derived rule stem (e.g., `gp.name`) preserving case.
+ * Unlike sanitizeRuleFilename, does not extract a basename or strip an
+ * extension — the caller has already produced a clean stem.
+ */
+function sanitizeRuleStem(name: string): string {
+  return normalizeStemPreservingCase(name) || 'global-prompt';
+}
+
+/**
+ * Sanitize a name to a safe AgentSkills.io-spec-compliant skill directory
+ * name. Extracts basename, strips the last extension, lowercases, and
+ * normalizes non-alphanumerics to hyphens.
+ *
+ * Lowercasing here is **spec-mandated** (AgentSkills.io §name requires
+ * `[a-z0-9-]+` and "must match the parent directory name"), not a16n
+ * convention. See task 20260421-preserve-filename-case.
+ */
+function sanitizeSkillDirName(sourcePath: string): string {
   const basename = path.basename(sourcePath);
   const nameWithoutExt = basename.replace(/\.[^.]+$/, '');
   const sanitized = nameWithoutExt
@@ -67,21 +105,11 @@ function sanitizeFilename(sourcePath: string): string {
 }
 
 /**
- * Sanitize a pre-derived name stem to be safe for the filesystem.
- * Unlike sanitizeFilename, does not extract a basename or strip extensions —
- * the input is already a clean stem (e.g., from inferGlobalPromptName).
- */
-function sanitizeName(name: string): string {
-  const sanitized = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-  return sanitized || 'global-prompt';
-}
-
-/**
  * Sanitize a prompt name to prevent path traversal and ensure filesystem safety.
  * Returns a safe string with only alphanumeric characters and hyphens.
+ *
+ * Lowercasing here is spec-mandated for skill dir names that this helper
+ * produces (AgentSkills.io §name), matching sanitizeSkillDirName's policy.
  */
 function sanitizePromptName(promptName: string): string {
   // Remove any path separators and normalize
@@ -91,6 +119,32 @@ function sanitizePromptName(promptName: string): string {
     .replace(/[^a-z0-9]+/g, '-')  // Replace other unsafe chars with hyphens
     .replace(/^-+|-+$/g, '');  // Trim leading/trailing hyphens
   return sanitized || 'command';
+}
+
+/**
+ * Plugin-local, case-insensitive variant of models::getUniqueFilename.
+ * Treats case-only differences as collisions so that a case-insensitive
+ * filesystem (macOS, Windows) cannot silently overwrite one rule file with
+ * another whose stem differs only in case. The returned name preserves the
+ * ORIGINAL-case `baseName`; only the Set key is lowercased.
+ *
+ * Kept plugin-local (not pushed into @a16njs/models) because case policy is
+ * a plugin-internal concern: a future third-party plugin may have different
+ * rules. See task 20260421-preserve-filename-case.
+ */
+function getUniqueFilenameCI(
+  baseName: string,
+  usedNames: Set<string>,
+  extension = ''
+): string {
+  let name = baseName + extension;
+  let counter = 1;
+  while (usedNames.has(name.toLowerCase())) {
+    name = `${baseName}-${counter}${extension}`;
+    counter++;
+  }
+  usedNames.add(name.toLowerCase());
+  return name;
 }
 
 /**
@@ -182,9 +236,10 @@ async function emitAgentSkillIO(
 ): Promise<WrittenFile[]> {
   const written: WrittenFile[] = [];
 
-  // Get unique skill name to avoid directory collisions
-  const baseName = sanitizeFilename(skill.name);
-  const skillName = getUniqueFilename(baseName, usedSkillNames);
+  // Get unique skill name to avoid directory collisions.
+  // Skill dir is spec-lowercased (AgentSkills.io §name).
+  const baseName = sanitizeSkillDirName(skill.name);
+  const skillName = getUniqueFilenameCI(baseName, usedSkillNames);
 
   const skillDir = path.resolve(root, '.claude', 'skills', skillName);
   if (!dryRun) {
@@ -354,10 +409,11 @@ export async function emit(
 
     for (const gp of globalPrompts) {
       // Get unique filename to avoid collisions
-      // Qualify with relativeDir to prevent false collisions across subdirectories
-      const baseName = sanitizeName(gp.name);
+      // Qualify with relativeDir to prevent false collisions across subdirectories.
+      // Rule filename preserves source case (no spec requirement to lowercase).
+      const baseName = sanitizeRuleStem(gp.name);
       const qualifiedName = gp.relativeDir ? `${gp.relativeDir}/${baseName}` : baseName;
-      const qualifiedFilename = getUniqueFilename(qualifiedName, usedFilenames, '.md');
+      const qualifiedFilename = getUniqueFilenameCI(qualifiedName, usedFilenames, '.md');
       const filename = gp.relativeDir ? path.basename(qualifiedFilename) : qualifiedFilename;
 
       // Use relativeDir for subdirectory nesting when present
@@ -431,10 +487,11 @@ export async function emit(
       validFileRulesExist = true;
 
       // Get unique filename to avoid collisions
-      // Qualify with relativeDir to prevent false collisions across subdirectories
-      const baseName = sanitizeFilename(rule.sourcePath || rule.id);
+      // Qualify with relativeDir to prevent false collisions across subdirectories.
+      // Rule filename preserves source case (no spec requirement to lowercase).
+      const baseName = sanitizeRuleFilename(rule.sourcePath || rule.id);
       const qualifiedName = rule.relativeDir ? `${rule.relativeDir}/${baseName}` : baseName;
-      const qualifiedFilename = getUniqueFilename(qualifiedName, usedFilenames, '.md');
+      const qualifiedFilename = getUniqueFilenameCI(qualifiedName, usedFilenames, '.md');
       const filename = rule.relativeDir ? path.basename(qualifiedFilename) : qualifiedFilename;
 
       // Use relativeDir for subdirectory nesting when present
@@ -491,11 +548,13 @@ export async function emit(
   // === Emit SimpleAgentSkills as .claude/skills/*/SKILL.md ===
   if (agentSkills.length > 0) {
     for (const skill of agentSkills) {
-      // Use the invocation name (skill.name) when available; fall back to sanitized sourcePath
+      // Use the invocation name (skill.name) when available; fall back to
+      // sanitized sourcePath. Both branches produce a spec-lowercased skill
+      // dir name (AgentSkills.io §name).
       const baseName = skill.name
         ? sanitizePromptName(skill.name)
-        : sanitizeFilename(skill.sourcePath || skill.id);
-      const skillName = getUniqueFilename(baseName, usedSkillNames);
+        : sanitizeSkillDirName(skill.sourcePath || skill.id);
+      const skillName = getUniqueFilenameCI(baseName, usedSkillNames);
 
       const skillDir = path.join(root, '.claude', 'skills', skillName);
       if (!dryRun) {
@@ -615,7 +674,7 @@ export async function emit(
       // Sanitize prompt name to prevent path traversal
       const baseName = sanitizePromptName(prompt.promptName);
       // Get unique skill name to avoid directory collisions
-      const skillName = getUniqueFilename(baseName, usedSkillNames);
+      const skillName = getUniqueFilenameCI(baseName, usedSkillNames);
 
       const skillDir = path.join(root, '.claude', 'skills', skillName);
       if (!dryRun) {
