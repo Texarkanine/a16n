@@ -43,9 +43,9 @@ jobs:
       # Build current (unreleased) API docs and verify Docusaurus compiles.
       # This catches TypeDoc output that would break the doc site (e.g., JSX-like
       # tags in markdown) BEFORE it gets released and becomes immutable.
-      # Uses build:current (not build) to skip slow versioned doc generation.
+      # Uses docs:build:current (not docs:build:all) to skip slow versioned doc generation.
       - name: Verify docs build (current API)
-        run: pnpm --filter docs run build:current
+        run: pnpm --filter docs run docs:build:current
 
       - name: Upload CLI coverage
         uses: codecov/codecov-action@v5

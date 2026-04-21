@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Generate CHANGELOG pages for each package in .generated/
-# Called as part of the 'stage' npm script.
+# Called as part of the docs:sync npm script.
 #
 # For each package that has a CHANGELOG.md, creates:
 #   .generated/<docs-dir>/changelog.md

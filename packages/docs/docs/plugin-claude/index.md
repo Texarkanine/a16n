@@ -26,14 +26,14 @@ npm install @a16njs/plugin-claude
 	* Rules without `paths:` frontmatter: [GlobalPrompt](/models#globalprompt)
 	* Rules with `paths:` frontmatter: [FileRule](/models#filerule)
 * [Claude Skills](https://docs.anthropic.com/en/docs/claude-code/skills): `.claude/skills/*/SKILL.md`
-	* **Skills with hooks** → Skipped w/ Warning (hooks are not supported by [AgentSkills.io](https://agentskills.io/))
-	* **Complex Skills** (SKILL.md + ride-along files in the skill directory):
-		* `description:` present → [AgentSkillIO](/models#agentskillio) (SKILL.md **and** every ride-along file under `scripts/`, `references/`, `assets/`, etc. are all converted)
-		* `description:` missing → Skipped w/ Warning
 	* **Simple Skills** (only SKILL.md, no ride-along files):
 		* `disable-model-invocation: true` → [ManualPrompt](/models#manualprompt)
 		* `description:` present → [SimpleAgentSkill](/models#simpleagentskill)
 		* Neither → Skipped w/ Warning
+	* **Complex Skills** (SKILL.md + 1 or more additional files in [optional directories](https://agentskills.io/specification#optional-directories)):
+		* `description:` present → [AgentSkillIO](/models#agentskillio)
+		* `description:` missing → Skipped w/ Warning
+	* **Skills with hooks** → Skipped w/ Warning (skill hooks are unique to Claude Code & can't translate, but also [hooks can't translate](../understanding-conversions/hooks))
 * [Claude Settings](https://docs.anthropic.com/en/docs/claude-code/settings): `.claude/settings.json`
 	* `permissions.deny` with `Read()`: [AgentIgnore](/models#agentignore)
 	* Other permission types: Skipped

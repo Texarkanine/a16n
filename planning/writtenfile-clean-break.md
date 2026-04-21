@@ -107,7 +107,7 @@ Lockstep major release, coordinated via Release-Please (`release.yaml`). Since `
 5. Update `@a16njs/cli` `convert.ts` consumers. This is where the biggest LOC reduction happens (Flavor B).
 6. Update all `test/emit.test.ts` files to assert on `sourcePaths` instead of `sourceItems` (Flavor B).
 7. Update `path-rewriter.test.ts` and `transformation.test.ts` for the new signatures.
-8. Run the full validation suite. Also `pnpm --filter @a16njs/docs build`.
+8. Run the full validation suite. Also `pnpm --filter docs run docs:build:all`.
 9. Release-Please coordination: all seven `@a16njs/*` packages bump together. Write clear CHANGELOG entries referencing the migration guide.
 
 ---

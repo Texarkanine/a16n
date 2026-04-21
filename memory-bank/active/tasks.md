@@ -194,7 +194,7 @@ Rules for Option C:
 
 9. **Run the full validation suite.**
     * `pnpm build && pnpm test && pnpm lint && pnpm typecheck` (per `techContext.md`).
-    * **Additionally** run the docs site build to catch Docusaurus/MDX breakage: `pnpm --filter @a16njs/docs build` (Docusaurus is excluded from default `pnpm build`). Expect all changes green; no regressions.
+    * **Additionally** run the docs site build to catch Docusaurus/MDX breakage: `pnpm --filter docs run docs:build:current` (or `docs:build:all` for full API parity; Docusaurus is excluded from default `pnpm build`). Expect all changes green; no regressions.
 
 ## Technology Validation
 
