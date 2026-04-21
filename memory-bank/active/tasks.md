@@ -7,9 +7,9 @@
 
 ## Description
 
-PR #84 feedback surfaced that CamelCase source filenames are lowercased when emitted as rule files — e.g., `.cursor/rules/shared/niko/memory-bank/active/activeContext.mdc` becomes `.claude/rules/shared/niko/memory-bank/active/activecontext.md`. The [AgentSkills.io spec](https://agentskills.io/specification) requires lowercase-kebab ONLY for the skill `name` field (which is the skill **directory name**). Rule filenames under `.claude/rules/**` and `.cursor/rules/**` have **no** spec requirement on case — the lowercasing is a16n imposing convention that isn't required to make anything work.
+PR #84 feedback surfaced that CamelCase source filenames are lowercased when emitted as rule files — e.g., `.cursor/rules/shared/niko/memory-bank/active/activeContext.mdc` becomes `.claude/rules/shared/niko/memory-bank/active/activecontext.md`. The [AgentSkills.io spec](https://agentskills.io/specification) requires lowercase-kebab ONLY for the skill `name` field, which by the spec's "Must match the parent directory name" rule transitively binds the skill **directory name** — and both Cursor and Claude implement AgentSkills.io (Cursor per [cursor.com/docs/skills](https://cursor.com/docs/skills)), so this binds both plugins' skill-dir emission. Rule filenames under `.claude/rules/**` and `.cursor/rules/**` have **no** spec requirement on case — that lowercasing is a16n imposing convention that isn't required to make anything work.
 
-Guiding principle (per operator): *"Never make a change to input that isn't REQUIRED in order for it to work."* Preserve source filename case for rule files. Keep mandatory lowercasing only where the spec genuinely requires it (Claude skill directory names).
+Guiding principle (per operator): *"Preserve case by default. The only exception is where the target's spec genuinely requires otherwise."* Preserve source filename case for rule files. Keep mandatory lowercasing for skill directory names in both plugins (spec-mandated via AgentSkills.io §name field).
 
 Related: the previous PR #84's fix rewrites `.cursor/...` → `.claude/...` path refs inside `references/` ride-alongs but not inside the non-spec `resources/` subtree that the Niko skill happens to use. That is acknowledged as a **Niko-repo bug** (Niko should rename `resources/` → `references/` per AgentSkills.io spec) and is **NOT** in scope here.
 
@@ -42,8 +42,8 @@ Related: the previous PR #84's fix rewrites `.cursor/...` → `.claude/...` path
 **B7 — Cursor GlobalPrompt preserves case (symmetric to B2):**
 * [input/action] GlobalPrompt with `name: 'productContext'` → [expected] `.cursor/rules/productContext.mdc`.
 
-**B8 — Cursor skill directory lowercasing behavior (DEFERRED):**
-* Intentionally NOT changed in this task. Cursor's skill dir emission uses `sanitizePromptName` (lowercasing). AgentSkills.io spec doesn't bind Cursor, but round-tripping with Claude (which requires lowercase skill dirs) makes "preserve case" a non-trivial semantic change. Captured as a possible follow-up; not blocking.
+**B8 — Cursor skill directory lowercasing is correct and retained (NO CHANGE):**
+* Cursor's skill dir emission uses `sanitizePromptName` (lowercasing). This is **spec-mandated, not a16n convention**: Cursor implements the AgentSkills.io spec ([cursor.com/docs/skills](https://cursor.com/docs/skills)), which requires the `name` frontmatter field to match `[a-z0-9-]+` and to equal the parent directory name. The directory must therefore be lowercase. Same rationale as Claude's skill dirs. **No code change; behavior is correct.**
 
 **B9 — Case-insensitive collision safety on case-insensitive filesystems:**
 * [input/action] Two FileRules in the same directory with `sourcePath` ending `activeContext.mdc` and `activecontext.mdc` (hypothetical; real case-sensitive Linux checkout) → [expected] both written without silent overwrite when target FS is case-insensitive (macOS/Windows); the second file lands on `activecontext-1.md` (or similar) via collision detection that treats case-only differences as collisions.
@@ -81,16 +81,18 @@ Call sites today use the same function for both (1)+(2)+(3) rule filenames (wher
 |---|---|---|---|
 | `plugin-claude` FileRule filename (line 435) | `sanitizeFilename` (lowercases) | `sanitizeRuleFilename` (preserves case) | No spec requirement on rule filenames |
 | `plugin-claude` GlobalPrompt filename (line 358) | `sanitizeName` (lowercases) | `sanitizeRuleFilename` (preserves case) | Same |
-| `plugin-claude` AgentSkillIO skill dir (line 186) | `sanitizeFilename` (lowercases) | `sanitizeSkillDirName` (still lowercases) | AgentSkills.io spec §`name` requires `[a-z0-9-]+` |
+| `plugin-claude` AgentSkillIO skill dir (line 186) | `sanitizeFilename` (lowercases) | `sanitizeSkillDirName` (still lowercases) | AgentSkills.io spec §`name` requires `[a-z0-9-]+` + "Must match parent directory name" |
 | `plugin-claude` SimpleAgentSkill skill dir fallback (line 497) | `sanitizeFilename` | `sanitizeSkillDirName` | Same |
 | `plugin-claude` SimpleAgentSkill / ManualPrompt skill dir (`sanitizePromptName`) | lowercases | unchanged | Same |
-| `plugin-cursor` FileRule filename (line 532) | `sanitizeFilename` (lowercases) | `sanitizeRuleFilename` (preserves case) | No spec requirement on Cursor rule filenames |
+| `plugin-cursor` FileRule filename (line 532) | `sanitizeFilename` (lowercases) | `sanitizeFilename` body change: preserve case | No spec requirement on Cursor rule filenames |
 | `plugin-cursor` GlobalPrompt filename (inline at line 471) | `.toLowerCase()...` | preserve case inline | Same |
-| `plugin-cursor` skill dir (`sanitizePromptName`) | lowercases | unchanged (deferred per B8) | See B8 |
+| `plugin-cursor` skill dir (`sanitizePromptName`) | lowercases | unchanged | AgentSkills.io spec §`name` + parent-directory rule (Cursor implements the spec per [cursor.com/docs/skills](https://cursor.com/docs/skills)) |
 
 **Regex change:** `[^a-z0-9]+` → `[^A-Za-z0-9]+` (widen to allow uppercase). Drop the `.toLowerCase()` call. Everything else unchanged (leading/trailing hyphen trim, fallback `|| 'rule'`).
 
-**Collision safety:** introduce case-insensitive `usedFilenames` check in both plugins' `getUniqueFilename` paths so that `activeContext.md` and `activecontext.md` can't both land on the same case-insensitive filesystem without the collision counter firing. Cleanest approach: store `toLowerCase()` of basenames in the `Set`, compare with `toLowerCase()` on lookup; preserve the original-cased name on disk. No API change needed in the public helper (`@a16njs/models` `getUniqueFilename`) — do the normalization inside it, behind an optional `caseInsensitive` flag defaulting to `true` (or just unconditionally, since "treat case-only matches as collisions" is never worse than the status quo).
+**Collision safety (case-insensitive filesystems):** introduce a case-insensitive `usedFilenames` check in *each plugin locally*. Two source names that differ only in case (e.g., `activeContext.mdc` and `activecontext.mdc`) must never silently overwrite each other on macOS/Windows. Implementation: each plugin stores `toLowerCase()` of basenames in its `Set`, compares with `toLowerCase()` on lookup, preserves the original-cased name on disk.
+
+**Do not** change the public `@a16njs/models::getUniqueFilename` helper. Each plugin owns its own case policy; the shared helper stays deterministic and byte-exact. A hypothetical third-party plugin (e.g., for a future harness) that wants different collision semantics implements them itself. Pushing case handling into the public helper would be whitebox coupling that presumes all consumers want the same policy — they may not, and the shared helper is published API (`@a16njs/models@0.12.0`).
 
 ### Steps (one TDD cycle each)
 
@@ -116,12 +118,15 @@ Call sites today use the same function for both (1)+(2)+(3) rule filenames (wher
         * `sanitizePromptName` (line 52): unchanged. Used for Cursor **skill dir names** (lines 204, 290, 594, 678). B8 defers changing this.
     * Tests first: add B6, B7.
 
-3. **Case-insensitive collision detection in `getUniqueFilename` (both implementations).**
+3. **Case-insensitive collision detection — plugin-local only.**
     * Files:
-        * `packages/models/src/helpers.ts` — `getUniqueFilename` at line 101 (used by plugin-claude).
-        * `packages/plugin-cursor/src/emit.ts` — local `getUniqueFilename` at line 66.
-    * Changes: in each, compare against `usedNames` case-insensitively (store `baseName.toLowerCase()` in the Set, look up with `toLowerCase()`). Preserve the original-cased `baseName` for what's returned and actually written. No public-signature change; the behavior shift (treating case-only differences as collisions) is strictly safer on case-insensitive filesystems and a no-op on case-sensitive filesystems when names don't differ by case only.
-    * Tests first: add B9 case-insensitive collision test (one per plugin).
+        * `packages/plugin-cursor/src/emit.ts` — local `getUniqueFilename` at line 66 (private helper; not exported).
+        * `packages/plugin-claude/src/emit.ts` — add a plugin-local `getUniqueFilenameCI` helper; switch the 5 call sites (lines 187, 360, 437, 498, 618) to it. Drop the `getUniqueFilename` import from `@a16njs/models`.
+    * Do NOT touch: `packages/models/src/helpers.ts::getUniqueFilename`. Public surface of `@a16njs/models@0.12.0` stays byte-identical (semver preserved; existing unit tests in `packages/models/test/helpers.test.ts` stay green unchanged).
+    * Changes: each plugin-local helper compares against `usedNames` case-insensitively (store `baseName.toLowerCase()` in the Set, look up with `toLowerCase()`). Preserve the original-cased `baseName` for what's returned and written to disk.
+    * Rationale: case policy is a plugin-internal concern, not a models-package contract. Each plugin owns its own stance. A future third-party plugin (e.g., `a16n-plugin-AgenticHarnessX`) may have different rules and implements them itself; we don't pre-decide for them.
+    * Minor scope note: only 2 of the 5 plugin-claude call sites strictly need CI behavior (the rule-filename paths at lines 360 and 437). The other 3 (187, 498, 618) feed lowercased inputs from `sanitizeSkillDirName` / `sanitizePromptName`, so CI is a no-op there. Using the CI helper uniformly at all 5 is harmless and reads cleaner (single helper vs. mixed call style).
+    * Tests first: add B9 case-insensitive collision test (one per plugin's `emit.test.ts`).
 
 4. **Fixture / regression sweep.**
     * Files: `packages/plugin-claude/test/fixtures/**`, `packages/plugin-cursor/test/fixtures/**`, `packages/cli/test/integration/fixtures/**`.
@@ -147,9 +152,9 @@ No new technology. All edits are in-place on existing TypeScript modules and Doc
 
 ## Challenges & Mitigations
 
-* **Challenge:** Case-insensitive FS silently overwriting files when two source names differ only in case. **Mitigation:** step 3 — case-insensitive collision detection in `getUniqueFilename`. Same behavior is a strict safety improvement on both FS kinds.
+* **Challenge:** Case-insensitive FS silently overwriting files when two source names differ only in case. **Mitigation:** step 3 — case-insensitive collision detection inside each plugin's private collision helper. Public `@a16njs/models::getUniqueFilename` is not touched (semver preserved; plugins own their case policy).
 * **Challenge:** `sanitizeFilename` → `sanitizeSkillDirName` rename + `sanitizeName` → `sanitizeRuleStem` rename is a larger diff than strictly needed. **Mitigation:** the rename is load-bearing for readability (the original name is now actively misleading); call sites already change in the same commit, so the diff is adjacent. If churn becomes a concern during build, the rename can be deferred and the function bodies patched in place — flag this at build time.
-* **Challenge:** Cursor **skill dir** case (B8) is deferred; if the operator later decides Cursor skill dirs should also preserve case, that is a separate mini-task (call site `sanitizePromptName` in `plugin-cursor/src/emit.ts`). **Mitigation:** documented explicitly as "not in scope here."
+* **Challenge:** Whether Cursor skill-dir lowercasing is an a16n convention (to be removed) or a target-spec requirement (to be kept). **Resolution:** Cursor implements AgentSkills.io per [cursor.com/docs/skills](https://cursor.com/docs/skills); the spec's `name` field requires `[a-z0-9-]+` and must match the parent directory name. The lowercasing is therefore **spec-mandated, not a16n convention**. No change; behavior is correct. Same reasoning applies to Claude skill dirs.
 * **Challenge:** Downstream tooling that assumes kebab-lowercase rule filenames. **Mitigation:** none known in the monorepo; the only consumers of these filenames are the file system itself and cross-rewrite in `path-rewriter.ts` (which uses the mapping table, not name conventions). External-user tooling that hardcoded lowercase names would break, but that tooling would already be incorrect per the project's documented behavior (docs don't promise lowercase names). If encountered, revert in a follow-up.
 * **Challenge:** `sanitizeRuleStem` body is nearly identical to `sanitizeRuleFilename` minus the basename/ext stripping. **Mitigation:** implement the three-regex step as a small shared local helper `normalizeStemPreservingCase(s)` to avoid duplication; leave `sanitizeRuleFilename` as the only function that does basename extraction + ext stripping.
 * **Challenge (scope creep):** Niko's `resources/` → `references/` rename (reviewer's Finding 1). **Mitigation:** explicitly out of scope per operator decision. Will file a separate issue/PR in the Niko repo; not addressed here.
@@ -161,7 +166,7 @@ No new technology. All edits are in-place on existing TypeScript modules and Doc
 - [x] Test planning complete (TDD)
 - [x] Implementation plan complete
 - [x] Technology validation complete
-- [ ] Preflight
+- [x] Preflight (PASS with ADVISORY — see `memory-bank/active/.preflight-status`)
 - [ ] Build
 - [ ] QA
 - [ ] Reflect
