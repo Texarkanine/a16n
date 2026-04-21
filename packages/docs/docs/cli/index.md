@@ -87,7 +87,7 @@ a16n convert --from cursor --to claude --rewrite-path-refs .
 
 For every customization a16n discovers - rules, commands, settings, simple skills, `.cursorignore`/`.claude/settings.json`, etc. - the output content gets rewritten.
 
-There is one intentional exception: [AgentSkillIO](/models#agentskillio) skills with at least 1 more more additional file beyond `SKILL.md`, herein referred to as "Complex Skills". An AgentSkillIO's `SKILL.md` body is always rewritten, but not all of its additional files are.
+There is one intentional exception: [AgentSkillIO](/models#agentskillio) skills with at least 1 or more additional files beyond `SKILL.md`, herein referred to as "Complex Skills". An AgentSkillIO's `SKILL.md` body is always rewritten, but not all of its additional files are.
 
 | Path inside Skill | Rewritten |
 |---|---|

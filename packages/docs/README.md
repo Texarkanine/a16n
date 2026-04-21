@@ -19,7 +19,7 @@ Everything else is a deliberate composition of the same few primitives. Pick the
 
 ## How the scripts compose
 
-Three verbs, deterministic composition:
+Four verbs, deterministic composition:
 
 - **`docs:gen:*`** - fill `.generated/` with what Docusaurus should see. No server, no build.
 - **`docs:site:*`** - hand `.generated/` to Docusaurus. Either `start` (dev server) or `build` (production output under `build/`).
