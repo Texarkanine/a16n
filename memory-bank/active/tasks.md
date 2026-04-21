@@ -168,5 +168,5 @@ No new technology. All edits are in-place on existing TypeScript modules and Doc
 - [x] Technology validation complete
 - [x] Preflight (PASS with ADVISORY — see `memory-bank/active/.preflight-status`)
 - [x] Build
-- [ ] QA
-- [ ] Reflect
+- [x] QA (PASS — no fixes needed)
+- [x] Reflect

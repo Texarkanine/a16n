@@ -10,7 +10,7 @@ Preserve filename case in rule emit (Cursor + Claude) — rework follow-up from 
 Level 2
 
 ## Phase
-BUILD - COMPLETE
+Reflect - COMPLETE
 
 ## Files Modified
 - `packages/plugin-claude/src/emit.ts` — renamed `sanitizeFilename` → `sanitizeSkillDirName` (unchanged body), renamed `sanitizeName` → `sanitizeRuleStem` (case-preserving), added `sanitizeRuleFilename` (case-preserving), added shared local helper `normalizeStemPreservingCase`, added plugin-local `getUniqueFilenameCI`, dropped `getUniqueFilename` import from `@a16njs/models`, updated 5 call sites (lines 186, 358, 435, 497, 616-ish) to use the new helpers.
@@ -47,4 +47,4 @@ Explicit scope decisions:
 `20260420-skills-docs-and-rewrite-resources` completed Reflect on 2026-04-21 but not yet archived — both tasks ship in the same PR (#84, branch `discover-skills-with-files`). Archive can batch both or run them back-to-back once this follow-up task completes.
 
 ## Next Step
-Build complete. QA will run automatically next (`/niko-qa` per Level 2 workflow).
+Reflection written to `memory-bank/active/reflection/reflection-20260421-preserve-filename-case.md`. Reconcile-persistent check: no updates (systemPatterns.md already current from prior task's reconcile; no factual invalidation from this task in productContext.md or techContext.md). Ready for `/niko-archive` (both `20260420-skills-docs-and-rewrite-resources` and this task can be archived back-to-back since they ship in the same PR #84).
