@@ -1,5 +1,19 @@
 # @a16njs/plugin-claude
 
+## [0.13.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.12.0...@a16njs/plugin-claude@0.13.0) (2026-04-21)
+
+
+### Features
+
+* **engine,models,plugin-cursor,plugin-claude,docs:** AgentSkillIO path-rewrites via WrittenFile.sourcePaths; bounded ride-along ref rewrite in scripts/ and references/; buildMapping collision warnings; empty sourcePaths hardening; docs for plugins and --rewrite-path-refs ([d7fbe10](https://github.com/Texarkanine/a16n/commit/d7fbe10f2c8c9184495c08158e5ac39469bc6eff))
+
+
+### Bug Fixes
+
+* AgentSkillIO path rewrites + rule filename case + CLI symlink detection ([#84](https://github.com/Texarkanine/a16n/issues/84)) ([d7fbe10](https://github.com/Texarkanine/a16n/commit/d7fbe10f2c8c9184495c08158e5ac39469bc6eff))
+* **cli:** symlink-safe ESM main-module detection using statSync device+inode instead of realpathSync string compare ([d7fbe10](https://github.com/Texarkanine/a16n/commit/d7fbe10f2c8c9184495c08158e5ac39469bc6eff))
+* **plugin-cursor,plugin-claude:** preserve source basename case for emitted rule files; plugin-local case-insensitive collision safety without changing @a16njs/models getUniqueFilename ([d7fbe10](https://github.com/Texarkanine/a16n/commit/d7fbe10f2c8c9184495c08158e5ac39469bc6eff))
+
 ## [0.12.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.11.2...@a16njs/plugin-claude@0.12.0) (2026-03-06)
 
 
