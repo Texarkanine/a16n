@@ -83,13 +83,31 @@ a16n convert --from cursor --to claude --rewrite-path-refs .
 3. It rewrites content using exact string replacement (longest match first, to prevent partial match corruption)
 4. It emits the rewritten items to disk
 
-**Orphan warnings:** If a file references a source-format path that isn't in the conversion set (e.g., `.cursor/rules/missing.mdc` where `missing.mdc` doesn't exist), a16n emits an `orphan-path-ref` warning so you can fix it manually.
+**What gets rewritten:**
 
-**What gets rewritten (scope):**
+For every customization a16n discovers - rules, commands, settings, simple skills, `.cursorignore`/`.claude/settings.json`, etc. - the output content gets rewritten.
 
-For every customization a16n discovers — rules, commands, settings, simple skills, `.cursorignore`/`.claude/settings.json`, etc. — the output content gets rewritten.
+There is one intentional exception: [AgentSkillIO](/models#agentskillio) skills with at least 1 more more additional file beyond `SKILL.md`, herein referred to as "Complex Skills". An AgentSkillIO's `SKILL.md` body is always rewritten, but not all of its additional files are.
 
-There is one intentional exception: [AgentSkillIO](/models#agentskillio) (complex skills that bundle `SKILL.md` with ride-along files). An AgentSkillIO's `SKILL.md` body is always rewritten, but its ride-along files are rewritten **only if they live under `scripts/` or `references/`**. Those two directories are the subtrees the [AgentSkills.io spec](https://agentskills.io/specification#optional-directories) guarantees contain text (executable code and additional documentation respectively). Content inside other subtrees — including the spec-designated `assets/` (templates, images, data files) and any non-spec subtree the skill author ships — is copied through byte-for-byte, even if the bytes happen to contain path-like strings. This prevents a16n from corrupting binary data, rewriting intentional placeholders, or otherwise mutating content it has no spec-level guarantee about. Orphan-reference scanning is scoped to those same two subtrees plus the `SKILL.md` body, so un-rewritten paths inside `assets/` or unknown subtrees never produce spurious orphan warnings.
+| Path inside Skill | Rewritten |
+|---|---|
+| `SKILL.md` | ✅ |
+| `scripts/**` | ✅ |
+| `references/**` | ✅ |
+| `assets/**` | ❌ |
+| Any other path | ❌ |
+
+The [AgentSkills.io spec](https://agentskills.io/specification#optional-directories) only specifies three subdirectories: `scripts/`, `references/`, and `assets/`. However, your harness+LLM will probably work just fine if there are other files in the skill directory. `a16n` will dutifully copy any such extra paths, as well.
+
+Why rewrite only those two subtrees? Because `scripts` and `references` are defined by the AgentSkills.io spec as places that should contain text, where rewritable paths may be found. `assets` is defined as a place that may contain templates, images, data files, suggesting non-textual, binary content.
+
+Any *other* file paths are outside the AgentSkills.io spec and `a16n` has no guidance as to what sort of content they may contain. Rather than building an exhaustive list of all possible file extensions and file headers to try to figure out "is this content logically text," we just skip rewriting them.
+
+**Orphan warnings:**
+
+If a file references a source-format path that isn't in the conversion set (e.g., `.cursor/rules/missing.mdc` where `missing.mdc` doesn't exist), a16n emits an `orphan-path-ref` warning so you can fix it manually.
+
+Orphan-reference scanning is scoped to only candidates for rewriting, so un-rewritten paths inside `assets/` or unknown subtrees never produce spurious orphan warnings.
 
 ## Output Format
 
