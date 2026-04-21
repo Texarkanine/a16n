@@ -75,6 +75,8 @@ jobs:
       # npm OIDC trusted publishing requires npm v11.5.1+
       # Node.js 24 ships with npm v11, but we upgrade to latest to ensure compatibility
       - name: Upgrade npm for OIDC trusted publishing
+        # https://github.com/actions/runner-images/issues/13883 ; latest npm in latest node22 is broken
+        if: false
         run: npm install -g npm@latest
 
       - name: Publish released packages
