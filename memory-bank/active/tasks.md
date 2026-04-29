@@ -108,22 +108,22 @@ Rename 6 blocks:
 
 #### Step 6: `packages/glob-hook/test/cli.test.ts` (finding 13)
 
-Rename 7 blocks:
-- `'AC1: Basic Glob Matching'` → `'basic glob matching'`
-- `'AC2: No Match'` → `'no match'`
-- `'AC3: Multiple Patterns'` → `'multiple patterns'`
-- `'AC4: Multiline Context'` → `'multiline context'`
-- `'AC5: Missing file_path'` → `'missing file_path'`
-- `'AC6: Invalid JSON Input'` → `'invalid JSON input'`
-- `'AC7: Missing Required Args'` → `'missing required arguments'`
+Rename 7 blocks (Title Case to match existing convention in file — `'CLI Integration'`, `'Edge Cases'`):
+- `'AC1: Basic Glob Matching'` → `'Basic Glob Matching'`
+- `'AC2: No Match'` → `'No Match'`
+- `'AC3: Multiple Patterns'` → `'Multiple Patterns'`
+- `'AC4: Multiline Context'` → `'Multiline Context'`
+- `'AC5: Missing file_path'` → `'Missing file_path'`
+- `'AC6: Invalid JSON Input'` → `'Invalid JSON Input'`
+- `'AC7: Missing Required Args'` → `'Missing Required Arguments'`
 
 #### Step 7: `packages/cli/test/integration/integration.test.ts` (finding 14)
 
-Rename 11 blocks:
-- `'Integration Tests - Phase 2 FileRule and SimpleAgentSkill'` → `'FileRule and SimpleAgentSkill integration'`
-- `'Integration Tests - Phase 3 AgentIgnore'` → `'AgentIgnore integration'`
-- `'Integration Tests - Phase 4 ManualPrompt (Commands)'` → `'ManualPrompt (commands) integration'`
-- `'Integration Tests - Phase 9 a16n IR Plugin'` → `'a16n IR plugin integration'`
+Rename 11 blocks. Preserve `'Integration Tests - '` prefix on `describe` blocks to match non-fossil convention (`'Integration Tests - Fixture Based'`):
+- `'Integration Tests - Phase 2 FileRule and SimpleAgentSkill'` → `'Integration Tests - FileRule and SimpleAgentSkill'`
+- `'Integration Tests - Phase 3 AgentIgnore'` → `'Integration Tests - AgentIgnore'`
+- `'Integration Tests - Phase 4 ManualPrompt (Commands)'` → `'Integration Tests - ManualPrompt (Commands)'`
+- `'Integration Tests - Phase 9 a16n IR Plugin'` → `'Integration Tests - a16n IR Plugin'`
 - `'I1: Convert with sourceRoot reads from specified source, writes to default root'` → `'convert with sourceRoot reads from specified source, writes to default root'`
 - `'I2: Convert with targetRoot reads from default root, writes to specified target'` → `'convert with targetRoot reads from default root, writes to specified target'`
 - `'I3: Convert with both sourceRoot and targetRoot'` → `'convert with both sourceRoot and targetRoot'`

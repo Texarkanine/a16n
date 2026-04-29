@@ -1,9 +1,9 @@
 # Active Context
 
 - **Current Task:** SLOBAC Audit Remediation
-- **Phase:** PLAN - COMPLETE
+- **Phase:** PREFLIGHT - COMPLETE
 - **What Was Done:**
-  - All 19 SLOBAC findings validated against actual codebase — all confirmed accurate, no false positives
-  - Implementation plan created: 13 steps across 2 phases (fossil renames, then naming-lie fixes)
-  - Fallback strategies identified for tests that may fail when strengthened
-- **Next Step:** Preflight validation
+  - Convention compliance: corrected glob-hook renames to Title Case, preserved integration test prefix
+  - Dependency/conflict check: no issues (test-only changes)
+  - Completeness verified: all 19 findings have implementation steps with fallbacks
+- **Next Step:** Build phase — execute implementation plan
