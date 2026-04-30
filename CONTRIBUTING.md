@@ -52,7 +52,7 @@ pnpm exec vitest run test/cli.test.ts                        # single file
 pnpm exec vitest run test/cli.test.ts -t "handles dotfiles"  # single test by name
 ```
 
-> **Note:** `npx vitest run packages/<package>/test/<file>.test.ts` from the monorepo root works for most packages. Packages whose integration tests spawn child processes that rely on package-local binaries (e.g. `@a16njs/glob-hook` uses `tsx`) should use `pnpm exec vitest` from within the package directory, or the `pnpm --filter` pattern above.
+> **Note:** `npx vitest run packages/<package>/test/<file>.test.ts` from the monorepo root works for all packages. For the most reliable experience (correct per-package timeout config, guaranteed binary resolution), prefer `pnpm exec vitest` from within the package directory or the `pnpm --filter` pattern above.
 
 Tests use Vitest with fixture-based integration tests. See `test/` directories in each package.
 

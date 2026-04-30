@@ -1,0 +1,4 @@
+PASS
+task: glob-hook-test-env-fix
+date: 2026-04-30
+findings: 1 doc wording fix applied (CONTRIBUTING.md note incorrectly implied glob-hook was still an exception; fixed to reflect that the cwd fix makes all packages work from root)
