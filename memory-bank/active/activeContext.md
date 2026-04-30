@@ -1,17 +1,19 @@
 # Active Context
 
 **Current Task:** Fix glob-hook test environment / document correct test invocation  
-**Phase:** BUILD - COMPLETE  
+**Phase:** REFLECT - COMPLETE  
 **Complexity:** Level 2
 
 ## What Was Done
 
-- Fixed `runCli` in `packages/glob-hook/test/cli.test.ts`: changed `cwd: process.cwd()` to `cwd: join(__dirname, '..')` (line 17)
-- Verified RED state (12/12 timeout) before fix, GREEN state (12/12 pass ~1s each) after fix
-- Regression checked: `pnpm --filter @a16njs/glob-hook test` → 37/37 pass; `pnpm test` (full suite) → 15/15 tasks, all tests pass
-- Expanded `CONTRIBUTING.md` "Running Tests" section with concrete per-package, per-file, and per-test invocation patterns
-- Updated `memory-bank/techContext.md` Testing Process entry to clarify `pnpm test` (Turbo) is canonical and uses per-package configs
+Completed full Level 2 workflow: PLAN → PREFLIGHT → BUILD → QA → REFLECT.
+
+- Fixed `runCli` in `packages/glob-hook/test/cli.test.ts`: `cwd: process.cwd()` → `cwd: join(__dirname, '..')`
+- Updated `CONTRIBUTING.md` with concrete per-package / per-file / per-test invocation patterns
+- Updated `memory-bank/techContext.md` Testing Process entry to correctly describe per-package config canonicity
+- QA caught and fixed a documentation wording inaccuracy (CONTRIBUTING.md note framed from pre-fix perspective)
+- Reflection captured technical insight about `npx` binary resolution in pnpm monorepos and process insight about doc framing
 
 ## Next Step
 
-Run QA phase (niko-qa skill).
+Run `/niko-archive` to create the archive document and finalize the current project.
