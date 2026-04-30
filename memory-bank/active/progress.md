@@ -7,3 +7,5 @@ Fix the "works in CI, fails locally" problem for glob-hook CLI integration tests
 ## Phase History
 
 - **COMPLEXITY-ANALYSIS** — Complete. Classified as Level 2. Root cause identified: `runCli` in `cli.test.ts` uses `cwd: process.cwd()`, breaking `npx tsx` resolution when Vitest runs from the monorepo root. Design decision needed (code fix vs. docs vs. both). → entering PLAN.
+- **PLAN** — Complete. Decided: both code fix AND docs. Fix: `cwd: join(__dirname, '..')` in `runCli`. Docs: CONTRIBUTING.md "Running Tests" expansion + techContext.md clarification. TDD approach: existing 12 failing tests serve as the RED state. → entering PREFLIGHT.
+- **PREFLIGHT** — Complete. All 6 blocking checks passed. Advisory: consider a root-level `vitest.workspace.ts` to make per-package config delegation structural rather than per-package workaround. → entering BUILD.

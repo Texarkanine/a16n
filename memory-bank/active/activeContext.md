@@ -1,18 +1,15 @@
 # Active Context
 
 **Current Task:** Fix glob-hook test environment / document correct test invocation  
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE  
+**Phase:** PLAN - COMPLETE  
 **Complexity:** Level 2
 
 ## What Was Done
 
-Classified task as Level 2 (Simple Enhancement). The task spans two potential components:
+Completed Level 2 Plan phase. Root cause confirmed: `runCli` in `packages/glob-hook/test/cli.test.ts` uses `cwd: process.cwd()`, causing `npx tsx` to fail when Vitest runs from the monorepo root (no `tsx` at root `node_modules/.bin/`). Fix is `cwd: join(__dirname, '..')`. Documentation updates: `CONTRIBUTING.md` (test invocation patterns) and `techContext.md` (clarify Turbo-per-package is canonical).
 
-1. `packages/glob-hook/test/cli.test.ts` — `runCli` hardcodes `cwd: process.cwd()`, which breaks when Vitest runs from the monorepo root because `tsx` only lives in the package's `node_modules`.
-2. Documentation / config — correct invocation guidance for developers.
-
-A design decision is needed before coding: fix the code, add docs, or both.
+Confirmed: `cli` package has no analogous issue (uses `node` against compiled `dist/`, not `tsx`).
 
 ## Next Step
 
-Load Level 2 workflow and begin the PLAN phase.
+Run Preflight (niko-preflight skill).
