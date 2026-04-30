@@ -303,7 +303,7 @@ describe('Cursor Plugin Emission', () => {
   });
 });
 
-describe('Cursor FileRule Emission (Phase 2)', () => {
+describe('Cursor FileRule Emission', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -381,7 +381,7 @@ describe('Cursor FileRule Emission (Phase 2)', () => {
   });
 });
 
-describe('Cursor SimpleAgentSkill Emission (Phase 2)', () => {
+describe('Cursor SimpleAgentSkill Emission', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -456,7 +456,7 @@ describe('Cursor SimpleAgentSkill Emission (Phase 2)', () => {
   });
 });
 
-describe('Cursor Mixed Emission (Phase 2 - Updated for Phase 7)', () => {
+describe('Cursor Mixed Emission', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -517,7 +517,7 @@ describe('Cursor Mixed Emission (Phase 2 - Updated for Phase 7)', () => {
   });
 });
 
-describe('Cursor AgentIgnore Emission (Phase 3)', () => {
+describe('Cursor AgentIgnore Emission', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -1023,7 +1023,7 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
   });
 });
 
-describe('Cursor Skills Emission (Phase 7)', () => {
+describe('Cursor Skills Emission', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -1191,7 +1191,7 @@ describe('Cursor Skills Emission (Phase 7)', () => {
   });
 });
 
-describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
+describe('Cursor Plugin - sourceItems tracking', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -1336,7 +1336,7 @@ describe('Cursor Plugin - sourceItems tracking (CR-10)', () => {
   });
 });
 
-describe('Cursor AgentSkillIO Emission (Phase 8 B4)', () => {
+describe('Cursor AgentSkillIO Emission', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -1645,7 +1645,7 @@ describe('Cursor AgentSkillIO Emission (Phase 8 B4)', () => {
   });
 });
 
-describe('Cursor Filename Case Preservation (20260421-preserve-filename-case)', () => {
+describe('filename case preservation', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -1654,7 +1654,7 @@ describe('Cursor Filename Case Preservation (20260421-preserve-filename-case)', 
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  describe('B6 — FileRule preserves source filename case', () => {
+  describe('FileRule preserves source filename case', () => {
     it('should preserve CamelCase stem when emitting FileRule (symmetric to Claude B1)', async () => {
       const models: FileRule[] = [
         {
@@ -1692,7 +1692,7 @@ describe('Cursor Filename Case Preservation (20260421-preserve-filename-case)', 
     });
   });
 
-  describe('B7 — GlobalPrompt preserves name case', () => {
+  describe('GlobalPrompt preserves name case', () => {
     it('should preserve CamelCase name when emitting GlobalPrompt (symmetric to Claude B2)', async () => {
       const models: GlobalPrompt[] = [
         {
@@ -1712,7 +1712,7 @@ describe('Cursor Filename Case Preservation (20260421-preserve-filename-case)', 
     });
   });
 
-  describe('B9 — case-insensitive collision safety', () => {
+  describe('case-insensitive collision safety', () => {
     it('should treat case-only differences as collisions for FileRules', async () => {
       const models: FileRule[] = [
         {

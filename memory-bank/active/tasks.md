@@ -194,6 +194,6 @@ None. All changes are test-only using existing test infrastructure and productio
 - [x] Test planning complete (TDD)
 - [x] Implementation plan complete
 - [x] Technology validation complete
-- [ ] Preflight
-- [ ] Build
-- [ ] QA
+- [x] Preflight
+- [x] Build
+- [x] QA — PASS (1 trivial finding: 9 residual `// AC` inline comments in `cli.test.ts` stripped)

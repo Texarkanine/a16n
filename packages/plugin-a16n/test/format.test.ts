@@ -6,8 +6,24 @@ import type {
   SimpleAgentSkill,
   ManualPrompt,
   AgentIgnore,
+  AgentSkillIO,
+  Workspace,
 } from '@a16njs/models';
 import { formatIRFile } from '../src/format.js';
+import { parseIRFile } from '../src/parse.js';
+
+function mockWorkspace(content: string): Workspace {
+  return {
+    id: 'test',
+    root: '/test',
+    resolve: (p: string) => `/test/${p}`,
+    exists: async () => true,
+    read: async () => content,
+    write: async () => {},
+    readdir: async () => [],
+    mkdir: async () => {},
+  };
+}
 
 describe('formatIRFile', () => {
   describe('GlobalPrompt', () => {
@@ -173,10 +189,27 @@ describe('formatIRFile', () => {
 
   describe('AgentSkillIO', () => {
     it('should use writeAgentSkillIO from models (verbatim format)', () => {
-      // AgentSkillIO uses verbatim AgentSkills.io format (NO IR frontmatter)
-      // This is handled by writeAgentSkillIO() from @a16njs/models
-      // Emit function will use writeAgentSkillIO instead of formatIRFile
-      expect(true).toBe(true);
+      const skill: AgentSkillIO = {
+        id: createId(CustomizationType.AgentSkillIO, 'deploy'),
+        type: CustomizationType.AgentSkillIO,
+        version: CURRENT_IR_VERSION,
+        sourcePath: '.a16n/agent-skill-io/deploy/SKILL.md',
+        content: 'Deploy instructions.',
+        name: 'deploy',
+        description: 'Deploy the application',
+        files: {},
+      };
+
+      const formatted = formatIRFile(skill);
+
+      expect(formatted).toContain('---');
+      expect(formatted).toContain(`version: ${CURRENT_IR_VERSION}`);
+      expect(formatted).toContain('type: agent-skill-io');
+      expect(formatted).toContain('Deploy instructions.');
+      // formatIRFile has no special handling for AgentSkillIO — name/description
+      // are NOT emitted (writeAgentSkillIO handles the real format)
+      expect(formatted).not.toMatch(/\nname:/);
+      expect(formatted).not.toMatch(/\ndescription:/);
     });
   });
 
@@ -329,29 +362,126 @@ describe('formatIRFile', () => {
 
   describe('round-trip', () => {
     it('should round-trip GlobalPrompt (format -> parse -> format)', async () => {
-      // Round-trip tests will be implemented after format.ts is complete
-      // They require both parseIRFile and formatIRFile to be functional
-      expect(true).toBe(true);
+      const gp: GlobalPrompt = {
+        id: createId(CustomizationType.GlobalPrompt, 'test.md'),
+        type: CustomizationType.GlobalPrompt,
+        version: CURRENT_IR_VERSION,
+        sourcePath: '.a16n/global-prompt/test.md',
+        content: 'Always use TypeScript.',
+      };
+
+      const formatted = formatIRFile(gp);
+      const result = await parseIRFile(mockWorkspace(formatted), 'test.md', 'test.md', gp.sourcePath);
+
+      expect(result.error).toBeUndefined();
+      expect(result.item).toBeDefined();
+      expect(result.item!.type).toBe(CustomizationType.GlobalPrompt);
+      expect(result.item!.version).toBe(CURRENT_IR_VERSION);
+      expect(result.item!.content).toContain('Always use TypeScript.');
     });
 
     it('should round-trip FileRule (format -> parse -> format)', async () => {
-      expect(true).toBe(true);
+      const fr: FileRule = {
+        id: createId(CustomizationType.FileRule, 'typescript.md'),
+        type: CustomizationType.FileRule,
+        version: CURRENT_IR_VERSION,
+        sourcePath: '.a16n/file-rule/typescript.md',
+        content: 'TypeScript rules.',
+        globs: ['*.ts', '*.tsx'],
+      };
+
+      const formatted = formatIRFile(fr);
+      const result = await parseIRFile(mockWorkspace(formatted), 'typescript.md', 'typescript.md', fr.sourcePath);
+
+      expect(result.error).toBeUndefined();
+      expect(result.item).toBeDefined();
+      expect(result.item!.type).toBe(CustomizationType.FileRule);
+      expect(result.item!.version).toBe(CURRENT_IR_VERSION);
+      expect(result.item!.content).toContain('TypeScript rules.');
+      expect((result.item as FileRule).globs).toEqual(['*.ts', '*.tsx']);
     });
 
     it('should round-trip SimpleAgentSkill (format -> parse -> format)', async () => {
-      expect(true).toBe(true);
+      const skill: SimpleAgentSkill = {
+        id: createId(CustomizationType.SimpleAgentSkill, 'database.md'),
+        type: CustomizationType.SimpleAgentSkill,
+        version: CURRENT_IR_VERSION,
+        name: 'database',
+        sourcePath: '.a16n/simple-agent-skill/database.md',
+        content: 'Database content.',
+        description: 'Database operations',
+      };
+
+      const formatted = formatIRFile(skill);
+      const result = await parseIRFile(mockWorkspace(formatted), 'database.md', 'database.md', skill.sourcePath);
+
+      expect(result.error).toBeUndefined();
+      expect(result.item).toBeDefined();
+      expect(result.item!.type).toBe(CustomizationType.SimpleAgentSkill);
+      expect(result.item!.version).toBe(CURRENT_IR_VERSION);
+      expect(result.item!.content).toContain('Database content.');
+      expect((result.item as SimpleAgentSkill).name).toBe('database');
+      expect((result.item as SimpleAgentSkill).description).toBe('Database operations');
     });
 
     it('should round-trip ManualPrompt (format -> parse -> format)', async () => {
-      expect(true).toBe(true);
+      const prompt: ManualPrompt = {
+        id: createId(CustomizationType.ManualPrompt, 'review.md'),
+        type: CustomizationType.ManualPrompt,
+        version: CURRENT_IR_VERSION,
+        sourcePath: '.a16n/manual-prompt/review.md',
+        content: 'Review content.',
+        promptName: 'review',
+      };
+
+      const formatted = formatIRFile(prompt);
+      const result = await parseIRFile(mockWorkspace(formatted), 'review.md', 'review.md', prompt.sourcePath);
+
+      expect(result.error).toBeUndefined();
+      expect(result.item).toBeDefined();
+      expect(result.item!.type).toBe(CustomizationType.ManualPrompt);
+      expect(result.item!.version).toBe(CURRENT_IR_VERSION);
+      expect(result.item!.content).toContain('Review content.');
+      expect((result.item as ManualPrompt).promptName).toBe('review');
     });
 
     it('should round-trip AgentIgnore (format -> parse -> format)', async () => {
-      expect(true).toBe(true);
+      const ignore: AgentIgnore = {
+        id: createId(CustomizationType.AgentIgnore, 'patterns.md'),
+        type: CustomizationType.AgentIgnore,
+        version: CURRENT_IR_VERSION,
+        sourcePath: '.a16n/agent-ignore/patterns.md',
+        content: 'Ignore content.',
+        patterns: ['node_modules/', '*.log'],
+      };
+
+      const formatted = formatIRFile(ignore);
+      const result = await parseIRFile(mockWorkspace(formatted), 'patterns.md', 'patterns.md', ignore.sourcePath);
+
+      expect(result.error).toBeUndefined();
+      expect(result.item).toBeDefined();
+      expect(result.item!.type).toBe(CustomizationType.AgentIgnore);
+      expect(result.item!.version).toBe(CURRENT_IR_VERSION);
+      expect(result.item!.content).toContain('Ignore content.');
+      expect((result.item as AgentIgnore).patterns).toEqual(['node_modules/', '*.log']);
     });
 
     it('should preserve relativeDir through round-trip', async () => {
-      expect(true).toBe(true);
+      const gp: GlobalPrompt = {
+        id: createId(CustomizationType.GlobalPrompt, 'test.md'),
+        type: CustomizationType.GlobalPrompt,
+        version: CURRENT_IR_VERSION,
+        sourcePath: '.a16n/global-prompt/test.md',
+        content: 'Content with relativeDir.',
+        relativeDir: 'shared',
+      };
+
+      const formatted = formatIRFile(gp);
+      const result = await parseIRFile(mockWorkspace(formatted), 'test.md', 'test.md', gp.sourcePath);
+
+      expect(result.error).toBeUndefined();
+      expect(result.item).toBeDefined();
+      expect(result.item!.relativeDir).toBe('shared');
     });
   });
 });

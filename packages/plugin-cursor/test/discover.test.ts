@@ -160,7 +160,7 @@ describe('MDC Parsing', () => {
   });
 });
 
-describe('FileRule Discovery (Phase 2)', () => {
+describe('FileRule Discovery', () => {
   it('should discover FileRule items from rules with globs: frontmatter', async () => {
     const root = path.join(fixturesDir, 'cursor-filerule/from-cursor');
     const result = await cursorPlugin.discover(root);
@@ -202,7 +202,7 @@ describe('FileRule Discovery (Phase 2)', () => {
   });
 });
 
-describe('SimpleAgentSkill Discovery (Phase 2)', () => {
+describe('SimpleAgentSkill Discovery', () => {
   it('should discover SimpleAgentSkill items from rules with description: frontmatter', async () => {
     const root = path.join(fixturesDir, 'cursor-agentskill/from-cursor');
     const result = await cursorPlugin.discover(root);
@@ -244,7 +244,7 @@ describe('SimpleAgentSkill Discovery (Phase 2)', () => {
   });
 });
 
-describe('Classification Priority (Phase 2)', () => {
+describe('Classification Priority', () => {
   it('should prioritize alwaysApply: true as GlobalPrompt', async () => {
     const root = path.join(fixturesDir, 'cursor-basic/from-cursor');
     const result = await cursorPlugin.discover(root);
@@ -291,7 +291,7 @@ describe('Classification Priority (Phase 2)', () => {
     }
   });
 
-  it('should classify rules without activation criteria as ManualPrompt (Phase 7)', async () => {
+  it('should classify rules without activation criteria as ManualPrompt', async () => {
     const root = path.join(fixturesDir, 'cursor-rule-no-criteria/from-cursor');
     const result = await cursorPlugin.discover(root);
 
@@ -332,7 +332,7 @@ describe('Classification Priority (Phase 2)', () => {
   });
 });
 
-describe('AgentIgnore Discovery (Phase 3)', () => {
+describe('AgentIgnore Discovery', () => {
   it('should discover AgentIgnore from .cursorignore file', async () => {
     const root = path.join(fixturesDir, 'cursor-ignore/from-cursor');
     const result = await cursorPlugin.discover(root);
@@ -390,7 +390,7 @@ describe('AgentIgnore Discovery (Phase 3)', () => {
   });
 });
 
-describe('Cursor Skills Discovery (Phase 7)', () => {
+describe('Cursor Skills Discovery', () => {
   describe('skills with description → SimpleAgentSkill', () => {
     it('should discover SimpleAgentSkill from .cursor/skills/*/SKILL.md with description', async () => {
       const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
@@ -514,7 +514,7 @@ describe('Cursor Skills Discovery (Phase 7)', () => {
   });
 });
 
-describe('ManualPrompt Discovery (Phase 4 - Commands)', () => {
+describe('ManualPrompt Discovery (commands)', () => {
   describe('simple commands', () => {
     it('should discover simple commands from .cursor/commands/', async () => {
       const root = path.join(fixturesDir, 'cursor-command-simple/from-cursor');
@@ -695,7 +695,7 @@ describe('ManualPrompt Discovery (Phase 4 - Commands)', () => {
   });
 });
 
-describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
+describe('AgentSkillIO Discovery', () => {
   /**
    * Tests for discovering complex skills that have extra files in their directory.
    * Skills with additional resources (checklist.md, config.json, etc.) should be

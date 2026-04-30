@@ -1,0 +1,6 @@
+PASS
+timestamp: 2026-04-30T09:38:00-05:00
+task: slobac-audit-remediation
+findings: 1 (trivial, fixed)
+details: 9 residual // AC inline comments in cli.test.ts stripped as deliverable fossils (plan noted these as lower-priority; it() names already self-descriptive)
+verification: build PASS, lint PASS, 703/703 tests PASS (excluding 2 pre-existing WSL-local failures in engine + glob-hook confirmed identical on main)

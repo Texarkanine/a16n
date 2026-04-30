@@ -97,7 +97,7 @@ describe('Integration Tests - Fixture Based', () => {
   });
 
   describe('cursor-to-claude-basic', () => {
-    it('should convert a single Cursor rule to CLAUDE.md', async () => {
+    it('should convert a single Cursor rule to Claude format', async () => {
       const fixturePath = path.join(fixturesDir, 'cursor-to-claude-basic');
       const fromDir = path.join(fixturePath, 'from-cursor');
       const toDir = path.join(fixturePath, 'to-claude');
@@ -247,7 +247,7 @@ describe('Integration Tests - Fixture Based', () => {
   });
 });
 
-describe('Integration Tests - Phase 2 FileRule and SimpleAgentSkill', () => {
+describe('Integration Tests - FileRule and SimpleAgentSkill', () => {
   beforeEach(async () => {
     await fs.rm(tempDir, { recursive: true, force: true });
     await fs.mkdir(tempDir, { recursive: true });
@@ -414,7 +414,7 @@ describe('Integration Tests - Phase 2 FileRule and SimpleAgentSkill', () => {
   });
 });
 
-describe('Integration Tests - Phase 3 AgentIgnore', () => {
+describe('Integration Tests - AgentIgnore', () => {
   beforeEach(async () => {
     await fs.rm(tempDir, { recursive: true, force: true });
     await fs.mkdir(tempDir, { recursive: true });
@@ -546,7 +546,7 @@ describe('Integration Tests - Phase 3 AgentIgnore', () => {
   });
 });
 
-describe('Integration Tests - Phase 4 ManualPrompt (Commands)', () => {
+describe('Integration Tests - ManualPrompt (Commands)', () => {
   beforeEach(async () => {
     await fs.rm(tempDir, { recursive: true, force: true });
     await fs.mkdir(tempDir, { recursive: true });
@@ -779,7 +779,7 @@ describe('Integration Tests - Split Directories (--from-dir / --to-dir)', () => 
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it('I1: Convert with sourceRoot reads from specified source, writes to default root', async () => {
+  it('convert with sourceRoot reads from specified source, writes to default root', async () => {
     const sourceDir = path.join(tempDir, 'source');
     await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
     await fs.writeFile(
@@ -805,7 +805,7 @@ describe('Integration Tests - Split Directories (--from-dir / --to-dir)', () => 
     expect(files.length).toBeGreaterThan(0);
   });
 
-  it('I2: Convert with targetRoot reads from default root, writes to specified target', async () => {
+  it('convert with targetRoot reads from default root, writes to specified target', async () => {
     const targetDir = path.join(tempDir, 'target');
     await fs.mkdir(targetDir, { recursive: true });
     await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
@@ -833,7 +833,7 @@ describe('Integration Tests - Split Directories (--from-dir / --to-dir)', () => 
     expect(content).toContain('Always use TypeScript');
   });
 
-  it('I3: Convert with both sourceRoot and targetRoot', async () => {
+  it('convert with both sourceRoot and targetRoot', async () => {
     const sourceDir = path.join(tempDir, 'src');
     const targetDir = path.join(tempDir, 'out');
     await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
@@ -873,7 +873,7 @@ describe('Integration Tests - Path Reference Rewriting (--rewrite-path-refs)', (
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it('CI1: Cursor→Claude with rewritePathRefs rewrites .cursor/rules/... → .claude/rules/...', async () => {
+  it('Cursor→Claude with rewritePathRefs rewrites .cursor/rules/... → .claude/rules/...', async () => {
     // Create cursor rules that reference each other
     await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
     await fs.writeFile(
@@ -918,7 +918,7 @@ describe('Integration Tests - Path Reference Rewriting (--rewrite-path-refs)', (
     expect(authContent).not.toContain('.cursor/rules/main.mdc');
   });
 
-  it('CI2: Cursor→Claude with rewritePathRefs warns about orphan refs', async () => {
+  it('Cursor→Claude with rewritePathRefs warns about orphan refs', async () => {
     // Create a cursor rule that references a nonexistent rule
     await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
     await fs.writeFile(
@@ -939,7 +939,7 @@ describe('Integration Tests - Path Reference Rewriting (--rewrite-path-refs)', (
     expect(orphanWarnings[0]!.message).toContain('.cursor/rules/missing-rule.mdc');
   });
 
-  it('CI3: Combined --from-dir + --to-dir + --rewrite-path-refs works end-to-end', async () => {
+  it('combined --from-dir + --to-dir + --rewrite-path-refs works end-to-end', async () => {
     const sourceDir = path.join(tempDir, 'source');
     const targetDir = path.join(tempDir, 'target');
     await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
@@ -981,7 +981,7 @@ describe('Integration Tests - Path Reference Rewriting (--rewrite-path-refs)', (
     ).resolves.not.toThrow();
   });
 
-  it('CI4: Cursor→Claude AgentSkillIO rewrites SKILL.md body AND scripts/**/references/** ride-alongs; leaves assets/** and unknown subtrees untouched', async () => {
+  it('AgentSkillIO rewrites SKILL.md body and reference ride-alongs', async () => {
     // End-to-end coverage for Behaviors 5–8 of the AgentSkillIO +
     // --rewrite-path-refs fix:
     //   - SKILL.md body references to ride-along resources are rewritten.
@@ -1146,7 +1146,7 @@ describe('Integration Tests - Path Reference Rewriting (--rewrite-path-refs)', (
   });
 });
 
-describe('Integration Tests - Phase 9 a16n IR Plugin', () => {
+describe('Integration Tests - a16n IR Plugin', () => {
   beforeEach(async () => {
     await fs.rm(tempDir, { recursive: true, force: true });
     await fs.mkdir(tempDir, { recursive: true });
