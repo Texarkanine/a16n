@@ -26,5 +26,10 @@
 - Tests: 703/703 PASS (25 test files)
 - 2 pre-existing WSL-local failures (engine/plugin-discovery, glob-hook/cli) — confirmed identical on `main` branch
 
+## Reflection
+- QA caught 9 residual `// AC` inline comments the build phase missed (lower-priority items should be treated as in-scope)
+- SLOBAC audit's cleared-items section prevented scope creep
+- If SLOBAC-awareness were foundational, fossil vocabulary would never enter test names
+
 ## Next Step
-- Reflect phase
+- Archive phase (operator-initiated)
