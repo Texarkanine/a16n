@@ -14,7 +14,7 @@ function runCli(
 ): Promise<{ stdout: string; stderr: string; code: number }> {
   return new Promise((resolve) => {
     const child = spawn('npx', ['tsx', CLI_PATH, ...args], {
-      cwd: process.cwd(),
+      cwd: join(__dirname, '..'),
       env: process.env,
     });
 
