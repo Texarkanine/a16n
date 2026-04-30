@@ -43,7 +43,7 @@ function runCli(
 }
 
 describe('CLI Integration', () => {
-  describe('AC1: Basic Glob Matching', () => {
+  describe('Basic Glob Matching', () => {
     it('outputs additionalContext when pattern matches', async () => {
       const result = await runCli(
         [
@@ -59,7 +59,7 @@ describe('CLI Integration', () => {
     });
   });
 
-  describe('AC2: No Match', () => {
+  describe('No Match', () => {
     it('outputs empty object when pattern does not match', async () => {
       const result = await runCli(
         [
@@ -74,7 +74,7 @@ describe('CLI Integration', () => {
     });
   });
 
-  describe('AC3: Multiple Patterns', () => {
+  describe('Multiple Patterns', () => {
     it('matches when any pattern matches (comma-separated)', async () => {
       const result = await runCli(
         [
@@ -90,7 +90,7 @@ describe('CLI Integration', () => {
     });
   });
 
-  describe('AC4: Multiline Context', () => {
+  describe('Multiline Context', () => {
     it('preserves multiline content in output', async () => {
       const result = await runCli(
         [
@@ -109,7 +109,7 @@ describe('CLI Integration', () => {
     });
   });
 
-  describe('AC5: Missing file_path', () => {
+  describe('Missing file_path', () => {
     it('outputs empty object when tool_input has no file_path', async () => {
       const result = await runCli(
         [
@@ -124,7 +124,7 @@ describe('CLI Integration', () => {
     });
   });
 
-  describe('AC6: Invalid JSON Input', () => {
+  describe('Invalid JSON Input', () => {
     it('outputs empty object and logs error for invalid JSON', async () => {
       const result = await runCli(
         [
@@ -140,7 +140,7 @@ describe('CLI Integration', () => {
     });
   });
 
-  describe('AC7: Missing Required Args', () => {
+  describe('Missing Required Arguments', () => {
     it('outputs empty object when --globs is missing', async () => {
       const result = await runCli(
         ['--context-file', join(FIXTURES_PATH, 'typescript-rules.txt')],

@@ -274,7 +274,7 @@ describe('CLI', () => {
   });
 
   describe('--gitignore-output-with flag', () => {
-    it('should accept the flag with default value "none"', async () => {
+    it('should succeed without --gitignore-output-with flag', async () => {
       // Create source Cursor rules
       const cursorDir = path.join(tempDir, '.cursor', 'rules');
       await fs.mkdir(cursorDir, { recursive: true });
@@ -405,7 +405,7 @@ describe('CLI', () => {
     });
   });
 
-  describe('sourceItems conflict detection (CR-10)', () => {
+  describe('sourceItems conflict detection', () => {
     it('should emit GitStatusConflict warning when existing tracked output has ignored sources (Case 1)', async () => {
       spawnSync('git', ['init'], { cwd: tempDir });
       spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
@@ -543,7 +543,7 @@ describe('CLI', () => {
     });
   });
 
-  describe('--gitignore-output-with match mode validation (CR11-11)', () => {
+  describe('--gitignore-output-with match mode validation', () => {
     it('should error when using match mode on non-git repository', async () => {
       // Create source Cursor rules (no git init)
       const cursorDir = path.join(tempDir, '.cursor', 'rules');
@@ -850,9 +850,8 @@ describe('CLI', () => {
     });
   });
 
-  describe('Phase 6: Dry-run output wording', () => {
+  describe('dry-run output wording', () => {
     it('should show "Would write:" in dry-run mode', async () => {
-      // AC1: Dry-run shows "Would write:" prefix
       await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
       await fs.writeFile(
         path.join(tempDir, '.cursor/rules/test.mdc'),
@@ -867,7 +866,6 @@ describe('CLI', () => {
     });
 
     it('should show "Wrote:" in normal mode', async () => {
-      // AC2: Normal mode shows current "Wrote:" verb
       await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
       await fs.writeFile(
         path.join(tempDir, '.cursor/rules/test.mdc'),
@@ -882,9 +880,8 @@ describe('CLI', () => {
     });
   });
 
-  describe('Phase 6: --delete-source flag', () => {
+  describe('--delete-source flag', () => {
     it('should delete source files with --delete-source', async () => {
-      // AC3: Delete used sources after conversion
       const cursorDir = path.join(tempDir, '.cursor', 'rules');
       await fs.mkdir(cursorDir, { recursive: true });
       const sourcePath = path.join(cursorDir, 'test.mdc');
@@ -909,7 +906,6 @@ describe('CLI', () => {
     });
 
     it('should preserve sources that are not converted when using --delete-source', async () => {
-      // AC4: Sources that don't produce output should not be deleted
       // Create a skill without description (silently ignored - no output produced)
       const skillDir = path.join(tempDir, '.claude', 'skills', 'test-skill');
       await fs.mkdir(skillDir, { recursive: true });
@@ -931,7 +927,6 @@ Skill content without description - will be ignored`
     });
 
     it('should preserve sources with partial skips', async () => {
-      // AC5: Preserve sources with partial skips
       // Create a mix: one normal file that converts, and one skill without description that gets ignored
       await fs.mkdir(path.join(tempDir, '.claude', 'rules'), { recursive: true });
       const normalRule = path.join(tempDir, '.claude/rules/test.md');
@@ -959,7 +954,6 @@ This skill has no description - should be ignored`
     });
 
     it('should delete multiple sources that merge into single output', async () => {
-      // AC6: Delete multiple sources when they merge
       const cursorDir = path.join(tempDir, '.cursor', 'rules');
       await fs.mkdir(cursorDir, { recursive: true });
       
@@ -987,7 +981,6 @@ This skill has no description - should be ignored`
     });
 
     it('should show "Would delete:" in dry-run with --delete-source', async () => {
-      // AC7: Dry-run shows planned deletions
       const cursorDir = path.join(tempDir, '.cursor', 'rules');
       await fs.mkdir(cursorDir, { recursive: true });
       const sourcePath = path.join(cursorDir, 'test.mdc');
@@ -1007,7 +1000,6 @@ This skill has no description - should be ignored`
     });
 
     it('should not delete sources without --delete-source flag', async () => {
-      // AC8: Sources preserved when flag not used
       const cursorDir = path.join(tempDir, '.cursor', 'rules');
       await fs.mkdir(cursorDir, { recursive: true });
       const sourcePath = path.join(cursorDir, 'test.mdc');
@@ -1027,7 +1019,6 @@ This skill has no description - should be ignored`
     });
 
     it('should include deletedSources in JSON output', async () => {
-      // AC9: JSON output includes deletedSources array
       const cursorDir = path.join(tempDir, '.cursor', 'rules');
       await fs.mkdir(cursorDir, { recursive: true });
       const sourcePath = path.join(cursorDir, 'test.mdc');
@@ -1046,7 +1037,7 @@ This skill has no description - should be ignored`
       expect(result.deletedSources.length).toBeGreaterThan(0);
     });
 
-    it('should use relative paths in deletedSources output and JSON (CR-12)', async () => {
+    it('should use relative paths in deletedSources output and JSON', async () => {
       // CodeRabbit feedback: deletedSources should use relative paths for readability
       const cursorDir = path.join(tempDir, '.cursor', 'rules');
       await fs.mkdir(cursorDir, { recursive: true });
@@ -1088,7 +1079,7 @@ This skill has no description - should be ignored`
       }
     });
 
-    it('should use relative paths in dry-run delete verbose output (CR-12)', async () => {
+    it('should use relative paths in dry-run delete verbose output', async () => {
       // CodeRabbit feedback: verbose "Would delete" messages should use relative paths
       const cursorDir = path.join(tempDir, '.cursor', 'rules');
       await fs.mkdir(cursorDir, { recursive: true });

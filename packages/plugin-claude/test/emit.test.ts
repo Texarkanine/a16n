@@ -278,7 +278,7 @@ describe('Claude Plugin Emission', () => {
   });
 });
 
-describe('Claude FileRule Emission (Phase 8 A2)', () => {
+describe('Claude FileRule Emission', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -492,7 +492,7 @@ describe('Claude FileRule Emission (Phase 8 A2)', () => {
   });
 });
 
-describe('Claude SimpleAgentSkill Emission (Phase 2)', () => {
+describe('Claude SimpleAgentSkill Emission', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -789,7 +789,7 @@ describe('Claude FileRule Empty Globs Validation', () => {
 
 // Settings merge behavior tests removed in Phase 8 A3 (no longer using settings.local.json)
 
-describe('Mixed Model Emission (Phase 8 A2)', () => {
+describe('Mixed Model Emission', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -855,7 +855,7 @@ describe('Mixed Model Emission (Phase 8 A2)', () => {
   });
 });
 
-describe('Claude AgentIgnore Emission (Phase 3)', () => {
+describe('Claude AgentIgnore Emission', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -1115,7 +1115,7 @@ describe('Claude AgentIgnore Emission (Phase 3)', () => {
   });
 });
 
-describe('Claude ManualPrompt Emission (Phase 4)', () => {
+describe('Claude ManualPrompt Emission', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -1439,7 +1439,7 @@ describe('Claude ManualPrompt Emission (Phase 4)', () => {
   });
 });
 
-describe('Claude Plugin - sourceItems tracking (Phase 8 A2)', () => {
+describe('Claude Plugin - sourceItems tracking', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -1640,7 +1640,7 @@ describe('Claude Plugin - sourceItems tracking (Phase 8 A2)', () => {
   });
 });
 
-describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
+describe('Claude AgentSkillIO Emission', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -2188,7 +2188,7 @@ describe('Claude AgentSkillIO Emission (Phase 8 B4)', () => {
   });
 });
 
-describe('Claude Filename Case Preservation (20260421-preserve-filename-case)', () => {
+describe('filename case preservation', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -2197,7 +2197,7 @@ describe('Claude Filename Case Preservation (20260421-preserve-filename-case)', 
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  describe('B1 — FileRule preserves source filename case', () => {
+  describe('FileRule preserves source filename case', () => {
     it('should preserve CamelCase stem when emitting FileRule', async () => {
       const models: FileRule[] = [
         {
@@ -2258,7 +2258,7 @@ describe('Claude Filename Case Preservation (20260421-preserve-filename-case)', 
     });
   });
 
-  describe('B2 — GlobalPrompt preserves name case', () => {
+  describe('GlobalPrompt preserves name case', () => {
     it('should preserve CamelCase name when emitting GlobalPrompt', async () => {
       const models: GlobalPrompt[] = [
         {
@@ -2278,7 +2278,7 @@ describe('Claude Filename Case Preservation (20260421-preserve-filename-case)', 
     });
   });
 
-  describe('B3 — AgentSkillIO skill directory stays lowercase (spec compliance)', () => {
+  describe('AgentSkillIO skill directory stays lowercase (spec compliance)', () => {
     it('should lowercase uppercase skill name for directory', async () => {
       const models: AgentSkillIO[] = [
         {
@@ -2323,7 +2323,7 @@ describe('Claude Filename Case Preservation (20260421-preserve-filename-case)', 
     });
   });
 
-  describe('B4 — SimpleAgentSkill skill directory stays lowercase', () => {
+  describe('SimpleAgentSkill skill directory stays lowercase', () => {
     it('should lowercase CamelCase name for skill directory', async () => {
       const models: SimpleAgentSkill[] = [
         {
@@ -2365,7 +2365,7 @@ describe('Claude Filename Case Preservation (20260421-preserve-filename-case)', 
     });
   });
 
-  describe('B5 — ManualPrompt skill directory stays lowercase', () => {
+  describe('ManualPrompt skill directory stays lowercase', () => {
     it('should lowercase CamelCase promptName for skill directory', async () => {
       const models: ManualPrompt[] = [
         {
@@ -2386,7 +2386,7 @@ describe('Claude Filename Case Preservation (20260421-preserve-filename-case)', 
     });
   });
 
-  describe('B9 — case-insensitive collision safety', () => {
+  describe('case-insensitive collision safety', () => {
     it('should treat case-only differences as collisions for FileRules', async () => {
       const models: FileRule[] = [
         {
@@ -2449,7 +2449,7 @@ describe('Claude Filename Case Preservation (20260421-preserve-filename-case)', 
     });
   });
 
-  describe('B11 — leading-dot filenames sanitize as before', () => {
+  describe('leading-dot filenames sanitize as before', () => {
     it('should strip leading dot and preserve rest', async () => {
       const models: FileRule[] = [
         {

@@ -80,7 +80,7 @@ describe('Claude Plugin Discovery', () => {
   });
 });
 
-describe('Claude SimpleAgentSkill Discovery (Phase 2)', () => {
+describe('Claude SimpleAgentSkill Discovery', () => {
   describe('simple skills without hooks', () => {
     it('should discover SimpleAgentSkill from .claude/skills/*/SKILL.md', async () => {
       const root = path.join(fixturesDir, 'claude-skills/from-claude');
@@ -109,7 +109,7 @@ describe('Claude SimpleAgentSkill Discovery (Phase 2)', () => {
     });
   });
 
-  describe('skills with hooks → SKIPPED (Phase 8 B3)', () => {
+  describe('skills with hooks (skipped — hooks unsupported)', () => {
     it('should skip skills with hooks and emit warning', async () => {
       const root = path.join(fixturesDir, 'claude-skills-with-hooks/from-claude');
       const result = await claudePlugin.discover(root);
@@ -137,7 +137,7 @@ describe('Claude SimpleAgentSkill Discovery (Phase 2)', () => {
   });
 });
 
-describe('Claude AgentIgnore Discovery (Phase 3)', () => {
+describe('Claude AgentIgnore Discovery', () => {
   describe('settings.json with permissions.deny Read rules', () => {
     it('should discover AgentIgnore from settings.json permissions.deny', async () => {
       const root = path.join(fixturesDir, 'claude-ignore/from-claude');
@@ -212,7 +212,7 @@ describe('Claude AgentIgnore Discovery (Phase 3)', () => {
   });
 });
 
-describe('Claude ManualPrompt Discovery (Phase 7)', () => {
+describe('Claude ManualPrompt Discovery', () => {
   describe('skills with disable-model-invocation: true', () => {
     it('should discover ManualPrompt from skill with disable-model-invocation: true', async () => {
       const root = path.join(fixturesDir, 'claude-skills-manual/from-claude');
@@ -252,7 +252,7 @@ describe('Claude ManualPrompt Discovery (Phase 7)', () => {
   });
 });
 
-describe('Claude Plugin Never Discovers ManualPrompt (Phase 4)', () => {
+describe('Claude Plugin Never Discovers ManualPrompt', () => {
   it('should never return ManualPrompt items from any discovery', async () => {
     // Test across multiple fixture directories
     const fixtureDirs = [
@@ -290,7 +290,7 @@ describe('Claude Plugin Never Discovers ManualPrompt (Phase 4)', () => {
   });
 });
 
-describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
+describe('AgentSkillIO Discovery', () => {
   /**
    * Tests for discovering complex skills that have extra files (no hooks).
    * Skills with hooks are SKIPPED (not supported by AgentSkills.io).
@@ -463,7 +463,7 @@ describe('AgentSkillIO Discovery (Phase 8 B3)', () => {
   });
 });
 
-describe('Claude Rules Discovery (Phase 8 A1)', () => {
+describe('Claude Rules Discovery', () => {
   describe('file discovery', () => {
     it('should discover .md files from .claude/rules/ directory', async () => {
       const root = path.join(fixturesDir, 'claude-rules-basic/from-claude');

@@ -411,7 +411,7 @@ describe('handleConvert', () => {
         };
       }
 
-      it('B4: should route new output to .gitignore when all sources ignored via .gitignore', async () => {
+      it('should route new output to .gitignore when all sources ignored via .gitignore', async () => {
         vi.mocked(isGitRepo).mockResolvedValue(true);
         vi.mocked(getIgnoreSource).mockResolvedValue('.gitignore');
         vi.mocked(addToGitIgnore).mockResolvedValue(undefined as any);
@@ -433,7 +433,7 @@ describe('handleConvert', () => {
         expect(addToGitExclude).not.toHaveBeenCalled();
       });
 
-      it('B5: should route new output to .git/info/exclude when all sources ignored via exclude', async () => {
+      it('should route new output to .git/info/exclude when all sources ignored via exclude', async () => {
         vi.mocked(isGitRepo).mockResolvedValue(true);
         vi.mocked(getIgnoreSource).mockResolvedValue('.git/info/exclude');
         vi.mocked(addToGitExclude).mockResolvedValue(undefined as any);
@@ -455,7 +455,7 @@ describe('handleConvert', () => {
         expect(addToGitIgnore).not.toHaveBeenCalled();
       });
 
-      it('B6: should not ignore new output when all sources are tracked', async () => {
+      it('should not ignore new output when all sources are tracked', async () => {
         vi.mocked(isGitRepo).mockResolvedValue(true);
         vi.mocked(getIgnoreSource).mockResolvedValue(null);
 
@@ -476,7 +476,7 @@ describe('handleConvert', () => {
         expect(addToGitExclude).not.toHaveBeenCalled();
       });
 
-      it('B7: should emit GitStatusConflict warning when new output has mixed-status sources', async () => {
+      it('should emit GitStatusConflict warning when new output has mixed-status sources', async () => {
         vi.mocked(isGitRepo).mockResolvedValue(true);
         vi.mocked(getIgnoreSource)
           .mockResolvedValueOnce('.gitignore')
@@ -505,7 +505,7 @@ describe('handleConvert', () => {
         expect(warnings[0].message).toContain('mixed status');
       });
 
-      it('B8: should emit GitStatusConflict warning when sources ignored by different files', async () => {
+      it('should emit GitStatusConflict warning when sources ignored by different files', async () => {
         vi.mocked(isGitRepo).mockResolvedValue(true);
         vi.mocked(getIgnoreSource)
           .mockResolvedValueOnce('.gitignore')
@@ -534,7 +534,7 @@ describe('handleConvert', () => {
         expect(warnings[0].message).toContain('different files');
       });
 
-      it('B9: should emit GitStatusConflict warning for existing tracked output with ignored sources', async () => {
+      it('should emit GitStatusConflict warning for existing tracked output with ignored sources', async () => {
         vi.mocked(isGitRepo).mockResolvedValue(true);
         vi.mocked(getIgnoreSource).mockResolvedValue('.gitignore');
         vi.mocked(isGitTracked).mockResolvedValue(true);
@@ -557,7 +557,7 @@ describe('handleConvert', () => {
         expect(warnings[0].message).toContain('ignored');
       });
 
-      it('B10: should emit GitStatusConflict warning for existing ignored output with tracked sources', async () => {
+      it('should emit GitStatusConflict warning for existing ignored output with tracked sources', async () => {
         vi.mocked(isGitRepo).mockResolvedValue(true);
         vi.mocked(getIgnoreSource).mockResolvedValue(null);
         vi.mocked(isGitTracked).mockResolvedValue(false);
@@ -618,7 +618,7 @@ describe('handleConvert', () => {
       await expect(fs.access(sourceFile)).rejects.toThrow();
     });
 
-    it('should show "Would delete" in dry-run with --delete-source', async () => {
+    it('should not delete source file in dry-run mode', async () => {
       const sourceDir = path.join(tmpDir, '.cursor', 'rules');
       await fs.mkdir(sourceDir, { recursive: true });
       const sourceFile = path.join(sourceDir, 'test.mdc');
@@ -655,7 +655,7 @@ describe('handleConvert', () => {
   });
 
   describe('handleDeleteSource safety guards', () => {
-    it('B1: should refuse to delete source that resolves outside project root', async () => {
+    it('should refuse to delete source that resolves outside project root', async () => {
       const io = createMockIO();
       const engine = createMockEngine({
         convert: vi.fn().mockResolvedValue({
@@ -683,7 +683,7 @@ describe('handleConvert', () => {
       expect(io.errors.some(e => e.includes('Refusing to delete source outside project'))).toBe(true);
     });
 
-    it('B2: should preserve sources marked as skipped even when other sources are deleted', async () => {
+    it('should preserve sources marked as skipped even when other sources are deleted', async () => {
       const sourceDir = path.join(tmpDir, '.cursor', 'rules');
       await fs.mkdir(sourceDir, { recursive: true });
       const keptFile = path.join(sourceDir, 'kept.mdc');
@@ -728,7 +728,7 @@ describe('handleConvert', () => {
       await expect(fs.access(deletedFile)).rejects.toThrow();
     });
 
-    it('B3: should handle unlink failure gracefully and continue', async () => {
+    it('should handle unlink failure gracefully and continue', async () => {
       const sourceDir = path.join(tmpDir, '.cursor', 'rules');
       await fs.mkdir(sourceDir, { recursive: true });
       const realFile = path.join(sourceDir, 'real.mdc');

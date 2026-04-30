@@ -132,7 +132,7 @@ describe('getLatestVersion', () => {
     expect(getLatestVersion(versions)).toBe('0.1.0');
   });
 
-  it('handles prerelease versions (sorts after release)', () => {
+  it('handles prerelease versions (does not crash)', () => {
     // Note: localeCompare with numeric: true may not handle prereleases "correctly"
     // but for our use case, we just need consistent ordering
     const versions = ['1.0.0', '1.0.0-beta.1', '0.9.0'];
