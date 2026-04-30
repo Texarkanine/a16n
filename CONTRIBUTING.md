@@ -35,10 +35,24 @@ This is a pnpm monorepo managed with Turborepo. Packages live under `packages/`:
 ## Running Tests
 
 ```bash
-pnpm test              # Run all tests
-pnpm --filter a16n test   # Run CLI tests only
+pnpm test              # Run all tests (canonical — always correct)
+pnpm --filter @a16njs/glob-hook test   # Run a single package's full suite
 pnpm typecheck         # Check types across all packages
 ```
+
+`pnpm test` uses Turborepo and always runs Vitest inside each package directory, which ensures per-package config (timeouts, include patterns) and package-local binaries (e.g. `tsx`) resolve correctly.
+
+### Running a single test file or test case
+
+From within the package directory:
+
+```bash
+cd packages/glob-hook
+pnpm exec vitest run test/cli.test.ts                        # single file
+pnpm exec vitest run test/cli.test.ts -t "handles dotfiles"  # single test by name
+```
+
+> **Note:** `npx vitest run packages/<package>/test/<file>.test.ts` from the monorepo root works for all packages. For the most reliable experience (correct per-package timeout config, guaranteed binary resolution), prefer `pnpm exec vitest` from within the package directory or the `pnpm --filter` pattern above.
 
 Tests use Vitest with fixture-based integration tests. See `test/` directories in each package.
 
