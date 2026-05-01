@@ -73,15 +73,23 @@ export async function readDirFiles(dir: string, base: string = ''): Promise<Map<
         files.set(relativePath, content);
       }
     }
-  } catch {
-    // Directory doesn't exist
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
+    // Directory doesn't exist — return empty map
   }
 
   return files;
 }
 
-/** Assert every expected file exists under `actual` with matching trimmed content. */
+/** Assert actual and expected file sets are equal, with matching trimmed content. */
 export function compareOutputs(actual: Map<string, string>, expected: Map<string, string>): void {
+  expect(
+    [...actual.keys()].sort(),
+    'Unexpected output files emitted',
+  ).toEqual([...expected.keys()].sort());
+
   for (const [relPath, expectedContent] of expected) {
     const actualContent = actual.get(relPath);
     expect(actualContent, `Expected file ${relPath} to exist`).toBeDefined();

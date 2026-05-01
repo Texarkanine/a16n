@@ -41,7 +41,6 @@ describe('Integration Tests - Fixture Based', () => {
     it('should convert a single Cursor rule to Claude format', async () => {
       const fixturePath = path.join(fixturesDir, 'cursor-to-claude-basic');
       const fromDir = path.join(fixturePath, 'from-cursor');
-      const toDir = path.join(fixturePath, 'to-claude');
       
       // Copy input to temp
       await copyDir(fromDir, tempDir);
@@ -74,7 +73,6 @@ describe('Integration Tests - Fixture Based', () => {
     it('should convert CLAUDE.md to a Cursor rule', async () => {
       const fixturePath = path.join(fixturesDir, 'claude-to-cursor-basic');
       const fromDir = path.join(fixturePath, 'from-claude');
-      const toDir = path.join(fixturePath, 'to-cursor');
       
       // Copy input to temp
       await copyDir(fromDir, tempDir);

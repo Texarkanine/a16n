@@ -22,6 +22,19 @@ The file list, slugs, and TDD ordering in `tasks.md` were correct; nothing in th
 
 Build was smooth and repetitive: same pattern as M2 (`cli.test.ts` split) with engine construction and temp roots instead of `runCli()`. QA was clean—semantic review matched the plan with no corrective edits.
 
+## PR Rework (post-reflection)
+
+After opening PR #93, AI reviewers (LlamaPReview and CodeRabbit) surfaced five valid issues, five of which were addressed in a follow-up commit:
+
+- **Unused `toDir` in `integration-basic-conversion.test.ts`** (LlamaPReview): Two `toDir` declarations were dead code carried over verbatim from the monolith — removed.
+- **Hard-coded `v1beta2` in `integration-a16n-plugin.test.ts`** (CodeRabbit): Replaced literal with `CURRENT_IR_VERSION` imported from `@a16njs/models` so the assertion survives future IR bumps.
+- **`.temp-integration/` not gitignored** (CodeRabbit): The temp directory layout is new to this PR; added pattern to root `.gitignore`.
+- **Round-trip test left original `.cursor/` in place** (CodeRabbit): Added `fs.rm(.cursor)` between the two conversion legs so the return leg must recreate the tree from scratch.
+- **`compareOutputs()` subset-only** (CodeRabbit): Added a key-equality check before the content loop so stray output files fail the test.
+- **`readDirFiles` catch-all** (CodeRabbit): Narrowed the catch to `ENOENT` only; other errors now propagate instead of silently returning an empty map.
+
+Items 3, 5, and 6 are all on new code introduced by this PR and should have been caught in QA. Items 1 and 2 are pre-existing bugs that arrived via verbatim copy from the monolith; items 4 is a pre-existing logical gap in the round-trip test that was similarly inherited unchanged.
+
 ## Insights
 
 ### Technical

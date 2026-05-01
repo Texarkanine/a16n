@@ -214,7 +214,10 @@ Write unit tests first.
       
       expect(result1.discovered.length).toBe(1);
       expect(result1.discovered[0].type).toBe('agent-skill-io');
-      
+
+      // Remove original Cursor tree so the return leg must recreate it from scratch
+      await fs.rm(path.join(tempDir, '.cursor'), { recursive: true, force: true });
+
       // Convert Claude → Cursor (back)
       const result2 = await engine.convert({
         source: 'claude',

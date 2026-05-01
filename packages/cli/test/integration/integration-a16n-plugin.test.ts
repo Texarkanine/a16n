@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { A16nEngine } from '@a16njs/engine';
-import { WarningCode } from '@a16njs/models';
+import { CURRENT_IR_VERSION, WarningCode } from '@a16njs/models';
 import {
   copyDir,
   createIntegrationEngine,
@@ -376,7 +376,7 @@ This rule is from a future revision.
       );
       expect(versionWarnings).toHaveLength(1);
       expect(versionWarnings[0].message).toContain('v1beta99');
-      expect(versionWarnings[0].message).toContain('v1beta2');
+      expect(versionWarnings[0].message).toContain(CURRENT_IR_VERSION);
     });
   });
 });

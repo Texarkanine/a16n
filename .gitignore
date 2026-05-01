@@ -26,6 +26,9 @@ npm-debug.log*
 # Test coverage
 coverage/
 
+# Integration test temp workspaces
+.temp-integration/
+
 # Environment
 .env
 .env.local
