@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
+import * as os from 'os';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import a16nPlugin from '../src/index.js';
@@ -18,17 +19,14 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Use a temp directory for emission tests
-const tempDir = path.join(__dirname, '.temp-emit-test');
-
 describe('A16n Plugin Emission', () => {
+  let tempDir: string;
+
   beforeEach(async () => {
-    // Create temp directory
-    await fs.mkdir(tempDir, { recursive: true });
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'a16n-a16n-emit-'));
   });
 
   afterEach(async () => {
-    // Clean up temp directory
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 

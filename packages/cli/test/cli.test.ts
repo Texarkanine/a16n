@@ -710,7 +710,7 @@ describe('CLI', () => {
   });
 
   describe('--from-dir and --to-dir flags', () => {
-    it('C1: --from-dir flag is parsed and reads from specified source', async () => {
+    it('--from-dir reads from specified source directory', async () => {
       // Create source in a different directory from positional arg
       const sourceDir = path.join(tempDir, 'source');
       const outputDir = path.join(tempDir, 'output');
@@ -727,7 +727,7 @@ describe('CLI', () => {
       expect(stdout).toContain('Discovered: 1');
     });
 
-    it('C2: --to-dir flag writes to specified target', async () => {
+    it('--to-dir writes output to specified target directory', async () => {
       const targetDir = path.join(tempDir, 'target');
       await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
       await fs.mkdir(targetDir, { recursive: true });
@@ -745,7 +745,7 @@ describe('CLI', () => {
       expect(files.length).toBeGreaterThan(0);
     });
 
-    it('C3: both flags together work correctly', async () => {
+    it('combines --from-dir and --to-dir so output lands only in target', async () => {
       const sourceDir = path.join(tempDir, 'source');
       const targetDir = path.join(tempDir, 'target');
       await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
@@ -767,21 +767,21 @@ describe('CLI', () => {
       await expect(fs.access(path.join(tempDir, '.claude', 'rules'))).rejects.toThrow();
     });
 
-    it('C4: --from-dir with nonexistent directory produces error', () => {
+    it('--from-dir with nonexistent directory produces error', () => {
       const { stderr, exitCode } = runCli('convert --from cursor --to claude --from-dir /nonexistent/source');
 
       expect(exitCode).toBe(1);
       expect(stderr).toContain('is not a valid directory');
     });
 
-    it('C5: --to-dir with nonexistent directory produces error', () => {
+    it('--to-dir with nonexistent directory produces error', () => {
       const { stderr, exitCode } = runCli('convert --from cursor --to claude --to-dir /nonexistent/target');
 
       expect(exitCode).toBe(1);
       expect(stderr).toContain('is not a valid directory');
     });
 
-    it('C6: --from-dir on discover command works', async () => {
+    it('passes discover with --from-dir', async () => {
       const sourceDir = path.join(tempDir, 'source');
       await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
       await fs.writeFile(
@@ -795,14 +795,14 @@ describe('CLI', () => {
       expect(stdout).toContain('global-prompt');
     });
 
-    it('C7: --to-dir on discover command produces error', () => {
+    it('rejects --to-dir on discover command', () => {
       const { stderr, exitCode } = runCli(`discover --from cursor --to-dir ${tempDir}`);
 
       expect(exitCode).toBe(1);
       expect(stderr).toContain('--to-dir');
     });
 
-    it('C8: --delete-source uses sourceRoot, not targetRoot', async () => {
+    it('--delete-source deletes under source root when using --from-dir and --to-dir', async () => {
       const sourceDir = path.join(tempDir, 'source');
       const targetDir = path.join(tempDir, 'target');
       await fs.mkdir(path.join(sourceDir, '.cursor', 'rules'), { recursive: true });
@@ -953,7 +953,7 @@ This skill has no description - should be ignored`
       expect(stdout).toContain('Deleted');
     });
 
-    it('should delete multiple sources that merge into single output', async () => {
+    it('should delete all sources when each produces a separate output file', async () => {
       const cursorDir = path.join(tempDir, '.cursor', 'rules');
       await fs.mkdir(cursorDir, { recursive: true });
       

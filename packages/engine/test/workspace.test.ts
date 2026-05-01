@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
+import * as os from 'os';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -9,13 +10,13 @@ import {
 } from '../src/workspace.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const tempDir = path.join(__dirname, '.temp-workspace-test');
 
 describe('LocalWorkspace', () => {
   let workspace: LocalWorkspace;
+  let tempDir: string;
 
   beforeEach(async () => {
-    await fs.mkdir(tempDir, { recursive: true });
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'a16n-workspace-'));
     workspace = new LocalWorkspace('test-local', tempDir);
   });
 

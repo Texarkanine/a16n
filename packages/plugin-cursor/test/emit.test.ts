@@ -1441,10 +1441,9 @@ describe('Cursor AgentSkillIO Emission', () => {
     });
 
     it('should set sourcePaths on each emitted resource WrittenFile (not on SKILL.md itself)', async () => {
-      // Behavior 3: resource WrittenFiles must populate `sourcePaths` so that
-      // buildMapping can produce source→target entries for the ride-along
-      // files. Without this, --rewrite-path-refs cannot rewrite references
-      // to those resources.
+      // resource WrittenFiles populate `sourcePaths` so buildMapping produces source→target
+      // entries for ride-along files. Without this, --rewrite-path-refs cannot rewrite
+      // references to those resources.
       const models: AgentSkillIO[] = [
         {
           id: createId(CustomizationType.AgentSkillIO, '.cursor/skills/check/SKILL.md'),
@@ -1655,7 +1654,7 @@ describe('filename case preservation', () => {
   });
 
   describe('FileRule preserves source filename case', () => {
-    it('should preserve CamelCase stem when emitting FileRule (symmetric to Claude B1)', async () => {
+    it('should preserve CamelCase stem when emitting FileRule', async () => {
       const models: FileRule[] = [
         {
           id: createId(CustomizationType.FileRule, '.claude/rules/activeContext.md'),
@@ -1693,7 +1692,7 @@ describe('filename case preservation', () => {
   });
 
   describe('GlobalPrompt preserves name case', () => {
-    it('should preserve CamelCase name when emitting GlobalPrompt (symmetric to Claude B2)', async () => {
+    it('should preserve CamelCase name when emitting GlobalPrompt', async () => {
       const models: GlobalPrompt[] = [
         {
           id: createId(CustomizationType.GlobalPrompt, 'productContext.md'),

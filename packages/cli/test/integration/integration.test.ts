@@ -258,7 +258,7 @@ describe('Integration Tests - FileRule and SimpleAgentSkill', () => {
   });
 
   describe('cursor-filerule-to-claude', () => {
-    it('should convert Cursor FileRule to Claude hooks', async () => {
+    it('should convert Cursor FileRule to Claude native rule file', async () => {
       const fixturePath = path.join(fixturesDir, 'cursor-filerule-to-claude');
       const fromDir = path.join(fixturePath, 'from-cursor');
       
