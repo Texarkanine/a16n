@@ -1,73 +1,96 @@
-# Task: M1 — Rename deliverable-fossils & naming-lies (SLOBAC)
+# Task: Split cli.test.ts into domain-specific test files
 
-* Task ID: m1-slobac-renames
+* Task ID: m2-split-cli-test
 * Complexity: Level 2
-* Type: simple enhancement (test metadata cleanup; no SUT changes)
+* Type: Simple enhancement (structural test reorganization)
 
-Remediate SLOBAC audit findings **1–3, 7–11, 13, 16–18** using **rename-only** changes to `it`/`test` titles and inline comments (no assertion bodies, no production code). Parent L4 project: `slobac-audit-remediation`; reference `slobac-audit.md` for exact before/after guidance. **Out of scope for M1:** findings 4–6, 12, 14–15, 19–20 (shared-state, monolith splits, discover naming-lie 12).
+Split `packages/cli/test/cli.test.ts` (1108 lines, 55 tests, 14 top-level describe blocks) into 7 domain-specific test files. Extract the shared `runCli()` helper into `test-support/cli-runner.ts`. No behavioral changes — purely structural reorganization.
 
 ## Test Plan (TDD)
 
 ### Behaviors to Verify
 
-- **Regression / suite green:** `pnpm test` (or Turbo equivalent) passes for `cli`, `engine`, `models`, `plugin-claude`, and `plugin-cursor` after all edits — renames must not change test registration or async hooks.
-- **Finding 1 (cli):** Tests under `describe('--from-dir and --to-dir flags')` no longer use `C1:`–`C8:` prefixes; each title still describes the behavior (audit examples).
-- **Finding 2 (cli integration):** The former “Claude hooks” test is titled to match native `.claude/rules` output and non-use of `settings.local.json`.
-- **Finding 3 (cli):** Delete-source test title matches “two separate output files”, not “single merged output”.
-- **Findings 7–9 (engine):** Fossil “refactor” wording and parenthesized AC-style suffixes stripped; path-rewriter tests no longer start with `P<n>:` prefixes.
-- **Findings 10–11 (models):** Type test titles describe current API only; historical rename notes moved to optional comments only if useful (prefer title-only cleanup per audit Option A).
-- **Finding 13 (plugin-claude emit):** Body comment describes contract without behavior numbers / task IDs.
-- **Findings 16–18 (plugin-cursor emit):** “Symmetric to Claude B*” suffixes removed from titles; body comment stripped of “Behavior 3:” prefix.
+This is a structural reorganization of existing tests. The "tests" here ARE the product. Verification is:
+
+- **Baseline**: all 55 tests in `cli.test.ts` pass before the split
+- **Post-split**: all 55 tests pass after the split, distributed across 7 files
+- **No regressions**: `pnpm test` green across the entire monorepo
 
 ### Test Infrastructure
 
-- Framework: Vitest (per-package configs via Turborepo)
-- Test locations: `packages/*/test/**/*.test.ts`
-- Conventions: ESM, existing `describe`/`it` style; fixture layout unchanged
-- **New test files:** none
+- Framework: Vitest
+- Test location: `packages/cli/test/`
+- Conventions: `*.test.ts` naming; vitest config includes `test/**/*.test.ts`
+- New test files: 7 domain files + 1 helper (see Implementation Plan)
 
 ## Implementation Plan
 
-### Verification gates (TDD applicability)
+### Step 0: Record baseline
 
-This milestone edits **only** test titles and comments — no production code and no new `it()` bodies. Conventional red/green refactor cycles apply to behavioral changes elsewhere; **here**, the oracle is **existing assertions**. Procedures:
+- Run `pnpm test --filter @a16njs/cli` and confirm 55 tests in `cli.test.ts` pass
+- Record the total test count for the package
 
-1. **Baseline:** Before step 1, run **`pnpm test` from repo root** and confirm green.
-2. **Per step 1–7:** After edits in that bullet, rerun tests touching that package (`pnpm turbo run test --filter=<package-or-scope>` acceptable) until green **before starting the next step**.
-3. **Final:** Repeat full **`pnpm test`** at repo root after all steps.
+### Step 1: Create `test-support/cli-runner.ts`
 
-This ordering satisfies plan-level test-first discipline: baseline tests precede edits; every edit batch is immediately validated by the same suite.
+- Files: `packages/cli/test/test-support/cli-runner.ts`
+- Changes:
+  - Export `cliPath` constant (path to `dist/index.js`)
+  - Export `runCli(args: string, cwd: string)` function (no default cwd — each file manages its own)
+  - Export `createTempDir()` → `fs.mkdtemp()` for per-test isolation (avoids shared-state when files run in parallel)
+  - Export `removeTempDir(dir: string)` → `fs.rm(dir, { recursive: true, force: true })`
+  - Preserve the existing NOTE comment about E2E/coverage
 
-1. **CLI — `packages/cli/test/cli.test.ts`**
-   - Files: `packages/cli/test/cli.test.ts`
-   - Changes: In `describe('--from-dir and --to-dir flags')`, rename tests `C1:`…`C8:` per Finding 1 (strip prefixes, keep descriptive suffix). Rename Finding 3 test per audit: `should delete all sources when each produces a separate output file` (exact wording aligned to audit prose).
+### Step 2: Create `cli-help.test.ts` (2 tests)
 
-2. **CLI integration — `packages/cli/test/integration/integration.test.ts`**
-   - Files: `packages/cli/test/integration/integration.test.ts`
-   - Changes: Finding 2 — rename to `should convert Cursor FileRule to Claude native rule file` (or equivalent matching body per audit).
+- Files: `packages/cli/test/cli-help.test.ts`
+- Source: `--help` describe (lines 37–63)
+- Tests: `should show help`, `should show help when invoked through a symlink`
+- Note: symlink test uses `spawnSync` directly + `cliPath` import
 
-3. **Engine — `packages/engine/test/engine.test.ts`**
-   - Files: `packages/engine/test/engine.test.ts`
-   - Changes: Finding 7 — remove “after source tracking refactor” fossil from title per audit suggestion. Finding 8 — strip parenthesized `(E1)`…`(WS5)` style suffixes from all 13 flagged tests (preserve behavioral text).
+### Step 3: Create `cli-plugins.test.ts` (2 tests)
 
-4. **Engine — `packages/engine/test/path-rewriter.test.ts`**
-   - Files: `packages/engine/test/path-rewriter.test.ts`
-   - Changes: Finding 9 — remove `P1:` through `P28:` prefixes from every `it`/test title (28 replacements); rely on describe structure for grouping.
+- Files: `packages/cli/test/cli-plugins.test.ts`
+- Source: `plugins command` describe (lines 65–103)
+- Tests: `should list available plugins`, `should discover and list third-party plugins from node_modules`
 
-5. **Models — `packages/models/test/types.test.ts`**
-   - Files: `packages/models/test/types.test.ts`
-   - Changes: Findings 10–11 — titles per audit (“SimpleAgentSkill” value assertion; ManualPrompt `promptName` without historical “commandName” parenthetical).
+### Step 4: Create `cli-discover.test.ts` (5 tests)
 
-6. **Plugin Claude emit — `packages/plugin-claude/test/emit.test.ts`**
-   - Files: `packages/plugin-claude/test/emit.test.ts`
-   - Changes: Finding 13 only — rewrite the inline comment near the `sourcePaths` / `WrittenFiles` test to remove task ID / “Behavior 4” / cross-plugin behavior numbering; keep technical explanation.
+- Files: `packages/cli/test/cli-discover.test.ts`
+- Source: `discover command` (lines 105–137) + `discover command with verbose` (lines 247–257) + `error handling` discover test (line 268)
+- Tests: `should discover cursor rules`, `should output JSON with --json flag`, `should error on unknown plugin`, `should support --verbose flag`, `should error with helpful message for non-existent path in discover`
+- Merges discover-related tests from two separate describes + one from error handling
 
-7. **Plugin Cursor emit — `packages/plugin-cursor/test/emit.test.ts`**
-   - Files: `packages/plugin-cursor/test/emit.test.ts`
-   - Changes: Findings 16–17 — remove `(symmetric to Claude B1/B2)` from titles. Finding 18 — strip `Behavior 3:` (or equivalent) prefix from resource `sourcePaths` comment per audit.
+### Step 5: Create `cli-convert.test.ts` (11 tests)
 
-8. **Verification**
-   - Run full `pnpm test` from repo root (and fix any accidental string typos in test names if Vitest reports missing tests — should not occur for renames only).
+- Files: `packages/cli/test/cli-convert.test.ts`
+- Source: `convert command` (lines 139–245) + `error handling` convert test (line 260) + `--rewrite-path-refs flag` (lines 828–851) + `dry-run output wording` (lines 853–881)
+- Tests: all 7 convert tests + 1 error test + 1 rewrite test + 2 dry-run wording tests
+- Groups core convert behavior: basic conversion, flags, errors, dry-run, path rewriting
+
+### Step 6: Create `cli-gitignore.test.ts` (18 tests)
+
+- Files: `packages/cli/test/cli-gitignore.test.ts`
+- Source: `--gitignore-output-with flag` (lines 276–406) + `sourceItems conflict detection` (lines 408–544) + `match mode validation` (lines 546–580) + `--if-gitignore-conflict flag` (lines 582–710)
+- Tests: all 18 gitignore-related tests
+- Includes the local `setupConflictScenario()` helper (stays in-file, not extracted to test-support)
+
+### Step 7: Create `cli-delete-source.test.ts` (9 tests)
+
+- Files: `packages/cli/test/cli-delete-source.test.ts`
+- Source: `--delete-source flag` describe (lines 883–1106)
+- Tests: all 9 delete-source tests
+
+### Step 8: Create `cli-from-to-dir.test.ts` (8 tests)
+
+- Files: `packages/cli/test/cli-from-to-dir.test.ts`
+- Source: `--from-dir and --to-dir flags` describe (lines 712–826)
+- Tests: all 8 from/to-dir tests
+
+### Step 9: Delete original and verify
+
+- Delete `packages/cli/test/cli.test.ts`
+- Run `pnpm test --filter @a16njs/cli` — all 55 tests must pass across the new files
+- Run `pnpm test` — full monorepo green
 
 ## Technology Validation
 
@@ -75,14 +98,14 @@ No new technology — validation not required.
 
 ## Dependencies
 
-- Clean tree aside from M1 edits
-- Node/pnpm per `techContext.md` and CI
+- CLI must be built before tests run (`dist/index.js` must exist) — already handled by Turborepo `test` depends on `build`
 
 ## Challenges & Mitigations
 
-- **Volume of mechanical renames (path-rewriter, engine):** Mitigation — edit per file in one pass; run package-scoped tests first if faster feedback, then full suite.
-- **Optional merge of duplicate engine tests (Finding 7 note):** Deferred — M1 is rename-only; merging would change test count/structure beyond audit’s Phase A minimum.
-- **Finding 12 (discover `.git` title):** Explicitly excluded from M1 milestone list; do not change in this sub-run.
+- **Parallel temp dir collision**: original uses a hardcoded temp dir path. Mitigated by switching to `mkdtemp()` for per-test isolation (consistent with the M1 fix applied to `plugin-discovery.test.ts`).
+- **Error handling describe split**: the `error handling` describe has 2 tests belonging to different domains (convert vs discover). Each test goes to its respective domain file, not kept together.
+- **Symlink test**: uses `spawnSync` directly instead of `runCli()`. Needs `cliPath` export from the helper, but doesn't use the standard helper function.
+- **Test count verification**: must confirm 55 tests pass before and after, across all 7 files.
 
 ## Status
 
@@ -90,6 +113,6 @@ No new technology — validation not required.
 - [x] Test planning complete (TDD)
 - [x] Implementation plan complete
 - [x] Technology validation complete
-- [x] Preflight ([2026-05-01] PASS — see `memory-bank/active/progress.md` / `.preflight-status`)
-- [x] Build — M1 renames/comments across 7 targets; incidental fix `plugin-discovery.test.ts` (parallel-safe `mkdtemp` per suite) — required after races surfaced under Vitest parallelism
-- [x] QA ([2026-05-01] PASS — semantic review vs plan; `.qa-validation-status`)
+- [x] Preflight
+- [x] Build
+- [x] QA

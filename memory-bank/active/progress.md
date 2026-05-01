@@ -1,13 +1,14 @@
-# Progress: M1 — SLOBAC rename remediation (fossils + naming lies)
+# Progress: M2 — Split cli.test.ts
 
-Sub-run scoped to milestone M1 from `milestones.md`: rename-only remediation of deliverable-fossils and naming-lies in cli, engine, models, plugin-claude, and plugin-cursor tests per audit findings 1–3, 7–11, 13, 16–18 (see `slobac-audit.md`). No assertion or production-code changes — titles, prefixes, suffixes, and task-derived comments only.
+Split `packages/cli/test/cli.test.ts` (~1108 lines, 12+ behavior domains) into domain-specific test files with shared `runCli()` helper extracted to `test-support/` (SLOBAC audit Finding 5).
 
 **Complexity:** Level 2
 
 ## Phase History
 
-- **COMPLEXITY-ANALYSIS** — Complete. M1 classified Level 2: systematic cross-package test-metadata cleanup with regression signal = existing Vitest suite.
-- **L2 PLAN** — Complete. Checklist written to `memory-bank/active/tasks.md` mapping findings 1–3, 7–11, 13, 16–18 to concrete files (`cli`, `engine`, `models`, plugin emit tests); explicit exclusion of Finding 12 and monolith milestones.
-- **L2 PREFLIGHT** — PASS. TDD applicability encoded as baseline + per-step test gates for rename-only work; conventions and completeness OK. **Advisory:** optional post-pass `grep` for `C[1-9]:`, `P[0-9]+:`, or task-id tokens across `packages/**/test` to catch misses (not blocking).
-- **L2 BUILD** — Complete. Implemented audit mappings 1–3, 7–11, 13, 16–18 (`cli.test.ts`, `integration.test.ts`, `engine.test.ts`, `path-rewriter.test.ts`, `types.test.ts`, plugin emit comments/titles). `plugin-discovery.test.ts` rewritten to isolate temp dirs (`mkdtemp`) — unrelated to SLOBAC wording but unblock parallel Vitest regressions witnessed during verification.
-- **L2 REFLECT** — Complete. See `memory-bank/active/reflection/reflection-m1-slobac-renames.md`.
+- **COMPLEXITY-ANALYSIS** — Complete. M2 classified Level 2: self-contained monolithic test file split within a single package, no architectural implications.
+- **L2 PLAN** — Complete. 7-way split mapped: cli-help, cli-plugins, cli-discover, cli-convert, cli-gitignore, cli-delete-source, cli-from-to-dir. Shared `runCli()` helper extracted to `test-support/cli-runner.ts`. All 55 tests accounted for.
+- **L2 PREFLIGHT** — PASS. TDD encoded as baseline + post-split verification gates. No convention conflicts, no dependency impacts, no conflicts. Advisory: Vitest `test.extend()` fixture could reduce boilerplate but would introduce a new pattern — deferred.
+- **L2 BUILD** — Complete. Split `cli.test.ts` (1108 lines, 55 tests) into 7 domain files + `test-support/cli-runner.ts`. All 175 cli tests pass, full monorepo green. Runtime improved from ~16s to ~8s via parallel execution with mkdtemp isolation.
+- **L2 QA** — PASS. No findings. All semantic review constraints satisfied.
+- **L2 REFLECT** — Complete. See `memory-bank/active/reflection/reflection-m2-split-cli-test.md`.
