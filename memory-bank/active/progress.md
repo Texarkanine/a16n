@@ -1,14 +1,11 @@
-# Progress: M2 — Split cli.test.ts
+# Progress: M3 — Split integration.test.ts + shared-state
 
-Split `packages/cli/test/cli.test.ts` (~1108 lines, 12+ behavior domains) into domain-specific test files with shared `runCli()` helper extracted to `test-support/` (SLOBAC audit Finding 5).
+Split `packages/cli/test/integration/integration.test.ts` (~1508 lines, 7 top-level describes) into domain-specific test files with shared helpers extracted to `test-support/`, and fix shared-state by moving module-level engine into per-describe factory (SLOBAC audit Findings 4, 6).
 
 **Complexity:** Level 2
 
 ## Phase History
 
-- **COMPLEXITY-ANALYSIS** — Complete. M2 classified Level 2: self-contained monolithic test file split within a single package, no architectural implications.
-- **L2 PLAN** — Complete. 7-way split mapped: cli-help, cli-plugins, cli-discover, cli-convert, cli-gitignore, cli-delete-source, cli-from-to-dir. Shared `runCli()` helper extracted to `test-support/cli-runner.ts`. All 55 tests accounted for.
-- **L2 PREFLIGHT** — PASS. TDD encoded as baseline + post-split verification gates. No convention conflicts, no dependency impacts, no conflicts. Advisory: Vitest `test.extend()` fixture could reduce boilerplate but would introduce a new pattern — deferred.
-- **L2 BUILD** — Complete. Split `cli.test.ts` (1108 lines, 55 tests) into 7 domain files + `test-support/cli-runner.ts`. All 175 cli tests pass, full monorepo green. Runtime improved from ~16s to ~8s via parallel execution with mkdtemp isolation.
-- **L2 QA** — PASS. No findings. All semantic review constraints satisfied.
-- **L2 REFLECT** — Complete. See `memory-bank/active/reflection/reflection-m2-split-cli-test.md`.
+- **COMPLEXITY-ANALYSIS** — Complete. M3 classified Level 2: self-contained integration test reorganization within `packages/cli`, mirrors M2 scope; adds explicit shared-state fix (module-level engine → per-describe factory).
+- **L2 PLAN** — Complete. Seven-way split per audit naming; `integration-helpers.ts`; explicit TDD ordering (baseline → helpers+engine factory → temp isolation → vertical slices); parallel-safe temp roots.
+- **L2 PREFLIGHT** — PASS. TDD ordering explicit per step; helpers colocated with M2 `test-support/` pattern; parallel temp isolation called out; no new deps. Advisory: if any flake remains after split, confirm Vitest pool defaults with `pnpm test` logs.

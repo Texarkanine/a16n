@@ -1,96 +1,76 @@
-# Task: Split cli.test.ts into domain-specific test files
+# Task: M3 — Split integration.test.ts + shared-state
 
-* Task ID: m2-split-cli-test
+* Task ID: slobac-audit-remediation-m3
 * Complexity: Level 2
-* Type: Simple enhancement (structural test reorganization)
+* Type: Test-suite structural remediation (monolithic split + shared-state fix; no production behavior change)
 
-Split `packages/cli/test/cli.test.ts` (1108 lines, 55 tests, 14 top-level describe blocks) into 7 domain-specific test files. Extract the shared `runCli()` helper into `test-support/cli-runner.ts`. No behavioral changes — purely structural reorganization.
+Remediate SLOBAC audit **Finding 6** (monolithic `packages/cli/test/integration/integration.test.ts`) and **Finding 4** (module-level `A16nEngine` shared across tests). Split the seven top-level `describe` blocks into dedicated files per `memory-bank/slobac-audit.md`. Extract filesystem and assertion helpers plus engine construction into `packages/cli/test/test-support/`. Preserve all fixture paths, conversion assertions, and warning checks unchanged.
 
 ## Test Plan (TDD)
 
 ### Behaviors to Verify
 
-This is a structural reorganization of existing tests. The "tests" here ARE the product. Verification is:
+Each existing `it(...)` case remains the behavioral specification (no renames of test intent unless audit already required). Spot-check categories:
 
-- **Baseline**: all 55 tests in `cli.test.ts` pass before the split
-- **Post-split**: all 55 tests pass after the split, distributed across 7 files
-- **No regressions**: `pnpm test` green across the entire monorepo
+- **Fixture conversions**: copy `from-*` fixture → temp workspace → `engine.convert(...)` → output matches `to-*` tree (Cursor ↔ Claude ↔ a16n as today).
+- **FileRule / hooks / skills**: nested fixture dirs emit expected rule files, `settings.local.json`, skill trees.
+- **AgentIgnore / cursorignore**: ignore files respected; warning paths stable.
+- **ManualPrompt / commands**: command MD round-trip and skill deployment paths.
+- **Split dirs**: `--from-dir` / `--to-dir` (and variants) place output only in declared targets.
+- **Path ref rewrite**: rewritten content matches expected refs in `.md` / `.mdc` / skill files.
+- **a16n IR plugin**: round-trip and delete-source-style flows across `.a16n`, `.cursor`, `.claude`.
+
+**Edge / regression**
+
+- Parallel safety: after split, each test file must use a **distinct temp root** under `integration/.temp-integration/<suite-slug>/` (or `fs.mkdtemp` per hook) so Vitest file-parallelism does not clobber the shared path used today from a single module.
+- **Engine isolation**: every top-level file (or its root `describe`) uses `beforeEach` to assign `engine = createIntegrationEngine()` — no module-level singleton.
 
 ### Test Infrastructure
 
-- Framework: Vitest
-- Test location: `packages/cli/test/`
-- Conventions: `*.test.ts` naming; vitest config includes `test/**/*.test.ts`
-- New test files: 7 domain files + 1 helper (see Implementation Plan)
+- Framework: **Vitest** (`packages/cli/vitest.config.ts`)
+- Test location: `packages/cli/test/integration/`
+- Conventions: fixture layout `fixtures/<name>/from-*` and `to-*` unchanged; same import style as M2 splits (ESM, `fileURLToPath`).
+- New test files (per audit prescription, filenames may be aligned 1:1 with top-level describe domains):
+  - `integration-basic-conversion.test.ts` — `Integration Tests - Fixture Based`
+  - `integration-filerule-skill.test.ts` — `Integration Tests - FileRule and SimpleAgentSkill`
+  - `integration-agentignore.test.ts` — `Integration Tests - AgentIgnore`
+  - `integration-commands.test.ts` — `Integration Tests - ManualPrompt (Commands)`
+  - `integration-split-dirs.test.ts` — `Integration Tests - Split Directories (--from-dir / --to-dir)`
+  - `integration-path-rewrite.test.ts` — `Integration Tests - Path Reference Rewriting (--rewrite-path-refs)`
+  - `integration-a16n-plugin.test.ts` — `Integration Tests - a16n IR Plugin`
+- New helper module: `packages/cli/test/test-support/integration-helpers.ts` — `copyDir`, `readDirFiles`, `compareOutputs`, `createIntegrationEngine()`, `fixturesDirFor(importMetaUrl)`, `suiteTempDir(importMetaUrl, slug)` (or equivalent).
 
 ## Implementation Plan
 
-### Step 0: Record baseline
+1. **TDD — Baseline gate (no production code)**
+   - Run CLI package tests (`pnpm --filter @a16njs/cli test` or project-standard equivalent) and record green baseline.
+   - Files: none changed yet.
 
-- Run `pnpm test --filter @a16njs/cli` and confirm 55 tests in `cli.test.ts` pass
-- Record the total test count for the package
+2. **TDD — Extract shared helpers; keep single integration entry temporarily**
+   - **Tests first**: No new assertions — existing integration tests are the oracle. **Implement**: add `integration-helpers.ts` exporting pure helpers + `createIntegrationEngine()`; update `integration.test.ts` to import helpers and **remove** module-level `engine`; introduce `let engine` with **per top-level describe** `beforeEach(() => { engine = createIntegrationEngine(); })` (matches “per-describe factory” and prepares split).
+   - **Verify**: same command as step 1; must stay green.
+   - Files: `packages/cli/test/test-support/integration-helpers.ts`, `packages/cli/test/integration/integration.test.ts`
 
-### Step 1: Create `test-support/cli-runner.ts`
+3. **TDD — Parallel-safe temp directories**
+   - **Tests first**: existing tests must still pass under parallel workers **after** split; while still monolithic, optionally run CLI tests with `--no-file-parallelism` vs default once to detect races; adopt `suiteTempDir(import.meta.url, '<slug>')` (unique slug per future file) inside each top-level describe’s `beforeEach`/`afterEach`, replacing the single shared `tempDir` constant where that describe’s tests use temp paths.
+   - **Verify**: CLI integration tests green.
+   - Files: `integration.test.ts` (prepare slugs that will map 1:1 to split files)
 
-- Files: `packages/cli/test/test-support/cli-runner.ts`
-- Changes:
-  - Export `cliPath` constant (path to `dist/index.js`)
-  - Export `runCli(args: string, cwd: string)` function (no default cwd — each file manages its own)
-  - Export `createTempDir()` → `fs.mkdtemp()` for per-test isolation (avoids shared-state when files run in parallel)
-  - Export `removeTempDir(dir: string)` → `fs.rm(dir, { recursive: true, force: true })`
-  - Preserve the existing NOTE comment about E2E/coverage
+4. **TDD — Vertical slice: first split file**
+   - **Tests first**: move **only** the `Integration Tests - Fixture Based` describe subtree into `integration-basic-conversion.test.ts` (imports, fixtures path, temp slug `basic-conversion`). **Do not** change assertion bodies.
+   - **Verify**: `pnpm --filter @a16njs/cli test` green.
+   - Files: new `integration-basic-conversion.test.ts`, shrink `integration.test.ts`
 
-### Step 2: Create `cli-help.test.ts` (2 tests)
+5. **TDD — Repeat vertical slices (2–7)**
+   - For each remaining top-level describe: create matching `integration-*.test.ts`, move subtree, unique temp slug, `beforeEach` engine factory.
+   - **Verify** after each file (or after each batch if timeboxed): CLI tests green.
 
-- Files: `packages/cli/test/cli-help.test.ts`
-- Source: `--help` describe (lines 37–63)
-- Tests: `should show help`, `should show help when invoked through a symlink`
-- Note: symlink test uses `spawnSync` directly + `cliPath` import
+6. **Remove monolith + tidy**
+   - Delete empty or redundant `integration.test.ts` once all describes migrated.
+   - **Verify**: full monorepo `pnpm test` per milestone invariants in `milestones.md`.
 
-### Step 3: Create `cli-plugins.test.ts` (2 tests)
-
-- Files: `packages/cli/test/cli-plugins.test.ts`
-- Source: `plugins command` describe (lines 65–103)
-- Tests: `should list available plugins`, `should discover and list third-party plugins from node_modules`
-
-### Step 4: Create `cli-discover.test.ts` (5 tests)
-
-- Files: `packages/cli/test/cli-discover.test.ts`
-- Source: `discover command` (lines 105–137) + `discover command with verbose` (lines 247–257) + `error handling` discover test (line 268)
-- Tests: `should discover cursor rules`, `should output JSON with --json flag`, `should error on unknown plugin`, `should support --verbose flag`, `should error with helpful message for non-existent path in discover`
-- Merges discover-related tests from two separate describes + one from error handling
-
-### Step 5: Create `cli-convert.test.ts` (11 tests)
-
-- Files: `packages/cli/test/cli-convert.test.ts`
-- Source: `convert command` (lines 139–245) + `error handling` convert test (line 260) + `--rewrite-path-refs flag` (lines 828–851) + `dry-run output wording` (lines 853–881)
-- Tests: all 7 convert tests + 1 error test + 1 rewrite test + 2 dry-run wording tests
-- Groups core convert behavior: basic conversion, flags, errors, dry-run, path rewriting
-
-### Step 6: Create `cli-gitignore.test.ts` (18 tests)
-
-- Files: `packages/cli/test/cli-gitignore.test.ts`
-- Source: `--gitignore-output-with flag` (lines 276–406) + `sourceItems conflict detection` (lines 408–544) + `match mode validation` (lines 546–580) + `--if-gitignore-conflict flag` (lines 582–710)
-- Tests: all 18 gitignore-related tests
-- Includes the local `setupConflictScenario()` helper (stays in-file, not extracted to test-support)
-
-### Step 7: Create `cli-delete-source.test.ts` (9 tests)
-
-- Files: `packages/cli/test/cli-delete-source.test.ts`
-- Source: `--delete-source flag` describe (lines 883–1106)
-- Tests: all 9 delete-source tests
-
-### Step 8: Create `cli-from-to-dir.test.ts` (8 tests)
-
-- Files: `packages/cli/test/cli-from-to-dir.test.ts`
-- Source: `--from-dir and --to-dir flags` describe (lines 712–826)
-- Tests: all 8 from/to-dir tests
-
-### Step 9: Delete original and verify
-
-- Delete `packages/cli/test/cli.test.ts`
-- Run `pnpm test --filter @a16njs/cli` — all 55 tests must pass across the new files
-- Run `pnpm test` — full monorepo green
+7. **Documentation**
+   - No user-facing README change expected; if `CONTRIBUTING.md` references `integration.test.ts` explicitly, update path list (only if such a reference exists).
 
 ## Technology Validation
 
@@ -98,14 +78,14 @@ No new technology — validation not required.
 
 ## Dependencies
 
-- CLI must be built before tests run (`dist/index.js` must exist) — already handled by Turborepo `test` depends on `build`
+- `@a16njs/engine`, `@a16njs/plugin-*`, `@a16njs/models` (existing)
+- Vitest, `fs/promises`, fixture directories under `packages/cli/test/integration/fixtures/`
 
 ## Challenges & Mitigations
 
-- **Parallel temp dir collision**: original uses a hardcoded temp dir path. Mitigated by switching to `mkdtemp()` for per-test isolation (consistent with the M1 fix applied to `plugin-discovery.test.ts`).
-- **Error handling describe split**: the `error handling` describe has 2 tests belonging to different domains (convert vs discover). Each test goes to its respective domain file, not kept together.
-- **Symlink test**: uses `spawnSync` directly instead of `runCli()`. Needs `cliPath` export from the helper, but doesn't use the standard helper function.
-- **Test count verification**: must confirm 55 tests pass before and after, across all 7 files.
+- **Shared `tempDir` path across split files**: Mitigated by per-suite subdirectory or `mkdtemp` (Step 3).
+- **Drift during copy-paste**: Move describe blocks verbatim; run tests after each slice; use diff review focused on import paths and `fixturesDir`/`tempDir` locals only.
+- **Finding 4 compliance**: No `const engine = new A16nEngine(...)` at module scope post-change; factory only.
 
 ## Status
 
@@ -114,5 +94,5 @@ No new technology — validation not required.
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Preflight
-- [x] Build
-- [x] QA
+- [ ] Build
+- [ ] QA

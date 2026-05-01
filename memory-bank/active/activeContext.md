@@ -1,13 +1,13 @@
 # Active Context
 
-## Current Task: SLOBAC Audit Remediation — M2 (Split cli.test.ts)
+## Current Task: SLOBAC Audit Remediation — M3 (Split integration.test.ts + shared-state)
 
-**Phase:** REFLECT - COMPLETE
+**Phase:** L2 PREFLIGHT - COMPLETE
 
 ## What Was Done
 
-- Reflection logged to `memory-bank/active/reflection/reflection-m2-split-cli-test.md`. Persistent memory bank files unchanged (no system-level drift from test file reorganization).
+- Preflight PASS: plan encodes test-first refactor sequence, conventions align with `test-support/` layout, no contract or dependency surprises.
 
 ## Next Step
 
-- **L4 operator action:** run **`/niko`** again — Niko Step 2 will mark M2 complete in `milestones.md`, clear ephemeral sub-run state, and classify the next milestone.
+- L2 Build: load `.cursor/skills/shared/niko/references/level2/level2-build.md` (or invoke `/niko-build` per operator workflow).
