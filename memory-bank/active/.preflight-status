@@ -1,4 +1,0 @@
-PASS
-task: glob-hook-test-env-fix
-date: 2026-04-30
-findings: all checks passed; one advisory (vitest.workspace.ts structural fix for future packages)
