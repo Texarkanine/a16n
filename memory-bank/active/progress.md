@@ -42,3 +42,13 @@ Split `packages/plugin-claude/test/emit.test.ts` (~2474 lines, 10 top-level desc
 * Insights
     - Pre-existing audit remediations (M1 body-comment fixes) interact favorably with structural splits: because M1 already removed the fossil at original line 1783, the split could proceed without any body edits, keeping M4 a pure structural commit.
     - The `suiteTempDir(importMetaUrl, slug)` shape has now been used by two packages (cli/test-support and plugin-claude/test-support). If M6/M7 (cursor emit/discover splits) reuse it, consider whether it earns promotion to a shared package — but only after all M4–M7 land, to avoid premature abstraction.
+
+## 2026-05-01 - L2 REFLECT - COMPLETE
+
+* Work completed
+    - Level 2 post-implementation reflection for M4 (`slobac-audit-remediation-m4`): `memory-bank/active/reflection/reflection-slobac-audit-remediation-m4.md`.
+    - Reconciled persistent memory-bank files: no updates required (`productContext`, `systemPatterns`, `techContext` are system-level and unaffected by a test-only reorganization within `packages/plugin-claude/test/`).
+* Decisions made
+    - Left `memory-bank/active/milestones.md` unchanged here; milestone checkbox advancement is owned by `/niko` lifecycle Step 2a on next re-entry.
+* Insights
+    - Same pattern that carried M2 → M3 → M4 will carry M5–M7 (cursor emit, claude discover, cursor discover splits). `suiteTempDir` earns consideration for shared-package promotion after M6/M7 if its signature survives four independent usages unchanged.
