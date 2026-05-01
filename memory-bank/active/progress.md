@@ -1,11 +1,9 @@
-# Progress: SLOBAC Audit Remediation
+# Progress: M1 — SLOBAC rename remediation (fossils + naming lies)
 
-Remediate all 20 findings from the SLOBAC test-suite audit across 5 packages (cli, engine, models, plugin-claude, plugin-cursor). Work organized into 7 milestones: renames first, then monolithic splits with shared-state fix folded in.
+Sub-run scoped to milestone M1 from `milestones.md`: rename-only remediation of deliverable-fossils and naming-lies in cli, engine, models, plugin-claude, and plugin-cursor tests per audit findings 1–3, 7–11, 13, 16–18 (see `slobac-audit.md`). No assertion or production-code changes — titles, prefixes, suffixes, and task-derived comments only.
 
-**Complexity:** Level 4
+**Complexity:** Level 2
 
 ## Phase History
 
-- **COMPLEXITY-ANALYSIS** — Complete. Level 4 determined, 7 milestones identified.
-- **L4 PLAN** — Complete. 7 milestones written: 1 rename milestone (gates all others), 6 split milestones (independent of each other).
-- **L4 PREFLIGHT** — PASS with ADVISORY. All checks green. Advisory: `cli/test/commands/` already has split-out command tests — M2 will need to reconcile its split with existing structure.
+- **COMPLEXITY-ANALYSIS** — Complete. M1 classified Level 2: systematic cross-package test-metadata cleanup with regression signal = existing Vitest suite.
