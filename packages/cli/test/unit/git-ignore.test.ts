@@ -15,7 +15,7 @@ import {
   removeFromPreCommitHook,
   type GitIgnoreResult,
   type IgnoreSource,
-} from '../src/git-ignore.js';
+} from '../../src/git-ignore.js';
 
 describe('Git Utilities', () => {
   let testDir: string;
