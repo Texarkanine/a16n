@@ -2,12 +2,12 @@
 
 ## Current Task: SLOBAC Audit Remediation — M2 (Split cli.test.ts)
 
-**Phase:** QA - COMPLETE
+**Phase:** REFLECT - COMPLETE
 
 ## What Was Done
 
-- QA PASS: no findings. KISS, DRY, YAGNI, completeness, regression, integrity, documentation — all clean.
+- Reflection logged to `memory-bank/active/reflection/reflection-m2-split-cli-test.md`. Persistent memory bank files unchanged (no system-level drift from test file reorganization).
 
 ## Next Step
 
-- Reflect phase runs automatically.
+- **L4 operator action:** run **`/niko`** again — Niko Step 2 will mark M2 complete in `milestones.md`, clear ephemeral sub-run state, and classify the next milestone.
