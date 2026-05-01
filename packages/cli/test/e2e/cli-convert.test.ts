@@ -21,7 +21,7 @@ describe('CLI convert command', () => {
       '---\nalwaysApply: true\n---\n\nConvert test'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude'], tempDir);
 
     expect(exitCode).toBe(0);
     const normalizedStdout = stdout.replaceAll('\\', '/');
@@ -45,7 +45,7 @@ describe('CLI convert command', () => {
       '---\nalwaysApply: true\n---\n\nDry run content'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--dry-run'], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stdout).toContain('Discovered');
@@ -59,7 +59,7 @@ describe('CLI convert command', () => {
     await fs.mkdir(path.join(tempDir, '.claude', 'rules'), { recursive: true });
     await fs.writeFile(path.join(tempDir, '.claude/rules/test.md'), 'JSON test');
 
-    const { stdout, exitCode } = runCli('convert --from claude --to cursor --json', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'claude', '--to', 'cursor', '--json'], tempDir);
 
     expect(exitCode).toBe(0);
     const result = JSON.parse(stdout);
@@ -69,7 +69,7 @@ describe('CLI convert command', () => {
   });
 
   it('should error on unknown source', () => {
-    const { stderr, exitCode } = runCli('convert --from unknown --to claude', tempDir);
+    const { stderr, exitCode } = runCli(['convert', '--from', 'unknown', '--to', 'claude'], tempDir);
 
     expect(exitCode).toBe(1);
     expect(stderr).toContain('Unknown source');
@@ -77,7 +77,7 @@ describe('CLI convert command', () => {
   });
 
   it('should error on unknown target', () => {
-    const { stderr, exitCode } = runCli('convert --from cursor --to unknown', tempDir);
+    const { stderr, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'unknown'], tempDir);
 
     expect(exitCode).toBe(1);
     expect(stderr).toContain('Unknown target');
@@ -91,7 +91,7 @@ describe('CLI convert command', () => {
       '---\nalwaysApply: true\n---\n\nVerbose test'
     );
 
-    const { stdout, stderr, exitCode } = runCli('convert --from cursor --to claude --verbose', tempDir);
+    const { stdout, stderr, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--verbose'], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stderr).toContain('[verbose]');
@@ -105,7 +105,7 @@ describe('CLI convert command', () => {
       '---\nalwaysApply: true\n---\n\nJSON verbose test'
     );
 
-    const { stdout, stderr, exitCode } = runCli('convert --from cursor --to claude --verbose --json', tempDir);
+    const { stdout, stderr, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--verbose', '--json'], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stderr).toContain('[verbose]');
@@ -114,7 +114,7 @@ describe('CLI convert command', () => {
   });
 
   it('should error with helpful message for non-existent directory', () => {
-    const { stderr, exitCode } = runCli('convert --from cursor --to claude /nonexistent/path', tempDir);
+    const { stderr, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', path.join(tempDir, 'does-not-exist')], tempDir);
 
     expect(exitCode).toBe(1);
     expect(stderr).toContain('is not a valid directory');
@@ -132,7 +132,7 @@ describe('CLI convert command', () => {
       '---\nalwaysApply: true\n---\n\nRule B'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --rewrite-path-refs', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--rewrite-path-refs'], tempDir);
 
     expect(exitCode).toBe(0);
     const aContent = await fs.readFile(
@@ -151,7 +151,7 @@ describe('CLI convert command', () => {
         '---\nalwaysApply: true\n---\nDry run test'
       );
 
-      const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run', tempDir);
+      const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--dry-run'], tempDir);
 
       expect(exitCode).toBe(0);
       expect(stdout).toContain('Would write:');
@@ -165,7 +165,7 @@ describe('CLI convert command', () => {
         '---\nalwaysApply: true\n---\nNormal mode test'
       );
 
-      const { stdout, exitCode } = runCli('convert --from cursor --to claude', tempDir);
+      const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude'], tempDir);
 
       expect(exitCode).toBe(0);
       expect(stdout).toContain('Wrote:');

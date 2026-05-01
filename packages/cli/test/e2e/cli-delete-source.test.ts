@@ -23,7 +23,7 @@ describe('CLI --delete-source flag', () => {
       '---\nalwaysApply: true\n---\nTest content\n'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --delete-source', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--delete-source'], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stdout).toContain('Wrote:');
@@ -48,7 +48,7 @@ name: test-skill
 Skill content without description - will be ignored`
     );
 
-    const { stdout, exitCode } = runCli('convert --from claude --to cursor --delete-source', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'claude', '--to', 'cursor', '--delete-source'], tempDir);
 
     expect(exitCode).toBe(0);
     await expect(fs.access(skillPath)).resolves.not.toThrow();
@@ -71,7 +71,7 @@ name: no-desc-skill
 This skill has no description - should be ignored`
     );
     
-    const { stdout, exitCode } = runCli('convert --from claude --to cursor --delete-source', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'claude', '--to', 'cursor', '--delete-source'], tempDir);
 
     expect(exitCode).toBe(0);
     await expect(fs.access(skillPath)).resolves.not.toThrow();
@@ -89,7 +89,7 @@ This skill has no description - should be ignored`
     await fs.writeFile(source1, '---\nalwaysApply: true\n---\nRule 1');
     await fs.writeFile(source2, '---\nalwaysApply: true\n---\nRule 2');
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --delete-source', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--delete-source'], tempDir);
 
     expect(exitCode).toBe(0);
     
@@ -112,7 +112,7 @@ This skill has no description - should be ignored`
       '---\nalwaysApply: true\n---\nDry run delete test'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run --delete-source', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--dry-run', '--delete-source'], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stdout).toContain('Would delete:');
@@ -130,7 +130,7 @@ This skill has no description - should be ignored`
       '---\nalwaysApply: true\n---\nNo delete test'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude'], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stdout).not.toContain('Deleted:');
@@ -148,7 +148,7 @@ This skill has no description - should be ignored`
       '---\nalwaysApply: true\n---\nJSON delete test'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --delete-source --json', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--delete-source', '--json'], tempDir);
 
     expect(exitCode).toBe(0);
     
@@ -166,7 +166,7 @@ This skill has no description - should be ignored`
       '---\nalwaysApply: true\n---\nRelative path test'
     );
 
-    const { stdout: humanOutput, exitCode: humanExitCode } = runCli('convert --from cursor --to claude --delete-source', tempDir);
+    const { stdout: humanOutput, exitCode: humanExitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--delete-source'], tempDir);
     const normalizedHumanOutput = humanOutput.replaceAll('\\', '/');
     const normalizedTempDir = tempDir.replaceAll('\\', '/');
     expect(humanExitCode).toBe(0);
@@ -180,7 +180,7 @@ This skill has no description - should be ignored`
       path.join(cursorDir, 'test.mdc'),
       '---\nalwaysApply: true\n---\nRelative path test'
     );
-    const { stdout: jsonOutput, exitCode: jsonExitCode } = runCli('convert --from cursor --to claude --delete-source --json', tempDir);
+    const { stdout: jsonOutput, exitCode: jsonExitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--delete-source', '--json'], tempDir);
     expect(jsonExitCode).toBe(0);
     
     const result = JSON.parse(jsonOutput);
@@ -201,7 +201,7 @@ This skill has no description - should be ignored`
       '---\nalwaysApply: true\n---\nDry run relative path test'
     );
 
-    const { stderr, exitCode } = runCli('convert --from cursor --to claude --dry-run --delete-source --verbose', tempDir);
+    const { stderr, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--dry-run', '--delete-source', '--verbose'], tempDir);
 
     const normalizedStderr = stderr.replaceAll('\\', '/');
     const normalizedTempDir = tempDir.replaceAll('\\', '/');

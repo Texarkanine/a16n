@@ -15,7 +15,7 @@ describe('CLI plugins command', () => {
   });
 
   it('should list available plugins', () => {
-    const { stdout, exitCode } = runCli('plugins', tempDir);
+    const { stdout, exitCode } = runCli(['plugins'], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stdout).toContain('cursor');
@@ -40,7 +40,7 @@ describe('CLI plugins command', () => {
         };`,
     );
 
-    const { stdout, exitCode } = runCli('plugins', tempDir);
+    const { stdout, exitCode } = runCli(['plugins'], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stdout).toContain('test-disco');

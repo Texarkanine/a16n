@@ -16,7 +16,7 @@ describe('CLI --help', () => {
   });
 
   it('should show help', () => {
-    const { stdout, exitCode } = runCli('--help', tempDir);
+    const { stdout, exitCode } = runCli(['--help'], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stdout).toContain('a16n');

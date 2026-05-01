@@ -23,7 +23,7 @@ describe('CLI --gitignore-output-with flag', () => {
       '---\nalwaysApply: true\n---\nTest rule.'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude'], tempDir);
     
     expect(exitCode).toBe(0);
     expect(stdout).toContain('Discovered: 1');
@@ -37,7 +37,7 @@ describe('CLI --gitignore-output-with flag', () => {
       '---\nalwaysApply: true\n---\nTest rule.'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run --gitignore-output-with ignore', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--dry-run', '--gitignore-output-with', 'ignore'], tempDir);
     
     expect(exitCode).toBe(0);
     expect(stdout).toContain('Would update');
@@ -52,7 +52,7 @@ describe('CLI --gitignore-output-with flag', () => {
       '---\nalwaysApply: true\n---\nTest rule.'
     );
 
-    runCli('convert --from cursor --to claude --dry-run --gitignore-output-with ignore', tempDir);
+    runCli(['convert', '--from', 'cursor', '--to', 'claude', '--dry-run', '--gitignore-output-with', 'ignore'], tempDir);
     
     await expect(fs.access(path.join(tempDir, '.gitignore'))).rejects.toThrow();
   });
@@ -71,7 +71,7 @@ describe('CLI --gitignore-output-with flag', () => {
       '---\nalwaysApply: true\n---\nSecret rule that should be gitignored.'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run --gitignore-output-with match', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--dry-run', '--gitignore-output-with', 'match'], tempDir);
 
     expect(exitCode).toBe(0);
     const normalizedStdout = stdout.replaceAll('\\', '/');
@@ -94,7 +94,7 @@ describe('CLI --gitignore-output-with flag', () => {
       '---\nalwaysApply: true\n---\nSecret rule that should go to exclude.'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --dry-run --gitignore-output-with match', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--dry-run', '--gitignore-output-with', 'match'], tempDir);
     
     expect(exitCode).toBe(0);
     expect(stdout).toContain('Would update');
@@ -116,7 +116,7 @@ describe('CLI --gitignore-output-with flag', () => {
       '---\nalwaysApply: true\n---\nSecret rule that should go to exclude.'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --gitignore-output-with match', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match'], tempDir);
     
     expect(exitCode).toBe(0);
     
@@ -149,14 +149,14 @@ describe('CLI sourceItems conflict detection', () => {
       '---\nalwaysApply: true\n---\nA rule from a source that will become ignored.'
     );
 
-    runCli('convert --from cursor --to claude', tempDir);
+    runCli(['convert', '--from', 'cursor', '--to', 'claude'], tempDir);
 
     spawnSync('git', ['add', '.claude/'], { cwd: tempDir });
     spawnSync('git', ['commit', '-m', 'add claude output', '--no-gpg-sign'], { cwd: tempDir });
 
     await fs.writeFile(path.join(tempDir, '.gitignore'), '.cursor/rules/\n');
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --gitignore-output-with match --json', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match', '--json'], tempDir);
 
     expect(exitCode).toBe(0);
     const result = JSON.parse(stdout);
@@ -180,7 +180,7 @@ describe('CLI sourceItems conflict detection', () => {
       '---\nalwaysApply: true\n---\nA rule from an ignored source.'
     );
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --gitignore-output-with match', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match'], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stdout).toContain('.gitignore');
@@ -204,7 +204,7 @@ describe('CLI sourceItems conflict detection', () => {
     spawnSync('git', ['add', '.cursor/'], { cwd: tempDir });
     spawnSync('git', ['commit', '-m', 'add cursor rules', '--no-gpg-sign'], { cwd: tempDir });
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --gitignore-output-with match', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match'], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stdout).not.toContain('.gitignore');
@@ -243,7 +243,7 @@ describe('CLI sourceItems conflict detection', () => {
     spawnSync('git', ['add', '.cursor/rules/public.mdc', '.gitignore'], { cwd: tempDir });
     spawnSync('git', ['commit', '-m', 'initial', '--no-gpg-sign'], { cwd: tempDir });
 
-    const { stdout, exitCode } = runCli('convert --from cursor --to claude --gitignore-output-with match --json', tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match', '--json'], tempDir);
 
     expect(exitCode).toBe(0);
     const result = JSON.parse(stdout);
@@ -275,7 +275,7 @@ describe('CLI --gitignore-output-with match mode validation', () => {
       '---\nalwaysApply: true\n---\nTest rule.'
     );
 
-    const { stderr, exitCode } = runCli('convert --from cursor --to claude --gitignore-output-with match', tempDir);
+    const { stderr, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match'], tempDir);
     
     expect(exitCode).toBe(1);
     expect(stderr).toContain('not a git repository');
@@ -293,7 +293,7 @@ describe('CLI --gitignore-output-with match mode validation', () => {
       '---\nalwaysApply: true\n---\nTest rule.'
     );
 
-    const { exitCode } = runCli('convert --from cursor --to claude --gitignore-output-with match', tempDir);
+    const { exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match'], tempDir);
     
     expect(exitCode).toBe(0);
   });
@@ -322,7 +322,7 @@ describe('CLI --if-gitignore-conflict flag', () => {
       '---\nalwaysApply: true\n---\nConflict test rule.'
     );
 
-    runCli('convert --from cursor --to claude', tempDir);
+    runCli(['convert', '--from', 'cursor', '--to', 'claude'], tempDir);
 
     spawnSync('git', ['add', '.claude/'], { cwd: tempDir });
     spawnSync('git', ['commit', '-m', 'track output', '--no-gpg-sign'], { cwd: tempDir });
@@ -334,7 +334,7 @@ describe('CLI --if-gitignore-conflict flag', () => {
     await setupConflictScenario();
 
     const { stdout, exitCode } = runCli(
-      'convert --from cursor --to claude --gitignore-output-with match --if-gitignore-conflict skip --json',
+      ['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match', '--if-gitignore-conflict', 'skip', '--json'],
       tempDir
     );
 
@@ -350,7 +350,7 @@ describe('CLI --if-gitignore-conflict flag', () => {
     await setupConflictScenario();
 
     const { exitCode } = runCli(
-      'convert --from cursor --to claude --gitignore-output-with match --if-gitignore-conflict ignore',
+      ['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match', '--if-gitignore-conflict', 'ignore'],
       tempDir
     );
 
@@ -364,7 +364,7 @@ describe('CLI --if-gitignore-conflict flag', () => {
     await setupConflictScenario();
 
     const { exitCode } = runCli(
-      'convert --from cursor --to claude --gitignore-output-with match --if-gitignore-conflict exclude',
+      ['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match', '--if-gitignore-conflict', 'exclude'],
       tempDir
     );
 
@@ -380,7 +380,7 @@ describe('CLI --if-gitignore-conflict flag', () => {
     await setupConflictScenario();
 
     const { exitCode } = runCli(
-      'convert --from cursor --to claude --gitignore-output-with match --if-gitignore-conflict hook',
+      ['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match', '--if-gitignore-conflict', 'hook'],
       tempDir
     );
 
@@ -402,7 +402,7 @@ describe('CLI --if-gitignore-conflict flag', () => {
     );
 
     const { exitCode } = runCli(
-      'convert --from cursor --to claude --gitignore-output-with match --if-gitignore-conflict commit',
+      ['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match', '--if-gitignore-conflict', 'commit'],
       tempDir
     );
 
@@ -433,7 +433,7 @@ describe('CLI --if-gitignore-conflict flag', () => {
     );
 
     const { exitCode } = runCli(
-      'convert --from cursor --to claude --gitignore-output-with ignore --if-gitignore-conflict commit',
+      ['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'ignore', '--if-gitignore-conflict', 'commit'],
       tempDir
     );
 

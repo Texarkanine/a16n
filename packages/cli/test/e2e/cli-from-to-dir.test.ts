@@ -24,7 +24,7 @@ describe('CLI --from-dir and --to-dir flags', () => {
       '---\nalwaysApply: true\n---\n\nFromDir test'
     );
 
-    const { stdout, exitCode } = runCli(`convert --from cursor --to claude --from-dir ${sourceDir}`, outputDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--from-dir', sourceDir], outputDir);
 
     expect(exitCode).toBe(0);
     expect(stdout).toContain('Discovered: 1');
@@ -39,7 +39,7 @@ describe('CLI --from-dir and --to-dir flags', () => {
       '---\nalwaysApply: true\n---\n\nToDir test'
     );
 
-    const { stdout, exitCode } = runCli(`convert --from cursor --to claude --to-dir ${targetDir}`, tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--to-dir', targetDir], tempDir);
 
     expect(exitCode).toBe(0);
     const claudeRulesDir = path.join(targetDir, '.claude', 'rules');
@@ -57,7 +57,7 @@ describe('CLI --from-dir and --to-dir flags', () => {
       '---\nalwaysApply: true\n---\n\nBoth flags test'
     );
 
-    const { stdout, exitCode } = runCli(`convert --from cursor --to claude --from-dir ${sourceDir} --to-dir ${targetDir}`, tempDir);
+    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--from-dir', sourceDir, '--to-dir', targetDir], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stdout).toContain('Discovered: 1');
@@ -68,14 +68,14 @@ describe('CLI --from-dir and --to-dir flags', () => {
   });
 
   it('--from-dir with nonexistent directory produces error', () => {
-    const { stderr, exitCode } = runCli('convert --from cursor --to claude --from-dir /nonexistent/source', tempDir);
+    const { stderr, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--from-dir', path.join(tempDir, 'does-not-exist')], tempDir);
 
     expect(exitCode).toBe(1);
     expect(stderr).toContain('is not a valid directory');
   });
 
   it('--to-dir with nonexistent directory produces error', () => {
-    const { stderr, exitCode } = runCli('convert --from cursor --to claude --to-dir /nonexistent/target', tempDir);
+    const { stderr, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--to-dir', path.join(tempDir, 'does-not-exist')], tempDir);
 
     expect(exitCode).toBe(1);
     expect(stderr).toContain('is not a valid directory');
@@ -89,14 +89,14 @@ describe('CLI --from-dir and --to-dir flags', () => {
       '---\nalwaysApply: true\n---\n\nDiscover fromDir test'
     );
 
-    const { stdout, exitCode } = runCli(`discover --from cursor --from-dir ${sourceDir}`, tempDir);
+    const { stdout, exitCode } = runCli(['discover', '--from', 'cursor', '--from-dir', sourceDir], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stdout).toContain('global-prompt');
   });
 
   it('rejects --to-dir on discover command', () => {
-    const { stderr, exitCode } = runCli(`discover --from cursor --to-dir ${tempDir}`, tempDir);
+    const { stderr, exitCode } = runCli(['discover', '--from', 'cursor', '--to-dir', tempDir], tempDir);
 
     expect(exitCode).toBe(1);
     expect(stderr).toContain('--to-dir');
@@ -113,7 +113,7 @@ describe('CLI --from-dir and --to-dir flags', () => {
       '---\nalwaysApply: true\n---\n\nDelete source test'
     );
 
-    const { exitCode } = runCli(`convert --from cursor --to claude --from-dir ${sourceDir} --to-dir ${targetDir} --delete-source`, tempDir);
+    const { exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--from-dir', sourceDir, '--to-dir', targetDir, '--delete-source'], tempDir);
 
     expect(exitCode).toBe(0);
     await expect(fs.access(sourcePath)).rejects.toThrow();
