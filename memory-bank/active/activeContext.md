@@ -2,12 +2,31 @@
 
 ## Current Task: SLOBAC Audit Remediation — M3 (Split integration.test.ts + shared-state)
 
-**Phase:** L2 PREFLIGHT - COMPLETE
+**Phase:** L2 BUILD - COMPLETE
 
 ## What Was Done
 
-- Preflight PASS: plan encodes test-first refactor sequence, conventions align with `test-support/` layout, no contract or dependency surprises.
+- Added `packages/cli/test/test-support/integration-helpers.ts`: `createIntegrationEngine()`, `fixturesDirFor`, `suiteTempDir(slug)`, `copyDir`, `readDirFiles`, `compareOutputs`.
+- Removed monolithic `packages/cli/test/integration/integration.test.ts`; split seven top-level `describe` blocks into dedicated Vitest files with per-suite `beforeEach` engine factory and distinct temp roots under `integration/.temp-integration/<slug>/`.
+- Trimmed unused helper imports per file after split.
+
+## Files Created or Modified
+
+- `/home/mobaxterm/git/a16n/packages/cli/test/test-support/integration-helpers.ts` (new)
+- `/home/mobaxterm/git/a16n/packages/cli/test/integration/integration-basic-conversion.test.ts` (new)
+- `/home/mobaxterm/git/a16n/packages/cli/test/integration/integration-filerule-skill.test.ts` (new)
+- `/home/mobaxterm/git/a16n/packages/cli/test/integration/integration-agentignore.test.ts` (new)
+- `/home/mobaxterm/git/a16n/packages/cli/test/integration/integration-commands.test.ts` (new)
+- `/home/mobaxterm/git/a16n/packages/cli/test/integration/integration-split-dirs.test.ts` (new)
+- `/home/mobaxterm/git/a16n/packages/cli/test/integration/integration-path-rewrite.test.ts` (new)
+- `/home/mobaxterm/git/a16n/packages/cli/test/integration/integration-a16n-plugin.test.ts` (new)
+- `/home/mobaxterm/git/a16n/packages/cli/test/integration/integration.test.ts` (deleted)
+
+## Key Decisions / Deviations
+
+- Combined helper extraction, per-suite temp dirs, and full vertical split in one pass (equivalent to plan steps 2–6); assertion bodies unchanged.
+- CONTRIBUTING.md had no reference to `integration.test.ts`; no doc edits.
 
 ## Next Step
 
-- L2 Build: load `.cursor/skills/shared/niko/references/level2/level2-build.md` (or invoke `/niko-build` per operator workflow).
+- `/niko-qa` (post-build semantic review).

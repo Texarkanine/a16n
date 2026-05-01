@@ -42,34 +42,34 @@ Each existing `it(...)` case remains the behavioral specification (no renames of
 
 ## Implementation Plan
 
-1. **TDD — Baseline gate (no production code)**
+1. **TDD — Baseline gate (no production code)** ✅
    - Run CLI package tests (`pnpm --filter @a16njs/cli test` or project-standard equivalent) and record green baseline.
    - Files: none changed yet.
 
-2. **TDD — Extract shared helpers; keep single integration entry temporarily**
+2. **TDD — Extract shared helpers; keep single integration entry temporarily** ✅
    - **Tests first**: No new assertions — existing integration tests are the oracle. **Implement**: add `integration-helpers.ts` exporting pure helpers + `createIntegrationEngine()`; update `integration.test.ts` to import helpers and **remove** module-level `engine`; introduce `let engine` with **per top-level describe** `beforeEach(() => { engine = createIntegrationEngine(); })` (matches “per-describe factory” and prepares split).
    - **Verify**: same command as step 1; must stay green.
    - Files: `packages/cli/test/test-support/integration-helpers.ts`, `packages/cli/test/integration/integration.test.ts`
 
-3. **TDD — Parallel-safe temp directories**
+3. **TDD — Parallel-safe temp directories** ✅
    - **Tests first**: existing tests must still pass under parallel workers **after** split; while still monolithic, optionally run CLI tests with `--no-file-parallelism` vs default once to detect races; adopt `suiteTempDir(import.meta.url, '<slug>')` (unique slug per future file) inside each top-level describe’s `beforeEach`/`afterEach`, replacing the single shared `tempDir` constant where that describe’s tests use temp paths.
    - **Verify**: CLI integration tests green.
    - Files: `integration.test.ts` (prepare slugs that will map 1:1 to split files)
 
-4. **TDD — Vertical slice: first split file**
+4. **TDD — Vertical slice: first split file** ✅
    - **Tests first**: move **only** the `Integration Tests - Fixture Based` describe subtree into `integration-basic-conversion.test.ts` (imports, fixtures path, temp slug `basic-conversion`). **Do not** change assertion bodies.
    - **Verify**: `pnpm --filter @a16njs/cli test` green.
    - Files: new `integration-basic-conversion.test.ts`, shrink `integration.test.ts`
 
-5. **TDD — Repeat vertical slices (2–7)**
+5. **TDD — Repeat vertical slices (2–7)** ✅
    - For each remaining top-level describe: create matching `integration-*.test.ts`, move subtree, unique temp slug, `beforeEach` engine factory.
    - **Verify** after each file (or after each batch if timeboxed): CLI tests green.
 
-6. **Remove monolith + tidy**
+6. **Remove monolith + tidy** ✅
    - Delete empty or redundant `integration.test.ts` once all describes migrated.
    - **Verify**: full monorepo `pnpm test` per milestone invariants in `milestones.md`.
 
-7. **Documentation**
+7. **Documentation** ✅
    - No user-facing README change expected; if `CONTRIBUTING.md` references `integration.test.ts` explicitly, update path list (only if such a reference exists).
 
 ## Technology Validation
@@ -94,5 +94,5 @@ No new technology — validation not required.
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Preflight
-- [ ] Build
+- [x] Build
 - [ ] QA

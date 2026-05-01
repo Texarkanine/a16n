@@ -9,3 +9,14 @@ Split `packages/cli/test/integration/integration.test.ts` (~1508 lines, 7 top-le
 - **COMPLEXITY-ANALYSIS** — Complete. M3 classified Level 2: self-contained integration test reorganization within `packages/cli`, mirrors M2 scope; adds explicit shared-state fix (module-level engine → per-describe factory).
 - **L2 PLAN** — Complete. Seven-way split per audit naming; `integration-helpers.ts`; explicit TDD ordering (baseline → helpers+engine factory → temp isolation → vertical slices); parallel-safe temp roots.
 - **L2 PREFLIGHT** — PASS. TDD ordering explicit per step; helpers colocated with M2 `test-support/` pattern; parallel temp isolation called out; no new deps. Advisory: if any flake remains after split, confirm Vitest pool defaults with `pnpm test` logs.
+
+## 2026-05-01 - L2 BUILD - COMPLETE
+
+* Work completed
+    - Added `packages/cli/test/test-support/integration-helpers.ts` with engine factory, `suiteTempDir`, and shared FS/assertion helpers.
+    - Split former `integration.test.ts` into seven domain files; removed module-level `A16nEngine`; each suite uses `beforeEach` → `createIntegrationEngine()` and its own `.temp-integration/<slug>/` root.
+    - Deleted monolith `integration.test.ts`; full monorepo `pnpm test`, `pnpm build`, and CLI `pnpm test` green (175 CLI tests).
+* Decisions made
+    - Delivered split in one changeset after baseline verification; unused helper imports stripped per file.
+* Insights
+    - CLI package filter name is `a16n`, not `@a16njs/cli`.
