@@ -28,6 +28,16 @@ Remediate SLOBAC audit findings **1–3, 7–11, 13, 16–18** using **rename-on
 
 ## Implementation Plan
 
+### Verification gates (TDD applicability)
+
+This milestone edits **only** test titles and comments — no production code and no new `it()` bodies. Conventional red/green refactor cycles apply to behavioral changes elsewhere; **here**, the oracle is **existing assertions**. Procedures:
+
+1. **Baseline:** Before step 1, run **`pnpm test` from repo root** and confirm green.
+2. **Per step 1–7:** After edits in that bullet, rerun tests touching that package (`pnpm turbo run test --filter=<package-or-scope>` acceptable) until green **before starting the next step**.
+3. **Final:** Repeat full **`pnpm test`** at repo root after all steps.
+
+This ordering satisfies plan-level test-first discipline: baseline tests precede edits; every edit batch is immediately validated by the same suite.
+
 1. **CLI — `packages/cli/test/cli.test.ts`**
    - Files: `packages/cli/test/cli.test.ts`
    - Changes: In `describe('--from-dir and --to-dir flags')`, rename tests `C1:`…`C8:` per Finding 1 (strip prefixes, keep descriptive suffix). Rename Finding 3 test per audit: `should delete all sources when each produces a separate output file` (exact wording aligned to audit prose).
@@ -80,6 +90,6 @@ No new technology — validation not required.
 - [x] Test planning complete (TDD)
 - [x] Implementation plan complete
 - [x] Technology validation complete
-- [ ] Preflight
+- [x] Preflight ([2026-05-01] PASS — see `memory-bank/active/progress.md` / `.preflight-status`)
 - [ ] Build
 - [ ] QA

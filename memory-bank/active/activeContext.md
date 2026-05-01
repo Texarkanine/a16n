@@ -2,12 +2,12 @@
 
 ## Current Task: SLOBAC Audit Remediation — M1 (renames)
 
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE
 
 ## What Was Done
 
-- Level 2 plan authored in `tasks.md`: seven edit targets, ordered implementation steps, regression-first test framing (full Vitest), risks called out.
+- Preflight PASS: plan matches repo layout (`packages/*/test`), rename-only scope clear, dependency impact none, completeness covers listed findings; **verification gates** added for baseline + post-step suites (rename-only adaptation of test-first gates).
 
 ## Next Step
 
-- **PREFLIGHT** — run `niko-preflight` skill against the plan before build.
+- **BUILD** — load `level2-build.md`; execute edits per `tasks.md`; run tests each step and full suite at end.
