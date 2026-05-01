@@ -2,7 +2,7 @@
 
 ## Current Task: SLOBAC Audit Remediation — M3 (Split integration.test.ts + shared-state)
 
-**Phase:** L2 BUILD - COMPLETE
+**Phase:** L2 QA - COMPLETE
 
 ## What Was Done
 
@@ -29,4 +29,4 @@
 
 ## Next Step
 
-- `/niko-qa` (post-build semantic review).
+- `/niko-reflect` (Level 2 post-implementation reflection).

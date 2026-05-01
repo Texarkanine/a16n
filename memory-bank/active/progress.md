@@ -20,3 +20,14 @@ Split `packages/cli/test/integration/integration.test.ts` (~1508 lines, 7 top-le
     - Delivered split in one changeset after baseline verification; unused helper imports stripped per file.
 * Insights
     - CLI package filter name is `a16n`, not `@a16njs/cli`.
+
+## 2026-05-01 - L2 QA - COMPLETE
+
+* Work completed
+    - Semantic review of M3 build against `tasks.md` / plan: seven-way split, helpers in `test-support/integration-helpers.ts`, no module-level `A16nEngine`, distinct `.temp-integration/<slug>/` per suite, monolith removed.
+    - Confirmed no TODO/debug/console artifacts in integration tests; `CONTRIBUTING.md` needed no path updates.
+    - Full monorepo `pnpm test` green after review.
+* Decisions made
+    - No code changes required; implementation matches plan (KISS/DRY/YAGNI).
+* Insights
+    - Audit Finding 2 (FileRule naming-lie) already corrected in `integration-filerule-skill.test.ts` as part of the split.
