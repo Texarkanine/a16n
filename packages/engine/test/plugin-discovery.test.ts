@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 import { fileURLToPath } from 'url';
 import {
   discoverInstalledPlugins,
@@ -10,7 +11,6 @@ import {
 } from '../src/plugin-discovery.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const tempDir = path.join(__dirname, '.temp-discovery-test');
 
 /**
  * Helper: create a fake ESM plugin package under a node_modules-like directory.
@@ -63,16 +63,18 @@ export default {
 `;
 
 describe('discoverInstalledPlugins', () => {
+  let discoveryTempDir: string;
+
   beforeEach(async () => {
-    await fs.mkdir(tempDir, { recursive: true });
+    discoveryTempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'a16n-discovery-'));
   });
 
   afterEach(async () => {
-    await fs.rm(tempDir, { recursive: true, force: true });
+    await fs.rm(discoveryTempDir, { recursive: true, force: true });
   });
 
   it('should discover a16n-plugin-* packages in a given search path', async () => {
-    const searchPath = path.join(tempDir, 'node_modules');
+    const searchPath = path.join(discoveryTempDir, 'node_modules');
     await fs.mkdir(searchPath, { recursive: true });
     await createFakePluginWithSource(searchPath, 'a16n-plugin-foo', VALID_PLUGIN_SOURCE);
 
@@ -84,7 +86,7 @@ describe('discoverInstalledPlugins', () => {
   });
 
   it('should skip packages that do not match the a16n-plugin-* naming pattern', async () => {
-    const searchPath = path.join(tempDir, 'node_modules');
+    const searchPath = path.join(discoveryTempDir, 'node_modules');
     await fs.mkdir(searchPath, { recursive: true });
     // Create a non-matching package
     await createFakePluginWithSource(searchPath, 'some-other-package', VALID_PLUGIN_SOURCE);
@@ -98,7 +100,7 @@ describe('discoverInstalledPlugins', () => {
   });
 
   it('should skip packages with invalid default exports (missing required fields)', async () => {
-    const searchPath = path.join(tempDir, 'node_modules');
+    const searchPath = path.join(discoveryTempDir, 'node_modules');
     await fs.mkdir(searchPath, { recursive: true });
     // Create a package with invalid export (missing discover/emit functions)
     await createFakePlugin(searchPath, 'a16n-plugin-invalid', {
@@ -116,7 +118,7 @@ describe('discoverInstalledPlugins', () => {
   });
 
   it('should return empty arrays when no plugins found', async () => {
-    const searchPath = path.join(tempDir, 'node_modules');
+    const searchPath = path.join(discoveryTempDir, 'node_modules');
     await fs.mkdir(searchPath, { recursive: true });
     // Empty directory — no packages at all
 
@@ -128,7 +130,7 @@ describe('discoverInstalledPlugins', () => {
 
   it('should handle non-existent search paths gracefully', async () => {
     const result = await discoverInstalledPlugins({
-      searchPaths: [path.join(tempDir, 'does-not-exist')],
+      searchPaths: [path.join(discoveryTempDir, 'does-not-exist')],
     });
 
     expect(result.plugins).toHaveLength(0);
@@ -136,7 +138,7 @@ describe('discoverInstalledPlugins', () => {
   });
 
   it('should extract plugin from ESM default export', async () => {
-    const searchPath = path.join(tempDir, 'node_modules');
+    const searchPath = path.join(discoveryTempDir, 'node_modules');
     await fs.mkdir(searchPath, { recursive: true });
     await createFakePluginWithSource(
       searchPath,
@@ -161,7 +163,7 @@ export default plugin;
   });
 
   it('should resolve entry point from package.json main field', async () => {
-    const searchPath = path.join(tempDir, 'node_modules');
+    const searchPath = path.join(discoveryTempDir, 'node_modules');
     await fs.mkdir(searchPath, { recursive: true });
 
     // Create a plugin with main pointing to dist/index.js (like real packages)
@@ -190,7 +192,7 @@ export default plugin;
   });
 
   it('should fall back to index.js when package.json has no main field', async () => {
-    const searchPath = path.join(tempDir, 'node_modules');
+    const searchPath = path.join(discoveryTempDir, 'node_modules');
     await fs.mkdir(searchPath, { recursive: true });
 
     const pkgDir = path.join(searchPath, 'a16n-plugin-nomain');
@@ -217,7 +219,7 @@ export default plugin;
   });
 
   it('should fall back to index.js when no package.json exists', async () => {
-    const searchPath = path.join(tempDir, 'node_modules');
+    const searchPath = path.join(discoveryTempDir, 'node_modules');
     await fs.mkdir(searchPath, { recursive: true });
     await createFakePluginWithSource(searchPath, 'a16n-plugin-nopkg', VALID_PLUGIN_SOURCE);
     // Remove the package.json that createFakePluginWithSource created
@@ -230,7 +232,7 @@ export default plugin;
   });
 
   it('should handle packages that fail to import and report them as errors', async () => {
-    const searchPath = path.join(tempDir, 'node_modules');
+    const searchPath = path.join(discoveryTempDir, 'node_modules');
     await fs.mkdir(searchPath, { recursive: true });
     // Create a package with syntax error
     await createFakePluginWithSource(
@@ -248,8 +250,8 @@ export default plugin;
   });
 
   it('should discover multiple valid plugins across multiple search paths', async () => {
-    const searchPath1 = path.join(tempDir, 'global_modules');
-    const searchPath2 = path.join(tempDir, 'local_modules');
+    const searchPath1 = path.join(discoveryTempDir, 'global_modules');
+    const searchPath2 = path.join(discoveryTempDir, 'local_modules');
     await fs.mkdir(searchPath1, { recursive: true });
     await fs.mkdir(searchPath2, { recursive: true });
 
@@ -378,18 +380,23 @@ describe('getDefaultSearchPaths', () => {
   });
 
   it('should include argv1-derived global node_modules when running from a bin/ directory', async () => {
-    // Create a fake PREFIX/bin/a16n and PREFIX/lib/node_modules structure
-    const fakePrefix = path.join(tempDir, 'fake-prefix');
-    await fs.mkdir(path.join(fakePrefix, 'bin'), { recursive: true });
-    await fs.mkdir(path.join(fakePrefix, 'lib', 'node_modules'), { recursive: true });
-
-    const originalArgv1 = process.argv[1];
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'a16n-search-paths-'));
     try {
-      process.argv[1] = path.join(fakePrefix, 'bin', 'a16n');
-      const paths = getDefaultSearchPaths();
-      expect(paths).toContain(path.join(fakePrefix, 'lib', 'node_modules'));
+      // Create a fake PREFIX/bin/a16n and PREFIX/lib/node_modules structure
+      const fakePrefix = path.join(root, 'fake-prefix');
+      await fs.mkdir(path.join(fakePrefix, 'bin'), { recursive: true });
+      await fs.mkdir(path.join(fakePrefix, 'lib', 'node_modules'), { recursive: true });
+
+      const originalArgv1 = process.argv[1];
+      try {
+        process.argv[1] = path.join(fakePrefix, 'bin', 'a16n');
+        const paths = getDefaultSearchPaths();
+        expect(paths).toContain(path.join(fakePrefix, 'lib', 'node_modules'));
+      } finally {
+        process.argv[1] = originalArgv1;
+      }
     } finally {
-      process.argv[1] = originalArgv1;
+      await fs.rm(root, { recursive: true, force: true });
     }
   });
 
@@ -404,19 +411,20 @@ describe('getDefaultSearchPaths', () => {
 
 describe('getGlobalNodeModulesFromArgv1', () => {
   let originalArgv1: string | undefined;
+  let argvScratch: string;
 
   beforeEach(async () => {
     originalArgv1 = process.argv[1];
-    await fs.mkdir(tempDir, { recursive: true });
+    argvScratch = await fs.mkdtemp(path.join(os.tmpdir(), 'a16n-argv1-'));
   });
 
   afterEach(async () => {
     process.argv[1] = originalArgv1!;
-    await fs.rm(tempDir, { recursive: true, force: true });
+    await fs.rm(argvScratch, { recursive: true, force: true });
   });
 
   it('should return PREFIX/lib/node_modules when argv1 is in a bin/ directory (Unix)', async () => {
-    const fakePrefix = path.join(tempDir, 'nvm-prefix');
+    const fakePrefix = path.join(argvScratch, 'nvm-prefix');
     await fs.mkdir(path.join(fakePrefix, 'bin'), { recursive: true });
     await fs.mkdir(path.join(fakePrefix, 'lib', 'node_modules'), { recursive: true });
 
@@ -425,7 +433,7 @@ describe('getGlobalNodeModulesFromArgv1', () => {
   });
 
   it('should fall back to PREFIX/node_modules when PREFIX/lib/node_modules does not exist', async () => {
-    const fakePrefix = path.join(tempDir, 'win-prefix');
+    const fakePrefix = path.join(argvScratch, 'win-prefix');
     await fs.mkdir(path.join(fakePrefix, 'bin'), { recursive: true });
     await fs.mkdir(path.join(fakePrefix, 'node_modules'), { recursive: true });
 
@@ -434,7 +442,7 @@ describe('getGlobalNodeModulesFromArgv1', () => {
   });
 
   it('should return null when argv1 is not in a bin/ directory', () => {
-    process.argv[1] = path.join(tempDir, 'some', 'random', 'script.js');
+    process.argv[1] = path.join(argvScratch, 'some', 'random', 'script.js');
     expect(getGlobalNodeModulesFromArgv1()).toBeNull();
   });
 
@@ -444,7 +452,7 @@ describe('getGlobalNodeModulesFromArgv1', () => {
   });
 
   it('should return null when neither PREFIX/lib/node_modules nor PREFIX/node_modules exist', async () => {
-    const fakePrefix = path.join(tempDir, 'empty-prefix');
+    const fakePrefix = path.join(argvScratch, 'empty-prefix');
     await fs.mkdir(path.join(fakePrefix, 'bin'), { recursive: true });
     // No node_modules created
 

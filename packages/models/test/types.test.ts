@@ -14,7 +14,7 @@ describe('CustomizationType', () => {
     expect(CustomizationType.GlobalPrompt).toBe('global-prompt');
   });
 
-  it('should have SimpleAgentSkill type (renamed from AgentSkill)', () => {
+  it('should have SimpleAgentSkill type with value \'simple-agent-skill\'', () => {
     expect(CustomizationType.SimpleAgentSkill).toBe('simple-agent-skill');
   });
 
@@ -84,7 +84,7 @@ describe('ManualPrompt', () => {
     expect(manualPrompt.promptName).toBe('review');
   });
 
-  it('should have promptName field (not commandName)', () => {
+  it('should expose promptName on ManualPrompt', () => {
     const manualPrompt: ManualPrompt = {
       id: 'mp-2',
       type: CustomizationType.ManualPrompt,

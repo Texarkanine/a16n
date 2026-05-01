@@ -1781,9 +1781,7 @@ describe('Claude AgentSkillIO Emission', () => {
     });
 
     it('should populate sourcePaths on resource WrittenFiles (not on SKILL.md)', async () => {
-      // Behavior 4 (Level 2 task 20260420-skills-docs-and-rewrite-resources):
-      // Symmetric to cursor Behavior 3. Resource WrittenFiles must carry
-      // explicit sourcePaths so path-rewriter.buildMapping keys them
+      // Resource WrittenFiles carry explicit sourcePaths so path-rewriter.buildMapping keys them
       // correctly. SKILL.md keeps legacy sourceItems-only plumbing.
       const models: AgentSkillIO[] = [
         {

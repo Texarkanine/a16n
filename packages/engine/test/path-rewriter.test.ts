@@ -45,7 +45,7 @@ function makeSkillIO(overrides: Partial<AgentSkillIO> & {
 
 describe('PathRewriter', () => {
   describe('buildMapping', () => {
-    it('P1: correctly maps sourcePaths to relative target paths', () => {
+    it('correctly maps sourcePaths to relative target paths', () => {
       const discovered = [
         makeItem({ content: 'rule A', sourcePath: '.cursor/rules/coding.mdc' }),
       ];
@@ -61,7 +61,7 @@ describe('PathRewriter', () => {
       expect(mapping.get('.cursor/rules/coding.mdc')).toBe('.claude/rules/coding.md');
     });
 
-    it('P2: handles merged files (multiple sources → one target)', () => {
+    it('handles merged files (multiple sources → one target)', () => {
       const item1 = makeItem({ content: 'rule A', sourcePath: '.cursor/rules/a.mdc' });
       const item2 = makeItem({ content: 'rule B', sourcePath: '.cursor/rules/b.mdc' });
       const written: WrittenFile[] = [
@@ -78,7 +78,7 @@ describe('PathRewriter', () => {
       expect(mapping.get('.cursor/rules/b.mdc')).toBe('.claude/rules/merged.md');
     });
 
-    it('P3: handles extension changes (.mdc → .md)', () => {
+    it('handles extension changes (.mdc → .md)', () => {
       const item = makeItem({ content: 'rule', sourcePath: '.cursor/rules/test.mdc' });
       const written: WrittenFile[] = [
         makeWritten({
@@ -92,7 +92,7 @@ describe('PathRewriter', () => {
       expect(mapping.get('.cursor/rules/test.mdc')).toBe('.claude/rules/test.md');
     });
 
-    it('P4: handles directory flattening', () => {
+    it('handles directory flattening', () => {
       const item = makeItem({
         content: 'rule',
         sourcePath: '.cursor/rules/shared/niko/deep/rule.mdc',
@@ -111,7 +111,7 @@ describe('PathRewriter', () => {
 
     // --- Behavior 2: WrittenFile.sourcePaths plumbing ---
 
-    it('P14: uses explicit sourcePaths when provided', () => {
+    it('uses explicit sourcePaths when provided', () => {
       const item = makeItem({ content: 'skill', sourcePath: '.cursor/skills/check/SKILL.md' });
       const written: WrittenFile[] = [
         makeWritten({
@@ -128,7 +128,7 @@ describe('PathRewriter', () => {
       );
     });
 
-    it('P15: sourcePaths takes precedence over sourceItems for that WrittenFile (prevents clobber)', () => {
+    it('sourcePaths takes precedence over sourceItems for that WrittenFile (prevents clobber)', () => {
       // The skill's SKILL.md and its resource both have sourceItems = [skill],
       // whose sourcePath is the skill's SKILL.md. Without sourcePaths on the
       // resource WrittenFile, the resource would clobber the SKILL.md mapping.
@@ -158,7 +158,7 @@ describe('PathRewriter', () => {
       );
     });
 
-    it('P16: absent sourcePaths falls back to sourceItems (legacy behavior)', () => {
+    it('absent sourcePaths falls back to sourceItems (legacy behavior)', () => {
       const item = makeItem({ content: 'rule', sourcePath: '.cursor/rules/a.mdc' });
       const written: WrittenFile[] = [
         makeWritten({
@@ -173,7 +173,7 @@ describe('PathRewriter', () => {
 
     // --- Behavior 2b: ambiguous-mapping collision detection ---
 
-    it('P17: warns when same source key maps to different targets (sourceItems-derived)', () => {
+    it('warns when same source key maps to different targets (sourceItems-derived)', () => {
       const itemA = makeItem({ content: 'x', sourcePath: '.cursor/rules/shared.mdc' });
       const itemB = makeItem({ content: 'y', sourcePath: '.cursor/rules/shared.mdc' });
       const written: WrittenFile[] = [
@@ -200,7 +200,7 @@ describe('PathRewriter', () => {
       expect(mapping.get('.cursor/rules/shared.mdc')).toBe('.claude/rules/two.md');
     });
 
-    it('P18: no warning for same source key mapping to same target (idempotent)', () => {
+    it('no warning for same source key mapping to same target (idempotent)', () => {
       const itemA = makeItem({ content: 'x', sourcePath: '.cursor/rules/shared.mdc' });
       const itemB = makeItem({ content: 'y', sourcePath: '.cursor/rules/shared.mdc' });
       const written: WrittenFile[] = [
@@ -218,7 +218,7 @@ describe('PathRewriter', () => {
       expect(warnings).toHaveLength(0);
     });
 
-    it('P19: warns for same-key collisions produced from sourcePaths', () => {
+    it('warns for same-key collisions produced from sourcePaths', () => {
       const item = makeItem({ content: 'x', sourcePath: '.cursor/skills/check/SKILL.md' });
       const written: WrittenFile[] = [
         makeWritten({
@@ -241,7 +241,7 @@ describe('PathRewriter', () => {
 
     // --- Empty-string safety (PR #84 review r3119786280) ---
 
-    it('P27: filters empty strings out of explicit sourcePaths (no empty-key mapping)', () => {
+    it('filters empty strings out of explicit sourcePaths (no empty-key mapping)', () => {
       // A third-party plugin could populate sourcePaths with '' by accident
       // (root-level file, uninitialized field normalized to ''). An empty
       // mapping key hangs applyMapping because indexOf('') always returns 0.
@@ -263,7 +263,7 @@ describe('PathRewriter', () => {
       expect(warnings).toHaveLength(0);
     });
 
-    it('P28: all-empty explicit sourcePaths produces no mapping entry (no fallback to sourceItems)', () => {
+    it('all-empty explicit sourcePaths produces no mapping entry (no fallback to sourceItems)', () => {
       // Precedence: if sourcePaths is present (even if all entries are empty
       // and get filtered out), we do NOT fall back to sourceItems. This
       // matches the documented "explicit REPLACES sourceItems" contract.
@@ -282,7 +282,7 @@ describe('PathRewriter', () => {
   });
 
   describe('rewriteContent', () => {
-    it('P5: replaces exact source path with target path', () => {
+    it('replaces exact source path with target path', () => {
       const mapping = new Map([
         ['.cursor/rules/auth.mdc', '.claude/rules/auth.md'],
       ]);
@@ -299,7 +299,7 @@ describe('PathRewriter', () => {
       expect(result.replacementCount).toBe(1);
     });
 
-    it('P6: handles multiple replacements in one content string', () => {
+    it('handles multiple replacements in one content string', () => {
       const mapping = new Map([
         ['.cursor/rules/a.mdc', '.claude/rules/a.md'],
         ['.cursor/rules/b.mdc', '.claude/rules/b.md'],
@@ -317,7 +317,7 @@ describe('PathRewriter', () => {
       expect(result.replacementCount).toBe(2);
     });
 
-    it('P7: replaces longest match first (no partial match corruption)', () => {
+    it('replaces longest match first (no partial match corruption)', () => {
       const mapping = new Map([
         ['.cursor/rules/auth.mdc', '.claude/rules/auth.md'],
         ['.cursor/rules/auth.mdc.bak', '.claude/rules/auth-backup.md'],
@@ -337,7 +337,7 @@ describe('PathRewriter', () => {
       expect(result.replacementCount).toBe(2);
     });
 
-    it('P8: leaves non-matching paths untouched', () => {
+    it('leaves non-matching paths untouched', () => {
       const mapping = new Map([
         ['.cursor/rules/a.mdc', '.claude/rules/a.md'],
       ]);
@@ -354,7 +354,7 @@ describe('PathRewriter', () => {
       expect(result.replacementCount).toBe(0);
     });
 
-    it('P9: handles self-references (file referencing itself)', () => {
+    it('handles self-references (file referencing itself)', () => {
       const mapping = new Map([
         ['.cursor/rules/self.mdc', '.claude/rules/self.md'],
       ]);
@@ -371,7 +371,7 @@ describe('PathRewriter', () => {
       expect(result.replacementCount).toBe(1);
     });
 
-    it('P13: rewritten items are clones (originals not mutated)', () => {
+    it('rewritten items are clones (originals not mutated)', () => {
       const mapping = new Map([
         ['.cursor/rules/a.mdc', '.claude/rules/a.md'],
       ]);
@@ -390,7 +390,7 @@ describe('PathRewriter', () => {
 
     // --- Behavior 7: rewrite inside AgentSkillIO files[*] for spec text subtrees ---
 
-    it('P20: rewrites scripts/** and references/** files; leaves assets/** and unknown untouched', () => {
+    it('rewrites scripts/** and references/** files; leaves assets/** and unknown untouched', () => {
       const mapping = new Map([
         ['.cursor/skills/check/scripts/b.sh', '.claude/skills/check/scripts/b.sh'],
         ['.cursor/rules/foo.mdc', '.claude/rules/foo.md'],
@@ -427,7 +427,7 @@ describe('PathRewriter', () => {
       expect(result.replacementCount).toBe(3);
     });
 
-    it('P21: AgentSkillIO with empty files map: content rewrite still works', () => {
+    it('AgentSkillIO with empty files map: content rewrite still works', () => {
       const mapping = new Map([
         ['.cursor/rules/a.mdc', '.claude/rules/a.md'],
       ]);
@@ -442,7 +442,7 @@ describe('PathRewriter', () => {
       expect(result.replacementCount).toBe(1);
     });
 
-    it('P22: mixed AgentSkillIO + non-AgentSkillIO: files only touched on AgentSkillIO', () => {
+    it('mixed AgentSkillIO + non-AgentSkillIO: files only touched on AgentSkillIO', () => {
       const mapping = new Map([
         ['.cursor/rules/a.mdc', '.claude/rules/a.md'],
       ]);
@@ -468,7 +468,7 @@ describe('PathRewriter', () => {
       expect(result.replacementCount).toBe(3);
     });
 
-    it('P23: nested-path scope check — scripts/lib/* in scope; skill-root + bare "scripts" out of scope', () => {
+    it('nested-path scope check — scripts/lib/* in scope; skill-root + bare "scripts" out of scope', () => {
       const mapping = new Map([
         ['.cursor/rules/x.mdc', '.claude/rules/x.md'],
       ]);
@@ -492,7 +492,7 @@ describe('PathRewriter', () => {
   });
 
   describe('detectOrphans', () => {
-    it('P10: finds source-format paths not in mapping', () => {
+    it('finds source-format paths not in mapping', () => {
       const mapping = new Map([
         ['.cursor/rules/a.mdc', '.claude/rules/a.md'],
       ]);
@@ -510,7 +510,7 @@ describe('PathRewriter', () => {
       expect(warnings[0]!.message).toContain('.cursor/rules/orphan.mdc');
     });
 
-    it('P11: does not false-positive on mapped paths', () => {
+    it('does not false-positive on mapped paths', () => {
       const mapping = new Map([
         ['.cursor/rules/a.mdc', '.claude/rules/a.md'],
         ['.cursor/rules/b.mdc', '.claude/rules/b.md'],
@@ -527,7 +527,7 @@ describe('PathRewriter', () => {
       expect(warnings).toHaveLength(0);
     });
 
-    it('P12: returns warning with file path and orphan string', () => {
+    it('returns warning with file path and orphan string', () => {
       const mapping = new Map<string, string>();
       const items = [
         makeItem({
@@ -546,7 +546,7 @@ describe('PathRewriter', () => {
 
     // --- Behavior 8: detectOrphans scans scripts/** and references/** content ---
 
-    it('P24: flags orphans inside AgentSkillIO files[scripts/**] and files[references/**]', () => {
+    it('flags orphans inside AgentSkillIO files[scripts/**] and files[references/**]', () => {
       const mapping = new Map<string, string>();
       const item = makeSkillIO({
         content: '',
@@ -567,7 +567,7 @@ describe('PathRewriter', () => {
       }
     });
 
-    it('P25: does NOT flag orphans inside assets/** or unknown subtrees', () => {
+    it('does NOT flag orphans inside assets/** or unknown subtrees', () => {
       const mapping = new Map<string, string>();
       const item = makeSkillIO({
         content: '',
@@ -582,7 +582,7 @@ describe('PathRewriter', () => {
       expect(warnings).toHaveLength(0);
     });
 
-    it('P26: existing content-level orphan detection preserved alongside files scan', () => {
+    it('existing content-level orphan detection preserved alongside files scan', () => {
       const mapping = new Map<string, string>();
       const item = makeSkillIO({
         content: 'body refs .cursor/rules/body-missing.mdc',

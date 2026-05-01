@@ -76,7 +76,7 @@ describe('A16nEngine', () => {
       expect(plugins[0]?.source).toBe('installed');
     });
 
-    it('should return the plugin via getPlugin after source tracking refactor', () => {
+    it('should expose cursor plugin via getPlugin with bundled registration', () => {
       const engine = new A16nEngine([cursorPlugin, claudePlugin]);
 
       const cursor = engine.getPlugin('cursor');
@@ -312,7 +312,7 @@ describe('A16nEngine', () => {
       ).rejects.toThrow('Unknown target: unknown');
     });
 
-    it('should use sourceRoot for discover when provided (E1)', async () => {
+    it('should use sourceRoot for discover when provided', async () => {
       // sourceRoot overrides root for discover
       const sourceDir = path.join(tempDir, 'source');
       const targetDir = path.join(tempDir, 'target');
@@ -338,7 +338,7 @@ describe('A16nEngine', () => {
       expect(result.written[0]?.path).toContain(targetDir);
     });
 
-    it('should use targetRoot for emit when provided (E2)', async () => {
+    it('should use targetRoot for emit when provided', async () => {
       // targetRoot overrides root for emit
       const targetDir = path.join(tempDir, 'output');
       await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
@@ -365,7 +365,7 @@ describe('A16nEngine', () => {
       expect(files.length).toBeGreaterThan(0);
     });
 
-    it('should use both split roots correctly (E3)', async () => {
+    it('should use both split roots correctly', async () => {
       // Both sourceRoot and targetRoot override root
       const sourceDir = path.join(tempDir, 'source');
       const targetDir = path.join(tempDir, 'target');
@@ -393,7 +393,7 @@ describe('A16nEngine', () => {
       ).rejects.toThrow();
     });
 
-    it('should maintain backward compat with only root (E4)', async () => {
+    it('should maintain backward compat with only root', async () => {
       // When no split roots, root is used for both discover and emit
       await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
       await fs.writeFile(
@@ -440,7 +440,7 @@ describe('A16nEngine', () => {
       );
     });
 
-    it('should rewrite path refs when rewritePathRefs is true (EP1)', async () => {
+    it('should rewrite path refs when rewritePathRefs is true', async () => {
       // Create two cursor rules where a.mdc references b.mdc
       await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
       await fs.writeFile(
@@ -471,7 +471,7 @@ describe('A16nEngine', () => {
       expect(aContent).not.toContain('.cursor/rules/b.mdc');
     });
 
-    it('should include orphan warnings when rewritePathRefs is true (EP2)', async () => {
+    it('should include orphan warnings when rewritePathRefs is true', async () => {
       // Create a cursor rule that references a nonexistent cursor rule
       await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
       await fs.writeFile(
@@ -493,7 +493,7 @@ describe('A16nEngine', () => {
       expect(orphanWarnings[0]!.message).toContain('.cursor/rules/nonexistent.mdc');
     });
 
-    it('should NOT rewrite when rewritePathRefs is false/default (EP3)', async () => {
+    it('should NOT rewrite when rewritePathRefs is false/default', async () => {
       // Same setup as EP1 but without rewritePathRefs
       await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
       await fs.writeFile(
@@ -521,7 +521,7 @@ describe('A16nEngine', () => {
       expect(aContent).not.toContain('.claude/rules/b.md');
     });
 
-    it('should report rewrites in dry-run without writing (EP4)', async () => {
+    it('should report rewrites in dry-run without writing', async () => {
       await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
       await fs.writeFile(
         path.join(tempDir, '.cursor/rules/a.mdc'),
@@ -557,7 +557,7 @@ describe('A16nEngine', () => {
       await fs.rm(tempDir, { recursive: true, force: true });
     });
 
-    it('should discover using a Workspace instead of string root (WS1)', async () => {
+    it('should discover using a Workspace instead of string root', async () => {
       await fs.writeFile(path.join(tempDir, 'CLAUDE.md'), 'Test content');
       const workspace = new LocalWorkspace('test-source', tempDir);
 
@@ -568,7 +568,7 @@ describe('A16nEngine', () => {
       expect(result.items[0]?.type).toBe(CustomizationType.GlobalPrompt);
     });
 
-    it('should convert using Workspace for source and target (WS2)', async () => {
+    it('should convert using Workspace for source and target', async () => {
       await fs.mkdir(path.join(tempDir, '.cursor', 'rules'), { recursive: true });
       await fs.writeFile(
         path.join(tempDir, '.cursor/rules/test.mdc'),
@@ -592,7 +592,7 @@ describe('A16nEngine', () => {
       expect(result.written[0]?.path).toContain('.claude/rules/');
     });
 
-    it('should accept Workspace in convert with split roots (WS3)', async () => {
+    it('should accept Workspace in convert with split roots', async () => {
       // Create separate source and target directories
       const sourceDir = path.join(tempDir, 'source-project');
       const targetDir = path.join(tempDir, 'target-project');
@@ -624,7 +624,7 @@ describe('A16nEngine', () => {
       expect(files.length).toBeGreaterThan(0);
     });
 
-    it('should prefer sourceWorkspace over sourceRoot when both given (WS4)', async () => {
+    it('should prefer sourceWorkspace over sourceRoot when both given', async () => {
       // Create workspace dir with cursor rules
       const wsDir = path.join(tempDir, 'ws-project');
       await fs.mkdir(path.join(wsDir, '.cursor', 'rules'), { recursive: true });
@@ -648,7 +648,7 @@ describe('A16nEngine', () => {
       expect(result.discovered).toHaveLength(1);
     });
 
-    it('should call plugin.discover with Workspace when available (WS5)', async () => {
+    it('should call plugin.discover with Workspace when available', async () => {
       const workspace = new LocalWorkspace('test-source', tempDir);
 
       // Use a mock plugin to verify Workspace is passed through
