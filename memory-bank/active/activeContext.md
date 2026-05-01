@@ -2,7 +2,7 @@
 
 ## Current Task: SLOBAC Audit Remediation — M4 (Split plugin-claude emit.test.ts)
 
-**Phase:** L2 BUILD - COMPLETE
+**Phase:** L2 QA - PASS
 
 ## What Was Done
 
@@ -54,4 +54,4 @@
 
 ## Next Step
 
-- L2 QA — invoke the `niko-qa` skill for semantic review of the build against the plan and tasks.
+- L2 REFLECT — post-implementation reflection.

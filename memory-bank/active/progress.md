@@ -26,3 +26,19 @@ Split `packages/plugin-claude/test/emit.test.ts` (~2474 lines, 10 top-level desc
 * Insights
     - Script-it-instead cuts roughly 8 redundant tool turns vs per-describe individual edits; test parity is the gate that lets it ship safely.
     - Preflight advisory #2 (keep helper minimal) paid off: `emit-helpers.ts` is 21 lines with one exported function, and every split file registers its own `beforeEach`/`afterEach` identically to the monolith's prior style — no speculative registrar abstraction introduced.
+
+## 2026-05-01 - L2 QA - PASS
+
+* Work completed
+    - Semantic review of build output against `tasks.md` / plan: all 15 steps executed, 86 emit tests preserved across 9 files, nested `'empty input'` correctly rooted under `'Claude Plugin Emission'` in `emit-global-prompt.test.ts`, `emit-file-rule.test.ts` has two sibling top-level describes per plan.
+    - Debug-artifact sweep: no `console.*`, TODO, FIXME, `.only`, `.skip`, or `debugger` in any split file.
+    - Cross-milestone invariant sweep: no cross-package helper imports; `packages/plugin-claude/src/` untouched; test count in `plugin-claude` unchanged (144).
+    - Documentation sweep: CONTRIBUTING.md clean; `packages/docs/docs/plugin-development/index.md` left intentional (template, not tour).
+    - Preflight advisory resolved: Finding 13 body-comment fossil already removed by M1.
+* Decisions made
+    - No code changes needed in QA — implementation matches plan (KISS/DRY/YAGNI satisfied).
+    - Accepted ~40 lines of `beforeEach`/`afterEach` duplication across split files in favor of the maximally-legible pattern inherited from the monolith; extracting a `registerEmitTempDir` helper would trade 4 lines of FS boilerplate for 1 line of import + 1 line of call, with added indirection. Revisit if future emit-test growth makes duplication painful.
+    - Accepted maximal per-file imports (some unused-in-this-file types). Test tsconfig excludes `test/`; no lint rule flags unused imports; consistent file headers are easier to evolve than bespoke per-file import sets.
+* Insights
+    - Pre-existing audit remediations (M1 body-comment fixes) interact favorably with structural splits: because M1 already removed the fossil at original line 1783, the split could proceed without any body edits, keeping M4 a pure structural commit.
+    - The `suiteTempDir(importMetaUrl, slug)` shape has now been used by two packages (cli/test-support and plugin-claude/test-support). If M6/M7 (cursor emit/discover splits) reuse it, consider whether it earns promotion to a shared package — but only after all M4–M7 land, to avoid premature abstraction.
