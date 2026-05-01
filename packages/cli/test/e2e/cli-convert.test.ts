@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { runCli, createTempDir, removeTempDir } from './test-support/cli-runner.js';
+import { runCli, createTempDir, removeTempDir } from '../test-support/cli-runner.js';
 
 describe('CLI convert command', () => {
   let tempDir: string;

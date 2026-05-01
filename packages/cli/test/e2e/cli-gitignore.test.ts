@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { spawnSync } from 'child_process';
-import { runCli, createTempDir, removeTempDir } from './test-support/cli-runner.js';
+import { runCli, createTempDir, removeTempDir } from '../test-support/cli-runner.js';
 
 describe('CLI --gitignore-output-with flag', () => {
   let tempDir: string;

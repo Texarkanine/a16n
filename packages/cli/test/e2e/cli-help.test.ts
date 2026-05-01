@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { spawnSync } from 'child_process';
-import { cliPath, runCli, createTempDir, removeTempDir } from './test-support/cli-runner.js';
+import { cliPath, runCli, createTempDir, removeTempDir } from '../test-support/cli-runner.js';
 
 describe('CLI --help', () => {
   let tempDir: string;
