@@ -9,8 +9,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Command } from 'commander';
-import { createProgram } from '../../src/index.js';
-import type { CommandIO } from '../../src/commands/io.js';
+import { createProgram } from '../src/index.js';
+import type { CommandIO } from '../src/commands/io.js';
 
 /** Helper to get option flags from a Commander command */
 function getOptionFlags(cmd: Command): string[] {
@@ -55,7 +55,7 @@ describe('createProgram', () => {
   it('reports the version from package.json', () => {
     const program = createProgram(null);
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pkg = require('../../package.json') as { version: string };
+    const pkg = require('../package.json') as { version: string };
     expect(program.version()).toBe(pkg.version);
   });
 
