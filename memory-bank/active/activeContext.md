@@ -2,13 +2,27 @@
 
 ## Current Task: SLOBAC Audit Remediation — M2 (Split cli.test.ts)
 
-**Phase:** PREFLIGHT - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
 
-- Preflight PASS: TDD encoding, conventions, dependencies, conflicts, and completeness all validated.
-- Advisory noted: Vitest `test.extend()` fixture could reduce boilerplate (deferred — new pattern, minimal benefit).
+- Created `packages/cli/test/test-support/cli-runner.ts` — shared helper exporting `runCli()`, `cliPath`, `createTempDir()`, `removeTempDir()`
+- Created 7 domain-specific test files:
+  - `cli-help.test.ts` (2 tests)
+  - `cli-plugins.test.ts` (2 tests)
+  - `cli-discover.test.ts` (5 tests)
+  - `cli-convert.test.ts` (11 tests)
+  - `cli-gitignore.test.ts` (18 tests)
+  - `cli-delete-source.test.ts` (9 tests)
+  - `cli-from-to-dir.test.ts` (8 tests)
+- Deleted original `packages/cli/test/cli.test.ts`
+- All 55 E2E tests pass, 175 cli package tests pass, full monorepo green
+- Bonus: test runtime dropped from ~16s to ~8s due to parallel execution with isolated temp dirs (mkdtemp)
+
+## Deviations from Plan
+
+- None — built to plan.
 
 ## Next Step
 
-- Build phase runs automatically.
+- QA review runs automatically.
