@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
+import * as os from 'os';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -18,9 +19,9 @@ import { discover } from '../src/discover.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixturesDir = path.join(__dirname, 'fixtures');
-const tempDir = path.join(__dirname, '.temp-discover-test');
 
 describe('A16n Plugin Discovery', () => {
+  let tempDir: string;
   describe('basic discovery', () => {
     it('should return empty results when .a16n/ does not exist', async () => {
       // Use a directory that definitely has no .a16n/
@@ -427,7 +428,7 @@ Valid content.
 
   // Setup/teardown for temp directory tests
   beforeEach(async () => {
-    await fs.mkdir(tempDir, { recursive: true });
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'a16n-a16n-discover-'));
   });
 
   afterEach(async () => {

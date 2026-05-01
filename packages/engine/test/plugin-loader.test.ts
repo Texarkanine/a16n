@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
+import * as os from 'os';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -12,7 +13,6 @@ import { CustomizationType } from '@a16njs/models';
 import type { A16nPlugin } from '@a16njs/models';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const tempDir = path.join(__dirname, '.temp-loader-test');
 
 /**
  * Helper to create a minimal fake plugin for testing.
@@ -69,8 +69,10 @@ describe('PluginLoader', () => {
   });
 
   describe('loadInstalled', () => {
+    let tempDir: string;
+
     beforeEach(async () => {
-      await fs.mkdir(tempDir, { recursive: true });
+      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'a16n-loader-'));
     });
 
     afterEach(async () => {
