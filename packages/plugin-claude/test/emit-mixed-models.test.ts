@@ -63,6 +63,9 @@ describe('Mixed Model Emission', () => {
     // Check GlobalPrompt → .claude/rules/global.md (no frontmatter)
     const globalRule = await fs.readFile(path.join(tempDir, '.claude', 'rules', 'global.md'), 'utf-8');
     expect(globalRule).toContain('Global content');
+    // TODO: tighten to `/^---\n/` — this regex only excludes `paths:` frontmatter,
+    // not all frontmatter. Deferred out of this PR to keep assertion bodies
+    // unchanged during the M4 structural split; see PR #94 review by CodeRabbit.
     expect(globalRule).not.toMatch(/^---\n.*paths:/s);
 
     // Check FileRule → .claude/rules/react.md (with paths frontmatter)
