@@ -10,6 +10,8 @@ complexity_level: 2
 
 Split `packages/cli/test/cli.test.ts` (1108 lines, 55 tests) into 7 domain-specific test files with a shared `test-support/cli-runner.ts` helper. Clean execution — no deviations from plan, no QA findings, all tests green.
 
+**Follow-up after reflect:** Operator asked for clearer tier boundaries in `packages/cli/test/`. E2E subprocess specs now live under [`test/e2e/`](../../../packages/cli/test/e2e/) (instead of beside unit tests at `test/` root). Former `test/commands/` plus loose unit files (`git-ignore`, `create-program`) were consolidated under [`test/unit/`](../../../packages/cli/test/unit/), alongside unchanged [`test/integration/`](../../../packages/cli/test/integration/) and [`test/test-support/`](../../../packages/cli/test/test-support/). Net effect: `unit` / `integration` / `e2e` / `test-support` read unambiguously for contributors.
+
 ## Requirements vs Outcome
 
 Delivered exactly what was planned: 7 domain files matching the audit's prescribed split boundaries (help, plugins, discover, convert, gitignore, delete-source, from-to-dir), shared helper extraction, and original file deletion. Test count unchanged at 55. Bonus: test runtime halved (~16s → ~8s) from parallel execution with per-test temp dir isolation.
@@ -31,6 +33,7 @@ Build was highly mechanical — each file was a direct extraction from the origi
 ### Process
 
 - Monolithic test file splits are highly mechanical: plan-to-implementation mapping is 1:1 with no design decisions. L2 is the correct complexity level. The remaining 5 independent splits (M3–M7) should follow this exact template.
+- Mirroring source layout under `test/commands/` was misleading once E2E specs existed; a flat `test/unit/` is easier to explain than “commands vs CLI vs integration.”
 
 ### Million-Dollar Question
 
