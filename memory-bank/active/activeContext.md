@@ -2,7 +2,7 @@
 
 ## Current Task: SLOBAC Audit Remediation — M3 (Split integration.test.ts + shared-state)
 
-**Phase:** L2 QA - COMPLETE
+**Phase:** L2 REFLECT - COMPLETE
 
 ## What Was Done
 
@@ -29,4 +29,8 @@
 
 ## Next Step
 
-- `/niko-reflect` (Level 2 post-implementation reflection).
+- Run `/niko` to continue the L4 milestone track (advance M3 → start M4, or let `/niko` reconcile milestone checkboxes per workflow).
+
+## Reflect
+
+- Reflection written: `memory-bank/active/reflection/reflection-slobac-audit-remediation-m3.md`.
