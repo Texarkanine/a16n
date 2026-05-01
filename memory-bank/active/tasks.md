@@ -92,4 +92,4 @@ No new technology — validation not required.
 - [x] Technology validation complete
 - [x] Preflight ([2026-05-01] PASS — see `memory-bank/active/progress.md` / `.preflight-status`)
 - [x] Build — M1 renames/comments across 7 targets; incidental fix `plugin-discovery.test.ts` (parallel-safe `mkdtemp` per suite) — required after races surfaced under Vitest parallelism
-- [ ] QA
+- [x] QA ([2026-05-01] PASS — semantic review vs plan; `.qa-validation-status`)
