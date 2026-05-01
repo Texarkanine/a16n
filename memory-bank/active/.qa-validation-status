@@ -1,6 +1,0 @@
-# QA validation — M3 (slobac-audit-remediation-m3)
-
-- **Date:** 2026-05-01
-- **Result:** PASS
-- **Scope reviewed:** Split of `packages/cli/test/integration/integration.test.ts` into seven domain files; `integration-helpers.ts`; shared-state (per-suite `createIntegrationEngine()`); parallel-safe `suiteTempDir` slugs; audit Findings 4 & 6; spot-check Finding 2 (FileRule title) remediated in `integration-filerule-skill.test.ts`.
-- **Verification:** `pnpm test` (turbo, all 8 packages) exit 0.
