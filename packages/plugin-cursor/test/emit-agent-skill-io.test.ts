@@ -6,10 +6,7 @@ import {
   CustomizationType,
   type GlobalPrompt,
   type FileRule,
-  type SimpleAgentSkill,
   type AgentSkillIO,
-  type AgentIgnore,
-  type ManualPrompt,
   createId,
 } from '@a16njs/models';
 import { suiteTempDir } from './test-support/emit-helpers.js';
@@ -103,7 +100,7 @@ describe('Cursor AgentSkillIO Emission', () => {
       const result = await cursorPlugin.emit(models, tempDir);
 
       // Should write 3 files: SKILL.md + 2 resource files
-      expect(result.written.length).toBeGreaterThanOrEqual(1);
+      expect(result.written.length).toBe(3);
       
       // Verify SKILL.md exists
       const skillPath = path.join(tempDir, '.cursor', 'skills', 'deploy', 'SKILL.md');

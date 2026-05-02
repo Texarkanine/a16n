@@ -6,10 +6,6 @@ import {
   CustomizationType,
   type GlobalPrompt,
   type FileRule,
-  type SimpleAgentSkill,
-  type AgentSkillIO,
-  type AgentIgnore,
-  type ManualPrompt,
   createId,
 } from '@a16njs/models';
 import { suiteTempDir } from './test-support/emit-helpers.js';

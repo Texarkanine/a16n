@@ -7,7 +7,6 @@ import {
   type GlobalPrompt,
   type FileRule,
   type SimpleAgentSkill,
-  type AgentSkillIO,
   type AgentIgnore,
   type ManualPrompt,
   createId,

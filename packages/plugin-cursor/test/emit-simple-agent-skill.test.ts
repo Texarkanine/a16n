@@ -4,12 +4,7 @@ import * as path from 'path';
 import cursorPlugin from '../src/index.js';
 import {
   CustomizationType,
-  type GlobalPrompt,
-  type FileRule,
   type SimpleAgentSkill,
-  type AgentSkillIO,
-  type AgentIgnore,
-  type ManualPrompt,
   createId,
 } from '@a16njs/models';
 import { suiteTempDir } from './test-support/emit-helpers.js';
@@ -84,9 +79,8 @@ describe('Cursor SimpleAgentSkill Emission', () => {
       const result = await cursorPlugin.emit(models, tempDir);
 
       const content = await fs.readFile(result.written[0]!.path, 'utf-8');
-      // Description should be quoted to handle special characters
-      expect(content).toContain('description:');
-      expect(content).toContain('Auth: patterns & guidelines');
+      // Description must be double-quoted because it contains YAML special characters (: and &)
+      expect(content).toContain('description: "Auth: patterns & guidelines"');
     });
   });
 });

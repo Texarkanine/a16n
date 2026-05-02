@@ -4,11 +4,7 @@ import * as path from 'path';
 import cursorPlugin from '../src/index.js';
 import {
   CustomizationType,
-  type GlobalPrompt,
-  type FileRule,
   type SimpleAgentSkill,
-  type AgentSkillIO,
-  type AgentIgnore,
   type ManualPrompt,
   createId,
 } from '@a16njs/models';
