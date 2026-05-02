@@ -1,14 +1,9 @@
 PASS
+task: slobac-audit-remediation-m5 (M5 split plugin-claude discover.tests)
+date: 2026-05-02
+phase: L2 QA
 
-Semantic review of M4 against tasks.md / plan:
-- 15/15 implementation steps completed; test count parity preserved (86 emit tests across 9 files, 144 plugin-claude total, matching baseline).
-- 'empty input' describe correctly nested under 'Claude Plugin Emission' in emit-global-prompt.test.ts (not orphaned).
-- emit-file-rule.test.ts has two sibling top-level describes per plan (FileRule Emission + FileRule Empty Globs Validation).
-- test-support/emit-helpers.ts minimal: one exported function (suiteTempDir), 21 lines — per preflight advisory #2.
-- No debug artifacts (console.*, TODO, FIXME, .only, .skip, debugger) — clean.
-- No cross-package helper imports (L4 cross-milestone invariant respected).
-- No SUT-side changes; packages/plugin-claude/src/ untouched.
-- CONTRIBUTING.md has no integration/emit.test.ts references; docs/plugin-development/index.md template left intentional (recommendation for new plugins, not a tour).
-- Advisory item from preflight resolved: Finding 13 body-comment fossil already removed by M1 (grep clean).
-- Duplication note (not a blocker): the 4-line fs.mkdir/fs.rm beforeEach/afterEach pattern repeats 10× across split files (9 files + 1 extra pair in emit-file-rule). Preserved per preflight advisory #2 — maximally legible, matches prior monolith style; a registrar helper was deferred until duplication proved noisy, and 10 repetitions of a 4-line block is well under that threshold.
-- Per-file imports are maximal from the monolith (unused imports acceptable because test/ is excluded from tsconfig include and no lint rule flags unused imports in tests); trading tidiness for consistent file headers is a conscious tradeoff.
+Summary: Seven-domain split, discover-helpers parity with M4, monolith removed,
+discover It-count 58 and package-wide It-count 144 match plan; docs plugin tree
+lists discover-*.test.ts; no plugin-claude/src changes; split files free of TODO/
+debug noise.
