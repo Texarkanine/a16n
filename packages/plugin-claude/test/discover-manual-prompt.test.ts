@@ -17,7 +17,7 @@ describe('Claude ManualPrompt Discovery', () => {
       expect(manualPrompts[0]?.sourcePath).toBe('.claude/skills/manual-task/SKILL.md');
     });
 
-    it('should derive promptName from skill name in frontmatter', async () => {
+    it('should derive promptName from skill directory name', async () => {
       const root = path.join(fixturesDir, 'claude-skills-manual/from-claude');
       const result = await claudePlugin.discover(root);
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import claudePlugin from '../src/index.js';
-import { CustomizationType } from '@a16njs/models';
+import { CustomizationType, type GlobalPrompt } from '@a16njs/models';
 import { discoverFixturesDir } from './test-support/discover-helpers.js';
 
 const fixturesDir = discoverFixturesDir(import.meta.url);
@@ -31,7 +31,7 @@ describe('Claude Plugin Discovery', () => {
       const root = path.join(fixturesDir, 'claude-basic/from-claude');
       const result = await claudePlugin.discover(root);
 
-      expect(result.items[0]?.name).toBe('CLAUDE');
+      expect((result.items[0] as GlobalPrompt)?.name).toBe('CLAUDE');
     });
   });
 
