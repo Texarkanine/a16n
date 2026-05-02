@@ -1,11 +1,7 @@
 PASS
+task: slobac-audit-remediation-m6 (M6 split plugin-cursor emit.test.ts)
+date: 2026-05-02
+phase: L2 preflight
 
-TDD encoding: Plan orders incremental extraction steps (move describe block → run package tests) before monolith deletion; no production code steps. Parity gates (58 discover / 144 package `it(` counts) explicit.
-
-Convention: `discover-<domain>.test.ts` under `packages/plugin-claude/test/` matches M4 `emit-*.test.ts` pattern; `test-support/` remains package-local.
-
-Dependency impact: Downstream `cli` tests consume plugin-claude via workspace; full `pnpm test` in step 11 covers integration.
-
-Completeness: All seven top-level describes mapped; Finding 12/15 scope covered; doc sweep step included.
-
-Advisory: Batch extraction (script) acceptable after first extract proves pattern, same tradeoff as M4 reflection — parity gate is the safety net.
+Summary: Test-only vertical split mirrors plugin-claude M4 pattern; suiteTempDir avoids
+parallel tmp collisions; no src/ churn; parity gates documented in tasks.md.
