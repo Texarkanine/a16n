@@ -1,87 +1,61 @@
-# Task: M5 — Split plugin-claude discover.test.ts
+# Task: M6 — Split plugin-cursor emit.test.ts
 
-* Task ID: slobac-audit-remediation-m5
-* Complexity: Level 2
-* Type: Test suite restructuring (monolithic file split)
+- Task ID: slobac-audit-remediation-m6
+- Complexity: Level 2
+- Type: simple enhancement / test-structure remediation (monolithic-test-file Finding 19)
 
-Split `packages/plugin-claude/test/discover.test.ts` into seven domain-aligned Vitest files. Preserve fixture paths (`test/fixtures/...`), imports, and all assertions. No changes under `packages/plugin-claude/src/`.
+Split `packages/plugin-cursor/test/emit.test.ts` into domain-specific Vitest modules with shared isolated temp workspaces (mirrors `@a16njs/plugin-claude` emit split + `suiteTempDir`). No behavioral or production-source changes — structural reorganization only.
 
 ## Test Plan (TDD)
 
 ### Behaviors to Verify
 
-Each existing test case is preserved verbatim per domain file; behaviors are unchanged from the current suite. Representative coverage (non-exhaustive):
+Each existing `it` in `emit.test.ts` remains a passing test with unchanged assertions:
 
-- **[CLAUDE.md discovery]**: `claudePlugin.discover(root)` on `claude-basic` / `claude-nested` / `claude-empty` fixtures → correct `GlobalPrompt` items, metadata (`nested`, `depth`, `name`), empty project returns no items.
-- **[SimpleAgentSkill]**: Skills without hooks → `SimpleAgentSkill` with `description`, content, correct `sourcePath`; hook skills skipped with warnings.
-- **[AgentIgnore]**: `settings.json` `permissions.deny` Read rules → patterns; non-Read ignored; missing file; combined CLAUDE + AgentIgnore discovery.
-- **[ManualPrompt]**: `disable-model-invocation: true` → `ManualPrompt`; regular skills remain `SimpleAgentSkill`.
-- **[Negative ManualPrompt]**: Plugin discovery never surfaces `ManualPrompt` in the enumerated negative cases; allowed types list unchanged.
-- **[AgentSkillIO]**: Hook skills skipped; complex skills with extra files → `AgentSkillIO` shape (files map, resources, recursion); simple vs mixed classification; backward-compat hook skip behavior.
-- **[Rules]**: `.claude/rules` file discovery, nesting, `relativeDir`, hidden dir skip, path normalization; frontmatter paths / classification (`GlobalPrompt` vs `FileRule`); gray-matter edge cases; integration with CLAUDE.md and skills; unique IDs and source paths.
+- Cursor GlobalPrompt emission (single, multiple, sanitization, empty input) → same written paths, frontmatter, warnings.
+- Cursor FileRule / SimpleAgentSkill / Mixed / AgentIgnore / ManualPrompt / Skills namespace cases → unchanged filesystem layout vs baselines.
+- `sourceItems` tracking on WrittenFile → unchanged for each customization type tested.
+- AgentSkillIO (simple/complex/`relativeDir`/`sourcePaths`) → unchanged outputs.
+- Filename case preservation for FileRule + GlobalPrompt + collision semantics → unchanged.
 
-### Edge / regression cases
+### Parity Gates (blocking)
 
-- All cases currently in `discover.test.ts` (including Finding 12 historically: nested rules / `.git` skip title accuracy post-M1) must remain covered with the same assertions.
-- **Parity gate:** Count of `it(` in discover tests = **58** before and after; total `it(` in `packages/plugin-claude/test/**/*.test.ts` = **144** after deleting the monolith.
+- **Emit suite**: 62 total `it` across all `emit-*.test.ts` files (baseline from monolith).
+- **Package** `@a16njs/plugin-cursor`: 137 tests total unchanged vs pre-split baseline (discover + mdc unchanged).
 
 ### Test Infrastructure
 
-- Framework: Vitest (package `vitest.config.ts`).
-- Test location: `packages/plugin-claude/test/`.
-- Conventions: Match M4 — `discover-<domain>.test.ts`, package-local `test-support/` only if a helper reduces duplicated `fixturesDir` setup.
-- New test files: seven listed above; `discover.test.ts` removed after migration.
+- Framework: Vitest (package-local `vitest.config.ts`).
+- Test location: `packages/plugin-cursor/test/`.
+- Conventions: `emit-*.test.ts` filenames aligned with Claude plugin split naming; helpers under `test/test-support/` only.
+- New test files: ten `emit-*.test.ts` files + `emit-helpers.ts`; remove monolith `emit.test.ts`.
 
 ## Implementation Plan
 
-1. **Baseline**
-   - Files: (read-only) `packages/plugin-claude/test/discover.test.ts`
-   - Changes: Run `pnpm --filter @a16njs/plugin-claude test`; confirm green. Record discover test count 58 and package total 144 (from grep or test summary).
-
-2. **Optional helper (recommended for consistency with M4)**
-   - Files: `packages/plugin-claude/test/test-support/discover-helpers.ts` (new); then each new discover test file
-   - Changes: Export `discoverFixturesDir(importMetaUrl: string): string` as `path.join(path.dirname(fileURLToPath(importMetaUrl)), 'fixtures')`. Rewire split files to use it instead of duplicating `__dirname` + `fixturesDir` in all seven files. If helper is skipped, duplicate the two-line `fileURLToPath` + `path.join` pattern in each file (acceptable per YAGNI).
-
-3. **Extract domain file 1 — CLAUDE.md plugin discovery**
-   - Files: `packages/plugin-claude/test/discover-claude-md.test.ts` (new)
-   - Changes: Move `describe('Claude Plugin Discovery', ...)` block with imports (`vitest`, `path`, `fileURLToPath`, `claudePlugin`, `CustomizationType`). Run `pnpm --filter @a16njs/plugin-claude test` — must stay green alongside remaining monolith (duplicate tests briefly) **OR** follow one-shot extraction: generate all seven files and delete monolith in one commit after local verification — prefer **incremental green**: after this step, either keep both monolith and new file temporarily with duplicate tests (BAD - double count) — **Correction**: For split, the correct incremental approach is: copy block to new file, remove from monolith, run tests, repeat. Do not run duplicate `it` names in two files.
-
-   **Ordered extraction (TDD-safe):** For each step: (a) create new file with moved `describe` + imports, (b) delete that block from `discover.test.ts`, (c) `pnpm --filter @a16njs/plugin-claude test` until green.
-
-4. **Extract domain file 2 — SimpleAgentSkill**
-   - Files: `discover-simple-agent-skill.test.ts` (new); trim `discover.test.ts`
-   - Changes: Move `describe('Claude SimpleAgentSkill Discovery', ...)`. Run package tests.
-
-5. **Extract domain file 3 — AgentIgnore**
-   - Files: `discover-agent-ignore.test.ts` (new); trim `discover.test.ts`
-   - Changes: Move `describe('Claude AgentIgnore Discovery', ...)`. Run package tests.
-
-6. **Extract domain file 4 — ManualPrompt**
-   - Files: `discover-manual-prompt.test.ts` (new); trim `discover.test.ts`
-   - Changes: Move `describe('Claude ManualPrompt Discovery', ...)`. Run package tests.
-
-7. **Extract domain file 5 — Never ManualPrompt**
-   - Files: `discover-never-manual-prompt.test.ts` (new); trim `discover.test.ts`
-   - Changes: Move `describe('Claude Plugin Never Discovers ManualPrompt', ...)`. Run package tests.
-
-8. **Extract domain file 6 — AgentSkillIO**
-   - Files: `discover-agent-skill-io.test.ts` (new); trim `discover.test.ts`
-   - Changes: Move `describe('AgentSkillIO Discovery', ...)`. Run package tests.
-
-9. **Extract domain file 7 — Rules**
-   - Files: `discover-rules.test.ts` (new); trim `discover.test.ts`
-   - Changes: Move `describe('Claude Rules Discovery', ...)`. Run package tests.
-
-10. **Remove monolith**
-    - Files: delete `packages/plugin-claude/test/discover.test.ts`
-    - Changes: File must be empty/deleted; no stray imports. Run `pnpm --filter @a16njs/plugin-claude test`.
-
-11. **Monorepo verification**
-    - Changes: `pnpm test` from repo root (Turbo); confirm downstream CLI integration still green.
-
-12. **Documentation sweep**
-    - Files: `packages/docs/docs/plugin-development/index.md`, `CONTRIBUTING.md`, grep `discover.test.ts`
-    - Changes: Update only if a *tour* reference incorrectly implies a single file path must exist; leave template tree as M4 did if it remains prescriptive for new plugins.
+1. **Helper first** — Files: `test/test-support/emit-helpers.ts`
+   - Add `suiteTempDir(import.meta.url, slug)` matching Claude pattern (nested `.temp-emit/<slug>/` under `test/`).
+2. **`emit-global-prompt.test.ts`** — Lines / block: `'Cursor Plugin Emission'` subtree.
+   - Wire `suiteTempDir(..., 'global-prompt')`; move tests verbatim from monolith; remove from monolith.
+3. **`emit-file-rule.test.ts`** — Block: `'Cursor FileRule Emission'`.
+   - Slug `file-rule`.
+4. **`emit-simple-agent-skill.test.ts`** — Block: `'Cursor SimpleAgentSkill Emission'` (rules-path skills).
+   - Slug `simple-agent-skill`.
+5. **`emit-mixed-models.test.ts`** — Block: `'Cursor Mixed Emission'`.
+   - Slug `mixed-models`.
+6. **`emit-agent-ignore.test.ts`** — Block: `'Cursor AgentIgnore Emission'`.
+   - Slug `agent-ignore`.
+7. **`emit-manual-prompt.test.ts`** — Block: `'Cursor ManualPrompt Emission (Commands)'`.
+   - Slug `manual-prompt`.
+8. **`emit-skills.test.ts`** — Block: `'Cursor Skills Emission'`.
+   - Slug `skills`.
+9. **`emit-source-items.test.ts`** — Block: `'Cursor Plugin - sourceItems tracking'`.
+   - Slug `source-items`.
+10. **`emit-agent-skill-io.test.ts`** — Block: `'Cursor AgentSkillIO Emission'`.
+    - Slug `agent-skill-io`.
+11. **`emit-filename-case.test.ts`** — Block: `'filename case preservation'`.
+    - Slug `filename-case`.
+12. **Delete monolith** — Remove `packages/plugin-cursor/test/emit.test.ts`.
+13. **Docs check** — `packages/docs/docs/plugin-development/index.md` already recommends `emit-*.test.ts`; optional note-only if Cursor-specific tree warranted (no README contract change).
 
 ## Technology Validation
 
@@ -89,20 +63,12 @@ No new technology — validation not required.
 
 ## Dependencies
 
-- Vitest, existing fixtures under `packages/plugin-claude/test/fixtures/`
-- `@a16njs/models` types already imported in monolith
+- Vitest concurrency assumes isolated per-file temp dirs (`suiteTempDir`).
 
 ## Challenges & Mitigations
 
-- **Import drift:** Each new file needs full imports used by its block (`WarningCode`, item types). Mitigation: copy import list from monolith header and prune only if TypeScript/lint complains.
-- **Accidental duplicate or dropped `it`:** Mitigation: parity gate (`it(` count 58 in discover files; 144 package total).
-- **Parallel Vitest:** Discover tests use read-only fixtures only; no shared mutable temp state (unlike emit). No new isolation needed unless a test is found writing to fixture dirs (none expected).
-
-## Preflight (2026-05-02)
-
-- **Result:** PASS
-- **TDD:** Each implementation step is a test migration with immediate `pnpm --filter @a16njs/plugin-claude test`; monolith deletion only after all blocks moved.
-- **Advisory:** Optional `discover-helpers.ts` for fixtures path; batch/script extraction acceptable if parity gates pass (M4 precedent).
+- Parallel tmp clashes if shared `.temp-emit-test` → **Mitigation:** unique slug per suite (Claude precedent).
+- Off-by-one line extraction when mechanically splitting → **Mitigation:** verify brace balance per file before running Vitest.
 
 ## Status
 
@@ -111,13 +77,6 @@ No new technology — validation not required.
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Preflight
-- [x] Build (2026-05-02): seven `discover-*.test.ts` files + `test-support/discover-helpers.ts`; monolith removed; parity **58** / **144** `it(`; `pnpm test` green)
-- [x] QA (2026-05-02): PASS — parity & artifact checklist; no corrective product edits
-
-## QA results (2026-05-02)
-
-- Verified seven `discover-*.test.ts` files exist; monolith absent.
-- `it(` parity: **58** across discover files, **144** across `packages/plugin-claude/test/**/*.test.ts`.
-- `discoverFixturesDir` helper matches plan; split tests contain no TODO/debug artifacts.
-- `packages/docs/docs/plugin-development/index.md` lists `discover-*.test.ts` / `emit-*.test.ts`; CONTRIBUTING has no stale `discover.test.ts` requirement.
-
+- [x] Build
+- [ ] QA
+- [ ] Reflect

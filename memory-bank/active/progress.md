@@ -1,6 +1,6 @@
-# Progress: M5 — Split plugin-claude discover.test.ts
+# Progress: M6 — Split plugin-cursor emit.test.ts
 
-Split `packages/plugin-claude/test/discover.test.ts` (~813 lines, 7 top-level describes) into domain-specific test files (SLOBAC Finding 15). Structural reorganization only; no behavioral changes.
+Structural split only (SLOBAC Finding 19): ten top-level Cursor emit domains into `emit-*.test.ts` plus `test-support/emit-helpers.ts`; monolith removed. Same cross-milestone invariants as `milestones.md`.
 
 **Complexity:** Level 2
 
@@ -8,39 +8,27 @@ Split `packages/plugin-claude/test/discover.test.ts` (~813 lines, 7 top-level de
 
 ### 2026-05-02 — COMPLEXITY-ANALYSIS — Complete
 
-- Classification target: M5 milestone text in `memory-bank/active/milestones.md`.
-- Rationale: Single package (`@a16njs/plugin-claude`), test-only split along existing behavior domains, mirrors completed M2–M4 remediations. Not a bug fix; scoped enhancement / maintenance.
+- Target: first unchecked milestone in `milestones.md` — split `packages/plugin-cursor/test/emit.test.ts` (~1776 lines).
+- Classification: Level 2 — mirrors completed `plugin-claude` M4 emit split; single package; test-only; no production API changes.
 
-## 2026-05-02 — L2 PLAN — COMPLETE
+### 2026-05-02 — L2 PLAN — Complete
 
-- Seven-way vertical split by top-level describe:
-  1. `discover-claude-md.test.ts` — `Claude Plugin Discovery`
-  2. `discover-simple-agent-skill.test.ts` — `Claude SimpleAgentSkill Discovery`
-  3. `discover-agent-ignore.test.ts` — `Claude AgentIgnore Discovery`
-  4. `discover-manual-prompt.test.ts` — `Claude ManualPrompt Discovery`
-  5. `discover-never-manual-prompt.test.ts` — `Claude Plugin Never Discovers ManualPrompt`
-  6. `discover-agent-skill-io.test.ts` — `AgentSkillIO Discovery`
-  7. `discover-rules.test.ts` — `Claude Rules Discovery`
-- Baseline parity: 58 discover tests, 144 package tests; monorepo `pnpm test` green at milestone boundary.
-- Docs: At plan completion, unclear whether docs still named monolith files; **M5 build** confirmed plugin-development recommended tree lists `discover-*.test.ts` / `emit-*.test.ts`.
+- Plan captured in `memory-bank/active/tasks.md` — vertical split along existing root `describe` blocks aligned with Claude emit file naming convention.
 
-## 2026-05-02 — L2 PREFLIGHT — PASS
+### 2026-05-02 — L2 PREFLIGHT — PASS
 
-- TDD ordering verified; conventions and dependency impact documented in plan.
-- Advisory: optional helper + batch extraction allowed with parity gates.
+- TDD: refactor preserves existing tests verbatim; parity gates enforced at build (emit `it` count 62, package-wide 137 unchanged).
+- Conventions aligned with Claude split pattern (`suiteTempDir`-isolated workspaces under `.temp-emit/<slug>/`).
 
-## 2026-05-02 — L2 BUILD — COMPLETE
+### 2026-05-02 — L2 BUILD — Complete
 
-- Implemented seven-way split per plan; added `test-support/discover-helpers.ts`; deleted monolith `discover.test.ts`.
-- Parity gates: 58 discover tests, 144 package tests; full monorepo `pnpm test` green.
-- Docs: plugin-development recommended structure lists `discover-*.test.ts` / `emit-*.test.ts`.
+- Added `packages/plugin-cursor/test/test-support/emit-helpers.ts`; added ten `emit-*.test.ts` files; deleted `emit.test.ts`.
+- Parity: `pnpm test` green repo-wide (`@a16njs/plugin-cursor` 137 tests).
 
-## 2026-05-02 — L2 QA — PASS
+### 2026-05-02 — L2 QA — Pending
 
-- Semantic verification against plan: parity gates recomputed (**58** / **144**), seven domain files plus `discover-helpers.ts`, monolith absent, docs tree updated, no `src/` churn.
-- Corrections shipped with QA: clarified L2 PLAN history line in `progress.md`; no product code changes triggered by QA.
+Operator: run **`/niko-qa`** to record semantic QA and `.qa-validation-status`.
 
-## 2026-05-02 — L2 REFLECT — COMPLETE
+### 2026-05-02 — L2 REFLECT — Pending
 
-- Reflection archived at `memory-bank/active/reflection/reflection-slobac-audit-remediation-m5.md`.
-- Persistent memory bank (`productContext`, `systemPatterns`, `techContext`) unchanged — split was test-structure-only.
+After QA PASS: run **`/niko-reflect`** for M6 reflections; then **`/niko`** to advance `milestones.md` (lifecycle).
