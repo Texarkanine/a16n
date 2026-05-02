@@ -134,8 +134,8 @@ a16n-plugin-example/
 │   └── emit.ts         # Emission logic
 ├── test/
 │   ├── fixtures/       # Test fixtures
-│   ├── discover.test.ts
-│   └── emit.test.ts
+│   ├── discover-*.test.ts  # discovery tests (split by domain as the suite grows)
+│   └── emit-*.test.ts      # emission tests (split by domain as the suite grows)
 ├── package.json
 ├── tsconfig.json
 └── README.md

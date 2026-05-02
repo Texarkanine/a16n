@@ -28,3 +28,9 @@ Split `packages/plugin-claude/test/discover.test.ts` (~813 lines, 7 top-level de
 
 - TDD ordering verified; conventions and dependency impact documented in plan.
 - Advisory: optional helper + batch extraction allowed with parity gates.
+
+## 2026-05-02 — L2 BUILD — COMPLETE
+
+- Implemented seven-way split per plan; added `test-support/discover-helpers.ts`; deleted monolith `discover.test.ts`.
+- Parity gates: 58 discover tests, 144 package tests; full monorepo `pnpm test` green.
+- Docs: plugin-development recommended structure lists `discover-*.test.ts` / `emit-*.test.ts`.

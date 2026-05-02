@@ -111,5 +111,5 @@ No new technology — validation not required.
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Preflight
-- [ ] Build
+- [x] Build (2026-05-02): seven `discover-*.test.ts` files + `test-support/discover-helpers.ts`; monolith removed; parity **58** / **144** `it(`; `pnpm test` green)
 - [ ] QA
