@@ -1,6 +1,6 @@
-# Progress: M6 — Split plugin-cursor emit.test.ts
+# Progress: M7 — Split plugin-cursor discover.test.ts
 
-Structural split only (SLOBAC Finding 19): ten top-level Cursor emit domains into `emit-*.test.ts` plus `test-support/emit-helpers.ts`; monolith removed. Same cross-milestone invariants as `milestones.md`.
+Structural split only (SLOBAC Finding 20): split `packages/plugin-cursor/test/discover.test.ts` (~832 lines; **four** root `describe` suites) into domain-specific test files, matching the pattern used for `plugin-claude` discover (M5) and cross-milestone invariants in `milestones.md`.
 
 **Complexity:** Level 2
 
@@ -8,31 +8,17 @@ Structural split only (SLOBAC Finding 19): ten top-level Cursor emit domains int
 
 ### 2026-05-02 — COMPLEXITY-ANALYSIS — Complete
 
-- Target: first unchecked milestone in `milestones.md` — split `packages/plugin-cursor/test/emit.test.ts` (~1776 lines).
-- Classification: Level 2 — mirrors completed `plugin-claude` M4 emit split; single package; test-only; no production API changes.
+- Target: first unchecked milestone in `milestones.md` — split `discover.test.ts` in `@a16njs/plugin-cursor`.
+- Classification: Level 2 — single-package, test-only refactor mirroring completed M5 (`plugin-claude` discover split); no production API or behavioral changes.
 
 ### 2026-05-02 — L2 PLAN — Complete
 
-- Plan captured in `memory-bank/active/tasks.md` — vertical split along existing root `describe` blocks aligned with Claude emit file naming convention.
+- Plan in `memory-bank/active/tasks.md`: four files (`discover-mdc-and-ignore`, `discover-skills`, `discover-commands`, `discover-agent-skill-io`) + `test-support/discover-helpers.ts`; parity gates 63 discover `it`, 137 package tests.
+- Advisory: `milestones.md` line still says “9 top-level describes” for Finding 20 — actual layout is **four** root `describe` blocks; optional checklist wording fix is out of scope unless the operator wants consistency.
 
 ### 2026-05-02 — L2 PREFLIGHT — PASS
 
-- TDD: refactor preserves existing tests verbatim; parity gates enforced at build (emit `it` count 62, package-wide 137 unchanged).
-- Conventions aligned with Claude split pattern (`suiteTempDir`-isolated workspaces under `.temp-emit/<slug>/`).
-
-### 2026-05-02 — L2 BUILD — Complete
-
-- Added `packages/plugin-cursor/test/test-support/emit-helpers.ts`; added ten `emit-*.test.ts` files; deleted `emit.test.ts`.
-- Parity: `pnpm test` green repo-wide (`@a16njs/plugin-cursor` 137 tests).
-
-### 2026-05-02 — L2 QA — Complete
-
-- Semantic review against `tasks.md`: KISS/DRY/YAGNI satisfied; parity gates met (62 emit `it`, 137 package tests); `emit.test.ts` removed; `emit-helpers` aligns with Claude precedent.
-- Verification: `pnpm test` green (full turbo run).
-- Recorded `memory-bank/active/.qa-validation-status` (PASS).
-
-### 2026-05-02 — L2 REFLECT — Complete
-
-- Wrote `memory-bank/active/reflection/reflection-slobac-audit-remediation-m6.md`.
-- Persistent memory bank (`productContext`, `systemPatterns`, `techContext`): no updates — task did not invalidate their content.
-- M6 sub-run ready for lifecycle handoff: operator runs **`/niko`** to check off M6 in `milestones.md` (do not hand-edit).
+- TDD encoding: baseline and per-extract `pnpm test` gates ordered before “next” cut; refactor has no production code — acceptable.
+- Conventions: matches M5/`discover-helpers` precedent and `test-support/` locality rule.
+- Completeness: all four monolith suites mapped; docsgrep step included.
+- Radical innovation (advisory): none — mirror Claude/Cursor symmetry.
