@@ -22,7 +22,7 @@ Split `packages/plugin-claude/test/discover.test.ts` (~813 lines, 7 top-level de
   6. `discover-agent-skill-io.test.ts` — `AgentSkillIO Discovery`
   7. `discover-rules.test.ts` — `Claude Rules Discovery`
 - Baseline parity: 58 discover tests, 144 package tests; monorepo `pnpm test` green at milestone boundary.
-- Docs: `packages/docs/docs/plugin-development/index.md` lists `discover.test.ts` as template (same stance as M4 for `emit.test.ts` — likely unchanged).
+- Docs: At plan completion, unclear whether docs still named monolith files; **M5 build** confirmed plugin-development recommended tree lists `discover-*.test.ts` / `emit-*.test.ts`.
 
 ## 2026-05-02 — L2 PREFLIGHT — PASS
 
@@ -34,3 +34,13 @@ Split `packages/plugin-claude/test/discover.test.ts` (~813 lines, 7 top-level de
 - Implemented seven-way split per plan; added `test-support/discover-helpers.ts`; deleted monolith `discover.test.ts`.
 - Parity gates: 58 discover tests, 144 package tests; full monorepo `pnpm test` green.
 - Docs: plugin-development recommended structure lists `discover-*.test.ts` / `emit-*.test.ts`.
+
+## 2026-05-02 — L2 QA — PASS
+
+- Semantic verification against plan: parity gates recomputed (**58** / **144**), seven domain files plus `discover-helpers.ts`, monolith absent, docs tree updated, no `src/` churn.
+- Corrections shipped with QA: clarified L2 PLAN history line in `progress.md`; no product code changes triggered by QA.
+
+## 2026-05-02 — L2 REFLECT — COMPLETE
+
+- Reflection archived at `memory-bank/active/reflection/reflection-slobac-audit-remediation-m5.md`.
+- Persistent memory bank (`productContext`, `systemPatterns`, `techContext`) unchanged — split was test-structure-only.

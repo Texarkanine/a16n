@@ -112,4 +112,12 @@ No new technology — validation not required.
 - [x] Technology validation complete
 - [x] Preflight
 - [x] Build (2026-05-02): seven `discover-*.test.ts` files + `test-support/discover-helpers.ts`; monolith removed; parity **58** / **144** `it(`; `pnpm test` green)
-- [ ] QA
+- [x] QA (2026-05-02): PASS — parity & artifact checklist; no corrective product edits
+
+## QA results (2026-05-02)
+
+- Verified seven `discover-*.test.ts` files exist; monolith absent.
+- `it(` parity: **58** across discover files, **144** across `packages/plugin-claude/test/**/*.test.ts`.
+- `discoverFixturesDir` helper matches plan; split tests contain no TODO/debug artifacts.
+- `packages/docs/docs/plugin-development/index.md` lists `discover-*.test.ts` / `emit-*.test.ts`; CONTRIBUTING has no stale `discover.test.ts` requirement.
+
