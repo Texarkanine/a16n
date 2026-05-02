@@ -4,16 +4,21 @@
 - Complexity: Level 2
 - Type: Structural test refactor (monolithic file split; no production or behavioral change)
 
-Split `packages/plugin-cursor/test/discover.test.ts` into domain-focused Vitest modules following the same pattern as M5 (`plugin-claude`): `test-support/discover-helpers.ts` with `discoverFixturesDir(importMetaUrl)` (mirror `packages/plugin-claude/test/test-support/discover-helpers.ts`), plus one file per **root-level** suite in the current monolith:
+Split `packages/plugin-cursor/test/discover.test.ts` into domain-focused Vitest modules following M5 (`plugin-claude`): `test-support/discover-helpers.ts` with `discoverFixturesDir(importMetaUrl)`, plus **one file per root-level** `describe` in the monolith (**nine** suites — matches Finding 20 / milestone wording):
 
-| New file | Source suite in monolith |
-|----------|---------------------------|
-| `discover-mdc-and-ignore.test.ts` | `describe('Cursor Plugin Discovery', ...)` — MDC rules, classification, `.cursorignore` |
+| New file | Source suite |
+|----------|----------------|
+| `discover-cursor-plugin.test.ts` | `describe('Cursor Plugin Discovery', ...)` |
+| `discover-mdc-parsing.test.ts` | `describe('MDC Parsing', ...)` |
+| `discover-file-rule.test.ts` | `describe('FileRule Discovery', ...)` |
+| `discover-simple-agent-skill-rules.test.ts` | `describe('SimpleAgentSkill Discovery', ...)` |
+| `discover-classification-priority.test.ts` | `describe('Classification Priority', ...)` |
+| `discover-agent-ignore.test.ts` | `describe('AgentIgnore Discovery', ...)` |
 | `discover-skills.test.ts` | `describe('Cursor Skills Discovery', ...)` |
 | `discover-commands.test.ts` | `describe('ManualPrompt Discovery (commands)', ...)` |
 | `discover-agent-skill-io.test.ts` | `describe('AgentSkillIO Discovery', ...)` |
 
-Then remove `discover.test.ts`. Cross-milestone invariants from `milestones.md` apply (green `pnpm test`, package-local `test-support/`, no `@a16njs/*` import changes in tests beyond path-local imports).
+Then remove `discover.test.ts`. **Parity:** **66** discover `it` cases (monolith actual; pre-plan “63” was a miscount), **137** tests in `@a16njs/plugin-cursor` unchanged.
 
 ## Test Plan (TDD)
 
@@ -21,7 +26,7 @@ Then remove `discover.test.ts`. Cross-milestone invariants from `milestones.md` 
 
 This milestone adds **no new behaviors**. Verification is **parity and regression**:
 
-- **Discover parity:** Exactly **63** `it(` cases that live in the discover suite today must remain, with bodies unchanged (moved only).
+- **Discover parity:** Exactly **66** `it(` cases in the discover modules must remain, with bodies unchanged (moved only).
 - **Package parity:** Total test count for `@a16njs/plugin-cursor` stays **137** (baseline from post-M6 monorepo state).
 - **Repo parity:** Full `pnpm test` (Turbo) remains green.
 - **Per test:** Each moved case still asserts the same outcomes for the same fixtures (e.g. `cursorPlugin.discover(root)` return shape, warning codes, `relativeDir`, command skip rules, AgentSkillIO `files` / `resources`).
@@ -37,7 +42,7 @@ This milestone adds **no new behaviors**. Verification is **parity and regressio
 - **Framework:** Vitest (package `vitest.config.ts`).
 - **Test location:** `packages/plugin-cursor/test/`.
 - **Conventions:** ESM, existing `emit-*.test.ts` / M6 layout; new `discover-*.test.ts` aligns with `packages/docs/docs/plugin-development/index.md` (“discover-\*.test.ts”).
-- **New files:** `test-support/discover-helpers.ts`, `discover-mdc-and-ignore.test.ts`, `discover-skills.test.ts`, `discover-commands.test.ts`, `discover-agent-skill-io.test.ts`.
+- **New files:** `test-support/discover-helpers.ts` plus the nine `discover-*.test.ts` modules listed above.
 - **Removed:** `discover.test.ts`.
 
 ### TDD ordering note (refactor)
@@ -47,7 +52,7 @@ There is **no new production code**. The required order is: **establish baseline
 ## Implementation Plan
 
 1. **Baseline gate**
-   - **Action:** From repo root, run `pnpm test` (or package-scoped equivalent) and record green. Count discover `it` in `discover.test.ts` (expect **63**) and total `it` in `packages/plugin-cursor/test/**/*.ts` (expect **137**).
+   - **Action:** From repo root, run `pnpm test` (or package-scoped equivalent) and record green. Count discover `it` in `discover.test.ts` (expect **66**) and total `it` in `packages/plugin-cursor/test/**/*.ts` (expect **137**).
    - **Files:** none changed.
    - **Verify:** Suite green; counts recorded for comparison after split.
 
@@ -59,7 +64,7 @@ There is **no new production code**. The required order is: **establish baseline
 3. **Extract `discover-mdc-and-ignore.test.ts`**
    - **Files:** `discover-mdc-and-ignore.test.ts` (new); `discover.test.ts` (shrink — remove the `Cursor Plugin Discovery` block only).
    - **Changes:** New file: standard imports (`vitest`, `path`, plugin, models types as today), `const fixturesDir = discoverFixturesDir(import.meta.url)`, paste **entire** `describe('Cursor Plugin Discovery', ...)` including inner `describe`s and loose `it(...)` siblings. Remove `const __dirname` / `fixturesDir` pattern from the cut code; use shared `fixturesDir`.
-   - **Verify:** `pnpm test` green; discover `it` sum across `discover.test.ts` + new file still **63**; package total still **137**.
+   - **Verify:** `pnpm test` green; discover `it` sum across `discover.test.ts` + new file still **66**; package total still **137**.
 
 4. **Extract `discover-skills.test.ts`**
    - **Files:** `discover-skills.test.ts` (new); `discover.test.ts` (remove `Cursor Skills Discovery` block).
@@ -71,10 +76,8 @@ There is **no new production code**. The required order is: **establish baseline
    - **Changes:** Same pattern.
    - **Verify:** Same parity checks.
 
-6. **Extract `discover-agent-skill-io.test.ts`**
-   - **Files:** `discover-agent-skill-io.test.ts` (new); delete `discover.test.ts` (must be empty or deleted after cut).
-   - **Changes:** Same pattern.
-   - **Verify:** Discover `it` total **63** across four new files; package **137**; `pnpm test` green repo-wide.
+6. **Extract remaining suites** (`discover-mdc-parsing`, `discover-file-rule`, `discover-simple-agent-skill-rules`, `discover-classification-priority`, `discover-agent-ignore`, `discover-agent-skill-io`) **or** one atomic commit moving all nine suites — same helper/import pattern.
+   - **Verify:** Discover `it` total **66** across nine new files; package **137**; `pnpm test` green repo-wide; delete `discover.test.ts`.
 
 7. **Docs / references**
    - **Files:** Grep for `discover.test.ts` under `packages/`; update any stale references (unlikely — M6 emit split precedent). `plugin-development` doc already prescribes `discover-*.test.ts` — **no change unless** a path literal names the monolith.
@@ -101,5 +104,5 @@ No new technology — validation not required.
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Preflight
-- [ ] Build
+- [x] Build
 - [ ] QA

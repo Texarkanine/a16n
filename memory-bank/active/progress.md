@@ -22,3 +22,9 @@ Structural split only (SLOBAC Finding 20): split `packages/plugin-cursor/test/di
 - Conventions: matches M5/`discover-helpers` precedent and `test-support/` locality rule.
 - Completeness: all four monolith suites mapped; docsgrep step included.
 - Radical innovation (advisory): none — mirror Claude/Cursor symmetry.
+
+### 2026-05-02 — L2 BUILD — Complete
+
+- Added `packages/plugin-cursor/test/test-support/discover-helpers.ts`; split monolith into **nine** `discover-*.test.ts` files (one per root `describe`); removed `discover.test.ts`.
+- Parity: **66** discover tests, **137** package tests; root `pnpm test` (Turbo) green.
+- **Deviation from preflight plan text:** Initial planning miscounted the monolith as four suites; implementation follows the actual **nine** root `describe` blocks aligned with the milestone (“9 top-level describes”).
