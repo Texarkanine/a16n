@@ -78,5 +78,5 @@ No new technology — validation not required.
 - [x] Technology validation complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA (2026-05-02 — semantic review PASS; see `.qa-validation-status`)
 - [ ] Reflect
