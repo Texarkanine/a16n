@@ -79,4 +79,4 @@ No new technology — validation not required.
 - [x] Preflight
 - [x] Build
 - [x] QA (2026-05-02 — semantic review PASS; see `.qa-validation-status`)
-- [ ] Reflect
+- [x] Reflect (2026-05-02 — `reflection-slobac-audit-remediation-m6.md`)
