@@ -54,6 +54,14 @@ The skill's **invocation name** is always the immediate parent directory name of
 
 The system fails fast on invalid input (bad syntax, missing required fields) but warns and continues on capability gaps. Every skipped or approximated item produces a warning. Warnings are aggregated and reported at the end, not inline. See `WarningCode` in `@a16njs/models` for the canonical set.
 
+## Test File Organization
+
+**Plugin packages** use a flat `test/` layout: one `discover-<domain>.test.ts` and one `emit-<domain>.test.ts` per top-level behavior concern. One file per root `describe` block — no multi-domain monoliths. Shared helpers live in `test/test-support/` (package-local; no cross-package test imports).
+
+**The CLI package** uses a tiered layout: `test/e2e/` for subprocess specs (via `test-support/cli-runner.ts`), `test/integration/` for fixture-based engine tests, and unit tests that shadow `src/` directly under `test/` (`test/commands/`, `test/git-ignore.test.ts`, etc.).
+
+All FS-touching test suites use `fs.mkdtemp()` per `describe` (CLI e2e) or `suiteTempDir(importMetaUrl, slug)` per suite (integration + emit) to prevent cross-test filesystem races under Vitest's default file-parallel scheduling.
+
 ## Fixture-Based Integration Testing
 
 Integration tests use fixture directories: `test/integration/fixtures/<tool>-<feature>/from-<tool>/` with expected output in `expected-<tool>/`. This convention is consistent across all packages.
