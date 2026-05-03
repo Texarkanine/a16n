@@ -28,3 +28,14 @@ Structural split only (SLOBAC Finding 20): split `packages/plugin-cursor/test/di
 - Added `packages/plugin-cursor/test/test-support/discover-helpers.ts`; split monolith into **nine** `discover-*.test.ts` files (one per root `describe`); removed `discover.test.ts`.
 - Parity: **66** discover tests, **137** package tests; root `pnpm test` (Turbo) green.
 - **Deviation from preflight plan text:** Initial planning miscounted the monolith as four suites; implementation follows the actual **nine** root `describe` blocks aligned with the milestone (“9 top-level describes”).
+
+### 2026-05-02 — L2 QA — PASS
+
+- Reviewed all nine `discover-*.test.ts` modules and `test-support/discover-helpers.ts` against the plan.
+- **KISS/DRY:** `discoverFixturesDir` helper is single-purpose; no duplicated logic across files. Pattern matches `plugin-claude` exactly.
+- **YAGNI:** No speculative code; every import used; no dead parameters.
+- **Completeness:** All 66 `it` cases present across nine files (exact match to monolith count); helper correctly resolves fixtures relative to each file's `import.meta.url`.
+- **Regression:** No stale `discover.test.ts` references in `packages/plugin-cursor/`; cli-runner reference is to a different `commands/discover.test.ts` (CLI package, unaffected).
+- **Integrity:** No debug artifacts (`console.log`, TODOs, magic values) found.
+- **Documentation:** Plan noted no docs changes needed; plugin-development doc already prescribes `discover-*.test.ts` pattern — confirmed no updates required.
+- Final parity run: `@a16njs/plugin-cursor` 137/137 tests green.
