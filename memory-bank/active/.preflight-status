@@ -1,7 +1,7 @@
 PASS
-task: slobac-audit-remediation-m6 (M6 split plugin-cursor emit.test.ts)
+task: slobac-audit-remediation-m7 (M7 split plugin-cursor discover.test.ts)
 date: 2026-05-02
-phase: L2 preflight
+phase: L2 PREFLIGHT
 
-Summary: Test-only vertical split mirrors plugin-claude M4 pattern; suiteTempDir avoids
-parallel tmp collisions; no src/ churn; parity gates documented in tasks.md.
+Summary: Plan encodes baseline-then-move TDD for refactor; four root suites mapped to discover-*.test.ts;
+discover-helpers mirrors plugin-claude; parity gates 63 discover it / 137 package tests. No blocking issues.

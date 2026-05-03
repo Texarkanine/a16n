@@ -1,17 +1,14 @@
 # Active Context
 
-## Current Task: SLOBAC Audit Remediation — M6 (Split plugin-cursor emit.test.ts)
+## Current Task: SLOBAC Audit Remediation — M7 (Split plugin-cursor discover.test.ts)
 
-**Phase:** L2 REFLECT — COMPLETE (M6 sub-run done; await `/niko` lifecycle)
+**Phase:** L2 BUILD — COMPLETE (ready for `/niko-qa`)
 
 ## What Was Done
 
-- **Classify:** M6 classified Level 2; memory bank rewound from completed M5 per `/niko` Step 2a.
-- **Build:** Split `emit.test.ts` into ten domain files (`emit-global-prompt` through `emit-filename-case`) plus `test-support/emit-helpers.ts` (`suiteTempDir`).
-- **Verification:** Monorepo `pnpm test` green; plugin-cursor 137 tests (emit suite 62 `it` parity).
-- **QA:** Semantic review PASS; recorded `memory-bank/active/.qa-validation-status`.
-- **Reflect:** `memory-bank/active/reflection/reflection-slobac-audit-remediation-m6.md`; persistent bank unchanged (reconcile scan).
+- **Build:** Nine `discover-*.test.ts` modules + `test-support/discover-helpers.ts`; deleted `discover.test.ts`. Paths: `packages/plugin-cursor/test/discover-cursor-plugin.test.ts`, `discover-mdc-parsing.test.ts`, `discover-file-rule.test.ts`, `discover-simple-agent-skill-rules.test.ts`, `discover-classification-priority.test.ts`, `discover-agent-ignore.test.ts`, `discover-skills.test.ts`, `discover-commands.test.ts`, `discover-agent-skill-io.test.ts`, `test-support/discover-helpers.ts`.
+- **Verification:** `pnpm test` at repo root green; `@a16njs/plugin-cursor` 137 tests (66 discover + 71 other).
 
 ## Next Step
 
-Run **`/niko`** so Step 2a can mark M6 complete in `milestones.md` and route to M7 or capstone per L4 rules. Do not hand-edit `milestones.md`.
+QA PASSED and Reflect COMPLETE. Run **`/niko`** to continue to the next milestone (check off M7 in `milestones.md` and start M8).
