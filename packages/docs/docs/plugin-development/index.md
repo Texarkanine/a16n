@@ -163,6 +163,73 @@ Your `package.json` must:
 }
 ```
 
+## Testing Your Plugin
+
+### File Organization
+
+Use one test file per behavior domain. Grow the suite as vertical slices, not as rows in a monolith:
+
+```
+test/
+├── fixtures/                   # Shared fixture directories
+├── test-support/
+│   ├── emit-helpers.ts         # suiteTempDir() — per-suite temp isolation for emit tests
+│   └── discover-helpers.ts     # discoverFixturesDir() — fixture path resolution
+├── discover-cursor-plugin.test.ts
+├── discover-mdc-parsing.test.ts
+├── emit-global-prompt.test.ts
+└── emit-file-rule.test.ts
+```
+
+Each `discover-*.test.ts` covers one top-level discovery concern; each `emit-*.test.ts` covers one top-level emission concern. One file per root `describe` block — do not let a single file accumulate multiple unrelated domains.
+
+### Per-Suite Temp Directory Isolation (emit tests)
+
+Vitest runs test files in parallel by default. Emit tests write to disk, so each suite must use a unique temp root. The recommended pattern:
+
+```typescript
+// test/test-support/emit-helpers.ts
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs';
+
+export function suiteTempDir(importMetaUrl: string, slug: string): string {
+  const dir = path.join(
+    path.dirname(fileURLToPath(importMetaUrl)),
+    '.temp-emit',
+    slug
+  );
+  return dir;
+}
+
+// In each emit-*.test.ts:
+import { suiteTempDir } from './test-support/emit-helpers.js';
+
+const tempDir = suiteTempDir(import.meta.url, 'my-domain');
+
+beforeEach(async () => { await fs.promises.mkdir(tempDir, { recursive: true }); });
+afterEach(async () => { await fs.promises.rm(tempDir, { recursive: true, force: true }); });
+```
+
+### Fixture Path Resolution (discover tests)
+
+Discovery tests are read-only. Resolve fixtures relative to the test file so they work correctly regardless of Vitest's working directory:
+
+```typescript
+// test/test-support/discover-helpers.ts
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+export function discoverFixturesDir(importMetaUrl: string): string {
+  return path.join(path.dirname(fileURLToPath(importMetaUrl)), '..', 'fixtures');
+}
+
+// In each discover-*.test.ts:
+import { discoverFixturesDir } from './test-support/discover-helpers.js';
+
+const fixturesDir = discoverFixturesDir(import.meta.url);
+```
+
 ## Learning from Existing Plugins
 
 The best way to understand plugin development is to study the existing implementations:

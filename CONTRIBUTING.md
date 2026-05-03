@@ -54,7 +54,31 @@ pnpm exec vitest run test/cli.test.ts -t "handles dotfiles"  # single test by na
 
 > **Note:** `npx vitest run packages/<package>/test/<file>.test.ts` from the monorepo root works for all packages. For the most reliable experience (correct per-package timeout config, guaranteed binary resolution), prefer `pnpm exec vitest` from within the package directory or the `pnpm --filter` pattern above.
 
-Tests use Vitest with fixture-based integration tests. See `test/` directories in each package.
+Tests use Vitest. Each package has its own `test/` directory; the layout depends on what the package does.
+
+**Plugin packages** (`plugin-cursor`, `plugin-claude`, `plugin-a16n`) use a flat `test/` layout with one file per behavior domain:
+
+```
+test/
+├── fixtures/                   # Static fixture directories for discovery/emission tests
+├── test-support/               # Shared helpers (suiteTempDir, discoverFixturesDir)
+├── discover-<domain>.test.ts   # One file per top-level discovery concern
+└── emit-<domain>.test.ts       # One file per top-level emission concern
+```
+
+Emit tests use a per-suite temp directory (`suiteTempDir(import.meta.url, slug)`) so parallel Vitest execution doesn't cause filesystem races. Discover tests resolve fixtures via `discoverFixturesDir(import.meta.url)` for portability. See the [Plugin Development Guide](https://texarkanine.github.io/a16n/plugin-development) for helper patterns.
+
+**The CLI package** (`cli`) uses a tiered `test/` layout:
+
+```
+test/
+├── e2e/                # Subprocess tests — invoke the compiled CLI binary
+├── integration/        # Fixture-based engine tests — exercise the engine via fixtures
+├── commands/           # Unit tests — mirror src/commands/ one-to-one
+└── *.test.ts           # Unit tests — mirror top-level src/ files one-to-one
+```
+
+Unit tests shadow the `src/` directory structure directly under `test/` (no `test/unit/` prefix). All FS-touching tests use `fs.mkdtemp()` per `describe` block (or `suiteTempDir` per suite) to prevent cross-test filesystem interference.
 
 ## Pull Request Expectations
 
