@@ -11,4 +11,4 @@
 
 ## Next Step
 
-Run **`/niko-qa`** for L2 semantic review, then **`/niko-reflect`**, then **`/niko`** for Step 2a (check off M7 in `milestones.md`).
+QA PASSED and Reflect COMPLETE. Run **`/niko`** to continue to the next milestone (check off M7 in `milestones.md` and start M8).
