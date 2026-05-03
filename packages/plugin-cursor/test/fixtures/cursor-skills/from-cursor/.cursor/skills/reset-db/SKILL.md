@@ -1,5 +1,5 @@
 ---
-name: reset-db
+name: Database Reset
 description: Invoke with /reset-db to reset the database
 disable-model-invocation: true
 ---

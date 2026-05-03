@@ -45,13 +45,17 @@ describe('Cursor Skills Discovery', () => {
       expect(manualPrompts[0]?.sourcePath).toBe('.cursor/skills/reset-db/SKILL.md');
     });
 
-    it('should derive promptName from skill name in frontmatter', async () => {
+    it('should derive promptName from directory name, not frontmatter name', async () => {
+      // Directory is 'reset-db'; frontmatter name is 'Database Reset' — they diverge
+      // to prove promptName comes from the directory, not the frontmatter field.
+      // Frontmatter name is preserved in metadata.name for display purposes.
       const root = path.join(fixturesDir, 'cursor-skills/from-cursor');
       const result = await cursorPlugin.discover(root);
 
       const prompt = result.items.find(i => i.type === CustomizationType.ManualPrompt) as ManualPrompt;
       expect(prompt).toBeDefined();
       expect(prompt.promptName).toBe('reset-db');
+      expect(prompt.metadata?.name).toBe('Database Reset');
     });
   });
 
