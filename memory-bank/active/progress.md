@@ -32,5 +32,6 @@ Migrate Cursor plugin emission from deprecated Commands to Agent Skills (disable
     - Cursor discover already supports disable-model-invocation Skills → ManualPrompt, making the emit change symmetric on the Skill side
     - Existing complex-command skipping logic in discover remains valuable
 * Next
-    - Commit plan state
-    - Run `/niko-preflight` (L3 gate before build)
+    - Preflight completed autonomously: ✅ PASS (with 1 non-blocking advisory on future shared formatter)
+    - .preflight-status written
+    - Ready for operator to invoke `/niko-build` to enter Build phase

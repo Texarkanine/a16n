@@ -83,7 +83,6 @@
 No new dependencies or tools. Validation not required.
 
 ## Next Actions After Plan Complete
-- Commit plan.
-- Invoke `/niko-preflight` (L3 gate).
-- On PASS: `/niko-build` for implementation.
-- QA → Reflect → Archive.
+- ✅ Preflight completed: PASS (advisory only - future shared helper opportunity noted but deferred).
+- Operator: run `/niko-build` to begin implementation (TDD: stub tests first).
+- Then QA → Reflect → Archive per L3 workflow.
