@@ -1,0 +1,1 @@
+# Tasks: Cursor Commands deprecation migration (plugin-cursor)
