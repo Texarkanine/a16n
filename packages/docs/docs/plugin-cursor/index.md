@@ -45,7 +45,7 @@ npm install @a16njs/plugin-cursor
 * [SimpleAgentSkill](/models#simpleagentskill): Cursor Skill
 * [AgentSkillIO](/models#agentskillio): Cursor Skill directory (SKILL.md **and** all ride-along files under `scripts/`, `references/`, `assets/`, etc.)
 * [AgentIgnore](/models#agentignore): `.cursorignore` entry
-* [ManualPrompt](/models#manualprompt): Cursor Command
+* [ManualPrompt](/models#manualprompt): Cursor Agent Skill (`.cursor/skills/<name>/SKILL.md` with `disable-model-invocation: true`; legacy Commands discovery supported but non-roundtrip)
 
 ---
 

@@ -92,8 +92,8 @@ describe('Cursor Skills Emission', () => {
     });
   });
 
-  describe('ManualPrompt emission to .cursor/commands/', () => {
-    it('should emit ManualPrompt to .cursor/commands/<name>.md', async () => {
+  describe('ManualPrompt emission to .cursor/skills/ (as disable Skill)', () => {
+    it('should emit ManualPrompt to .cursor/skills/<name>/SKILL.md with frontmatter', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.claude/skills/review/SKILL.md'),
@@ -110,12 +110,13 @@ describe('Cursor Skills Emission', () => {
       expect(result.written).toHaveLength(1);
       expect(result.written[0]?.type).toBe(CustomizationType.ManualPrompt);
 
-      const commandPath = path.join(tempDir, '.cursor', 'commands', 'review.md');
-      const content = await fs.readFile(commandPath, 'utf-8');
-      expect(content).toBe('Review this code.');
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('disable-model-invocation: true');
+      expect(content).toContain('Review this code.');
     });
 
-    it('should write ManualPrompt content directly without frontmatter', async () => {
+    it('should write ManualPrompt as Skill with frontmatter (not plain content)', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/deploy.md'),
@@ -129,12 +130,11 @@ describe('Cursor Skills Emission', () => {
 
       await cursorPlugin.emit(models, tempDir);
 
-      const commandPath = path.join(tempDir, '.cursor', 'commands', 'deploy.md');
-      const content = await fs.readFile(commandPath, 'utf-8');
-      expect(content).not.toContain('---');
-      expect(content).not.toContain('name:');
-      expect(content).not.toContain('disable-model-invocation');
-      expect(content).toBe('Deploy instructions');
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'deploy', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('---');
+      expect(content).toContain('disable-model-invocation: true');
+      expect(content).toContain('Deploy instructions');
     });
   });
 
@@ -164,18 +164,18 @@ describe('Cursor Skills Emission', () => {
 
       expect(result.written).toHaveLength(2);
 
-      // Skill goes to .cursor/skills/, command goes to .cursor/commands/ — no collision
+      // Both now emit to .cursor/skills/ namespace; collision de-dupes the ManualPrompt
       const skillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
       const skillContent = await fs.readFile(skillPath, 'utf-8');
       expect(skillContent).toContain('Skill content');
 
-      const commandPath = path.join(tempDir, '.cursor', 'commands', 'review.md');
-      const commandContent = await fs.readFile(commandPath, 'utf-8');
-      expect(commandContent).toBe('Prompt content');
+      const manualPath = path.join(tempDir, '.cursor', 'skills', 'review-1', 'SKILL.md');
+      const manualContent = await fs.readFile(manualPath, 'utf-8');
+      expect(manualContent).toContain('Prompt content');
 
-      // No collision warning (they're in different namespaces)
+      // Collision warning emitted (unified skill namespace post-migration)
       const collisionWarnings = result.warnings.filter(w => w.message.includes('collision'));
-      expect(collisionWarnings).toHaveLength(0);
+      expect(collisionWarnings).toHaveLength(1);
     });
   });
 });

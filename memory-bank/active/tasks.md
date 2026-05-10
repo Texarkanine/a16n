@@ -84,5 +84,10 @@ No new dependencies or tools. Validation not required.
 
 ## Next Actions After Plan Complete
 - ✅ Preflight completed: PASS (advisory only - future shared helper opportunity noted but deferred).
-- Operator: run `/niko-build` to begin implementation (TDD: stub tests first).
-- Then QA → Reflect → Archive per L3 workflow.
+- ✅ Build completed: TDD followed (tests stubbed/updated first → failing run → impl → 137/137 pass, lint/build clean).
+- Operator: invoke `/niko-qa` next.
+
+## Build Phase Summary
+- Implementation steps completed per ordered plan.
+- Modified: `emit.ts`, `discover.ts`, test files, CHANGELOG, docs.
+- All invariants and behaviors preserved/adapted.

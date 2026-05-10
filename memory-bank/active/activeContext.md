@@ -1,18 +1,16 @@
 **Current Task:** Cursor Commands deprecation migration (plugin-cursor emit change)
 
-**Phase:** PLAN - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 **What Was Done:**
-- Validated user intent via clarification step.
-- Classified task complexity using decision tree: Level 3 (Intermediate Feature).
-  - Rationale: Enhancement involving multiple components (emit logic + tests + fixtures) in the Cursor plugin; moderate scope/risk; requires design alignment with Claude plugin's ManualPrompt handling and explicit non-roundtrip documentation. Not self-contained, affects test infrastructure.
-- Executed full L3 Plan phase:
-  - Component analysis (emit.ts primary, discover.ts comment-only, tests, docs).
-  - Identified and resolved open questions (high confidence; no creative needed).
-  - TDD test planning (behaviors mapped to specific test files/cases).
-  - Produced ordered implementation plan with strict TDD sequencing (stub tests → run failing → implement → verify).
-  - Documented challenges, mitigations, invariants, and asymmetry note.
-- Populated detailed tasks.md with plan.
-- Confirmed alignment with systemPatterns.md (intentional asymmetries, test org, etc.).
+- Completed full TDD Build phase per plan and L3 workflow:
+  - Stubbed/modified tests first (emit-manual-prompt.test.ts + 2 others for new Skill expectations + migration comment).
+  - Ran failing tests (confirmed).
+  - Implemented `formatManualPromptAsSkill` + replaced ManualPrompt emit logic in `emit.ts` (now emits to `.cursor/skills/.../SKILL.md` with disable frontmatter; reused collision/sanitize/relativeDir).
+  - Added non-roundtrip comment to `discover.ts`.
+  - Fixed cross-test expectations; full suite 137/137 passed.
+  - Updated CHANGELOG + docs; build/lint clean.
+- No deviations from plan; advisory on shared helper noted for future.
+- All per always-tdd, test practices, and Niko rules.
 
-**Next Step:** Update progress.md, commit, then invoke `/niko-preflight` to gate the build.
+**Next Step:** Update progress.md, commit, then invoke `/niko-qa` for semantic QA review.

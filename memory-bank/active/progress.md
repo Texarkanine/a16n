@@ -35,3 +35,17 @@ Migrate Cursor plugin emission from deprecated Commands to Agent Skills (disable
     - Preflight completed autonomously: ✅ PASS (with 1 non-blocking advisory on future shared formatter)
     - .preflight-status written
     - Ready for operator to invoke `/niko-build` to enter Build phase
+
+## 2026-05-10 - BUILD - COMPLETE
+
+* Work completed
+    - Executed full TDD Build: stubbed tests first (updated 3 test files + added migration comments), ran to fail, implemented emit change + helper in emit.ts (Skill format + dir logic), comment in discover.ts, fixed additional test expectations, verified 137/137 tests pass, build clean.
+    - Updated tasks.md/activeContext.md with Build summary; CHANGELOG + docs updated.
+* Decisions made
+    - Adapted relativeDir to skills/<category>/<skill>/SKILL.md structure to preserve test expectations and semantics.
+    - Unified collision tracking via usedSkillNames for ManualPrompt + SimpleAgentSkill.
+* Insights
+    - Existing AgentSkillIO simple-case logic was reusable reference; collision now applies across former separate namespaces.
+    - TDD caught the missed test files early via full suite run.
+* Next
+    - Ready for `/niko-qa` (semantic review) → Reflect → Archive.

@@ -18,6 +18,7 @@ import {
   isAgentSkillIO,
   isAgentIgnore,
   isManualPrompt,
+  type ManualPrompt,
   resolveRoot,
 } from '@a16njs/models';
 
@@ -151,6 +152,33 @@ description: ${safeDescription}
 ---
 
 ${skill.content}
+`;
+}
+
+/**
+ * Format a ManualPrompt as a Cursor Agent Skill (disable-model-invocation).
+ *
+ * Emits to .cursor/skills/<sanitized-promptName>/SKILL.md with YAML frontmatter
+ * including name, description ("Invoke with /<name>"), and disable-model-invocation: true.
+ * Matches the Claude Code reference implementation for consistency.
+ *
+ * This is a stub during TDD Preparation phase — implementation body added in Build.
+ *
+ * @param prompt - The ManualPrompt to format
+ * @returns Formatted SKILL.md content with frontmatter
+ */
+function formatManualPromptAsSkill(prompt: ManualPrompt): string {
+  const safeName = JSON.stringify(prompt.promptName);
+  const description = `Invoke with /${prompt.promptName}`;
+  const safeDescription = JSON.stringify(description);
+
+  return `---
+name: ${safeName}
+description: ${safeDescription}
+disable-model-invocation: true
+---
+
+${prompt.content}
 `;
 }
 
@@ -684,42 +712,45 @@ export async function emit(
     }
   }
 
-  // === Emit ManualPrompts as .cursor/commands/*.md ===
-  const commandsDir = path.join(root, '.cursor', 'commands');
-  const usedCommandNames = new Set<string>();
+  // === Emit ManualPrompts as .cursor/skills/<name>/SKILL.md (disable-model-invocation) ===
+  // Commands are discovered for legacy support but do not round-trip.
+  // Emitted form is now a disable-model-invocation Agent Skill (see discover.ts).
+  const usedSkillNamesForManual = usedSkillNames; // reuse existing set for unified collision across skills
   for (const prompt of manualPrompts) {
     const baseName = sanitizePromptName(prompt.promptName);
-    const commandFileName = baseName + '.md';
 
+    let dirName = baseName;
+    if (usedSkillNamesForManual.has(dirName)) {
+      if (prompt.sourcePath) collisionSources.push(prompt.sourcePath);
+      let counter = 1;
+      while (usedSkillNamesForManual.has(`${baseName}-${counter}`)) {
+        counter++;
+      }
+      dirName = `${baseName}-${counter}`;
+    }
+    usedSkillNamesForManual.add(dirName);
+
+    const skillsRoot = path.join(root, '.cursor', 'skills');
     const targetDir = prompt.relativeDir
-      ? path.join(commandsDir, prompt.relativeDir)
-      : commandsDir;
+      ? path.join(skillsRoot, prompt.relativeDir, dirName)
+      : path.join(skillsRoot, dirName);
     const resolvedTarget = path.resolve(targetDir);
-    const resolvedCommands = path.resolve(commandsDir);
-    if (prompt.relativeDir && resolvedTarget !== resolvedCommands && !resolvedTarget.startsWith(resolvedCommands + path.sep)) {
+    const resolvedSkillsRoot = path.resolve(skillsRoot);
+    if (prompt.relativeDir && resolvedTarget !== resolvedSkillsRoot && !resolvedTarget.startsWith(resolvedSkillsRoot + path.sep)) {
       warnings.push({
         code: WarningCode.Skipped,
-        message: `Skipped command with unsafe relativeDir: ${prompt.relativeDir}`,
+        message: `Skipped ManualPrompt with unsafe relativeDir: ${prompt.relativeDir}`,
         sources: prompt.sourcePath ? [prompt.sourcePath] : [],
       });
       continue;
-    }
-
-    const normalizedDir = prompt.relativeDir
-      ? path.relative(resolvedCommands, resolvedTarget)
-      : undefined;
-    const qualifiedName = normalizedDir ? `${normalizedDir}/${commandFileName}` : commandFileName;
-    const { filename, collision } = getUniqueCommandFilename(qualifiedName, usedCommandNames);
-    const finalFileName = normalizedDir ? path.basename(filename) : filename;
-    if (collision) {
-      if (prompt.sourcePath) collisionSources.push(prompt.sourcePath);
     }
 
     if (!dryRun) {
       await fs.mkdir(targetDir, { recursive: true });
     }
 
-    const filepath = path.join(targetDir, finalFileName);
+    const filepath = path.join(targetDir, 'SKILL.md');
+    const content = formatManualPromptAsSkill(prompt);
 
     let isNewFile = true;
     try {
@@ -730,7 +761,7 @@ export async function emit(
     }
 
     if (!dryRun) {
-      await fs.writeFile(filepath, prompt.content, 'utf-8');
+      await fs.writeFile(filepath, content, 'utf-8');
     }
 
     written.push({

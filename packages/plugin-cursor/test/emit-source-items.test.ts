@@ -155,7 +155,7 @@ describe('Cursor Plugin - sourceItems tracking', () => {
     expect(written?.sourceItems).toHaveLength(1);
     expect(written?.sourceItems?.[0]).toBe(command);
 
-    // Verify it's written to .cursor/commands/, not .cursor/skills/
-    expect(written?.path).toBe(path.join(tempDir, '.cursor', 'commands', 'build.md'));
+    // Verify it's written to .cursor/skills/<name>/SKILL.md (post Commands deprecation)
+    expect(written?.path).toBe(path.join(tempDir, '.cursor', 'skills', 'build', 'SKILL.md'));
   });
 });
