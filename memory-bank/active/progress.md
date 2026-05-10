@@ -49,3 +49,29 @@ Migrate Cursor plugin emission from deprecated Commands to Agent Skills (disable
     - TDD caught the missed test files early via full suite run.
 * Next
     - Ready for `/niko-qa` (semantic review) → Reflect → Archive.
+
+## 2026-05-10 - QA - COMPLETE
+
+* Work completed
+    - Performed semantic QA review per niko-qa skill: verified against projectbrief + plan in tasks.md
+    - Inspected emit.ts / discover.ts / CHANGELOG / docs for completeness, KISS/DRY/YAGNI, pattern fidelity
+    - Fixed 2 trivial issues (dead code removal, outdated comment); re-verified no lints
+    - Confirmed all plan items shipped, no regressions in architecture
+* Decisions made
+    - Dead command-filename helper was build debris; safe to excise as no callers and tests pass
+* Insights
+    - Existing reuse of usedSkillNames across ManualPrompt + SimpleAgentSkill was clean extension of prior logic
+* Next
+    - Proceed to `/niko-reflect` per L3 workflow
+
+## 2026-05-10 - REFLECT - COMPLETE
+
+* Work completed
+    - Executed full Level 3 Reflect phase per level3-reflect.md: loaded all memory bank files, verified .qa-validation-status=PASS, reviewed full lifecycle (requirements/outcome match, plan accuracy, no creative phase, smooth build/QA), extracted insights, created reflection document, reconciled (no persistent updates), updated activeContext/progress.
+* Decisions made
+    - Task ID slug: "cursor-commands-deprecation-migration" for reflection file.
+    - No updates to productContext/systemPatterns/techContext (change too narrow to invalidate system-level facts).
+* Insights
+    - TDD + Niko phases prevented any substantive issues; unified collision logic proved extensible.
+* Next
+    - Run /niko-archive to create archive and finalize standalone task.

@@ -162,8 +162,6 @@ ${skill.content}
  * including name, description ("Invoke with /<name>"), and disable-model-invocation: true.
  * Matches the Claude Code reference implementation for consistency.
  *
- * This is a stub during TDD Preparation phase — implementation body added in Build.
- *
  * @param prompt - The ManualPrompt to format
  * @returns Formatted SKILL.md content with frontmatter
  */
@@ -180,30 +178,6 @@ disable-model-invocation: true
 
 ${prompt.content}
 `;
-}
-
-/**
- * Generate a unique command filename by appending a counter if needed.
- * Returns the unique filename and whether a collision occurred.
- */
-function getUniqueCommandFilename(
-  baseName: string,
-  usedNames: Set<string>
-): { filename: string; collision: boolean } {
-  if (!usedNames.has(baseName)) {
-    usedNames.add(baseName);
-    return { filename: baseName, collision: false };
-  }
-
-  const stem = baseName.replace(/\.md$/, '');
-  let counter = 1;
-  let uniqueName = `${stem}-${counter}.md`;
-  while (usedNames.has(uniqueName)) {
-    counter++;
-    uniqueName = `${stem}-${counter}.md`;
-  }
-  usedNames.add(uniqueName);
-  return { filename: uniqueName, collision: true };
 }
 
 /**

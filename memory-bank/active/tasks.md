@@ -91,3 +91,9 @@ No new dependencies or tools. Validation not required.
 - Implementation steps completed per ordered plan.
 - Modified: `emit.ts`, `discover.ts`, test files, CHANGELOG, docs.
 - All invariants and behaviors preserved/adapted.
+
+## QA Phase - COMPLETE
+- Semantic review against plan: all requirements implemented (Skill emission for ManualPrompt, non-roundtrip doc, tests, docs/CHANGELOG).
+- Trivial fixes applied: removed dead `getUniqueCommandFilename` (YAGNI cleanup), cleaned outdated TDD-stub comment.
+- No over-engineering, no incomplete stubs, patterns preserved (collision reuse, relativeDir, warn-and-continue).
+- PASS: ready for Reflect phase.
