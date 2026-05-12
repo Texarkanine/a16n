@@ -1,21 +1,12 @@
-**Current Task:** Cursor Commands deprecation migration (plugin-cursor emit change)
+**Current Task:** Cursor Commands deprecation migration — SLOBAC rework (plugin-cursor test quality)
 
-**Phase:** REFLECT - COMPLETE
+**Phase:** PLAN - IN-PROGRESS
 
 **What Was Done:**
-- Completed full TDD Build phase per plan and L3 workflow:
-  - Stubbed/modified tests first (emit-manual-prompt.test.ts + 2 others for new Skill expectations + migration comment).
-  - Ran failing tests (confirmed).
-  - Implemented `formatManualPromptAsSkill` + replaced ManualPrompt emit logic in `emit.ts` (now emits to `.cursor/skills/.../SKILL.md` with disable frontmatter; reused collision/sanitize/relativeDir).
-  - Added non-roundtrip comment to `discover.ts`.
-  - Fixed cross-test expectations; full suite 137/137 passed.
-  - Updated CHANGELOG + docs; build/lint clean.
-- No deviations from plan; advisory on shared helper noted for future.
-- All per always-tdd, test practices, and Niko rules.
+- Original task (Commands → Skills migration) completed full L3 lifecycle (Plan → Preflight → Build → QA → Reflect).
+- SLOBAC audit (`slobac-audit.md`) identified 10 findings across the plugin-cursor test suite: 3× conditional-logic, 3× vacuous-assertion, 4× semantic-redundancy.
+- Several findings (9, 10) are directly caused by the migration's ManualPrompt tests duplicated in emit-skills.test.ts.
+- Other findings (1-3, 7-8) predate the migration but affect the same test domain.
 
-**What Was Done (Reflect):**
-- Performed full Level 3 reflection: reviewed lifecycle against projectbrief + plan, verified QA PASS prerequisite, created reflection-cursor-commands-deprecation-migration.md with cross-phase analysis and insights.
-- Confirmed no persistent memory bank updates needed (narrow emit change, no system-level factual invalidation).
-- Updated activeContext.md and progress.md; prepared commit.
-
-**Next Step:** Commit changes, then run `/niko-archive` to finalize (standalone L3 task, no milestones.md).
+**Next Step:**
+- Complete rework plan per SLOBAC audit prescriptions, then proceed through Preflight → Build.

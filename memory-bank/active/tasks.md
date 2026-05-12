@@ -1,99 +1,144 @@
-# Current Task: Cursor Commands deprecation migration (plugin-cursor)
+# Task: SLOBAC Rework — Cursor Plugin Test Quality
 
-**Complexity:** Level 3
+* Task ID: slobac-rework-cursor-tests
+* Complexity: Level 3
+* Type: refactor (test quality)
 
-## Plan Summary (from L3 Plan Phase)
+Rework the plugin-cursor test suite to address all 10 findings from the SLOBAC audit. The audit identified 3× conditional-logic, 3× vacuous-assertion, and 4× semantic-redundancy smells. Several were introduced by the Commands→Skills migration on this branch; others predate it but affect the same test domain.
 
-**Goal:** Stop emitting deprecated `.cursor/commands/` entirely. Emit `ManualPrompt` items as Agent Skills in `.cursor/skills/<name>/SKILL.md` with `disable-model-invocation: true` (matching Claude Code + new Cursor recommendation). Retain full discover support for legacy Commands. Document non-roundtrip behavior.
+## Pinned Info
 
-**Key Reference:** Claude plugin's `formatManualPromptAsSkill` + ManualPrompt emission path in `packages/plugin-claude/src/emit.ts`.
+### Finding → File Mapping
 
-**Architectural Note (per systemPatterns.md):** Discovery/Emit asymmetries are intentional. This change formalizes one for Commands → Skills.
+Consolidated view of which files each finding affects and how findings overlap:
+
+| Finding | Smell | File | Line | Action |
+|---------|-------|------|------|--------|
+| 1 | conditional-logic | discover-classification-priority.test.ts | L18 | DELETE (subsumed by finding 7) |
+| 2 | conditional-logic | discover-classification-priority.test.ts | L27 | DELETE (subsumed by finding 8) |
+| 3 | conditional-logic | discover-classification-priority.test.ts | L47 | REWORK fixture + add length assertion (finding 7b) |
+| 4 | vacuous-assertion | discover-cursor-plugin.test.ts | L119 | Strengthen: toBeDefined() → toBe(exact) |
+| 5 | vacuous-assertion | emit-global-prompt.test.ts | L151 | Strengthen: regex → toBe('My-Rules-v2.mdc') |
+| 6 | vacuous-assertion | emit-skills.test.ts | L71 | Strengthen: regex → toBe('my-skill-v2') |
+| 7 | semantic-redundancy | discover-classification-priority.test.ts L18,L47 ↔ discover-file-rule.test.ts L10 | — | DELETE L18; REWORK L47 (see finding 3) |
+| 8 | semantic-redundancy | discover-classification-priority.test.ts L27 ↔ discover-simple-agent-skill-rules.test.ts L10 | — | DELETE L27 |
+| 9 | semantic-redundancy | emit-skills.test.ts L96 ↔ emit-manual-prompt.test.ts L39 | — | DELETE L96 |
+| 10 | semantic-redundancy | emit-skills.test.ts L119 ↔ emit-manual-prompt.test.ts L82 | — | DELETE L119 |
+
+**Net effect:** 5 tests deleted, 1 test reworked (new fixture), 3 tests strengthened. Expected test count: 132 (down from 137).
 
 ## Component Analysis
-- **emit.ts (primary change target):** Remove all `.cursor/commands/` emission logic for ManualPrompt. Add Skill emission with disable frontmatter. Adapt sanitization/collision logic.
-- **discover.ts:** No functional change (keep `discoverCommands`). Add explanatory comment about non-roundtrip.
-- **Tests:** Update `emit-manual-prompt.test.ts` expectations; keep `discover-commands.test.ts` intact. Leverage existing fixtures.
-- **Docs:** Update plugin-cursor docs + CHANGELOG.md.
-- **No changes:** `@a16njs/models` (ManualPrompt type already correct), other emit paths, engine.
 
-**Cross-module deps:** Models types/guards; test helpers (emit-helpers.ts); fixture dirs for commands.
+### Affected Components
+- **discover-classification-priority.test.ts**: Delete 2 redundant tests (L18, L27), rework 1 test (L47) with a proper fixture that has both `globs` and `description` frontmatter to actually test precedence.
+- **discover-cursor-plugin.test.ts**: Strengthen relativeDir assertions at L135-137 from `toBeDefined()` to exact string values.
+- **emit-global-prompt.test.ts**: Strengthen special-characters sanitization assertion from regex to exact expected value.
+- **emit-skills.test.ts**: Strengthen sanitization assertion (L91), delete ManualPrompt `describe` block (L95-138) containing 2 redundant tests. The remaining `collision handling` describe block stays.
+- **New fixture**: `cursor-globs-and-description/from-cursor/.cursor/rules/both-fields.mdc` — a rule with both `globs` and `description` to test classification precedence.
 
-**Invariants preserved:** TDD, discover of Commands, name sanitization (skills are lowercased per spec), relativeDir support, warn-and-continue, collision handling.
+### Cross-Module Dependencies
+- No production code changes. All changes are test-only.
+- The new fixture must be a valid `.mdc` file discoverable by `cursorPlugin.discover()`.
+- `discover-file-rule.test.ts` and `discover-simple-agent-skill-rules.test.ts` are the canonical tests that absorb the deleted redundant tests — they already have the stronger oracles.
 
-**Open Questions resolved (high confidence, no creative needed):**
-- Description text: "Invoke with /<promptName>" (exact match to Claude).
-- Documentation location: Code comments in emit.ts + discover.ts + test comments + docs site.
-- Test approach: Modify existing emit-manual-prompt.test.ts (no new fixture dir required for this migration).
+### Boundary Changes
+- None. No public interfaces, APIs, or schemas change. Only test assertions and test file contents change.
 
-## TDD Test Plan (Behaviors → Tests)
-1. ManualPrompt emit produces `.cursor/skills/<name>/SKILL.md` (not commands/) with correct frontmatter + content.
-   - Test file: `packages/plugin-cursor/test/emit-manual-prompt.test.ts` (update existing cases)
-2. Sanitization, collision handling, relativeDir work for ManualPrompt-as-Skill.
-   - Same test file + possibly `emit-filename-case.test.ts` / `emit-source-items.test.ts`
-3. Discover Commands still produces ManualPrompt (no regression).
-   - `packages/plugin-cursor/test/discover-commands.test.ts` (unchanged)
-4. Full engine roundtrip of Command fixture now yields Skill output (asymmetry noted in test comment).
-5. No regressions in other Cursor emit paths.
+## Open Questions
 
-**Edge cases:** Complex commands (already skipped with warning), name collisions, nested relativeDir, empty content.
+None — implementation approach is clear. The audit prescribes specific remediations for each finding. The only design choice (finding 7: delete vs rework L47) is resolved: option (b) — rework with a proper fixture — because it adds real coverage for a product capability (globs-takes-precedence) not currently tested anywhere.
 
-## Ordered Implementation Plan (TDD Cycles)
+## Test Plan (TDD)
 
-**Phase: Preparation (Stubbing) - per always-tdd rule**
-1. Update `packages/plugin-cursor/test/emit-manual-prompt.test.ts`:
-   - Change assertions to expect Skill output in `.cursor/skills/.../SKILL.md`.
-   - Add multi-line comment explaining the migration and non-roundtrip for Commands.
-   - Do **not** implement the emit change yet.
+Since this task is itself a test-quality refactor, TDD applies in a meta sense: we modify tests first (strengthening/deleting), then verify the suite still passes. No production code changes means no new failing-test phase — the strengthened assertions must pass against current production code.
 
-2. Stub (if needed) any new helper in emit.ts (e.g., `formatManualPromptAsSkill` signature + JSDoc, empty body). Keep existing command helpers temporarily for compilation.
+### Behaviors to Verify
 
-**Phase: Write Tests (make them fail)**
-3. Run the updated `emit-manual-prompt.test.ts` — it must fail (no Skill emission yet).
+1. **Precedence test (reworked L47):** A rule with both `globs: **/*.ts` and `description: "some desc"` is classified as `FileRule` (not `SimpleAgentSkill`). This is the classification priority order from `systemPatterns.md`.
+2. **relativeDir exact values (strengthened L119):** The three rule types in the deep-nested fixture have exact relativeDir values `'shared/niko'`, `'shared/niko/Core'`, `'shared/niko/Level1'`.
+3. **Filename sanitization (strengthened L151):** `'My Rules (v2).md'` sanitizes to `'My-Rules-v2.mdc'` (per `sanitizeFilename` logic: basename → strip ext → replace non-alphanum runs → trim hyphens → append `.mdc`).
+4. **Skill name sanitization (strengthened L71):** `'My Skill (v2)'` sanitizes to `'my-skill-v2'` (per `sanitizePromptName`: lowercase → replace non-alphanum → trim).
+5. **No regressions:** Full suite passes with reduced test count (~132).
 
-**Phase: Implement (make tests pass, one cycle at a time)**
-4. In `packages/plugin-cursor/src/emit.ts`:
-   - Add `formatManualPromptAsSkill(prompt: ManualPrompt): string` (copy pattern from Claude, using YAML frontmatter with disable-model-invocation).
-   - Replace the entire "Emit ManualPrompts as .cursor/commands" block with equivalent Skill emission logic (using skills/ dir, sanitizePromptName, getUniqueFilename, collision Set).
-   - Remove or guard unused command-specific code (`getUniqueCommandFilename`, commandsDir logic).
-   - Add prominent header comment documenting the deprecation, non-roundtrip, and reference to Claude.
-   - Update the main emit dispatcher routing for ManualPrompt.
+### Test Infrastructure
 
-5. In `packages/plugin-cursor/src/discover.ts`:
-   - Add clear comment near `discoverCommands` function: "Commands are discovered for legacy support but do not round-trip. Emitted form is now a disable-model-invocation Agent Skill."
+- Framework: Vitest
+- Test location: `packages/plugin-cursor/test/`
+- Conventions: One file per domain × direction (discover/emit). Flat layout. Shared helpers in `test/test-support/`.
+- New test files: None
+- New fixture: `test/fixtures/cursor-globs-and-description/from-cursor/.cursor/rules/both-fields.mdc`
 
-6. Run targeted test: `emit-manual-prompt.test.ts` → should pass.
+### Integration Tests
 
-7. Run full Cursor plugin test suite (`npm run test` in package) to catch any cross-test impact.
+No new integration tests. Existing discover integration tests are being corrected, not expanded (except the precedence test which gets a proper fixture).
 
-**Phase: Polish & Docs**
-8. Update `packages/plugin-cursor/CHANGELOG.md` with entry for the deprecation migration.
-9. Update `packages/docs/docs/plugin-cursor/index.md` if it describes Commands emission (note the new Skill output).
-10. Verify no linter/build errors (`npm run lint && npm run build`).
+## Implementation Plan
 
-**Verification:** Full test suite across affected packages, TDD adherence (tests written first), commit with conventional message.
+### Phase 1: Create precedence fixture
 
-## Challenges & Mitigations
-- Test suite breakage from emit change: Mitigated by strict TDD order and running targeted tests first.
-- Fixture maintenance: Existing command fixtures remain valid for discover tests; emit tests are updated in-place.
-- Name collision between former Commands and existing Skills: Handled by existing unique-filename logic now applied uniformly to skills/.
-- No Level 4 risk (scoped to one plugin's emit path).
+1. **Create fixture directory and file**
+   - Files: `packages/plugin-cursor/test/fixtures/cursor-globs-and-description/from-cursor/.cursor/rules/both-fields.mdc`
+   - Changes: New `.mdc` file with both `globs:` and `description:` frontmatter fields plus body content.
+
+### Phase 2: Modify tests (TDD — assertions change before any code, but no code changes needed here)
+
+2. **Rework discover-classification-priority.test.ts**
+   - Files: `packages/plugin-cursor/test/discover-classification-priority.test.ts`
+   - Changes:
+     - DELETE test `'should classify rules with globs as FileRule'` (L18-25) — findings 1, 7.
+     - DELETE test `'should classify rules with description (no globs) as SimpleAgentSkill'` (L27-34) — findings 2, 8.
+     - REWORK test `'should classify rules with valid globs over description (globs takes precedence)'` (L47-56):
+       - Point at new `cursor-globs-and-description` fixture.
+       - Assert `result.items.toHaveLength(1)`.
+       - Assert `result.items[0].type === FileRule`.
+       - Optionally assert description is NOT used for classification (the item's type is FileRule, not SimpleAgentSkill).
+
+3. **Strengthen discover-cursor-plugin.test.ts**
+   - Files: `packages/plugin-cursor/test/discover-cursor-plugin.test.ts`
+   - Changes: Replace three `toBeDefined()` assertions (L135-137) with exact value assertions:
+     - `expect(mainRule?.relativeDir).toBe('shared/niko')`
+     - `expect(coreRule?.relativeDir).toBe('shared/niko/Core')`
+     - `expect(level1Rule?.relativeDir).toBe('shared/niko/Level1')`
+
+4. **Strengthen emit-global-prompt.test.ts**
+   - Files: `packages/plugin-cursor/test/emit-global-prompt.test.ts`
+   - Changes: Replace `expect(filename).toMatch(/^[\w-]+\.mdc$/)` (L168) with `expect(filename).toBe('My-Rules-v2.mdc')`.
+
+5. **Rework emit-skills.test.ts**
+   - Files: `packages/plugin-cursor/test/emit-skills.test.ts`
+   - Changes:
+     - Replace `expect(entries[0]).toMatch(/^[\w-]+$/)` (L91) with `expect(entries[0]).toBe('my-skill-v2')` — finding 6.
+     - DELETE entire `describe('ManualPrompt emission to .cursor/skills/ (as disable Skill)')` block (L95-138) containing 2 tests — findings 9, 10.
+     - The `describe('collision handling')` block (L141-179) remains; it's the only ManualPrompt test in this file and is not redundant.
+
+### Phase 3: Verify
+
+6. **Run targeted test files**
+   - Run each modified test file individually to verify changes are correct.
+
+7. **Run full suite**
+   - `pnpm test` in `packages/plugin-cursor` to verify 0 regressions and confirm reduced test count (~132).
+
+8. **Lint and build**
+   - `pnpm lint && pnpm build` in `packages/plugin-cursor`.
 
 ## Technology Validation
-No new dependencies or tools. Validation not required.
 
-## Next Actions After Plan Complete
-- ✅ Preflight completed: PASS (advisory only - future shared helper opportunity noted but deferred).
-- ✅ Build completed: TDD followed (tests stubbed/updated first → failing run → impl → 137/137 pass, lint/build clean).
-- Operator: invoke `/niko-qa` next.
+No new technology — validation not required.
 
-## Build Phase Summary
-- Implementation steps completed per ordered plan.
-- Modified: `emit.ts`, `discover.ts`, test files, CHANGELOG, docs.
-- All invariants and behaviors preserved/adapted.
+## Challenges & Mitigations
 
-## QA Phase - COMPLETE
-- Semantic review against plan: all requirements implemented (Skill emission for ManualPrompt, non-roundtrip doc, tests, docs/CHANGELOG).
-- Trivial fixes applied: removed dead `getUniqueCommandFilename` (YAGNI cleanup), cleaned outdated TDD-stub comment.
-- No over-engineering, no incomplete stubs, patterns preserved (collision reuse, relativeDir, warn-and-continue).
-- PASS: ready for Reflect phase.
+- **Precedence fixture correctness:** The new fixture must produce exactly 1 item classified as FileRule. Mitigation: verify by running the reworked test in isolation first.
+- **Test count accuracy:** Deleting 5 tests from 137 should yield 132. Mitigation: verify in full suite output.
+- **Exact sanitization values:** The expected sanitized values (`'My-Rules-v2.mdc'`, `'my-skill-v2'`) are derived from reading the sanitizer source. Mitigation: confirmed by tracing `sanitizeFilename` and `sanitizePromptName` logic in `emit.ts`.
+
+## Status
+
+- [x] Component analysis complete
+- [x] Open questions resolved (none identified)
+- [x] Test planning complete (TDD)
+- [x] Implementation plan complete
+- [x] Technology validation complete
+- [ ] Preflight
+- [ ] Build
+- [ ] QA

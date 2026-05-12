@@ -75,3 +75,19 @@ Migrate Cursor plugin emission from deprecated Commands to Agent Skills (disable
     - TDD + Niko phases prevented any substantive issues; unified collision logic proved extensible.
 * Next
     - Run /niko-archive to create archive and finalize standalone task.
+
+## 2026-05-12 - PLAN (SLOBAC REWORK) - COMPLETE
+
+* Work completed
+    - SLOBAC audit (`slobac-audit.md`) identified 10 test smells in plugin-cursor test suite.
+    - Created comprehensive rework plan: 5 test deletions (semantic-redundancy), 3 assertion strengthenings (vacuous-assertion), 1 test rework with new fixture (conditional-logic + semantic-redundancy).
+    - Consolidated overlapping findings (1↔7, 2↔8, 3↔7b) into unified actions per file.
+    - New fixture planned: `cursor-globs-and-description` to test actual globs-over-description precedence.
+* Decisions made
+    - Chose option (b) for finding 7/L47: rework with proper fixture rather than delete, because the "globs takes precedence" behavior is a real product capability not covered elsewhere in the suite.
+    - Exact sanitization values confirmed by tracing `sanitizeFilename` and `sanitizePromptName` source.
+* Insights
+    - The migration introduced 2 of the 4 semantic-redundancy findings (ManualPrompt tests duplicated in emit-skills.test.ts); the other 8 findings predate the migration or are test-quality improvements.
+    - Expected test count after rework: 132 (down from 137).
+* Next
+    - Proceed to Preflight phase.
