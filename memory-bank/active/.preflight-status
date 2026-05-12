@@ -1,21 +1,4 @@
-# Preflight Status
-
-**Task:** Cursor Commands deprecation migration (plugin-cursor)
-**Date:** 2026-05-10
-**Result:** ✅ PASS (with ADVISORY)
-
-## Findings
-
-1. **TDD Encoding** - PASS: Plan explicitly sequences "Stub tests → Run failing tests → Implement to pass" per cycle. Matches always-tdd.mdc.
-2. **Convention Compliance** - PASS: Aligns with systemPatterns.md (asymmetries intentional, test org, warn-and-continue).
-3. **Dependency Impact** - PASS: All touchpoints (emit.ts, discover.ts, 2-3 test files, docs, changelog) documented; no unaccounted consumers.
-4. **Conflict Detection** - PASS: No duplication risk or public API breakage. Change is the intended deprecation migration.
-5. **Completeness** - PASS: Every requirement in projectbrief has concrete file/function mapping and test coverage.
-6. **Radical Innovation (Advisory)** - One opportunity noted but out of scope:
-   - **Suggestion:** Extract a shared `formatManualPromptAsDisableSkill()` helper into `@a16njs/models` (or a new internal utils package) so cursor + claude plugins don't duplicate the small YAML frontmatter logic.
-   - **Why not now:** Would require new exports, potential package boundary change, and scope expansion beyond the current brief ("update the cursor plugin"). Increases L3 risk. Defer to a future dedicated task.
-   - **Impact if done:** Minor code dedup; no behavior change.
-
-## Next Steps
-- Operator may proceed to `/niko-build` (plan is solid).
-- Advisory is non-blocking; implementer can note it in reflection if desired.
+PASS
+date: 2026-05-12
+task: slobac-rework-cursor-tests
+notes: Clean pass. Test-only refactor with no production code changes. All 10 SLOBAC findings mapped to concrete actions. Convention compliance verified (fixture naming, test layout). No conflicts or duplication-in-waiting.
