@@ -1,11 +1,5 @@
 # @a16njs/plugin-cursor
 
-## Unreleased
-
-### Features / Breaking Changes
-
-* **plugin-cursor:** ManualPrompts now emit as Agent Skills (`.cursor/skills/<name>/SKILL.md` with `disable-model-invocation: true`) instead of deprecated Commands. Discovery of legacy Commands retained (non-roundtrip). Matches Claude plugin behavior. ([#xx](https://github.com/Texarkanine/a16n/issues/xx))
-
 ## [0.13.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@0.12.0...@a16njs/plugin-cursor@0.13.0) (2026-04-21)
 
 
