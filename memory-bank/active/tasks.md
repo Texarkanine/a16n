@@ -25,7 +25,7 @@ Consolidated view of which files each finding affects and how findings overlap:
 | 9 | semantic-redundancy | emit-skills.test.ts L96 ↔ emit-manual-prompt.test.ts L39 | — | DELETE L96 |
 | 10 | semantic-redundancy | emit-skills.test.ts L119 ↔ emit-manual-prompt.test.ts L82 | — | DELETE L119 |
 
-**Net effect:** 5 tests deleted, 1 test reworked (new fixture), 3 tests strengthened. Expected test count: 132 (down from 137).
+**Net effect:** 4 tests deleted (2 classification + 2 redundant ManualPrompt in emit-skills), 1 test reworked (new fixture), 3 assertions strengthened. Observed full-suite count: 133 (down from 137).
 
 ## Component Analysis
 
@@ -117,10 +117,10 @@ No new integration tests. Existing discover integration tests are being correcte
    - Run each modified test file individually to verify changes are correct.
 
 7. **Run full suite**
-   - `pnpm test` in `packages/plugin-cursor` to verify 0 regressions and confirm reduced test count (~132).
+   - `pnpm test` in `packages/plugin-cursor` to verify 0 regressions and confirm reduced test count (133).
 
 8. **Lint and build**
-   - `pnpm lint && pnpm build` in `packages/plugin-cursor`.
+   - `pnpm build` in `packages/plugin-cursor` (package has no `lint` script; use repo root `pnpm lint` with turbo if needed).
 
 ## Technology Validation
 
@@ -129,7 +129,7 @@ No new technology — validation not required.
 ## Challenges & Mitigations
 
 - **Precedence fixture correctness:** The new fixture must produce exactly 1 item classified as FileRule. Mitigation: verify by running the reworked test in isolation first.
-- **Test count accuracy:** Deleting 5 tests from 137 should yield 132. Mitigation: verify in full suite output.
+- **Test count accuracy:** Deleting 4 tests from 137 yields 133. Mitigation: verified in full suite output.
 - **Exact sanitization values:** The expected sanitized values (`'My-Rules-v2.mdc'`, `'my-skill-v2'`) are derived from reading the sanitizer source. Mitigation: confirmed by tracing `sanitizeFilename` and `sanitizePromptName` logic in `emit.ts`.
 
 ## Status
@@ -139,6 +139,6 @@ No new technology — validation not required.
 - [x] Test planning complete (TDD)
 - [x] Implementation plan complete
 - [x] Technology validation complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA

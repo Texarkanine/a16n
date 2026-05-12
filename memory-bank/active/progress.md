@@ -91,3 +91,19 @@ Migrate Cursor plugin emission from deprecated Commands to Agent Skills (disable
     - Expected test count after rework: 132 (down from 137).
 * Next
     - Proceed to Preflight phase.
+
+## 2026-05-12 - BUILD (SLOBAC REWORK) - COMPLETE
+
+* Work completed
+    - Created precedence fixture `test/fixtures/cursor-globs-and-description/from-cursor/.cursor/rules/both-fields.mdc` (both `globs` and `description` frontmatter).
+    - Updated `discover-classification-priority.test.ts`: removed two redundant classification tests; precedence test targets new fixture with exact length and `FileRule` oracle.
+    - Strengthened `discover-cursor-plugin.test.ts` deep-nested `relativeDir` assertions to exact path strings (parallel to sibling test).
+    - Strengthened `emit-global-prompt.test.ts` special-character filename oracle to `'My-Rules-v2.mdc'`.
+    - Strengthened `emit-skills.test.ts` sanitized skill directory name to `'my-skill-v2'`; removed redundant ManualPrompt `describe` block.
+    - Full package test run: **133** passing (`vitest run`); `pnpm build` in `packages/plugin-cursor` passes.
+* Decisions made
+    - Corrected plan expectation: **4** test bodies removed (137 → 133), not 5 / 132; task doc updated accordingly.
+* Insights
+    - `packages/plugin-cursor` has no `lint` script; build verification used `pnpm build` only unless monorepo lint is scoped separately.
+* Next
+    - `/niko-qa` then Reflect → Archive when lifecycle complete.

@@ -15,24 +15,6 @@ describe('Classification Priority', () => {
     expect(result.items[0]?.type).toBe(CustomizationType.GlobalPrompt);
   });
 
-  it('should classify rules with globs as FileRule', async () => {
-    const root = path.join(fixturesDir, 'cursor-filerule/from-cursor');
-    const result = await cursorPlugin.discover(root);
-
-    for (const item of result.items) {
-      expect(item.type).toBe(CustomizationType.FileRule);
-    }
-  });
-
-  it('should classify rules with description (no globs) as SimpleAgentSkill', async () => {
-    const root = path.join(fixturesDir, 'cursor-agentskill/from-cursor');
-    const result = await cursorPlugin.discover(root);
-
-    for (const item of result.items) {
-      expect(item.type).toBe(CustomizationType.SimpleAgentSkill);
-    }
-  });
-
   it('should classify rules with empty globs: and description as SimpleAgentSkill (not FileRule)', async () => {
     const root = path.join(fixturesDir, 'cursor-empty-globs-with-description/from-cursor');
     const result = await cursorPlugin.discover(root);
@@ -45,14 +27,11 @@ describe('Classification Priority', () => {
   });
 
   it('should classify rules with valid globs over description (globs takes precedence)', async () => {
-    // This test verifies no regression - rules with both globs and description should be FileRule
-    const root = path.join(fixturesDir, 'cursor-filerule/from-cursor');
+    const root = path.join(fixturesDir, 'cursor-globs-and-description/from-cursor');
     const result = await cursorPlugin.discover(root);
 
-    // FileRules in this fixture have globs, should NOT become AgentSkill
-    for (const item of result.items) {
-      expect(item.type).toBe(CustomizationType.FileRule);
-    }
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]?.type).toBe(CustomizationType.FileRule);
   });
 
   it('should classify rules without activation criteria as ManualPrompt', async () => {

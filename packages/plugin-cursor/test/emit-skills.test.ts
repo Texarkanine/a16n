@@ -88,53 +88,7 @@ describe('Cursor Skills Emission', () => {
       const skillsDir = path.join(tempDir, '.cursor', 'skills');
       const entries = await fs.readdir(skillsDir);
       expect(entries).toHaveLength(1);
-      expect(entries[0]).toMatch(/^[\w-]+$/);
-    });
-  });
-
-  describe('ManualPrompt emission to .cursor/skills/ (as disable Skill)', () => {
-    it('should emit ManualPrompt to .cursor/skills/<name>/SKILL.md with frontmatter', async () => {
-      const models: ManualPrompt[] = [
-        {
-          id: createId(CustomizationType.ManualPrompt, '.claude/skills/review/SKILL.md'),
-          type: CustomizationType.ManualPrompt,
-          sourcePath: '.claude/skills/review/SKILL.md',
-          content: 'Review this code.',
-          promptName: 'review',
-          metadata: {},
-        },
-      ];
-
-      const result = await cursorPlugin.emit(models, tempDir);
-
-      expect(result.written).toHaveLength(1);
-      expect(result.written[0]?.type).toBe(CustomizationType.ManualPrompt);
-
-      const skillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
-      const content = await fs.readFile(skillPath, 'utf-8');
-      expect(content).toContain('disable-model-invocation: true');
-      expect(content).toContain('Review this code.');
-    });
-
-    it('should write ManualPrompt as Skill with frontmatter (not plain content)', async () => {
-      const models: ManualPrompt[] = [
-        {
-          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/deploy.md'),
-          type: CustomizationType.ManualPrompt,
-          sourcePath: '.cursor/commands/deploy.md',
-          content: 'Deploy instructions',
-          promptName: 'deploy',
-          metadata: {},
-        },
-      ];
-
-      await cursorPlugin.emit(models, tempDir);
-
-      const skillPath = path.join(tempDir, '.cursor', 'skills', 'deploy', 'SKILL.md');
-      const content = await fs.readFile(skillPath, 'utf-8');
-      expect(content).toContain('---');
-      expect(content).toContain('disable-model-invocation: true');
-      expect(content).toContain('Deploy instructions');
+      expect(entries[0]).toBe('my-skill-v2');
     });
   });
 
