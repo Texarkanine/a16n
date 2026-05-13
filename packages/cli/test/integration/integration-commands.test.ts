@@ -101,9 +101,6 @@ describe('Integration Tests - ManualPrompt (Commands)', () => {
      * compatibility but does NOT round-trip: emit always produces the new
      * canonical form `.cursor/skills/<name>/SKILL.md` with
      * `disable-model-invocation: true`. This test verifies the emit OUTPUT
-     * (the previous version of this test read its own input path back from
-     * disk, which made the assertion vacuous — issue surfaced via PR #99
-     * review feedback).
      */
     it('should discover legacy command and emit it as a disable-model-invocation Skill', async () => {
       // Create legacy-form input command
