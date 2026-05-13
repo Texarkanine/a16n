@@ -54,6 +54,11 @@ describe('Cursor ManualPrompt Emission (Agent Skills)', () => {
       expect(result.written[0]?.type).toBe(CustomizationType.ManualPrompt);
 
       const skillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
+      const legacyCommandPath = path.join(tempDir, '.cursor', 'commands', 'review.md');
+      const writtenPaths = result.written.map(w => w.path);
+      expect(writtenPaths).toContain(skillPath);
+      expect(writtenPaths).not.toContain(legacyCommandPath);
+
       const content = await fs.readFile(skillPath, 'utf-8');
       expect(content).toContain('disable-model-invocation: true');
       expect(content).toContain('Invoke with /review');
