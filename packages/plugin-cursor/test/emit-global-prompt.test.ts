@@ -164,8 +164,7 @@ describe('Cursor Plugin Emission', () => {
 
       expect(result.written).toHaveLength(1);
       const filename = path.basename(result.written[0]!.path);
-      // Should be sanitized to safe characters
-      expect(filename).toMatch(/^[\w-]+\.mdc$/);
+      expect(filename).toBe('My-Rules-v2.mdc');
     });
 
     it('should use fallback name when sanitization produces empty string', async () => {

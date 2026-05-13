@@ -12,7 +12,21 @@ import { suiteTempDir } from './test-support/emit-helpers.js';
 
 const tempDir = suiteTempDir(import.meta.url, 'manual-prompt');
 
-describe('Cursor ManualPrompt Emission (Commands)', () => {
+/**
+ * Cursor ManualPrompt Emission (as Agent Skills)
+ *
+ * MIGRATION NOTE (Commands deprecation):
+ * ManualPrompt items are now emitted as Agent Skills under `.cursor/skills/<name>/SKILL.md`
+ * with `disable-model-invocation: true` frontmatter (matching Claude Code + Cursor's
+ * new recommendation). Legacy `.cursor/commands/` discovery is retained for backward
+ * compatibility, but Commands do not round-trip — emitted form is always a Skill.
+ * This is an intentional discover/emit asymmetry per systemPatterns.md.
+ *
+ * Tests updated per TDD to expect the new Skill output format before implementation.
+ * Non-roundtrip behavior is documented here, in emit.ts, discover.ts, and docs.
+ */
+
+describe('Cursor ManualPrompt Emission (Agent Skills)', () => {
   beforeEach(async () => {
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -22,7 +36,7 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
   });
 
   describe('single ManualPrompt', () => {
-    it('should emit ManualPrompt as .cursor/commands/<name>.md file', async () => {
+    it('should emit ManualPrompt as .cursor/skills/<name>/SKILL.md with disable frontmatter', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
@@ -39,12 +53,19 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
       expect(result.written).toHaveLength(1);
       expect(result.written[0]?.type).toBe(CustomizationType.ManualPrompt);
 
-      const commandPath = path.join(tempDir, '.cursor', 'commands', 'review.md');
-      const content = await fs.readFile(commandPath, 'utf-8');
-      expect(content).toBe('Review this code for security vulnerabilities.');
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
+      const legacyCommandPath = path.join(tempDir, '.cursor', 'commands', 'review.md');
+      const writtenPaths = result.written.map(w => w.path);
+      expect(writtenPaths).toContain(skillPath);
+      expect(writtenPaths).not.toContain(legacyCommandPath);
+
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('disable-model-invocation: true');
+      expect(content).toContain('Invoke with /review');
+      expect(content).toContain('Review this code for security vulnerabilities.');
     });
 
-    it('should create .cursor/commands directory if it does not exist', async () => {
+    it('should create .cursor/skills/<name> directory if it does not exist', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/test.md'),
@@ -58,12 +79,12 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
 
       await cursorPlugin.emit(models, tempDir);
 
-      const commandsDir = path.join(tempDir, '.cursor', 'commands');
-      const stat = await fs.stat(commandsDir);
+      const skillDir = path.join(tempDir, '.cursor', 'skills', 'test');
+      const stat = await fs.stat(skillDir);
       expect(stat.isDirectory()).toBe(true);
     });
 
-    it('should write ManualPrompt content directly without frontmatter', async () => {
+    it('should write ManualPrompt as Skill with disable-model-invocation frontmatter (not plain content)', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.claude/skills/deploy/SKILL.md'),
@@ -77,16 +98,16 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
 
       const result = await cursorPlugin.emit(models, tempDir);
 
-      const commandPath = path.join(tempDir, '.cursor', 'commands', 'deploy.md');
-      const content = await fs.readFile(commandPath, 'utf-8');
-      expect(content).not.toContain('---');
-      expect(content).not.toContain('disable-model-invocation');
-      expect(content).toBe('Deploy instructions here.');
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'deploy', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('---');
+      expect(content).toContain('disable-model-invocation: true');
+      expect(content).toContain('Deploy instructions here.');
     });
   });
 
   describe('multiple ManualPrompts', () => {
-    it('should emit multiple commands as separate .md files', async () => {
+    it('should emit multiple ManualPrompts as separate Skill directories', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
@@ -111,21 +132,21 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
       expect(result.written).toHaveLength(2);
 
       const reviewContent = await fs.readFile(
-        path.join(tempDir, '.cursor', 'commands', 'review.md'),
+        path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md'),
         'utf-8'
       );
       const explainContent = await fs.readFile(
-        path.join(tempDir, '.cursor', 'commands', 'explain.md'),
+        path.join(tempDir, '.cursor', 'skills', 'explain', 'SKILL.md'),
         'utf-8'
       );
 
-      expect(reviewContent).toBe('Review content');
-      expect(explainContent).toBe('Explain content');
+      expect(reviewContent).toContain('Review content');
+      expect(explainContent).toContain('Explain content');
     });
   });
 
   describe('relativeDir nesting', () => {
-    it('should emit ManualPrompt with relativeDir to subdirectory under .cursor/commands/', async () => {
+    it('should emit ManualPrompt with relativeDir to subdirectory under .cursor/skills/', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/frontend/component.md'),
@@ -142,9 +163,9 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
 
       expect(result.written).toHaveLength(1);
 
-      const commandPath = path.join(tempDir, '.cursor', 'commands', 'frontend', 'component.md');
-      const content = await fs.readFile(commandPath, 'utf-8');
-      expect(content).toBe('Generate a React component.');
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'frontend', 'component', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Generate a React component.');
     });
 
     it('should detect collision between equivalent relativeDir forms (trailing slash)', async () => {
@@ -174,17 +195,71 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
       // Both items written — second renamed to avoid overwrite
       expect(result.written).toHaveLength(2);
 
-      const firstPath = path.join(tempDir, '.cursor', 'commands', 'frontend', 'component.md');
+      const firstPath = path.join(tempDir, '.cursor', 'skills', 'frontend', 'component', 'SKILL.md');
       const firstContent = await fs.readFile(firstPath, 'utf-8');
-      expect(firstContent).toBe('First component prompt');
+      expect(firstContent).toContain('First component prompt');
 
-      const secondPath = path.join(tempDir, '.cursor', 'commands', 'frontend', 'component-1.md');
+      const secondPath = path.join(tempDir, '.cursor', 'skills', 'frontend', 'component-1', 'SKILL.md');
       const secondContent = await fs.readFile(secondPath, 'utf-8');
-      expect(secondContent).toBe('Second component prompt');
+      expect(secondContent).toContain('Second component prompt');
 
       // Collision warning emitted
       const collisionWarnings = result.warnings.filter(w => w.message.includes('collision'));
       expect(collisionWarnings).toHaveLength(1);
+    });
+
+    /**
+     * Regression guard (PR #99 review feedback, P1):
+     *
+     * Two ManualPrompts with the same `promptName` but DIFFERENT `relativeDir`
+     * values map to distinct on-disk paths and MUST NOT trigger a collision rename.
+     * The unified `usedSkillNames` set introduced by the Commands→Skills migration
+     * must key on the path under `.cursor/skills/`, not on the unqualified base name.
+     */
+    it('should NOT rename same promptName across different relativeDir values', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/frontend/review.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/frontend/review.md',
+          relativeDir: 'frontend',
+          content: 'Frontend review prompt',
+          promptName: 'review',
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/backend/review.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/backend/review.md',
+          relativeDir: 'backend',
+          content: 'Backend review prompt',
+          promptName: 'review',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+
+      const frontendPath = path.join(tempDir, '.cursor', 'skills', 'frontend', 'review', 'SKILL.md');
+      const backendPath = path.join(tempDir, '.cursor', 'skills', 'backend', 'review', 'SKILL.md');
+
+      const frontendContent = await fs.readFile(frontendPath, 'utf-8');
+      const backendContent = await fs.readFile(backendPath, 'utf-8');
+
+      expect(frontendContent).toContain('Frontend review prompt');
+      expect(backendContent).toContain('Backend review prompt');
+
+      // No `review-1` directories — paths were distinct, no rename should occur.
+      const frontendDirEntries = await fs.readdir(path.join(tempDir, '.cursor', 'skills', 'frontend'));
+      const backendDirEntries = await fs.readdir(path.join(tempDir, '.cursor', 'skills', 'backend'));
+      expect(frontendDirEntries.sort()).toEqual(['review']);
+      expect(backendDirEntries.sort()).toEqual(['review']);
+
+      // No spurious collision warning.
+      const collisionWarnings = result.warnings.filter(w => w.message.includes('collision'));
+      expect(collisionWarnings).toHaveLength(0);
     });
 
     it('should skip ManualPrompt with path-traversal relativeDir', async () => {
@@ -234,10 +309,10 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
       expect(result.written).toHaveLength(2);
 
       const rulesExist = await fs.stat(path.join(tempDir, '.cursor', 'rules')).catch(() => null);
-      const commandExists = await fs.stat(path.join(tempDir, '.cursor', 'commands', 'review.md')).catch(() => null);
+      const skillExists = await fs.stat(path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md')).catch(() => null);
 
       expect(rulesExist).not.toBeNull();
-      expect(commandExists).not.toBeNull();
+      expect(skillExists).not.toBeNull();
     });
   });
 
@@ -258,8 +333,8 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
 
       expect(result.written).toHaveLength(1);
 
-      const commandsDir = path.join(tempDir, '.cursor', 'commands');
-      const entries = await fs.readdir(commandsDir);
+      const skillsDir = path.join(tempDir, '.cursor', 'skills');
+      const entries = await fs.readdir(skillsDir);
       expect(entries).toHaveLength(1);
       expect(entries[0]).not.toContain('..');
       expect(entries[0]).not.toContain('/');
@@ -281,8 +356,8 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
 
       expect(result.written).toHaveLength(1);
 
-      const commandsDir = path.join(tempDir, '.cursor', 'commands');
-      const entries = await fs.readdir(commandsDir);
+      const skillsDir = path.join(tempDir, '.cursor', 'skills');
+      const entries = await fs.readdir(skillsDir);
       expect(entries).toHaveLength(1);
       expect(entries[0]).not.toContain('\\');
     });
@@ -303,9 +378,9 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
 
       expect(result.written).toHaveLength(1);
 
-      const commandPath = path.join(tempDir, '.cursor', 'commands', 'command.md');
-      const content = await fs.readFile(commandPath, 'utf-8');
-      expect(content).toBe('Content');
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'command', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Content');
     });
 
     it('should handle prompt name collisions with de-duplication', async () => {
@@ -332,9 +407,9 @@ describe('Cursor ManualPrompt Emission (Commands)', () => {
 
       expect(result.written).toHaveLength(2);
 
-      const commandsDir = path.join(tempDir, '.cursor', 'commands');
-      const entries = await fs.readdir(commandsDir);
-      expect(entries.sort()).toEqual(['review-1.md', 'review.md']);
+      const skillsDir = path.join(tempDir, '.cursor', 'skills');
+      const entries = await fs.readdir(skillsDir);
+      expect(entries.sort()).toEqual(['review', 'review-1']);
     });
   });
 });

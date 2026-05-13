@@ -1,0 +1,6 @@
+---
+globs: **/*.ts
+description: "would classify as AgentSkill without globs"
+---
+
+Rule body for both-fields fixture: globs must take precedence over description.

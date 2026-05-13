@@ -131,10 +131,9 @@ describe('Cursor Plugin Discovery', () => {
       expect(coreRule?.type).toBe(CustomizationType.FileRule);
       expect(level1Rule?.type).toBe(CustomizationType.SimpleAgentSkill);
 
-      // All should have relativeDir
-      expect(mainRule?.relativeDir).toBeDefined();
-      expect(coreRule?.relativeDir).toBeDefined();
-      expect(level1Rule?.relativeDir).toBeDefined();
+      expect(mainRule?.relativeDir).toBe('shared/niko');
+      expect(coreRule?.relativeDir).toBe('shared/niko/Core');
+      expect(level1Rule?.relativeDir).toBe('shared/niko/Level1');
     });
   });
 });

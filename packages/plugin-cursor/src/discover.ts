@@ -209,6 +209,11 @@ async function findCommandFiles(commandsDir: string, relativePath: string = ''):
  * Discover commands from .cursor/commands/**\/*.md
  * - Simple commands → ManualPrompt
  * - Complex commands → Skip with warning
+ *
+ * NON-ROUNDTRIP NOTE: Commands are discovered for legacy support only.
+ * The emit side now produces Agent Skills (disable-model-invocation) instead of
+ * Commands. This is an intentional discover/emit asymmetry (see systemPatterns.md).
+ * A ManualPrompt discovered from Commands will be emitted as a Skill.
  */
 async function discoverCommands(root: string): Promise<{
   items: ManualPrompt[];
