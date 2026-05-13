@@ -2,7 +2,7 @@
 
 ## Current Task: SLOBAC Rework — plugin-cursor test quality
 
-**Phase:** QA — COMPLETE
+**Phase:** REFLECT — COMPLETE
 
 **What Was Done:**
 - Implemented SLOBAC rework per `tasks.md`: new fixture `cursor-globs-and-description` / `both-fields.mdc`; removed 2 redundant classification tests absorbed by discover-file-rule / discover-simple-agent-skill-rules; reworked globs-vs-description precedence to use that fixture (`toHaveLength(1)` + `FileRule`).
@@ -10,6 +10,7 @@
 - Removed duplicate ManualPrompt `describe` block from `emit-skills.test.ts` (coverage remains in `emit-manual-prompt.test.ts`).
 - Verification: `vitest run` on four touched files, then full `packages/plugin-cursor` suite (**133** tests); `pnpm build` (tsc) clean.
 - Semantic QA review found no KISS/DRY/YAGNI/completeness/regression/integrity/documentation issues requiring fixes.
+- Reflection completed in `memory-bank/active/reflection/reflection-slobac-rework-cursor-tests.md`; persistent memory files did not need updates.
 
 **Next Step:**
-- Proceed to `/niko-reflect`.
+- Run `/niko-archive` to create the archive document and finalize the current project.
