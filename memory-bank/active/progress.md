@@ -136,3 +136,25 @@ Migrate Cursor plugin emission from deprecated Commands to Agent Skills (disable
     - Priority-classification tests need fixtures with competing classification signals; a one-signal fixture cannot prove priority.
 * Next
     - Run `/niko-archive` to create the archive document and finalize the current project.
+
+## 2026-05-13 - POST-REFLECT PR #99 REVIEW FEEDBACK - COMPLETE
+
+Not a new Niko phase — addressing review comments on the PR (#99) that carries both the Commands→Skills migration and the SLOBAC rework, before archive.
+
+* Work completed
+    - **P1 collision-key regression fix** in `packages/plugin-cursor/src/emit.ts`: rekeyed unified `usedSkillNames` collision tracking for ManualPrompts to use `<normalizedRelativeDir>/<name>` instead of just `<name>`, so same `promptName` under different `relativeDir`s no longer triggers a spurious rename. Preserved unification with `SimpleAgentSkill` (which always emits flat at `.cursor/skills/<name>/`) by falling back to the bare name when `relativeDir` is empty.
+    - **Regression test added** in `packages/plugin-cursor/test/emit-manual-prompt.test.ts`: "should NOT rename same `promptName` across different `relativeDir` values" — frontend/review + backend/review case. Verified failing on prior code, passing on the fix. Existing collision tests (trailing-slash equivalence, unscoped name dedup) all still pass.
+    - **Vacuous integration test reworked** in `packages/cli/test/integration/integration-commands.test.ts`: renamed `cursor-to-cursor-command-passthrough` → `cursor-to-cursor-command-migrates-to-skill`. The old test read its own input path back from disk so it would pass even with a no-op emitter. New assertions verify the emit produces `.cursor/skills/review/SKILL.md` with `disable-model-invocation: true`, the `Invoke with /review` description, and the original content; and that no fresh `.cursor/commands/review.md` is produced (asymmetric round-trip is intentional).
+    - **Nitpick applied** in `emit-manual-prompt.test.ts` L39–61: added explicit positive + negative assertions on `result.written[*].path` (SKILL path present, legacy commands path absent). The reviewer's exact suggestion referenced a non-existent `sourcePath` field on `WrittenFile`; adapted to use the real `path` field while preserving the negative-assertion intent.
+    - Verification per WS rules: `plugin-cursor` full suite 134/134 (+1 net test), `cli` full suite 175/175, `pnpm build` clean in `plugin-cursor`, lints clean on all touched files.
+    - Commits since base `f651768f`: `018053a4` (fix: pr feedback), `7fefe85a` (fix: wtf), `ee11b1b0` (fix: pr cleanup).
+* Decisions made
+    - Did NOT enter a new Niko task for the PR feedback work — three small fixes on the same PR branch are best handled as post-reflect cleanup rather than spinning up a fresh L1/L2 task with its own phases.
+    - Dismissed the P2 "extract duplicate `formatManualPromptAsSkill` to a shared helper" finding for *this* PR — already explicitly deferred at preflight as a future cross-plugin refactor; surfaced as a follow-up.
+    - Dismissed the bot's framing of the integration-test issue (claimed "test will fail" — it didn't), but kept the underlying problem (the test was vacuous) and fixed it. The PR was correct all along; the test just wasn't holding it accountable.
+* Insights
+    - The collision regression slipped past local + CI test runs because no test exercised "same `promptName`, different `relativeDir`". A single representative case was enough to catch it — supports the SLOBAC discipline of having at least one fixture per behavioral axis.
+    - Vacuous round-trip tests (read-back of input path) are dangerously persuasive: they look like coverage but provide zero evidence. Worth a SLOBAC follow-up sweep across other round-trip-style integration tests.
+    - Reviewer suggestions are worth verifying against actual type shapes before applying verbatim (the `sourcePath`-on-`WrittenFile` nitpick was directionally right but textually wrong).
+* Next
+    - Run `/niko-archive` to create the archive document and finalize the current project (next session).
