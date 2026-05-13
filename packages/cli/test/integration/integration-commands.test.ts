@@ -93,35 +93,53 @@ describe('Integration Tests - ManualPrompt (Commands)', () => {
     });
   });
 
-  describe('cursor-to-cursor-command-passthrough', () => {
-    it('should preserve commands in cursor-to-cursor conversion', async () => {
-      // Create input commands
+  describe('cursor-to-cursor-command-migrates-to-skill', () => {
+    /**
+     * Cursor-to-Cursor round-trip after the Commands deprecation migration.
+     *
+     * Legacy `.cursor/commands/<name>.md` is still DISCOVERED for backward
+     * compatibility but does NOT round-trip: emit always produces the new
+     * canonical form `.cursor/skills/<name>/SKILL.md` with
+     * `disable-model-invocation: true`. This test verifies the emit OUTPUT
+     * (the previous version of this test read its own input path back from
+     * disk, which made the assertion vacuous — issue surfaced via PR #99
+     * review feedback).
+     */
+    it('should discover legacy command and emit it as a disable-model-invocation Skill', async () => {
+      // Create legacy-form input command
       await fs.mkdir(path.join(tempDir, '.cursor', 'commands'), { recursive: true });
-      
+
       const commandContent = 'Review this code for security.';
       await fs.writeFile(
         path.join(tempDir, '.cursor', 'commands', 'review.md'),
         commandContent,
         'utf-8'
       );
-      
-      // Run cursor-to-cursor conversion (effectively a round-trip)
+
+      // Run cursor-to-cursor conversion (round-trip across the discover/emit asymmetry)
       const result = await engine.convert({
         source: 'cursor',
         target: 'cursor',
         root: tempDir,
       });
-      
-      // Command should be discovered and written back as ManualPrompt
+
+      // Command should be discovered as a ManualPrompt
       const manualPrompts = result.discovered.filter(d => d.type === 'manual-prompt');
       expect(manualPrompts).toHaveLength(1);
-      
-      // Verify file was written
-      const outputContent = await fs.readFile(
-        path.join(tempDir, '.cursor', 'commands', 'review.md'),
-        'utf-8'
+
+      // Emit must write to the new canonical Skill path, not back to commands/
+      const newSkillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
+      const newSkillContent = await fs.readFile(newSkillPath, 'utf-8');
+      expect(newSkillContent).toContain('disable-model-invocation: true');
+      expect(newSkillContent).toContain('Invoke with /review');
+      expect(newSkillContent).toContain(commandContent);
+
+      // Emit must NOT produce a fresh command file (legacy form is read-only on emit)
+      const writtenPaths = result.written.map(w => w.path);
+      expect(writtenPaths).toContain(newSkillPath);
+      expect(writtenPaths).not.toContain(
+        path.join(tempDir, '.cursor', 'commands', 'review.md')
       );
-      expect(outputContent).toBe(commandContent);
     });
   });
 

@@ -689,20 +689,32 @@ export async function emit(
   // === Emit ManualPrompts as .cursor/skills/<name>/SKILL.md (disable-model-invocation) ===
   // Commands are discovered for legacy support but do not round-trip.
   // Emitted form is now a disable-model-invocation Agent Skill (see discover.ts).
-  const usedSkillNamesForManual = usedSkillNames; // reuse existing set for unified collision across skills
+  // Unified collision set is shared with SimpleAgentSkill (which always emits flat
+  // at `.cursor/skills/<name>/`). To keep that unification correct while still
+  // allowing same `promptName` under distinct `relativeDir`s, we key collisions
+  // on the relative path under `.cursor/skills/`, not on the bare name.
+  const usedSkillNamesForManual = usedSkillNames;
   for (const prompt of manualPrompts) {
     const baseName = sanitizePromptName(prompt.promptName);
 
+    const normalizedRelativeDir = prompt.relativeDir
+      ? path.posix.normalize(prompt.relativeDir.replace(/\\/g, '/')).replace(/\/+$/, '')
+      : '';
+    const collisionKeyFor = (name: string): string =>
+      normalizedRelativeDir && normalizedRelativeDir !== '.'
+        ? `${normalizedRelativeDir}/${name}`
+        : name;
+
     let dirName = baseName;
-    if (usedSkillNamesForManual.has(dirName)) {
+    if (usedSkillNamesForManual.has(collisionKeyFor(dirName))) {
       if (prompt.sourcePath) collisionSources.push(prompt.sourcePath);
       let counter = 1;
-      while (usedSkillNamesForManual.has(`${baseName}-${counter}`)) {
+      while (usedSkillNamesForManual.has(collisionKeyFor(`${baseName}-${counter}`))) {
         counter++;
       }
       dirName = `${baseName}-${counter}`;
     }
-    usedSkillNamesForManual.add(dirName);
+    usedSkillNamesForManual.add(collisionKeyFor(dirName));
 
     const skillsRoot = path.join(root, '.cursor', 'skills');
     const targetDir = prompt.relativeDir

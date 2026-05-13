@@ -203,6 +203,60 @@ describe('Cursor ManualPrompt Emission (Agent Skills)', () => {
       expect(collisionWarnings).toHaveLength(1);
     });
 
+    /**
+     * Regression guard (PR #99 review feedback, P1):
+     *
+     * Two ManualPrompts with the same `promptName` but DIFFERENT `relativeDir`
+     * values map to distinct on-disk paths and MUST NOT trigger a collision rename.
+     * The unified `usedSkillNames` set introduced by the Commands→Skills migration
+     * must key on the path under `.cursor/skills/`, not on the unqualified base name.
+     */
+    it('should NOT rename same promptName across different relativeDir values', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/frontend/review.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/frontend/review.md',
+          relativeDir: 'frontend',
+          content: 'Frontend review prompt',
+          promptName: 'review',
+          metadata: {},
+        },
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/backend/review.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/backend/review.md',
+          relativeDir: 'backend',
+          content: 'Backend review prompt',
+          promptName: 'review',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(2);
+
+      const frontendPath = path.join(tempDir, '.cursor', 'skills', 'frontend', 'review', 'SKILL.md');
+      const backendPath = path.join(tempDir, '.cursor', 'skills', 'backend', 'review', 'SKILL.md');
+
+      const frontendContent = await fs.readFile(frontendPath, 'utf-8');
+      const backendContent = await fs.readFile(backendPath, 'utf-8');
+
+      expect(frontendContent).toContain('Frontend review prompt');
+      expect(backendContent).toContain('Backend review prompt');
+
+      // No `review-1` directories — paths were distinct, no rename should occur.
+      const frontendDirEntries = await fs.readdir(path.join(tempDir, '.cursor', 'skills', 'frontend'));
+      const backendDirEntries = await fs.readdir(path.join(tempDir, '.cursor', 'skills', 'backend'));
+      expect(frontendDirEntries.sort()).toEqual(['review']);
+      expect(backendDirEntries.sort()).toEqual(['review']);
+
+      // No spurious collision warning.
+      const collisionWarnings = result.warnings.filter(w => w.message.includes('collision'));
+      expect(collisionWarnings).toHaveLength(0);
+    });
+
     it('should skip ManualPrompt with path-traversal relativeDir', async () => {
       const models: ManualPrompt[] = [
         {
