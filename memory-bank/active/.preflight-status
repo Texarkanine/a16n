@@ -1,4 +1,0 @@
-PASS
-date: 2026-05-12
-task: slobac-rework-cursor-tests
-notes: Clean pass. Test-only refactor with no production code changes. All 10 SLOBAC findings mapped to concrete actions. Convention compliance verified (fixture naming, test layout). No conflicts or duplication-in-waiting.

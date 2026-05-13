@@ -1,2 +1,0 @@
-PASS
-QA completed for SLOBAC rework. All 10 audit findings are resolved per plan; no semantic QA fixes were needed. ReadLints clean. `pnpm test && pnpm build` in `packages/plugin-cursor` passed with 133 tests (Node engine warning only: package wants >=22, shell has 20.18.2).
