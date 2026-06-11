@@ -151,6 +151,7 @@ E2E (CLI):
     - Files: `release-please-config.json` (component `@a16njs/plugin-agentsmd`), `.release-please-manifest.json` (`"packages/plugin-agentsmd": "0.0.0"`), `codecov.yml` (flag `plugin-agentsmd`), `.github/workflows/ci.yaml` (coverage upload step mirroring plugin-claude)
 8. **Documentation**
     - Files: `packages/plugin-agentsmd/README.md` (full content; conversion tables incl. factual lossiness notes), `packages/docs/docs/plugin-agentsmd/index.md`, `packages/docs/docs/plugin-agentsmd/api.mdx` (copy plugin-claude pattern), `packages/docs/sidebars.js`, `packages/docs/package.json` (`apidoc:current:plugin-agentsmd` + chain entry), `packages/docs/scripts/stage-changelogs.sh` (PACKAGE_MAP entry), `packages/docs/docs/understanding-conversions/index.md` (AGENTS.md mapping rows/notes)
+    - Plugin-listing touchpoints (preflight finding): root `README.md` package table, `packages/README.md` list, `packages/cli/README.md` bundled-plugins table, `CONTRIBUTING.md` plugin-packages mention
     - Verify: `pnpm --filter docs run docs:build:current` (CI-equivalent docs gate)
 9. **Full validation**: `pnpm install && pnpm build && pnpm test && pnpm typecheck` at root (lint script does not exist in plugin packages — noted, skip)
 

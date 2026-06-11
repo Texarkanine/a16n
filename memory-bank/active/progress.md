@@ -35,3 +35,14 @@ Build the included plugin `@a16njs/plugin-agentsmd` (Issue #50): discover `AGENT
     - plugin-a16n IR serialization keeps relativeDir+globs but strips sourcePath+metadata — globs are the only durable scoping channel
     - WarningCode.Overwritten exists but was never used by any plugin; this is its first legitimate use
     - Engine skips orphan detection cleanly when pathPatterns is absent (verified in transformation.ts guard)
+
+## 2026-06-11 - PREFLIGHT - COMPLETE (PASS)
+
+* Work completed
+    - Validated TDD encoding, conventions, dependency impact, conflicts, completeness against codebase reality
+    - Amended plan step 8 with four plugin-listing doc touchpoints (root README, packages/README, cli README, CONTRIBUTING)
+    - Wrote .preflight-status (PASS)
+* Decisions made
+    - Advisory (not done): reclassify plugin-claude nested CLAUDE.md as FileRule in a future task
+* Insights
+    - generate-cli-docs.ts builds the program with engine=null, so the fallback plugin-id string in cli/src/index.ts flows into generated CLI reference docs
