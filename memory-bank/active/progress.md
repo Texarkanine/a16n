@@ -46,3 +46,20 @@ Build the included plugin `@a16njs/plugin-agentsmd` (Issue #50): discover `AGENT
     - Advisory (not done): reclassify plugin-claude nested CLAUDE.md as FileRule in a future task
 * Insights
     - generate-cli-docs.ts builds the program with engine=null, so the fallback plugin-id string in cli/src/index.ts flows into generated CLI reference docs
+
+## 2026-06-11 - BUILD - COMPLETE
+
+* Work completed
+    - Step 1-2: scaffolded packages/plugin-agentsmd (package.json, tsconfig, vitest config, CHANGELOG stub, documented stubs) + stubbed all 6 unit test files with behavior comments (red phase verified)
+    - Step 3: discover() — recursive AGENTS.md walk (skips dot-dirs/node_modules), root → GlobalPrompt, nested → FileRule(['<dir>/**'], relativeDir); 10 discovery tests green
+    - Step 4-5: emit() — placement matrix, dir-shaped-glob recognizer + traversal guards, deterministic overwrite, \n\n concatenation, Merged/Overwritten/Skipped warnings, unsupported collection, dryRun; plugin definition; 35/35 unit tests green
+    - Step 6: CLI integration — plugin registered in src/index.ts (engine + fallback string), workspace dep, createIntegrationEngine, 4 integration tests (agentsmd→cursor, agentsmd→claude escape hatch; cursor→agentsmd lossy entrance; agentsmd→a16n→agentsmd byte-identical round-trip), e2e plugins-list assertion
+    - Step 7: release-please config + manifest entries, codecov flag, CI coverage upload step
+    - Step 8: README, docs index/api pages, sidebars, apidoc:current chain, stage-changelogs PACKAGE_MAP, generate-versioned-api PACKAGES + WORKSPACE_PACKAGE_PATHS, understanding-conversions AGENTS.md notes, five plugin-listing touchpoints (root README, packages/README, cli README, CONTRIBUTING, docs intro)
+    - Step 9: full validation — pnpm build, typecheck, test --force (17/17 tasks, 951 tests, 0 cached), docs:build:current SUCCESS, ReadLints clean
+* Decisions made
+    - Stale-dist gotcha: CLI integration tests resolve the plugin via dist/, so plugin must be rebuilt after implementing (caught when integration tests failed against stubs)
+    - Excluded-dirs discovery test builds its tree programmatically in a temp dir (node_modules fixtures are git-ignored and would not survive CI checkout)
+* Insights
+    - generate-versioned-api.ts try/catches checkout of paths missing at old tags, so adding plugin-agentsmd/src to WORKSPACE_PACKAGE_PATHS is safe for historical versions
+    - Docs build has one pre-existing broken-anchor warning (plugin-development → /models#customizationtype), unrelated to this task

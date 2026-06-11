@@ -1,0 +1,5 @@
+---
+description: How to write database helpers
+---
+
+Use the repository pattern for all database access.

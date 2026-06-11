@@ -66,6 +66,7 @@ a16n plugins
 |-------|--------|--------|
 | Cursor | @a16njs/plugin-cursor | ✅ Bundled |
 | Claude Code | @a16njs/plugin-claude | ✅ Bundled |
+| AGENTS.md | @a16njs/plugin-agentsmd | ✅ Bundled |
 
 ## Examples
 

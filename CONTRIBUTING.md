@@ -29,6 +29,7 @@ This is a pnpm monorepo managed with Turborepo. Packages live under `packages/`:
 | `plugin-cursor` | Cursor plugin (discover + emit) |
 | `plugin-claude` | Claude Code plugin (discover + emit) |
 | `plugin-a16n` | a16n IR format plugin (discover + emit) |
+| `plugin-agentsmd` | AGENTS.md standard plugin (discover + emit) |
 | `glob-hook` | Standalone utility for Claude Code hooks (not part of the conversion pipeline) |
 | `docs` | Documentation site (Docusaurus) |
 
@@ -56,7 +57,7 @@ pnpm exec vitest run test/cli.test.ts -t "handles dotfiles"  # single test by na
 
 Tests use Vitest. Each package has its own `test/` directory; the layout depends on what the package does.
 
-**Plugin packages** (`plugin-cursor`, `plugin-claude`, `plugin-a16n`) use a flat `test/` layout with one file per behavior domain:
+**Plugin packages** (`plugin-cursor`, `plugin-claude`, `plugin-a16n`, `plugin-agentsmd`) use a flat `test/` layout with one file per behavior domain:
 
 ```
 test/

@@ -19,6 +19,7 @@ declare -A PACKAGE_MAP=(
   [plugin-cursor]=plugin-cursor
   [plugin-claude]=plugin-claude
   [plugin-a16n]=plugin-a16n
+  [plugin-agentsmd]=plugin-agentsmd
   [glob-hook]=glob-hook
 )
 

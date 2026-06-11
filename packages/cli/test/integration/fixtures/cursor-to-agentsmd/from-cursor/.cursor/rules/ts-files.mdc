@@ -1,0 +1,5 @@
+---
+globs: *.ts
+---
+
+Prefer type over interface for unions.

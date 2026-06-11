@@ -19,11 +19,13 @@ a16n recognizes several common kinds of agent configuration.
 
   * `CLAUDE.md`
   * Cursor rules with `alwaysApply: true`
+  * Root `AGENTS.md`
 
 * **File Rules** - injected when working on matching files
 
   * Cursor rules with `globs: [...]`
   * Claude rules using `paths:`
+  * Nested `AGENTS.md` files (scoped to their directory subtree)
 
 * **Skills** - invoked when the model decides they are useful
 
@@ -59,6 +61,8 @@ Some concepts have clear equivalents across tools.
 
 These translations preserve both meaning and behavior, though file layout may differ.
 
+The [AGENTS.md standard](https://agents.md/) supports only two of these concepts: Global Prompts (root `AGENTS.md`) and directory-scoped File Rules (`<dir>/AGENTS.md`). Converting *out of* AGENTS.md is clean; converting *into* it is lossy for everything else. See the [AGENTS.md plugin](/plugin-agentsmd) for details.
+
 ## What Gets Approximated
 
 Some features exist in both ecosystems but behave slightly differently. In these cases a16n chooses the closest equivalent and warns you.
@@ -78,6 +82,8 @@ Some features simply do not exist in the target toolchain. These are skipped and
 | Complex Commands  | Cursor | Claude | `$ARGUMENTS`, `!`, and `allowed-tools` have no equivalent |
 | Skills with hooks | Claude | Cursor | Hooks are Claude-specific                                 |
 | Hooks             | Any    | Any    | [Not convertible](./hooks)                                |
+| Non-directory File Rules | Any | AGENTS.md | AGENTS.md scoping is directory-only (no glob patterns)    |
+| Skills, Manual Prompts, Ignores | Any | AGENTS.md | AGENTS.md is plain markdown with no frontmatter           |
 
 ## Structural Differences and Non-Invertibility
 

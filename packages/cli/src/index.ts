@@ -5,6 +5,7 @@ import { A16nEngine } from '@a16njs/engine';
 import cursorPlugin from '@a16njs/plugin-cursor';
 import claudePlugin from '@a16njs/plugin-claude';
 import a16nPlugin from '@a16njs/plugin-a16n';
+import agentsmdPlugin from '@a16njs/plugin-agentsmd';
 import { handleConvert } from './commands/convert.js';
 import { handleDiscover } from './commands/discover.js';
 import { handlePlugins } from './commands/plugins.js';
@@ -35,7 +36,7 @@ const defaultIO: CommandIO = {
  */
 export function createProgram(engine: A16nEngine | null, io: CommandIO = defaultIO): Command {
   const program = new Command();
-  const pluginIds = engine?.listPlugins().map(p => p.id).join(', ') ?? 'cursor, claude, a16n';
+  const pluginIds = engine?.listPlugins().map(p => p.id).join(', ') ?? 'cursor, claude, a16n, agentsmd';
 
   program
     .name('a16n')
@@ -152,7 +153,7 @@ function isSameFile(a: string, b: string): boolean {
 const isMainModule = Boolean(process.argv[1]) && isSameFile(process.argv[1]!, __filename);
 
 if (isMainModule) {
-  const engine = new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin]);
+  const engine = new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin, agentsmdPlugin]);
   await engine.discoverAndRegisterPlugins();
   const program = createProgram(engine);
   program.parse();
