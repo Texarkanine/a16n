@@ -63,3 +63,16 @@ Build the included plugin `@a16njs/plugin-agentsmd` (Issue #50): discover `AGENT
 * Insights
     - generate-versioned-api.ts try/catches checkout of paths missing at old tags, so adding plugin-agentsmd/src to WORKSPACE_PACKAGE_PATHS is safe for historical versions
     - Docs build has one pre-existing broken-anchor warning (plugin-development → /models#customizationtype), unrelated to this task
+
+## 2026-06-11 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Semantic review of discover.ts/emit.ts/index.ts + tests against the plan and both creative docs (KISS/DRY/YAGNI/Completeness/Regression/Integrity/Documentation)
+    - Verified the implemented dir-shaped glob recognizer matches the planned strict form `^(.+?)/\*\*(/\*)?$` (summary-doc drift had suggested a looser regex; actual code is correct)
+    - Fixed 4 trivial findings: systemPatterns.md still said "Three plugins are bundled" (+ added agentsmd asymmetry note); emit-helpers.ts doc comment claimed emit-only scope but a discovery test uses it; `.temp-emit/` missing from .gitignore (latent gap shared with plugin-claude); untested `./`-prefix glob normalization in fileRuleTargetDir → added emit test (36th)
+    - Full suite re-run after fixes: 17/17 tasks green (plugin-agentsmd 36/36 and CLI 179/179 fresh; rest cached from the earlier uncached verification run)
+    - Wrote .qa-validation-status (PASS)
+* Decisions made
+    - Kept the defensive `dir === ''` skip branch and double containment check in emit.ts — defense-in-depth consistent with relativeDir guards in the other plugins, not over-engineering
+* Insights
+    - `.temp-emit/` cleanup relies on afterEach; gitignore entry now protects against crash leftovers being committed for both plugins that use the pattern

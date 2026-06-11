@@ -28,6 +28,7 @@ coverage/
 
 # Integration test temp workspaces
 .temp-integration/
+.temp-emit/
 
 # Environment
 .env

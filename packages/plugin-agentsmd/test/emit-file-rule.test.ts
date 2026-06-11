@@ -72,6 +72,16 @@ describe('AGENTS.md Plugin Emission (FileRule)', () => {
         path.join(tempDir, 'packages', 'foo', 'src', 'AGENTS.md')
       );
     });
+
+    it('should normalize a leading ./ in the glob', async () => {
+      const rule = makeFileRule(['./src/**']);
+
+      const result = await agentsmdPlugin.emit([rule], tempDir);
+
+      expect(result.written).toHaveLength(1);
+      expect(result.warnings).toHaveLength(0);
+      expect(result.written[0]!.path).toBe(path.join(tempDir, 'src', 'AGENTS.md'));
+    });
   });
 
   describe('non-representable globs', () => {

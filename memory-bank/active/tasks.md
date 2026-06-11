@@ -178,4 +178,4 @@ No new technology — plugin uses only `@a16njs/models` (existing workspace pack
 - [x] Technology validation complete (n/a — no new tech)
 - [x] Preflight (PASS — see progress.md 2026-06-11 entry)
 - [x] Build (steps 1–9 complete; all verification gates green)
-- [ ] QA
+- [x] QA (PASS — 4 trivial findings fixed in-phase, 0 substantive; see .qa-validation-status)

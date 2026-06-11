@@ -1,9 +1,9 @@
 /**
- * Shared helpers for AGENTS.md plugin emit tests.
+ * Shared temp-directory helpers for AGENTS.md plugin tests that write to disk
+ * (emit suites and programmatically-built discovery trees).
  *
- * Keeps per-suite temp directories isolated so the emit suite can be split
- * into domain files that Vitest runs in parallel without clobbering each
- * other's workspaces.
+ * Keeps per-suite temp directories isolated so test files that Vitest runs in
+ * parallel cannot clobber each other's workspaces.
  */
 
 import * as path from 'path';
