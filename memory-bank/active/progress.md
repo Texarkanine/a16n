@@ -76,3 +76,15 @@ Build the included plugin `@a16njs/plugin-agentsmd` (Issue #50): discover `AGENT
     - Kept the defensive `dir === ''` skip branch and double containment check in emit.ts — defense-in-depth consistent with relativeDir guards in the other plugins, not over-engineering
 * Insights
     - `.temp-emit/` cleanup relies on afterEach; gitignore entry now protects against crash leftovers being committed for both plugins that use the pattern
+
+## 2026-06-11 - REFLECT - COMPLETE
+
+* Work completed
+    - Full-lifecycle reflection written to memory-bank/active/reflection/reflection-20260611-agentsmd-plugin.md
+    - Persistent files reconciled: systemPatterns.md already corrected during QA; productContext.md and techContext.md unaffected by this task
+* Decisions made
+    - None — reflection confirmed plan/creative decisions held without rework
+* Insights
+    - Technical: workspace plugin dist/ staleness when manually running a dependent package's tests; Overwritten warning code designed ahead of need paid off; generate-versioned-api.ts is safe for packages absent at old tags
+    - Process: QA should re-read shipped code (conversation summaries can drift); preflight listing-sweeps for new packages should grep packages/docs/docs/** too
+* Next: operator-initiated /niko-archive (Reflect → Archive transition requires operator input)
