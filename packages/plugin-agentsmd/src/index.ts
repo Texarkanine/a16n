@@ -14,8 +14,9 @@ import { emit } from './emit.js';
  * standard warning channels (`skipped`, `merged`, `overwritten`) and the
  * `unsupported` result surface exactly what could not be represented.
  *
- * No `pathPatterns`: AGENTS.md files live anywhere in the repository tree,
- * so prefix-based orphan detection does not apply to this plugin.
+ * No `pathPatterns`: AGENTS.md files have no fixed directory prefix (they
+ * live at any depth), so this plugin opts out of the engine's path-reference
+ * scanning rather than misreporting it.
  */
 const agentsmdPlugin: A16nPlugin = {
   id: 'agentsmd',
