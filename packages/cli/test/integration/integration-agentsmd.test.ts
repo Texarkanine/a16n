@@ -36,7 +36,7 @@ describe('Integration Tests - AGENTS.md plugin', () => {
   });
 
   describe('agentsmd-to-cursor (escape hatch)', () => {
-    it('should convert root AGENTS.md to an alwaysApply rule and nested AGENTS.md to a globs rule', async () => {
+    it('should convert root AGENTS.md to AGENTSMD.mdc and nested AGENTS.md to AGENTSMD.mdc with globs', async () => {
       const fromDir = path.join(fixturesDir, 'agentsmd-to-cursor', 'from-agentsmd');
       await copyDir(fromDir, tempDir);
 
@@ -51,14 +51,14 @@ describe('Integration Tests - AGENTS.md plugin', () => {
       expect(result.unsupported).toHaveLength(0);
 
       const rootRule = await fs.readFile(
-        path.join(tempDir, '.cursor', 'rules', 'AGENTS.mdc'),
+        path.join(tempDir, '.cursor', 'rules', 'AGENTSMD.mdc'),
         'utf-8'
       );
       expect(rootRule).toContain('alwaysApply: true');
       expect(rootRule).toContain('Always use TypeScript strict mode.');
 
       const webRule = await fs.readFile(
-        path.join(tempDir, '.cursor', 'rules', 'web', 'AGENTS.mdc'),
+        path.join(tempDir, '.cursor', 'rules', 'web', 'AGENTSMD.mdc'),
         'utf-8'
       );
       expect(webRule).toContain('globs: web/**');
@@ -67,7 +67,7 @@ describe('Integration Tests - AGENTS.md plugin', () => {
   });
 
   describe('agentsmd-to-claude (escape hatch)', () => {
-    it('should convert nested AGENTS.md to a Claude rule with paths frontmatter', async () => {
+    it('should convert AGENTS.md files into AGENTSMD.md Claude rules with safe filenames', async () => {
       const fromDir = path.join(fixturesDir, 'agentsmd-to-claude', 'from-agentsmd');
       await copyDir(fromDir, tempDir);
 
@@ -81,14 +81,14 @@ describe('Integration Tests - AGENTS.md plugin', () => {
       expect(result.written).toHaveLength(2);
 
       const rootRule = await fs.readFile(
-        path.join(tempDir, '.claude', 'rules', 'AGENTS.md'),
+        path.join(tempDir, '.claude', 'rules', 'AGENTSMD.md'),
         'utf-8'
       );
       expect(rootRule).not.toMatch(/^---/);
       expect(rootRule).toContain('Always use TypeScript strict mode.');
 
       const webRule = await fs.readFile(
-        path.join(tempDir, '.claude', 'rules', 'web', 'AGENTS.md'),
+        path.join(tempDir, '.claude', 'rules', 'web', 'AGENTSMD.md'),
         'utf-8'
       );
       expect(webRule).toMatch(/^---\npaths:\n {2}- web\/\*\*\n---/);
@@ -160,6 +160,51 @@ describe('Integration Tests - AGENTS.md plugin', () => {
         root: tempDir,
       });
       expect(fromIr.written).toHaveLength(2);
+
+      const roundTrippedRoot = await fs.readFile(path.join(tempDir, 'AGENTS.md'), 'utf-8');
+      const roundTrippedApi = await fs.readFile(
+        path.join(tempDir, 'packages', 'api', 'AGENTS.md'),
+        'utf-8'
+      );
+
+      expect(roundTrippedRoot).toBe(originalRoot);
+      expect(roundTrippedApi).toBe(originalApi);
+    });
+  });
+
+  describe('agentsmd round-trip via cursor bridge', () => {
+    it('should survive agentsmd -> cursor -> agentsmd with AGENTSMD intermediate names', async () => {
+      const fromDir = path.join(fixturesDir, 'agentsmd-roundtrip', 'from-agentsmd');
+      await copyDir(fromDir, tempDir);
+
+      const originalRoot = await fs.readFile(path.join(tempDir, 'AGENTS.md'), 'utf-8');
+      const originalApi = await fs.readFile(
+        path.join(tempDir, 'packages', 'api', 'AGENTS.md'),
+        'utf-8'
+      );
+
+      const toCursor = await engine.convert({
+        source: 'agentsmd',
+        target: 'cursor',
+        root: tempDir,
+      });
+      expect(toCursor.written).toHaveLength(2);
+      await expect(
+        fs.access(path.join(tempDir, '.cursor', 'rules', 'AGENTSMD.mdc'))
+      ).resolves.toBeUndefined();
+      await expect(
+        fs.access(path.join(tempDir, '.cursor', 'rules', 'packages', 'api', 'AGENTSMD.mdc'))
+      ).resolves.toBeUndefined();
+
+      await fs.rm(path.join(tempDir, 'AGENTS.md'));
+      await fs.rm(path.join(tempDir, 'packages', 'api', 'AGENTS.md'));
+
+      const fromCursor = await engine.convert({
+        source: 'cursor',
+        target: 'agentsmd',
+        root: tempDir,
+      });
+      expect(fromCursor.written).toHaveLength(2);
 
       const roundTrippedRoot = await fs.readFile(path.join(tempDir, 'AGENTS.md'), 'utf-8');
       const roundTrippedApi = await fs.readFile(

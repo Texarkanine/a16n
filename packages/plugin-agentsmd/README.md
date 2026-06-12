@@ -20,8 +20,7 @@ npm install @a16njs/plugin-agentsmd
 | **GlobalPrompt** | root `AGENTS.md` | Always-active instructions |
 | **FileRule** | `<dir>/AGENTS.md` | Directory-scoped instructions (directory-shaped globs only) |
 
-AGENTS.md is plain markdown with no frontmatter, globs, skills, commands, or ignore
-rules, so **converting into AGENTS.md is lossy** for everything else:
+AGENTS.md is plain markdown with no frontmatter, globs, skills, commands, or ignore rules, so **converting into AGENTS.md is lossy** for everything else:
 
 - FileRules whose globs are not directory-shaped (e.g. `*.ts`) are skipped with a warning
 - Skills, manual prompts, and agent-ignore rules are reported as unsupported
@@ -35,12 +34,10 @@ Converting *out of* AGENTS.md is lossless.
 - `AGENTS.md` — root instructions (GlobalPrompt)
 - `<dir>/AGENTS.md` — nested instructions at any depth (FileRule with `globs: ['<dir>/**']`)
 
-Per the [AGENTS.md standard](https://agents.md/), a nested AGENTS.md provides
-instructions scoped to its subtree. a16n encodes that scoping as a
-directory-shaped glob so it converts into native path-scoped rules:
+Per the [AGENTS.md standard](https://agents.md/), a nested AGENTS.md provides instructions scoped to its subtree. a16n encodes that scoping as a directory-shaped glob so it converts into native path-scoped rules:
 
-- Cursor: `.cursor/rules/<dir>/AGENTS.mdc` with `globs: <dir>/**`
-- Claude Code: `.claude/rules/<dir>/AGENTS.md` with `paths:` frontmatter
+- Cursor: `.cursor/rules/<dir>/AGENTSMD.mdc` with `globs: <dir>/**`
+- Claude Code: `.claude/rules/<dir>/AGENTSMD.md` with `paths:` frontmatter
 
 Discovery skips dot-directories and `node_modules`.
 
@@ -51,9 +48,9 @@ Discovery skips dot-directories and `node_modules`.
 - **FileRule** with a single directory-shaped glob (`<dir>/**` or `<dir>/**/*`) → `<dir>/AGENTS.md`
 - Everything else → warning or unsupported (see above)
 
-Emission deterministically overwrites target files (output depends only on the
-converted items, so repeated conversions converge). Replacing a pre-existing
-`AGENTS.md` whose content differs produces an `overwritten` warning.
+Emission deterministically overwrites target files (output depends only on the converted items, so repeated conversions converge). Replacing a pre-existing `AGENTS.md` whose content differs produces an `overwritten` warning.
+
+When converting AGENTS.md into Cursor/Claude rules, a16n emits `AGENTSMD.*` rule filenames. See the plugin docs for rationale and collision behavior details: <https://texarkanine.github.io/a16n/plugin-agentsmd>.
 
 ## Usage
 

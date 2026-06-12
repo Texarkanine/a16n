@@ -98,6 +98,33 @@ describe('Claude FileRule Emission', () => {
       expect(content).toMatch(/paths:\s*\n\s*-.*\n\s*-\s+"?\*\*\/\*\.jsx"?/);
     });
 
+    it('should rewrite AGENTS stem to AGENTSMD for nested rules', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, 'web/AGENTS.md'),
+          type: CustomizationType.FileRule,
+          sourcePath: 'web/AGENTS.md',
+          relativeDir: 'web',
+          content: 'Scoped AGENTS rule.',
+          globs: ['web/**'],
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      await expect(
+        fs.access(path.join(tempDir, '.claude', 'rules', 'web', 'AGENTS.md'))
+      ).rejects.toThrow();
+      const content = await fs.readFile(
+        path.join(tempDir, '.claude', 'rules', 'web', 'AGENTSMD.md'),
+        'utf-8'
+      );
+      expect(content).toContain('Scoped AGENTS rule.');
+      expect(content).toContain('paths:');
+    });
+
     it('should NOT create settings.local.json hooks', async () => {
       const models: FileRule[] = [
         {

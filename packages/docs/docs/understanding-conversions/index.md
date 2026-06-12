@@ -61,7 +61,7 @@ Some concepts have clear equivalents across tools.
 
 These translations preserve both meaning and behavior, though file layout may differ.
 
-The [AGENTS.md standard](https://agents.md/) supports only two of these concepts: Global Prompts (root `AGENTS.md`) and directory-scoped File Rules (`<dir>/AGENTS.md`). Converting *out of* AGENTS.md is clean; converting *into* it is lossy for everything else. See the [AGENTS.md plugin](/plugin-agentsmd) for details.
+The [AGENTS.md standard](https://agents.md/) supports only two of these concepts: Global Prompts (root `AGENTS.md`) and directory-scoped File Rules (`<dir>/AGENTS.md`). Converting *out of* AGENTS.md is clean; converting *into* it is lossy for everything else. See the [AGENTS.md plugin](/plugin-agentsmd) for AGENTS-specific emission details.
 
 ## What Gets Approximated
 

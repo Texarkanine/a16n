@@ -25,12 +25,10 @@ npm install @a16njs/plugin-agentsmd
 * Nested `AGENTS.md` at any directory depth (e.g. `packages/web/AGENTS.md`)
 	* [FileRule](/models#filerule) with `globs: ['<dir>/**']`
 
-Per the AGENTS.md standard, a nested AGENTS.md provides instructions scoped to its
-subtree ("the closest AGENTS.md wins"). a16n encodes that scoping as a
-directory-shaped glob, which converts into native path-scoped rules in other tools:
+Per the AGENTS.md standard, a nested AGENTS.md provides instructions scoped to its subtree ("the closest AGENTS.md wins"). a16n encodes that scoping as a directory-shaped glob, which converts into native path-scoped rules in other tools:
 
-* Cursor: `.cursor/rules/<dir>/AGENTS.mdc` with `globs: <dir>/**`
-* Claude Code: `.claude/rules/<dir>/AGENTS.md` with `paths:` frontmatter
+* Cursor: `.cursor/rules/<dir>/AGENTSMD.mdc` with `globs: <dir>/**`
+* Claude Code: `.claude/rules/<dir>/AGENTSMD.md` with `paths:` frontmatter
 
 Discovery skips dot-directories (`.git`, `.cursor`, ...) and `node_modules`.
 
@@ -45,18 +43,13 @@ Discovery skips dot-directories (`.git`, `.cursor`, ...) and `node_modules`.
 
 :::warning Lossy conversion
 
-AGENTS.md is plain markdown — no frontmatter, globs, skills, commands, or ignore
-rules. Converting a rich configuration *into* AGENTS.md discards everything that
-cannot be expressed as always-on or directory-scoped prose, and a16n will tell you
-about each loss through its standard warnings. Converting *out of* AGENTS.md is
-lossless.
+AGENTS.md is plain markdown — no frontmatter, globs, skills, commands, or ignore rules. Converting a rich configuration *into* AGENTS.md discards everything that cannot be expressed as always-on or directory-scoped prose, and a16n will tell you about each loss through its standard warnings. Converting *out of* AGENTS.md is lossless.
 
 :::
 
-Emission deterministically overwrites target files: output depends only on the
-converted items, so repeated conversions converge instead of accumulating.
-Replacing a pre-existing `AGENTS.md` whose content differs produces an
-`overwritten` warning.
+Emission deterministically overwrites target files: output depends only on the converted items, so repeated conversions converge instead of accumulating. Replacing a pre-existing `AGENTS.md` whose content differs produces an `overwritten` warning.
+
+When converting *out of* AGENTS.md into Cursor or Claude rules, a16n rewrites the rule stem `AGENTS` to `AGENTSMD` so rule files do not collide with magic `AGENTS.md` behavior in harnesses that treat that basename specially. This means AGENTS.md inputs become `AGENTSMD.mdc` (Cursor) or `AGENTSMD.md` (Claude). If a file already exists at that emitted path, normal deterministic-overwrite behavior applies for that target format.
 
 ---
 
