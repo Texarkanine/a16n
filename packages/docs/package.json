@@ -55,7 +55,7 @@
     "@docusaurus/module-type-aliases": "^3.9.2",
     "@docusaurus/types": "^3.9.2",
     "@easyops-cn/docusaurus-search-local": "^0.52.0",
-    "@types/node": "^20.0.0",
+    "@types/node": "^25.9.3",
     "commander": "^12.0.0",
     "tsx": "^4.19.0",
     "typedoc": "^0.28.3",
