@@ -56,7 +56,7 @@ const config = {
   // Docs: https://docusaurus.io/docs/api/docusaurus-config#future
   // Expected: 2-4x faster builds using Rust-based tooling (SWC, Lightning CSS)
   future: {
-    experimental_faster: {
+    faster: {
       swcJsLoader: true,
       swcJsMinimizer: true,
       swcHtmlMinimizer: true,
