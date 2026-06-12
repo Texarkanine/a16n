@@ -41,3 +41,18 @@ Remediate all currently problematic open Dependabot pull requests by applying ta
 * Insights
     - The previous plan's biggest risk was TDD ambiguity; explicit fail->fix->pass substeps removed the implementation-order ambiguity cleanly.
     - Writing the branch protocol explicitly in `tasks.md` reduces operator/agent mismatch risk when context-switching during multi-PR remediation.
+
+## 2026-06-12 - BUILD - COMPLETE
+
+* Work completed
+    - Remediated and pushed branch-local fixes for PRs `#107`, `#108`, `#112`, `#111`, and `#114` using isolated linked worktrees and red -> green verification.
+    - Verified local targeted checks per PR (`docs:build:current`, package builds, and full `pnpm build` where needed) before push.
+    - Monitored remote GitHub `Build & Test` runs until all previously problematic open Dependabot PRs (`#107`, `#108`, `#109`, `#111`, `#112`, `#114`) were in clean/green state.
+    - Removed temporary per-PR linked worktrees after CI completion.
+* Decisions made
+    - Kept remediations branch-local and minimal, but expanded `#112` scope beyond initial plan when CI showed TS6 Node-type regressions in additional packages.
+    - Applied compatibility-first fixes for docs dependency clusters (`#107/#108`) to preserve mergeability without broad architectural changes.
+    - Treated CI green state on Dependabot PR heads as the Build acceptance gate.
+* Insights
+    - TypeScript 6 surfaced a repo-wide assumption that Node ambient types were implicit; explicitly declaring Node typings in shared tsconfig stabilized the build.
+    - Docusaurus compatibility issues were layered: resolving config migration exposed dependency/runtime coupling issues that required aligned package surfaces.

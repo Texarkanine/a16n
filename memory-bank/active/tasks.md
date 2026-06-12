@@ -158,6 +158,16 @@ No new technology - validation not required.
 - Docusaurus compatibility nuances across grouped dependency updates: validate with real docs build, not only install/build heuristics.
 - Token/policy limitations (workflow-scope restrictions): treat as external blocker if encountered; document separately from code-safety status.
 
+## Build Execution Results
+
+- `#107`: Fixed Docusaurus `future.experimental_faster` -> `future.faster` and aligned docs compatibility deps; local docs build passed and remote `Build & Test` passed.
+- `#108`: Aligned docs compatibility surface (runtime/dev Docusaurus line + SWC typing support); local docs build passed and remote `Build & Test` passed.
+- `#109`: Already remediated before this run; remained green throughout this build phase.
+- `#112`: Initial `glob-hook` Node typings fix was insufficient for full TS6 workspace build; added explicit Node typings in `tsconfig.base.json` and `packages/models/tsconfig.json`; local full build passed and remote `Build & Test` passed.
+- `#111`: Paired `react-dom` with the React bump; local docs build passed and remote `Build & Test` passed.
+- `#114`: Paired `react` with the ReactDOM bump; local docs build passed and remote `Build & Test` passed.
+- Operational: cleaned up all temporary linked PR worktrees after checks were green.
+
 ## Status
 
 - [x] Component analysis complete
@@ -166,5 +176,5 @@ No new technology - validation not required.
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Preflight
-- [ ] Build
+- [x] Build
 - [ ] QA

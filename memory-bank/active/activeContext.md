@@ -1,14 +1,15 @@
 # Active Context
 
 ## Current Task: dependabot-pr-remediation
-**Phase:** PREFLIGHT - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Validated the Level 3 plan against codebase conventions, dependency coupling, and requirement coverage.
-- Confirmed no blocking architectural or convention conflicts.
-- Amended `tasks.md` so each remediation step has explicit test-first (fail -> fix -> pass) ordering and concrete handling for the `#108` compatibility issue.
-- Added an explicit pinned branch/memory-bank execution protocol (orchestration branch + isolated per-PR worktrees) to minimize branch drift and context-loss risk during build.
-- Wrote `.preflight-status` as `PASS`.
+- Established isolated linked worktrees for each failing Dependabot PR branch and executed red -> green remediation loops with local verification before each push.
+- Remediated docs compatibility failures on `#107` and `#108` (Docusaurus future key migration plus compatible dependency alignment), and both branches are now CI green.
+- Confirmed `#109` remained green (no additional remediation needed during this build run).
+- Remediated TS6 build breakage on `#112`; after initial `glob-hook` fix exposed broader failures, added explicit Node typings at shared/base scope and `models` package scope so full workspace build passes.
+- Remediated React pair mismatches on `#111` and `#114` by aligning `react`/`react-dom` versions in each branch; both branches now pass docs build and CI.
+- Removed all temporary `.worktrees/pr-*` directories after remote checks were green.
 
 ## Next Step
-- Preflight passed; operator should invoke `/niko-build` to begin implementation.
+- Build complete; proceed to `/niko-qa`.
