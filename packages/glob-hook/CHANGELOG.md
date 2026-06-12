@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.5.0...@a16njs/glob-hook@0.5.1) (2026-06-12)
+
+
+### Bug Fixes
+
+* **test:** remediate SLOBAC test suite audit findings across plugins and CLI ([#88](https://github.com/Texarkanine/a16n/issues/88)) ([98b616a](https://github.com/Texarkanine/a16n/commit/98b616a0f0bf0110569e8bd25f42cf5fc323c662))
+
 ## [0.5.0](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.4.0...@a16njs/glob-hook@0.5.0) (2026-03-06)
 
 
