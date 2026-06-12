@@ -44,7 +44,7 @@
   "devDependencies": {
     "@a16njs/plugin-cursor": "workspace:*",
     "@a16njs/plugin-claude": "workspace:*",
-    "@types/node": "^20.0.0",
+    "@types/node": "^25.9.3",
     "typescript": "^5.4.0",
     "vitest": "^2.0.0"
   },
