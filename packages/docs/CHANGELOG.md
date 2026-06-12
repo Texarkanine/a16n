@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.12.0](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.11.0...@a16njs/docs@0.12.0) (2026-06-12)
+
+
+### Features
+
+* add AGENTS.md plugin (@a16njs/plugin-agentsmd) ([#100](https://github.com/Texarkanine/a16n/issues/100)) ([390994e](https://github.com/Texarkanine/a16n/commit/390994e2f5e05dc559555ee5c0ac83c890fc8bc2))
+* **plugin-cursor:** migrate ManualPrompt emit from Commands to Agent Skills ([#99](https://github.com/Texarkanine/a16n/issues/99)) ([7a8d512](https://github.com/Texarkanine/a16n/commit/7a8d5127621a0c7ebe709ae807a5c72eaa83db6c))
+
+
+### Bug Fixes
+
+* **test:** remediate SLOBAC test suite audit findings across plugins and CLI ([#88](https://github.com/Texarkanine/a16n/issues/88)) ([98b616a](https://github.com/Texarkanine/a16n/commit/98b616a0f0bf0110569e8bd25f42cf5fc323c662))
+
 ## [0.11.0](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.10.0...@a16njs/docs@0.11.0) (2026-04-21)
 
 
