@@ -85,26 +85,50 @@ None - implementation approach is clear.
 2. Remediate `#107` (Docusaurus deps group) by updating docs future config key.
     - Files: `packages/docs/docusaurus.config.js` (on PR branch `#107`).
     - Changes: replace `future.experimental_faster` usage with compatible `future.faster` structure.
-    - Validation: run docs build command and verify CI transitions to green.
+    - TDD substeps:
+        1. Run `pnpm --filter docs run docs:build:current` on the PR branch and confirm it fails with the `future.experimental_faster` rename error.
+        2. Apply the config-key fix in `docusaurus.config.js`.
+        3. Re-run `pnpm --filter docs run docs:build:current` and confirm success before pushing.
+    - Validation: verify branch CI `Build & Test` transitions to green.
 3. Remediate `#108` (dev-deps group) by aligning docs compatibility surface.
-    - Files: `packages/docs/package.json` and/or `packages/docs/docusaurus.config.js` (on PR branch `#108`).
-    - Changes: ensure Docusaurus-related versions/config are mutually compatible under this branch's dependency set.
-    - Validation: run docs build command and verify CI passes.
+    - Files: `packages/docs/package.json` (primary) and `packages/docs/docusaurus.config.js` (only if needed) on PR branch `#108`.
+    - Changes: align `@docusaurus/types` and `@docusaurus/module-type-aliases` with the branch's runtime Docusaurus line to eliminate mixed-version docs build breakage.
+    - TDD substeps:
+        1. Run `pnpm --filter docs run docs:build:current` and confirm current ProgressPlugin validation failure.
+        2. Apply version-alignment fix in `packages/docs/package.json` (and config tweak only if still required).
+        3. Re-run `pnpm --filter docs run docs:build:current` and confirm success before pushing.
+    - Validation: verify branch CI `Build & Test` passes.
 4. Remediate `#112` (TypeScript 6) by adding explicit Node typings in glob-hook compiler config.
     - Files: `packages/glob-hook/tsconfig.json` (on PR branch `#112`).
     - Changes: add `compilerOptions.types` (Node) and keep existing output/root settings intact.
+    - TDD substeps:
+        1. Run `pnpm --filter @a16njs/glob-hook run build` and confirm TS2591/TS2584 failures for Node globals.
+        2. Add explicit Node typings in `packages/glob-hook/tsconfig.json`.
+        3. Re-run `pnpm --filter @a16njs/glob-hook run build` and confirm success before pushing.
     - Validation: targeted glob-hook build/typecheck and branch CI green.
 5. Remediate `#109` (commander 15) by aligning engine constraints.
     - Files: `packages/cli/package.json`, `packages/docs/package.json` (on PR branch `#109`).
     - Changes: update `engines.node` minimum to satisfy commander 15 runtime requirement.
+    - TDD substeps:
+        1. Confirm pre-fix mismatch (`commander@15` requires Node `>=22.12.0` while package engines are `>=22.0.0`).
+        2. Update package engine declarations to `>=22.12.0`.
+        3. Run targeted package builds and ensure no regressions before pushing.
     - Validation: package builds pass and CI remains green.
 6. Remediate `#111` (react-only bump) by pairing react-dom upgrade in same branch.
     - Files: `packages/docs/package.json` (on PR branch `#111`).
     - Changes: ensure `react` and `react-dom` majors/versions are aligned.
+    - TDD substeps:
+        1. Run `pnpm --filter docs run docs:build:current` and confirm React dispatcher/version-mismatch failure.
+        2. Align `react` and `react-dom` versions in `packages/docs/package.json`.
+        3. Re-run docs build and confirm success before pushing.
     - Validation: docs build and CI pass.
 7. Remediate `#114` (react-dom-only bump) by pairing react upgrade in same branch.
     - Files: `packages/docs/package.json` (on PR branch `#114`).
     - Changes: ensure `react` and `react-dom` majors/versions are aligned.
+    - TDD substeps:
+        1. Run `pnpm --filter docs run docs:build:current` and confirm incompatible React versions failure.
+        2. Align `react` and `react-dom` versions in `packages/docs/package.json`.
+        3. Re-run docs build and confirm success before pushing.
     - Validation: docs build and CI pass.
 8. Reclassify PR health and complete merge-readiness actions.
     - Files: none (operational state).
@@ -129,6 +153,6 @@ No new technology - validation not required.
 - [x] Test planning complete (TDD)
 - [x] Implementation plan complete
 - [x] Technology validation complete
-- [ ] Preflight
+- [x] Preflight
 - [ ] Build
 - [ ] QA

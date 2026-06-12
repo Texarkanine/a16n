@@ -1,12 +1,13 @@
 # Active Context
 
 ## Current Task: dependabot-pr-remediation
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE
 
 ## What Was Done
-- Completed Level 3 plan across six problematic open Dependabot PRs (`#114`, `#112`, `#111`, `#109`, `#108`, `#107`), including per-PR blocker mapping and ordered remediation steps.
-- Produced TDD-oriented validation mapping using existing package build/test/docs commands and CI `Build & Test` checks as merge gates.
-- Identified no unresolved design ambiguity; no creative loop required.
+- Validated the Level 3 plan against codebase conventions, dependency coupling, and requirement coverage.
+- Confirmed no blocking architectural or convention conflicts.
+- Amended `tasks.md` so each remediation step has explicit test-first (fail -> fix -> pass) ordering and concrete handling for the `#108` compatibility issue.
+- Wrote `.preflight-status` as `PASS`.
 
 ## Next Step
-- Run preflight validation on the plan (`/niko-preflight`) before entering build execution.
+- Preflight passed; operator should invoke `/niko-build` to begin implementation.

@@ -27,3 +27,15 @@ Remediate all currently problematic open Dependabot pull requests by applying ta
     - Use existing project verification commands plus GitHub `Build & Test` as the acceptance mechanism (no new test harness introduced).
 * Insights
     - Two PR clusters are tightly coupled: React pair (`#111/#114`) and Docusaurus compatibility (`#107/#108`), so fix sequencing and explicit validation are critical.
+
+## 2026-06-12 - PREFLIGHT - COMPLETE (PASS)
+
+* Work completed
+    - Ran preflight validation across plan prerequisites, convention alignment, dependency impact, conflict detection, and completeness.
+    - Updated the implementation plan to encode explicit test-first ordering for each per-PR remediation unit.
+    - Recorded PASS in `memory-bank/active/.preflight-status`.
+* Decisions made
+    - Keep branch-by-branch remediation strategy; no re-leveling required.
+    - Treat workflow-scope permission blockers as operational constraints, not code-design blockers.
+* Insights
+    - The previous plan's biggest risk was TDD ambiguity; explicit fail->fix->pass substeps removed the implementation-order ambiguity cleanly.
