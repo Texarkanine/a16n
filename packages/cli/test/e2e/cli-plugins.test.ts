@@ -20,6 +20,7 @@ describe('CLI plugins command', () => {
     expect(exitCode).toBe(0);
     expect(stdout).toContain('cursor');
     expect(stdout).toContain('claude');
+    expect(stdout).toContain('agentsmd');
   });
 
   it('should discover and list third-party plugins from node_modules', async () => {

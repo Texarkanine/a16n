@@ -12,7 +12,7 @@ flowchart LR
 
 A **source plugin** reads tool-specific configuration files from disk and normalizes them into an intermediate representation (IR). A **target plugin** takes that IR and writes it out as configuration files for a different tool. The **engine** orchestrates this: it resolves plugins by id, runs discovery, applies an optional transformation pipeline (e.g., path rewriting), then runs emission.
 
-Three plugins are bundled: `cursor`, `claude`, and `a16n` (the IR format itself, stored under `.a16n/`). Installed plugins (npm packages named `a16n-plugin-*`) are discovered at runtime, but bundled plugins win on id conflict by default.
+Four plugins are bundled: `cursor`, `claude`, `a16n` (the IR format itself, stored under `.a16n/`), and `agentsmd` (the AGENTS.md standard). Installed plugins (npm packages named `a16n-plugin-*`) are discovered at runtime, but bundled plugins win on id conflict by default.
 
 **Before you touch anything, know this:**
 
@@ -26,6 +26,8 @@ Three plugins are bundled: `cursor`, `claude`, and `a16n` (the IR format itself,
 ## Discovery/Emit Asymmetries
 
 Plugins do not necessarily round-trip to the same file locations. These asymmetries are intentional, with the goal of preserving accuracy and intent. Do not "fix" them without understanding why they exist.
+
+Notable agentsmd asymmetries: nested `AGENTS.md` files discover as FileRules (`globs: ['<dir>/**']`), but only FileRules whose globs are a single directory-shaped pattern can emit back to `<dir>/AGENTS.md` — all other globs are skipped with a warning. GlobalPrompt `relativeDir` is deliberately ignored on AGENTS.md emission (always-apply content belongs at the root; placing it deeper would narrow its meaning).
 
 ## Classification Priority Orders
 

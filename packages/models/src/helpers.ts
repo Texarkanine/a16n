@@ -44,6 +44,18 @@ export function inferGlobalPromptName(sourcePath: string): string {
 }
 
 /**
+ * Rewrite stems that would collide with harness-level magic filenames when
+ * emitted as rule files.
+ *
+ * `AGENTS.md` is interpreted by AGENTS engines as an instruction file, not as
+ * a generic rule artifact. Emitting rule content under that basename is unsafe
+ * in rules directories. We canonicalize that stem to `AGENTSMD`.
+ */
+export function normalizeReservedRuleStem(stem: string): string {
+  return stem.toUpperCase() === 'AGENTS' ? `${stem}MD` : stem;
+}
+
+/**
  * Type guard to check if an item is a GlobalPrompt.
  */
 export function isGlobalPrompt(item: AgentCustomization): item is GlobalPrompt {

@@ -5,7 +5,7 @@
 
 **Agent customization portability for AI coding tools.**
 
-Convert AI coding agent customizations between tools. Cursor and Claude Code are built-in; more tools are supported via plugins.
+Convert AI coding agent customizations between tools. Cursor, Claude Code, and AGENTS.md are built-in; more tools are supported via plugins.
 
 ## Quick Start
 
@@ -39,6 +39,7 @@ npm install -g a16n
 |------|--------|
 | Cursor | ✅ Built-in |
 | Claude Code | ✅ Built-in |
+| [AGENTS.md](https://agents.md/) | ✅ Built-in |
 | Your tool here | [Build a plugin](https://texarkanine.github.io/a16n/plugin-development) |
 
 ## Documentation
@@ -59,6 +60,7 @@ Full documentation is available at <https://texarkanine.github.io/a16n/>:
 | [@a16njs/models](https://www.npmjs.com/package/@a16njs/models) | Type definitions |
 | [@a16njs/plugin-cursor](https://www.npmjs.com/package/@a16njs/plugin-cursor) | Cursor IDE support |
 | [@a16njs/plugin-claude](https://www.npmjs.com/package/@a16njs/plugin-claude) | Claude Code support |
+| [@a16njs/plugin-agentsmd](https://www.npmjs.com/package/@a16njs/plugin-agentsmd) | AGENTS.md standard support |
 | [@a16njs/glob-hook](https://www.npmjs.com/package/@a16njs/glob-hook) | Helper CLI for custom glob-based hooks (optional) |
 
 ## Contributing

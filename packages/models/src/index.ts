@@ -36,6 +36,7 @@ export {
   isAgentIgnore,
   isManualPrompt,
   inferGlobalPromptName,
+  normalizeReservedRuleStem,
   getUniqueFilename,
   createId,
 } from './helpers.js';

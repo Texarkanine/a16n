@@ -34,6 +34,10 @@ flags:
     paths:
       - packages/plugin-claude/src/
     carryforward: true
+  plugin-agentsmd:
+    paths:
+      - packages/plugin-agentsmd/src/
+    carryforward: true
   glob-hook:
     paths:
       - packages/glob-hook/src/

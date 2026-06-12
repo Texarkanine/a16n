@@ -35,6 +35,10 @@
       "component": "@a16njs/plugin-a16n",
       "changelog-path": "CHANGELOG.md"
     },
+    "packages/plugin-agentsmd": {
+      "component": "@a16njs/plugin-agentsmd",
+      "changelog-path": "CHANGELOG.md"
+    },
     "packages/docs": {
       "component": "@a16njs/docs",
       "changelog-path": "CHANGELOG.md"

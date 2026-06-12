@@ -13,6 +13,7 @@ This directory contains all packages in the a16n monorepo.
 - **[@a16njs/plugin-cursor](./plugin-cursor)** — Cursor IDE `.cursor/` format support
 - **[@a16njs/plugin-claude](./plugin-claude)** — Claude Code `.claude/` format support  
 - **[@a16njs/plugin-a16n](./plugin-a16n)** — a16n IR `.a16n/` intermediate representation format
+- **[@a16njs/plugin-agentsmd](./plugin-agentsmd)** — [AGENTS.md](https://agents.md/) standard support
 
 ## Utilities
 

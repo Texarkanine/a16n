@@ -71,6 +71,31 @@ describe('Claude Plugin Emission', () => {
       expect(content).toContain('React hooks rules.');
     });
 
+    it('should rewrite AGENTS stem to AGENTSMD to avoid magic AGENTS.md filename', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'AGENTS.md'),
+          type: CustomizationType.GlobalPrompt,
+          name: 'AGENTS',
+          sourcePath: 'AGENTS.md',
+          content: 'Root AGENTS content.',
+          metadata: {},
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      await expect(
+        fs.access(path.join(tempDir, '.claude', 'rules', 'AGENTS.md'))
+      ).rejects.toThrow();
+      const content = await fs.readFile(
+        path.join(tempDir, '.claude', 'rules', 'AGENTSMD.md'),
+        'utf-8'
+      );
+      expect(content).toContain('Root AGENTS content.');
+    });
+
     it('should NOT include From line in emitted rule content', async () => {
       const models: GlobalPrompt[] = [
         {

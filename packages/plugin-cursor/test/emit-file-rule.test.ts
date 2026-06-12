@@ -86,5 +86,32 @@ describe('Cursor FileRule Emission', () => {
       // Globs should be on a single line, comma-separated
       expect(content).toMatch(/globs:.*\*\*\/\*\.tsx.*\*\*\/\*\.jsx.*src\/components\/\*\*/);
     });
+
+    it('should rewrite AGENTS stem to AGENTSMD for nested rules', async () => {
+      const models: FileRule[] = [
+        {
+          id: createId(CustomizationType.FileRule, 'web/AGENTS.md'),
+          type: CustomizationType.FileRule,
+          sourcePath: 'web/AGENTS.md',
+          relativeDir: 'web',
+          content: 'Scoped AGENTS rule.',
+          globs: ['web/**'],
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      await expect(
+        fs.access(path.join(tempDir, '.cursor', 'rules', 'web', 'AGENTS.mdc'))
+      ).rejects.toThrow();
+      const content = await fs.readFile(
+        path.join(tempDir, '.cursor', 'rules', 'web', 'AGENTSMD.mdc'),
+        'utf-8'
+      );
+      expect(content).toContain('Scoped AGENTS rule.');
+      expect(content).toContain('globs: web/**');
+    });
   });
 });

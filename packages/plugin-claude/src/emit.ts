@@ -20,6 +20,7 @@ import {
   isAgentSkillIO,
   isAgentIgnore,
   isManualPrompt,
+  normalizeReservedRuleStem,
   resolveRoot,
 } from '@a16njs/models';
 
@@ -73,7 +74,8 @@ function normalizeStemPreservingCase(stem: string): string {
 function sanitizeRuleFilename(sourcePath: string): string {
   const basename = path.basename(sourcePath);
   const nameWithoutExt = basename.replace(/\.[^.]+$/, '');
-  return normalizeStemPreservingCase(nameWithoutExt) || 'rule';
+  const stem = normalizeStemPreservingCase(nameWithoutExt) || 'rule';
+  return normalizeReservedRuleStem(stem);
 }
 
 /**
@@ -82,7 +84,8 @@ function sanitizeRuleFilename(sourcePath: string): string {
  * extension — the caller has already produced a clean stem.
  */
 function sanitizeRuleStem(name: string): string {
-  return normalizeStemPreservingCase(name) || 'global-prompt';
+  const stem = normalizeStemPreservingCase(name) || 'global-prompt';
+  return normalizeReservedRuleStem(stem);
 }
 
 /**

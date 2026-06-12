@@ -13,10 +13,11 @@ import { A16nEngine } from '@a16njs/engine';
 import cursorPlugin from '@a16njs/plugin-cursor';
 import claudePlugin from '@a16njs/plugin-claude';
 import a16nPlugin from '@a16njs/plugin-a16n';
+import agentsmdPlugin from '@a16njs/plugin-agentsmd';
 
-/** Same plugin stack as legacy monolithic integration tests. */
+/** Same plugin stack as the production CLI entry point. */
 export function createIntegrationEngine(): A16nEngine {
-  return new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin]);
+  return new A16nEngine([cursorPlugin, claudePlugin, a16nPlugin, agentsmdPlugin]);
 }
 
 /** Directory containing `fixtures/` next to the calling integration test file. */

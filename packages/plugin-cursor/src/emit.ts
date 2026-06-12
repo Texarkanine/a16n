@@ -19,6 +19,7 @@ import {
   isAgentIgnore,
   isManualPrompt,
   type ManualPrompt,
+  normalizeReservedRuleStem,
   resolveRoot,
 } from '@a16njs/models';
 
@@ -48,7 +49,8 @@ function sanitizeFilename(sourcePath: string): string {
     .replace(/^-+|-+$/g, ''); // Trim leading/trailing hyphens
 
   // Return fallback if empty
-  return sanitized || 'rule';
+  const stem = sanitized || 'rule';
+  return normalizeReservedRuleStem(stem);
 }
 
 /**
@@ -484,7 +486,8 @@ export async function emit(
     // without extension stripping (sanitizeFilename would double-strip).
     // Case preserved (see task 20260421-preserve-filename-case).
     const stem = gp.name.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'rule';
-    const baseName = stem + '.mdc';
+    const safeStem = normalizeReservedRuleStem(stem);
+    const baseName = safeStem + '.mdc';
 
     // Resolve target directory and validate before collision detection
     const targetDir = gp.relativeDir

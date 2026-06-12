@@ -71,6 +71,31 @@ describe('Cursor Plugin Emission', () => {
       expect(content).toContain('Always use TypeScript.');
     });
 
+    it('should rewrite AGENTS stem to AGENTSMD to avoid magic AGENTS name', async () => {
+      const models: GlobalPrompt[] = [
+        {
+          id: createId(CustomizationType.GlobalPrompt, 'AGENTS.md'),
+          type: CustomizationType.GlobalPrompt,
+          sourcePath: 'AGENTS.md',
+          name: 'AGENTS',
+          content: 'Root AGENTS content.',
+          metadata: {},
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      expect(result.written).toHaveLength(1);
+      await expect(
+        fs.access(path.join(tempDir, '.cursor', 'rules', 'AGENTS.mdc'))
+      ).rejects.toThrow();
+      const content = await fs.readFile(
+        path.join(tempDir, '.cursor', 'rules', 'AGENTSMD.mdc'),
+        'utf-8'
+      );
+      expect(content).toContain('Root AGENTS content.');
+    });
+
     it('should create .cursor/rules directory if it does not exist', async () => {
       const models: GlobalPrompt[] = [
         {

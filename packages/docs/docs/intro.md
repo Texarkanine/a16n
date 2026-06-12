@@ -13,6 +13,7 @@ Different AI coding tools have their own formats for customizing agent behavior:
 
 - **Cursor** uses `.cursor/rules/*.mdc` files
 - **Claude Code** uses `CLAUDE.md` and `.claude/settings.json`
+- Many tools understand [AGENTS.md](https://agents.md/) files
 - Many toolchains understand the [AgentSkills.io](https://agentskills.io) format.
 
 a16n lets you:
@@ -82,6 +83,7 @@ a16n is organized as a monorepo with several packages:
 | [@a16njs/plugin-cursor](/plugin-cursor) | Cursor IDE support |
 | [@a16njs/plugin-claude](/plugin-claude) | Claude Code support |
 | [@a16njs/plugin-a16n](/plugin-a16n) | a16n IR format (hub for cross-format conversion) |
+| [@a16njs/plugin-agentsmd](/plugin-agentsmd) | [AGENTS.md](https://agents.md/) standard support |
 | [@a16njs/glob-hook](/glob-hook) | Helper CLI for custom glob-based hooks |
 
 ## Contributing

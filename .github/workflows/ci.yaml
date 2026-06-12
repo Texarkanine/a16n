@@ -95,6 +95,14 @@ jobs:
           flags: plugin-a16n
           fail_ci_if_error: false
 
+      - name: Upload Plugin-AgentsMd coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/plugin-agentsmd/coverage/lcov.info
+          flags: plugin-agentsmd
+          fail_ci_if_error: false
+
       - name: Upload Glob-Hook coverage
         uses: codecov/codecov-action@v5
         with:
