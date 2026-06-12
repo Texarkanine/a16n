@@ -7,10 +7,14 @@ updates:
       interval: 'monthly'
       day: 'monday'
       time: '09:00'
-    allow:
-      - dependency-type: 'production'
     groups:
       deps-minor-patch:
+        dependency-type: 'production'
+        update-types:
+          - 'minor'
+          - 'patch'
+      dev-deps-minor-patch:
+        dependency-type: 'development'
         update-types:
           - 'minor'
           - 'patch'
@@ -19,26 +23,7 @@ updates:
       - 'Texarkanine'
     commit-message:
       prefix: 'fix'
-      include: 'scope'
-
-  - package-ecosystem: 'npm'
-    directory: '/'
-    schedule:
-      interval: 'monthly'
-      day: 'monday'
-      time: '09:00'
-    allow:
-      - dependency-type: 'development'
-    groups:
-      dev-deps-minor-patch:
-        update-types:
-          - 'minor'
-          - 'patch'
-    open-pull-requests-limit: 10
-    assignees:
-      - 'Texarkanine'
-    commit-message:
-      prefix: 'chore'
+      prefix-development: 'chore'
       include: 'scope'
 
   # GitHub Actions dependencies
