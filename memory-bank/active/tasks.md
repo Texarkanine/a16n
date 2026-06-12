@@ -14,16 +14,28 @@ This flow is pinned because all implementation steps follow the same branch-leve
 
 ```mermaid
 flowchart TD
-    A["Identify failing PR + root cause"] --> B["Checkout PR branch"]
+    A["Identify failing PR + root cause"] --> B["Create isolated PR worktree"]
     B --> C["Write/define failing verification first"]
-    C --> D["Implement minimal fix"]
+    C --> D["Implement minimal fix in PR worktree"]
     D --> E["Run targeted local validation"]
     E --> F["Commit + push to PR branch"]
-    F --> G["Re-run/observe GitHub CI"]
+    F --> G["Observe GitHub CI"]
     G --> H{"CI green + risk addressed?"}
-    H -- Yes --> I["Mark PR mergeable"]
+    H -- Yes --> I["Update memory bank on orchestration branch"]
     H -- No --> A
 ```
+
+### Branch & Memory Bank Protocol
+
+This protocol is pinned because branch management is the highest operational risk in this task.
+
+1. Keep `init-dependabot` as the orchestration branch in the primary worktree and treat it as the only place where `memory-bank/active/*` is edited.
+2. For each PR fix cycle, create/use a dedicated linked worktree (for example `.worktrees/pr-107`) checked out to that PR branch.
+3. Run red -> green validation and apply code fixes only inside the PR worktree; do not touch memory-bank files there.
+4. Commit and push only PR-relevant code/config changes from the PR worktree.
+5. Return to the primary orchestration worktree, then update `memory-bank/active/tasks.md`, `memory-bank/active/progress.md`, and `memory-bank/active/activeContext.md` with outcome and next action.
+6. Keep both worktrees clean before switching context; no stashing as normal flow.
+7. Remove PR worktree after the PR is green/mergeable to reduce state drift.
 
 ## Component Analysis
 
@@ -79,8 +91,8 @@ None - implementation approach is clear.
 ## Implementation Plan
 
 1. Establish remediation workspace and verify open problematic PR set.
-    - Files: GitHub PR metadata (no repo file edits yet).
-    - Changes: lock final target list and blocker mapping.
+    - Files: GitHub PR metadata and local worktree layout (no repo file edits yet).
+    - Changes: lock final target list/blocker mapping and set up isolated per-PR worktrees.
     - TDD cycle: capture current failing checks first as baseline assertions.
 2. Remediate `#107` (Docusaurus deps group) by updating docs future config key.
     - Files: `packages/docs/docusaurus.config.js` (on PR branch `#107`).
@@ -98,15 +110,7 @@ None - implementation approach is clear.
         2. Apply version-alignment fix in `packages/docs/package.json` (and config tweak only if still required).
         3. Re-run `pnpm --filter docs run docs:build:current` and confirm success before pushing.
     - Validation: verify branch CI `Build & Test` passes.
-4. Remediate `#112` (TypeScript 6) by adding explicit Node typings in glob-hook compiler config.
-    - Files: `packages/glob-hook/tsconfig.json` (on PR branch `#112`).
-    - Changes: add `compilerOptions.types` (Node) and keep existing output/root settings intact.
-    - TDD substeps:
-        1. Run `pnpm --filter @a16njs/glob-hook run build` and confirm TS2591/TS2584 failures for Node globals.
-        2. Add explicit Node typings in `packages/glob-hook/tsconfig.json`.
-        3. Re-run `pnpm --filter @a16njs/glob-hook run build` and confirm success before pushing.
-    - Validation: targeted glob-hook build/typecheck and branch CI green.
-5. Remediate `#109` (commander 15) by aligning engine constraints.
+4. Remediate `#109` (commander 15) by aligning engine constraints.
     - Files: `packages/cli/package.json`, `packages/docs/package.json` (on PR branch `#109`).
     - Changes: update `engines.node` minimum to satisfy commander 15 runtime requirement.
     - TDD substeps:
@@ -114,6 +118,14 @@ None - implementation approach is clear.
         2. Update package engine declarations to `>=22.12.0`.
         3. Run targeted package builds and ensure no regressions before pushing.
     - Validation: package builds pass and CI remains green.
+5. Remediate `#112` (TypeScript 6) by adding explicit Node typings in glob-hook compiler config.
+    - Files: `packages/glob-hook/tsconfig.json` (on PR branch `#112`).
+    - Changes: add `compilerOptions.types` (Node) and keep existing output/root settings intact.
+    - TDD substeps:
+        1. Run `pnpm --filter @a16njs/glob-hook run build` and confirm TS2591/TS2584 failures for Node globals.
+        2. Add explicit Node typings in `packages/glob-hook/tsconfig.json`.
+        3. Re-run `pnpm --filter @a16njs/glob-hook run build` and confirm success before pushing.
+    - Validation: targeted glob-hook build/typecheck and branch CI green.
 6. Remediate `#111` (react-only bump) by pairing react-dom upgrade in same branch.
     - Files: `packages/docs/package.json` (on PR branch `#111`).
     - Changes: ensure `react` and `react-dom` majors/versions are aligned.
@@ -141,7 +153,7 @@ No new technology - validation not required.
 
 ## Challenges & Mitigations
 
-- Branch drift while fixing multiple PRs: always branch-hop from clean state and verify branch name before edits.
+- Branch drift while fixing multiple PRs: use isolated per-PR linked worktrees and keep memory-bank writes in the orchestration worktree only.
 - Duplicate React PRs (`#111`, `#114`) with overlapping outcome: apply branch-local pair fix to make each independently mergeable.
 - Docusaurus compatibility nuances across grouped dependency updates: validate with real docs build, not only install/build heuristics.
 - Token/policy limitations (workflow-scope restrictions): treat as external blocker if encountered; document separately from code-safety status.

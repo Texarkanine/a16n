@@ -37,5 +37,7 @@ Remediate all currently problematic open Dependabot pull requests by applying ta
 * Decisions made
     - Keep branch-by-branch remediation strategy; no re-leveling required.
     - Treat workflow-scope permission blockers as operational constraints, not code-design blockers.
+    - Refined execution protocol to orchestration-branch memory-bank tracking plus isolated per-PR linked worktrees for code fixes.
 * Insights
     - The previous plan's biggest risk was TDD ambiguity; explicit fail->fix->pass substeps removed the implementation-order ambiguity cleanly.
+    - Writing the branch protocol explicitly in `tasks.md` reduces operator/agent mismatch risk when context-switching during multi-PR remediation.
