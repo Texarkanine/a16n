@@ -97,4 +97,13 @@ describe('AGENTS.md Plugin Emission (overwrite & idempotency)', () => {
     const content = await fs.readFile(target, 'utf-8');
     expect(content).toBe('Hand-written instructions.\n');
   });
+
+  it('should rethrow non-ENOENT read errors from the read-before-write probe', async () => {
+    // Force fs.readFile(targetPath) to fail with EISDIR (non-ENOENT).
+    await fs.mkdir(path.join(tempDir, 'AGENTS.md'), { recursive: true });
+
+    await expect(
+      agentsmdPlugin.emit([makeGlobalPrompt('Converted instructions.')], tempDir, { dryRun: true })
+    ).rejects.toMatchObject({ code: 'EISDIR' });
+  });
 });

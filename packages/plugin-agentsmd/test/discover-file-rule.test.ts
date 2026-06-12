@@ -65,6 +65,7 @@ describe('AGENTS.md Plugin Discovery (nested → FileRule)', () => {
     beforeEach(async () => {
       await fs.mkdir(tempDir, { recursive: true });
       await fs.writeFile(path.join(tempDir, 'AGENTS.md'), 'Root instructions.\n');
+      await fs.writeFile(path.join(tempDir, 'Agents.md'), 'Wrong-case filename; must not be discovered.\n');
       await fs.mkdir(path.join(tempDir, 'node_modules', 'some-dep'), { recursive: true });
       await fs.writeFile(
         path.join(tempDir, 'node_modules', 'some-dep', 'AGENTS.md'),
@@ -87,6 +88,14 @@ describe('AGENTS.md Plugin Discovery (nested → FileRule)', () => {
       expect(result.items).toHaveLength(1);
       expect(result.items[0]?.sourcePath).toBe('AGENTS.md');
       expect(result.warnings).toHaveLength(0);
+    });
+
+    it('should discover only exact-case AGENTS.md filenames', async () => {
+      const result = await agentsmdPlugin.discover(tempDir);
+
+      const sourcePaths = result.items.map(i => i.sourcePath);
+      expect(sourcePaths).toContain('AGENTS.md');
+      expect(sourcePaths).not.toContain('Agents.md');
     });
   });
 });

@@ -32,6 +32,8 @@ Per the AGENTS.md standard, a nested AGENTS.md provides instructions scoped to i
 
 Discovery skips dot-directories (`.git`, `.cursor`, ...) and `node_modules`.
 
+Discovery is filename-exact and case-sensitive: this plugin discovers only `AGENTS.md`. Filenames like `Agents.md` or `agents.md` are ignored.
+
 ### Emission
 
 * [GlobalPrompt](/models#globalprompt): root `AGENTS.md`

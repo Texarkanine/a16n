@@ -158,8 +158,13 @@ export async function emit(
     let existing: string | null = null;
     try {
       existing = await fs.readFile(targetPath, 'utf-8');
-    } catch {
-      existing = null;
+    } catch (error) {
+      const err = error as NodeJS.ErrnoException;
+      if (err.code === 'ENOENT') {
+        existing = null;
+      } else {
+        throw error;
+      }
     }
     const isNewFile = existing === null;
 
