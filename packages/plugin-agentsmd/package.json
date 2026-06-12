@@ -4,6 +4,9 @@
   "description": "AGENTS.md plugin for a16n",
   "license": "AGPL-3.0",
   "author": "Texarkanine",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Texarkanine/a16n.git",
