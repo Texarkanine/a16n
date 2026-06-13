@@ -1,36 +1,17 @@
 # Progress
 
-Wave C of the v1 rollout (Milestone 5): promote the top-level `a16n` CLI from `0.x` to `1.0.0` via per-package `release-as` in `release-please-config.json`, with a path-touching commit under `packages/cli`. Remove spent M4 `release-as` keys from engine/plugins once confirmed published. Depends on Wave B (`@a16njs/engine`, plugins, agentsmd pin-refresh) being live.
+Milestone 6 (documentation capstone) of the v1 rollout: write the canonical "add a new publishable package" runbook (`CONTRIBUTING.md` section + a `.cursor/rules/` rule pointing to it) capturing the four M1 traps, the OIDC first-publish bootstrap, the post-publish verification, and the dissolved-M2 lesson (post-publish tarball verification is the real safety net). Plus the operator-requested rollout cruft cleanup: remove the last spent `release-as: "1.0.0"` key from `packages/cli`.
 
 **Complexity:** Level 1
 
 ## 2026-06-13 - COMPLEXITY-ANALYSIS - COMPLETE
 
 * Work completed
-    - Advanced the L4 from M4 to M5: marked M4 `- [x]`, cleared M4 sub-run ephemerals.
-    - Classified M5 (Wave C: CLI → `1.0.0`) as **Level 1**: single package, proven release-config recipe, no design work.
-    - Re-scoped `projectbrief.md` to M5.
+    - Advanced the L4 from M5 to M6: marked M5 `- [x]`, cleared M5 sub-run ephemerals (operator confirmed `a16n@1.0.0` is live on npm).
+    - Classified M6 as **Level 1**: documentation + one rule file + one spent config-key removal.
+    - Re-scoped `projectbrief.md` to M6, folding in the operator's "cleanup cruft" request.
 * Decisions made
-    - M5 is Wave C only: promote `a16n` CLI; do NOT touch other packages except spent-key cleanup in RP config. Source deps stay `workspace:*`.
+    - Only genuine scaffolding cruft is the spent `release-as: "1.0.0"` on `packages/cli` — remove it (leaving it would force all future CLI releases to 1.0.0).
+    - Keep the `## Stability` README sections (legitimate semver-contract docs) and the publish-invariant/publish-shape tests (permanent guards).
 * Insights
-    - Same per-package path-touch mechanic as M1/M3/M4; breadth is one package, not new design.
-
-## 2026-06-13 - BUILD - COMPLETE
-
-* Work completed
-    - `release-as: "1.0.0"` added to `packages/cli`; spent M4 keys removed from engine/plugin-cursor/plugin-claude/plugin-a16n.
-    - `## Stability` README note added under `packages/cli` (RP path-touch trigger).
-    - Confirmed Wave B published on npm before editing.
-    - Full validation green: build 8/8, test 17/17, typecheck 14/14. Source still `workspace:*`.
-* Decisions made
-    - No new unit test (config+docs; existing `workspace-publish-invariant` + operator merge-gate). Mirrors M3/M4.
-    - Deliverable commit will use `fix(release):` so RP cuts the release (M1 trap).
-* Insights
-    - Wave C is the narrowest wave: one package, one path-touch, spent-key cleanup only.
-
-## 2026-06-13 - QA - COMPLETE
-
-* Work completed
-    - Semantic review (KISS/DRY/YAGNI/completeness/regression/integrity/docs) of Wave C. Wrote `.qa-validation-status` = PASS.
-* Result
-    - ✅ PASS, clean. No findings, no fixes. README claim verified. Residual (RP version on merge) is operator merge-gate.
+    - M6 documents exactly the mechanic that makes the spent-key removal necessary: `release-as` only sets a version when a release is already cut, so a stale forced version silently pins future releases.

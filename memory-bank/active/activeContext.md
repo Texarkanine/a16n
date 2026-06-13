@@ -1,16 +1,16 @@
 # Active Context
 
-## Current Task: v1-release-rollout-m5
-**Phase:** BUILD - COMPLETE
+## Current Task: v1-release-rollout-m6
+**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
 
 ## What Was Done
-- Wave C (CLI → `1.0.0`): `release-as: "1.0.0"` on `packages/cli`; spent M4 `release-as` keys removed from engine/plugins; CLI README stability note added as RP path-touch.
-- Verified Wave B deps live on npm before editing.
-- Full validation green (build/test/typecheck).
+- Advanced the L4 from M5 to M6: marked M5 `- [x]`, cleared M5 sub-run ephemerals (operator confirmed `a16n@1.0.0` is live).
+- Classified M6 (documentation capstone + rollout cruft cleanup) as **Level 1**: docs + one `.cursor/rules/` rule + one spent config-key removal; single component, low risk, no design work. Matches the milestone's own L1 estimate and M3/M5 precedent.
+- Re-scoped `projectbrief.md` to M6, folding in the operator's cruft-cleanup request.
 
 ## Decisions
-- No new unit test (release-config + docs change; `workspace-publish-invariant` guards source; RP version output is operator merge-gated). Mirrors M3/M4 precedent.
-- Deliverable commit uses `fix(release):` (not `chore:`) so Release-Please cuts the release.
+- Cruft scope: the only genuine "solely-scaffolding" item is the spent `release-as: "1.0.0"` on `packages/cli` (latent bug now that 1.0.0 is live). The `## Stability` README sections are real docs (keep); the `workspace-publish-invariant`/`publish-shape` tests are permanent guards (keep).
+- M6 absorbs dissolved M2: post-publish tarball verification is the real safety net, not in-pipeline guards.
 
 ## Next Step
-- L1 wrap-up: reconcile persistent files, commit `chore: completed v1-release-rollout-m5`. Operator: open PR from `fix-release.m5`, merge-gate RP bumps `a16n` → `1.0.0`.
+- Load Level 1 workflow → Build phase: author `CONTRIBUTING.md` runbook + `.cursor/rules/` rule, remove the spent CLI `release-as` key.

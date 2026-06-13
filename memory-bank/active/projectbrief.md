@@ -1,34 +1,42 @@
 # Project Brief
 
-**Parent L4 task:** v1-release-rollout (see `memory-bank/active/milestones.md`) — this brief scopes **Milestone 5** (Wave C: `a16n` CLI → `1.0.0`).
+**Parent L4 task:** v1-release-rollout (see `memory-bank/active/milestones.md`) — this brief scopes **Milestone 6** (documentation capstone + rollout cruft cleanup).
 
 ## User Story
 
-As the maintainer of `a16n`, I want to promote the top-level `a16n` CLI from `0.x` to `1.0.0` so that the entire published stack is on `1.0.0` and `npx a16n@latest` installs a CLI whose published tarball pins only `1.x` dependencies (engine, plugins, models) via pnpm's publish-time rewrite.
+As a future maintainer of `a16n`, I want a prominent, hard-to-miss runbook for adding a new publishable package — capturing the exact ordered steps and the traps that caused the M1 release thrash — so that the next person to add a package does not re-derive the pipeline's non-obvious rules by breaking production. As the current maintainer, I also want the spent release-rollout scaffolding removed so the repo does not carry latent release-config bugs.
 
 ## Use-Case(s)
 
-### Use-Case 1: CLI reaches 1.0.0
+### Use-Case 1: Adding a new publishable package
 
-`a16n` (currently `0.15.4`) publishes as `1.0.0` on the next release. Because its internal deps are `workspace:*` in source, pnpm's publish rewrite re-pins each to the already-published `1.0.0` siblings from M3–M4 in the published tarball; source stays `workspace:*`.
+A contributor adds a new `@a16njs/*` package. They open `CONTRIBUTING.md`, find the "Adding a publishable package" runbook, and follow the ordered steps (publishConfig, workspace deps, first publish via `pnpm publish`, path-touching release commit, OIDC trusted publisher, post-publish verification) without hitting any of the four M1 traps. A `.cursor/rules/` rule points agents at the same runbook.
+
+### Use-Case 2: Spent rollout scaffolding removed
+
+Now that `a16n@1.0.0` is live, the spent `release-as: "1.0.0"` key on `packages/cli` is removed from `release-please-config.json`, so future CLI releases derive their version from conventional commits instead of being permanently pinned to `1.0.0`.
 
 ## Requirements
 
-1. Set `release-as: "1.0.0"` for `packages/cli` in `release-please-config.json`.
-2. Land a real, conventional path-touching commit under `packages/cli` so Release-Please actually includes it (`release-as` alone does not force inclusion).
-3. Remove spent `release-as` keys from prior waves (M4 engine/plugins) once those packages are confirmed published at `1.0.0`.
-4. Preserve all L4 cross-milestone invariants: source inter-package deps stay `workspace:*`, no behavioral code changes, `a16n@latest` stays installable, `docs` never published, agentsmd never regresses below its M1-corrected version.
+1. Add a prominent "Adding a publishable package" runbook to `CONTRIBUTING.md` (create the file if absent) capturing the ordered manual steps and the four M1 traps:
+   1. `publishConfig.access: "public"` on scoped packages.
+   2. Internal deps stay `workspace:*`; the **first** publish MUST use `pnpm publish` (never `npm publish`, which leaks `workspace:*` into the tarball).
+   3. A release needs a path-touching commit; `release-as` alone does not cut one.
+   4. A per-package **trusted publisher (OIDC)** must be configured on npmjs.com or the pipeline publish 404s.
+2. Document the first-publish bootstrap (the OIDC chicken-and-egg) and the post-publish verification commands (`npm view <pkg>@<ver> dependencies` shows no `workspace:`; attestations/provenance present).
+3. Capture the **dissolved-M2** lesson: the pipeline already publishes correctly via `pnpm publish`; because pnpm's `workspace:` rewrite is non-standard, the *post-publish tarball verification* is the real safety net — not any in-pipeline guard. Manual `npm publish` is the documented failure to avoid.
+4. Add a `.cursor/rules/` rule that points to the runbook (so agents adding a package are routed to it).
+5. **Cleanup:** remove the spent `release-as: "1.0.0"` key from `packages/cli` in `release-please-config.json` (last remaining spent rollout key).
 
 ## Constraints
 
-1. **Wave C only.** Do not touch packages outside `packages/cli` except spent-key cleanup in `release-please-config.json`.
-2. **Depends on Wave B being live.** CLI depends on the M3–M4 `1.0.0` packages being published before this wave cuts.
-3. Immutable npm versions — forward-only; this is a version-policy promotion, not a behavioral break.
+1. Documentation + one rule file + one config-key removal. No code or product behavior changes.
+2. Preserve all L4 cross-milestone invariants: source inter-package deps stay `workspace:*`; `docs` never published; agentsmd never regresses; `a16n@latest` stays installable.
+3. Keep the `## Stability` README sections (they are real docs, not scaffolding) and the `workspace-publish-invariant`/`publish-shape` tests (permanent guards).
 
 ## Acceptance Criteria
 
-1. `release-please-config.json` declares `release-as: "1.0.0"` for `packages/cli`; spent M4 `release-as` keys removed from engine/plugins.
-2. A path-touching commit exists under `packages/cli`.
-3. The generated Release-Please PR bumps `a16n` to `1.0.0` (operator merge-gate).
-4. After operator merge + publish: `npm view a16n@1.0.0 version` resolves; published tarball has no `workspace:` specifiers and pins `1.x` siblings.
-5. Full test suite green; no runtime/behavioral changes.
+1. `CONTRIBUTING.md` contains the runbook with all four traps, the OIDC bootstrap, the post-publish verification, and the dissolved-M2 lesson.
+2. A `.cursor/rules/` rule references the runbook.
+3. `release-please-config.json` no longer declares `release-as` for `packages/cli`; no other `release-as` keys remain.
+4. Full test suite green; no runtime/behavioral changes; source still `workspace:*`.

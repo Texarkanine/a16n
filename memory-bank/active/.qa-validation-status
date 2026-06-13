@@ -1,8 +1,0 @@
-QA: PASS
-task: v1-release-rollout-m5
-date: 2026-06-13
-phase: QA
-complexity: Level 1
-summary: Wave C change validated semantically (KISS/DRY/YAGNI/completeness/regression/integrity/docs). release-as:"1.0.0" on packages/cli; spent M4 keys removed from engine/plugin-cursor/plugin-claude/plugin-a16n; CLI README stability note accurate. Full suite green (build 8/8, test 17/17, typecheck 14/14); source still workspace:*. No findings, no fixes.
-residual: Whether RP bumps a16n to 1.0.0 is only observable when RP runs on merge — covered by operator merge-gate; PR must be titled fix(release): so squash-merge triggers the release.
-gate: cleared for L1 wrap-up
