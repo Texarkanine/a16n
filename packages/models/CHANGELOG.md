@@ -1,5 +1,12 @@
 # @a16njs/models
 
+## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.14.1...@a16njs/models@1.0.0) (2026-06-13)
+
+
+### Bug Fixes
+
+* **release:** Wave A — promote models and glob-hook to 1.0.0 ([#123](https://github.com/Texarkanine/a16n/issues/123)) ([55003c7](https://github.com/Texarkanine/a16n/commit/55003c7a3cba5d7023182b21e6c376cdc85309e0))
+
 ## [0.14.1](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.14.0...@a16njs/models@0.14.1) (2026-06-13)
 
 

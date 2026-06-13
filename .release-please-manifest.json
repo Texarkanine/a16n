@@ -1,10 +1,10 @@
 {
   "packages/cli": "0.15.4",
   "packages/engine": "0.8.1",
-  "packages/models": "0.14.1",
+  "packages/models": "1.0.0",
   "packages/plugin-cursor": "0.14.1",
   "packages/plugin-claude": "0.14.1",
-  "packages/glob-hook": "0.5.2",
+  "packages/glob-hook": "1.0.0",
   "packages/plugin-a16n": "0.7.3",
   "packages/plugin-agentsmd": "1.0.3",
   "packages/docs": "0.12.2"
