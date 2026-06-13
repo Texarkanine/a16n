@@ -10,3 +10,9 @@
 - [x] Full suite green: build 8/8, test 17/17, typecheck 14/14; source still `workspace:*`
 
 **Files changed:** `release-please-config.json`, `packages/cli/README.md`
+
+## QA — COMPLETE (PASS)
+
+- [x] All brief requirements implemented; no scope drift
+- [x] README stability claim accurate; matches M3/M4 phrasing pattern
+- [x] No semantic findings; no fixes required

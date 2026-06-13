@@ -13,4 +13,4 @@
 - Deliverable commit uses `fix(release):` (not `chore:`) so Release-Please cuts the release.
 
 ## Next Step
-- `/niko-qa` — semantic review. Operator merge-gate after QA: RP PR must bump `a16n` → `1.0.0`.
+- L1 wrap-up: reconcile persistent files, commit `chore: completed v1-release-rollout-m5`. Operator: open PR from `fix-release.m5`, merge-gate RP bumps `a16n` → `1.0.0`.

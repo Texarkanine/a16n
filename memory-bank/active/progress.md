@@ -27,3 +27,10 @@ Wave C of the v1 rollout (Milestone 5): promote the top-level `a16n` CLI from `0
     - Deliverable commit will use `fix(release):` so RP cuts the release (M1 trap).
 * Insights
     - Wave C is the narrowest wave: one package, one path-touch, spent-key cleanup only.
+
+## 2026-06-13 - QA - COMPLETE
+
+* Work completed
+    - Semantic review (KISS/DRY/YAGNI/completeness/regression/integrity/docs) of Wave C. Wrote `.qa-validation-status` = PASS.
+* Result
+    - ✅ PASS, clean. No findings, no fixes. README claim verified. Residual (RP version on merge) is operator merge-gate.
