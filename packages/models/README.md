@@ -5,6 +5,10 @@
 
 Type definitions and plugin interface for a16n.
 
+## Stability
+
+As of `1.0.0`, the exported types and the `A16nPlugin` interface are stable and follow semantic versioning: breaking changes to the public API bump the major version.
+
 ## Installation
 
 ```bash

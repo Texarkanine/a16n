@@ -5,6 +5,10 @@
 
 CLI tool for glob-based file path matching in Claude Code hooks. Part of the [a16n](https://github.com/texarkanine/a16n) project.
 
+## Stability
+
+As of `1.0.0`, the CLI interface (`--globs`, `--context-file`) and the output contract are stable and follow semantic versioning.
+
 ## Why This Package?
 
 Claude Code hooks use a `matcher` field that matches **tool names** (Read, Write), not file paths. To apply rules to specific file patterns (like `**/*.tsx` for React files), you need external tooling.
