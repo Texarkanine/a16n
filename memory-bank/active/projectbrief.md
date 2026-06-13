@@ -20,6 +20,10 @@ If any to-be-published tarball's `package.json` contains a `workspace:` specifie
 
 `packages/docs` (`private: true`) is never attempted by the publish loop, even if Release-Please reports its path.
 
+### Use-Case 4: Poisoning is caught at PR time, not just at release
+
+A pull request that would introduce a tarball-level `workspace:` leak fails CI on the PR (the same tarball guard, run on unbumped versions), so the M1-class failure is surfaced before it can ever reach the release pipeline.
+
 ## Requirements
 
 1. Add `publishConfig.access: "public"` to every scoped `@a16njs/*` package that lacks it (`engine`, `models`, `plugin-cursor`, `plugin-claude`, `plugin-a16n`, `glob-hook`), matching `plugin-agentsmd`.
@@ -28,12 +32,13 @@ If any to-be-published tarball's `package.json` contains a `workspace:` specifie
 4. Ensure the publish loop never attempts to publish a `private: true` package (`docs`).
 5. Publish in a dependency-safe order within a wave so that, when the registry-presence guard runs, same-wave siblings a package depends on are already published (or the guard correctly treats them as in-wave).
 6. Preserve all L4 cross-milestone invariants (`milestones.md`): source stays `workspace:*`, no behavioral code breaks, `docs` never published, `a16n@latest` stays installable, agentsmd never regresses below `1.0.3`.
+7. Run the same tarball guard at PR time in `ci.yaml` (pack publishable packages at their current versions; fail the PR on any `workspace:` leak), reusing the release-time analyzer rather than duplicating logic.
 
 ## Constraints
 
 1. Source inter-package deps MUST remain `workspace:*`; the concrete version is produced only by pnpm's publish-time rewrite (invariant #3). The guard inspects the *rewritten tarball*, not source.
 2. The guard must not produce false positives for legitimate same-wave multi-package releases (e.g. the M4 wave), where several siblings are published together and none is on the registry beforehand.
-3. Changes are confined to the release subsystem: `.github/workflows/release.yaml`, per-package `publishConfig`, and any guard script/test. No behavioral changes to package runtime code.
+3. Changes are confined to the release/CI subsystem: `.github/workflows/release.yaml`, `.github/workflows/ci.yaml`, per-package `publishConfig`, and any guard script/test. No behavioral changes to package runtime code.
 4. The `1.0.0` promotion waves (M3–M5) are out of scope; M2 only hardens the pipeline they will run through.
 
 ## Acceptance Criteria
@@ -44,3 +49,4 @@ If any to-be-published tarball's `package.json` contains a `workspace:` specifie
 4. The publish job provably skips `private: true` packages.
 5. The release workflow publishes wave members in a dependency-safe order (or the guard is wave-aware), with no false failures for a multi-package wave.
 6. Full test suite green; no runtime/behavioral changes to package code.
+7. `ci.yaml` runs the tarball guard on PRs and fails when a packed tarball would carry a `workspace:` specifier; the agentsmd `publish-shape.test.ts` is removed, with its assertions covered by the repo-wide guards.

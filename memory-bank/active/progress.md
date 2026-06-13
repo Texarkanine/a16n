@@ -37,3 +37,14 @@ Harden the automated release pipeline (Milestone 2 of v1-release-rollout) so a n
     - No plan amendments required. Three advisories recorded (`.mjs` guard language; intentional access-test overlap; radical PR-time guard deferred as out-of-scope).
 * Insights
     - Gate cleared for `/niko-build`; build is the operator-initiated phase (L3 workflow: Preflight PASS → Build requires operator input).
+
+## 2026-06-13 - PLAN AMENDED (operator advisory rulings) - COMPLETE
+
+* Work completed
+    - Folded the operator's three post-preflight rulings into brief + plan: (1) remove `plugin-agentsmd/test/publish-shape.test.ts`; (2) keep `.mjs` guard but document the rationale in-file; (3) bring the PR-time guard into scope via `ci.yaml`.
+    - Updated `projectbrief.md` (UC4, R7, AC7, constraint scope now includes `ci.yaml`), `tasks.md` (steps re-sequenced to 9; PR-mode analyzer note; test plan additions), and `.preflight-status`.
+* Decisions made
+    - PR mode reuses the same analyzer (waveSet = all workspace names, registry probe skipped) — no logic fork; only `workspace:` leaks fail a PR.
+    - agentsmd test deletion sequenced *after* the repo-wide access guard so coverage is never dropped.
+* Insights
+    - Amendments are additive and reuse the validated analyzer, so preflight PASS holds without a full re-run.

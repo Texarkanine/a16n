@@ -30,8 +30,9 @@ flowchart TD
 ### Affected Components
 - **Scoped package manifests** (`packages/{engine,models,plugin-cursor,plugin-claude,plugin-a16n,glob-hook}/package.json`): currently lack `publishConfig` → add `publishConfig.access: "public"` to match `plugin-agentsmd`. (`a16n` is unscoped → public by default, no change. `docs` is `private` → no change.)
 - **Release workflow** (`.github/workflows/release.yaml`, `publish` job): currently loops `pnpm --filter "./$path" publish` over `paths_released` in arbitrary order with no pre-publish verification → insert a guard step that verifies + emits a dependency-safe order, then publish in that order.
-- **Guard logic + entry** (new, hosted in `packages/cli/`): a pure, unit-tested analyzer plus a thin Node entry script the workflow invokes. Hosted in the CLI package because that is the established home for repo-wide release-invariant tests (`packages/cli/test/workspace-publish-invariant.test.ts`) and because per-package `pnpm test` (Turbo) only runs tests that live inside a workspace package.
-- **Existing tests**: extend `packages/cli/test/workspace-publish-invariant.test.ts` (or a sibling) to assert every scoped package declares `publishConfig.access: "public"`; add unit tests for the analyzer.
+- **CI workflow** (`.github/workflows/ci.yaml`): add a PR-time step that runs the same guard entry in "PR mode" (waveSet = all workspace packages, registry check skipped) so any tarball `workspace:` leak fails the PR before it can reach release. (Operator decision: "that's CI's job.")
+- **Guard logic + entry** (new, hosted in `packages/cli/`): a pure, unit-tested analyzer plus a thin Node entry script invoked by both `release.yaml` and `ci.yaml`. Hosted in the CLI package because that is the established home for repo-wide release-invariant tests (`packages/cli/test/workspace-publish-invariant.test.ts`) and because per-package `pnpm test` (Turbo) only runs tests that live inside a workspace package. The guard file carries a concise header explaining why it is plain ESM `.mjs` (no build/loader needed in the publish/CI jobs).
+- **Existing tests**: extend `packages/cli/test/workspace-publish-invariant.test.ts` to assert every scoped package declares `publishConfig.access: "public"`; add unit tests for the analyzer. **Remove** `packages/plugin-agentsmd/test/publish-shape.test.ts` (operator decision) — both its assertions (`access: "public"` and `workspace:` in source) are then covered repo-wide by the extended invariant test.
 
 ### Cross-Module Dependencies
 - `release.yaml publish` job → guard entry script (`node packages/cli/scripts/verify-publish.mjs`): the workflow passes `paths_released`; the script returns blockers (exit code) and a publish order (stdout).
@@ -39,8 +40,9 @@ flowchart TD
 - The analyzer's *publish order* feeds back into the workflow's publish loop.
 
 ### Boundary Changes
-- No runtime/public-API changes to any shipped package. The only interface introduced is internal release tooling (`analyzePublishSet` + the entry script's CLI contract: argv/stdin = released paths, stdout = ordered publish list, nonzero exit = blockers).
+- No runtime/public-API changes to any shipped package. The only interface introduced is internal release tooling (`analyzePublishSet` + the entry script's CLI contract: argv/env = paths/mode, stdout = ordered publish list, nonzero exit = blockers).
 - `release.yaml` publish step changes shape (guard + ordered loop), but its external contract (publish released packages to npm) is unchanged.
+- `ci.yaml` gains a PR-time guard step; no change to its existing build/test/coverage steps.
 
 ### Invariants & Constraints (must hold)
 - Source inter-package deps stay `workspace:*` (invariant #3); the guard inspects the *rewritten tarball*, never rewrites source.
@@ -55,6 +57,7 @@ None — approach is clear. Design decisions resolved in-plan with rationale:
 - **Pack-all → verify-all → publish** (not verify-as-you-go): UC2 requires failing before *anything* publishes, and it is the only shape that is naturally wave-aware (the full waveSet is known before any publish) and avoids partial poisoned waves.
 - **Guard logic hosted in `packages/cli/`** as a plain-ESM `.mjs` analyzer + entry: follows the existing precedent for repo-wide release tests, runs under the existing per-package `pnpm test`, ships nothing (CLI `files` is `dist` only; `scripts/` is excluded), and needs no new build/loader/runtime (plain Node + existing Vitest).
 - **`registryHas` injected** into the pure analyzer so the decision logic is unit-testable offline; only the thin entry touches the network (`npm view`).
+- **PR mode reuses the same analyzer** (no logic fork): the entry runs with waveSet = all workspace package names and `registryHas` short-circuited, so the only thing that can fail a PR is a real tarball `workspace:` leak. Release mode uses the actual released paths + live registry probe.
 
 ## Test Plan (TDD)
 
@@ -73,6 +76,11 @@ Analyzer (`analyzePublishSet`) — pure, offline:
 Manifest config guard (extends existing invariant test):
 - Every scoped `@a16njs/*` workspace package declares `publishConfig.access === "public"`.
 - (Retain existing) every internal sibling reference uses `workspace:` in source.
+- After removing `plugin-agentsmd/test/publish-shape.test.ts`, the repo-wide invariant test still covers agentsmd's `access` and `workspace:` source assertions (agentsmd is included in the parametrized sweep).
+
+PR-mode guard (`ci.yaml` entry invocation):
+- A workspace where all packed tarballs are clean → exit 0 (PR passes).
+- A packed tarball carrying a `workspace:` spec → nonzero exit (PR fails), regardless of registry state.
 
 ### Edge Cases
 - Empty `paths_released` → no blockers, empty order, clean exit 0.
@@ -83,7 +91,7 @@ Manifest config guard (extends existing invariant test):
 - Framework: Vitest (`vitest run`), per-package config; canonical via `pnpm test` (Turbo).
 - Test location: `packages/cli/test/` (repo-wide release tests already live here).
 - Conventions: one root `describe` per file; pure logic imported directly; no network in unit tests (inject `registryHas`).
-- New test files: `packages/cli/test/analyze-publish-set.test.ts`. Extend `packages/cli/test/workspace-publish-invariant.test.ts` for the `access` assertion.
+- New test files: `packages/cli/test/analyze-publish-set.test.ts`. Extend `packages/cli/test/workspace-publish-invariant.test.ts` for the `access` assertion. Delete `packages/plugin-agentsmd/test/publish-shape.test.ts`.
 
 ### Integration Tests
 - None at the subprocess level (publishing to npm is not exercisable in unit/CI without side effects). The analyzer's behavior is fully covered by unit tests with injected `registryHas`; the entry script's IO wiring is exercised manually/by the real pipeline. (If a lightweight smoke is cheap, a test that runs the entry against a fixture `paths_released` with `registryHas` stubbed via env may be added — optional.)
@@ -96,19 +104,25 @@ Manifest config guard (extends existing invariant test):
 2. **Add `publishConfig.access: "public"` to the six scoped packages.**
    - Files: `packages/{engine,models,plugin-cursor,plugin-claude,plugin-a16n,glob-hook}/package.json`.
    - Changes: insert the `publishConfig` block (mirror `plugin-agentsmd`). Run → guard test passes.
-3. **Analyzer pure logic (test first).**
+3. **Remove the now-redundant agentsmd package-local test** (operator decision).
+   - Files: delete `packages/plugin-agentsmd/test/publish-shape.test.ts`.
+   - Sequencing: only after steps 1–2, so the repo-wide invariant test already covers agentsmd's `access` + `workspace:` assertions. Run `pnpm --filter @a16njs/plugin-agentsmd test` (and the CLI invariant test) → green with coverage preserved.
+4. **Analyzer pure logic (test first).**
    - Files: `packages/cli/test/analyze-publish-set.test.ts` (new), then `packages/cli/scripts/analyze-publish-set.mjs` (new).
-   - Changes: stub `analyzePublishSet({ entries, workspaceNames, registryHas })` returning `{ blockers, publishOrder, skipped }` with JSDoc types; write the failing unit tests enumerated above; implement to pass (workspace: scan across all buckets, waveSet membership, registry fallback, private exclusion, Kahn-style toposort with cycle detection).
-4. **Guard entry script.**
+   - Changes: stub `analyzePublishSet({ entries, workspaceNames, registryHas })` returning `{ blockers, publishOrder, skipped }` with JSDoc types; write the failing unit tests enumerated above (incl. PR-mode: waveSet = all workspace names → only `workspace:` leaks block); implement to pass (workspace: scan across all buckets, waveSet membership, registry fallback, private exclusion, Kahn-style toposort with cycle detection).
+5. **Guard entry script** (with a concise `.mjs` rationale header).
    - Files: `packages/cli/scripts/verify-publish.mjs` (new).
-   - Changes: read `paths_released` (argv/env), read each source `package.json` (skip private), `pnpm --filter "./<path>" pack` → extract `package/package.json` from the tgz, build entries, define `registryHas` via `npm view <name>@<version> version`, call `analyzePublishSet`; on blockers print all and `process.exit(1)`; else print the ordered publish paths (one per line) for the workflow to consume. Thin IO only — logic lives in step 3.
-5. **Wire guard into `release.yaml`.**
+   - Changes: a short header comment explaining why this is plain ESM `.mjs` (runs directly in the publish/CI jobs with no build/loader; not shipped). Accept a mode: **release** (paths from `paths_released`, live `registryHas` via `npm view`) and **pr** (waveSet = all workspace package names, `registryHas` short-circuited). Read each source `package.json` (skip private), `pnpm --filter "./<path>" pack` → extract `package/package.json` from the tgz, build entries, call `analyzePublishSet`; on blockers print all and `process.exit(1)`; in release mode print the ordered publish paths for the workflow to consume. Thin IO only — logic lives in step 4.
+6. **Wire guard into `release.yaml`.**
    - Files: `.github/workflows/release.yaml` (`publish` job).
-   - Changes: after `Build`, add a step that runs the guard with `paths_released`, capturing the verified ordered list into an output; rewrite the publish loop to iterate that ordered list (`pnpm --filter "./$path" publish --no-git-checks`). Preserve `NPM_CONFIG_PROVENANCE`, OIDC, npm upgrade.
-6. **Documentation touch.**
-   - Files: `memory-bank/techContext.md` (CI/CD section) — note the new pre-publish guard + ordered publish. (The canonical "add a package" runbook is **M6**, out of scope here; add only the factual pipeline note.)
-7. **Full validation.**
-   - `pnpm build && pnpm test && pnpm lint && pnpm typecheck`; confirm the guard test fails before step 2 and passes after, and analyzer tests pass.
+   - Changes: after `Build`, add a step that runs the guard (release mode) with `paths_released`, capturing the verified ordered list into an output; rewrite the publish loop to iterate that ordered list (`pnpm --filter "./$path" publish --no-git-checks`). Preserve `NPM_CONFIG_PROVENANCE`, OIDC, npm upgrade.
+7. **Wire PR-time guard into `ci.yaml`** (operator decision: "that's CI's job").
+   - Files: `.github/workflows/ci.yaml`.
+   - Changes: after the existing build step, add a step that runs the guard in **pr** mode (pack all publishable workspace packages at current versions; fail on any `workspace:` leak). No registry access needed.
+8. **Documentation touch.**
+   - Files: `memory-bank/techContext.md` (CI/CD section) — note the new pre-publish guard + ordered publish, and the PR-time leak guard in `ci.yaml`. (The canonical "add a package" runbook is **M6**, out of scope here; add only the factual pipeline note.)
+9. **Full validation.**
+   - `pnpm build && pnpm test && pnpm lint && pnpm typecheck`; confirm the access guard fails before step 2 and passes after, analyzer tests pass, and the agentsmd suite is green after its test removal.
 
 ## Technology Validation
 
@@ -122,13 +136,15 @@ No new technology — validation not required. Uses Node (already required), `pn
 - **Partial publish on mid-loop failure**: mitigated by verify-all-before-publish-any; the publish loop only runs once the guard is clean. (A package-registry hiccup mid-loop is still possible but is an infra failure, not a poisoned-artifact failure; out of scope to make publishing transactional.)
 - **Re-level check**: single workstream, one subsystem, no milestone decomposition → remains Level 3 (not L4).
 
-## Preflight Findings (2026-06-13)
+## Preflight Findings (2026-06-13) — advisories resolved by operator
 
-**PASS (with advisory)** — no blocking findings.
+**PASS (with advisory)** — no blocking findings. All three advisories were ruled on by the operator post-preflight and folded into the plan:
 
-- **[advisory] Guard language**: authored as plain ESM `.mjs`, deviating from the TS-everywhere norm. Deliberate — avoids adding a build/loader (tsx) dependency to the publish job; `scripts/` is not shipped. Keep as planned.
-- **[advisory] Test overlap**: the new repo-wide `publishConfig.access` assertion overlaps `plugin-agentsmd`'s package-local `publish-shape.test.ts`. Intentional — the package-local test must stay for Release-Please path inclusion. No change.
-- **[advisory / radical, NOT applied — out of M2 scope]**: run the tarball guard at PR time in `ci.yaml` (pack on unbumped versions; assert no `workspace:` leak / no hand-pinned sibling) to catch poisoning before release rather than only at publish. Touches `ci.yaml`; flag for operator/M-future consideration.
+- **[resolved] Guard language**: keep plain ESM `.mjs`; add a concise header in the guard file explaining why (step 5). Not verbose.
+- **[resolved] Test overlap**: **remove** `plugin-agentsmd/test/publish-shape.test.ts` (step 3), sequenced after the repo-wide access guard lands so coverage is preserved.
+- **[resolved] Radical / PR-time guard**: **in scope** — reuse the analyzer in `ci.yaml` PR-mode (step 7). Brief + ACs updated.
+
+Plan amended post-preflight; the additions are additive and reuse the validated analyzer (no new design ambiguity), so the preflight PASS still holds.
 
 ## Status
 
