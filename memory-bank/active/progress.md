@@ -13,3 +13,13 @@ Move every published `a16n` package off `0.x` onto `1.x` semver without ever shi
 * Decisions made
     - Ordered the work as: (1) restore installability, (2) harden CI, (3+) dependency-ordered `1.0.0` waves — per operator direction.
     - Each milestone is shaped to land via the normal Niko workflow (operator does PR + merge + Release-Please publish per milestone).
+
+## 2026-06-13 - PLAN - COMPLETE
+
+* Work completed
+    - Decomposed the L4 project into 5 sequential milestones in `memory-bank/active/milestones.md`: M1 restore `a16n@latest` installability, M2 harden release CI, M3 Wave A (`models` + `glob-hook` → 1.0.0), M4 Wave B (middle layer → 1.0.0), M5 Wave C (CLI → 1.0.0).
+    - Recorded 7 cross-milestone invariants (installability preserved at every boundary, no `workspace:` in tarballs, source stays `workspace:*`, forward-only dependency order, `docs` never published, no silent code breaks, agentsmd never regressed).
+* Decisions made
+    - Folded standalone `@a16njs/glob-hook` into the leaf wave (M3) since it has no internal edges.
+    - `@a16njs/plugin-agentsmd` is already 1.x; it is repaired in M1 rather than getting its own promotion wave.
+    - Estimated milestone scopes: M1 L2, M2 L2 (possibly L3), M3 L1, M4 L2, M5 L1 — advisory; actual classification happens at each sub-run start.
