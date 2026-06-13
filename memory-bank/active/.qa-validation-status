@@ -1,8 +1,0 @@
-QA: PASS
-task: v1-release-rollout-m3
-date: 2026-06-13
-phase: QA
-complexity: Level 1
-summary: Wave A 1.0.0 promotion validated. release-as:"1.0.0" set for models + glob-hook; path-touching README stability notes land each package in the Release-Please run (proven M1-rework recipe); spent M1 release-as keys removed. Full suite green (17 packages); source still workspace:* (invariant intact). No KISS/DRY/YAGNI/regression/integrity findings; change is minimal and honest.
-residual: Whether RP cuts BOTH 1.0.0 releases can only be confirmed when RP runs on merge — covered by the documented operator merge-gate (PR must bump both models→1.0.0 and glob-hook→1.0.0).
-gate: cleared for L1 wrap-up
