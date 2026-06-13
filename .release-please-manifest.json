@@ -1,5 +1,5 @@
 {
-  "packages/cli": "0.15.2",
+  "packages/cli": "0.15.3",
   "packages/engine": "0.8.1",
   "packages/models": "0.14.1",
   "packages/plugin-cursor": "0.14.1",

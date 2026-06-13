@@ -1,5 +1,12 @@
 # a16n
 
+## [0.15.3](https://github.com/Texarkanine/a16n/compare/a16n@0.15.2...a16n@0.15.3) (2026-06-13)
+
+
+### Bug Fixes
+
+* **release:** restore a16n@latest installability ([#119](https://github.com/Texarkanine/a16n/issues/119)) ([d9aaafe](https://github.com/Texarkanine/a16n/commit/d9aaafe9a62f597335fbbbd50af127accd8f98c3))
+
 ## [0.15.2](https://github.com/Texarkanine/a16n/compare/a16n@0.15.1...a16n@0.15.2) (2026-06-13)
 
 
