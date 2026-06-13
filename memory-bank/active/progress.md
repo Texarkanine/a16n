@@ -15,3 +15,15 @@ Harden the automated release pipeline (Milestone 2 of v1-release-rollout) so a n
     - Re-scoped `projectbrief.md` from M1 to M2; M1 record preserved in `reflection/` and `milestones.md`.
 * Insights
     - Only `plugin-agentsmd` currently declares `publishConfig.access: "public"`; the other six scoped packages publish publicly via fragile implicit defaults — a latent recurrence risk M2 must close.
+
+## 2026-06-13 - PLAN - COMPLETE
+
+* Work completed
+    - Authored the L3 plan in `tasks.md`: manifest `access` rollout (6 packages), a pure unit-tested `analyzePublishSet` analyzer + thin guard entry hosted in `packages/cli/`, and a `release.yaml` rewrite (pack-all → verify-all → publish in dependency-safe order).
+    - Built the TDD test plan (analyzer behaviors incl. same-wave sibling resolution, toposort, private exclusion; extended manifest `access` guard).
+* Decisions made
+    - No CREATIVE phase: the design is sharply constrained by requirements. Pack-all→verify-all→publish (UC2: fail before any publish); guard hosted in CLI package so per-package `pnpm test` runs it (the M1 "root tests don't run in CI" insight); `registryHas` injected for offline-testable logic.
+    - Guard written as plain ESM `.mjs` (no new build/loader/runtime); CLI `files: ["dist"]` keeps `scripts/` unpublished.
+* Insights
+    - `pnpm publish` already no-ops on the private `docs` package, so the docs-skip requirement is a regression guard rather than a bug fix.
+    - The registry-presence check must consult the waveSet *before* the registry, or legitimate multi-package waves (e.g. M4) would false-positive — this is the central correctness risk and gets dedicated unit coverage.
