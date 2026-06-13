@@ -9,7 +9,8 @@
   "packages": {
     "packages/cli": {
       "component": "a16n",
-      "changelog-path": "CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md",
+      "release-as": "0.15.3"
     },
     "packages/engine": {
       "component": "@a16njs/engine",
@@ -37,7 +38,8 @@
     },
     "packages/plugin-agentsmd": {
       "component": "@a16njs/plugin-agentsmd",
-      "changelog-path": "CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md",
+      "release-as": "1.0.3"
     },
     "packages/docs": {
       "component": "@a16njs/docs",

@@ -1,0 +1,14 @@
+PASS (with advisory)
+date: 2026-06-13
+task: v1-release-rollout-m1
+phase: L2 PLAN preflight
+summary: M1 plan validated against codebase. No blocking findings.
+  TDD encoding: steps 1-3 (stub + pack tests) precede step 4 (release-as config); explicit test-before-code per unit.
+  Conventions: flat package test/ layout; spawnSync pattern exists in cli/glob-hook tests.
+  Dependencies: @a16njs/models@0.14.1 on registry; release.yaml pnpm publish loop confirmed.
+  Completeness: all projectbrief requirements mapped to plan steps; post-release verification documented as operator step.
+advisory:
+  - A1: pack tests require `pnpm build` first (turbo test→build dependency already satisfies this in CI).
+  - A2: remove temporary release-as keys after successful publish to avoid stale forced versions on future releases.
+  - A3: consider single shared test-support helper if both agentsmd and cli pack tests land (DRY; optional).
+next: /niko-build
