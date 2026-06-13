@@ -122,6 +122,14 @@ No new technology — validation not required. Uses Node (already required), `pn
 - **Partial publish on mid-loop failure**: mitigated by verify-all-before-publish-any; the publish loop only runs once the guard is clean. (A package-registry hiccup mid-loop is still possible but is an infra failure, not a poisoned-artifact failure; out of scope to make publishing transactional.)
 - **Re-level check**: single workstream, one subsystem, no milestone decomposition → remains Level 3 (not L4).
 
+## Preflight Findings (2026-06-13)
+
+**PASS (with advisory)** — no blocking findings.
+
+- **[advisory] Guard language**: authored as plain ESM `.mjs`, deviating from the TS-everywhere norm. Deliberate — avoids adding a build/loader (tsx) dependency to the publish job; `scripts/` is not shipped. Keep as planned.
+- **[advisory] Test overlap**: the new repo-wide `publishConfig.access` assertion overlaps `plugin-agentsmd`'s package-local `publish-shape.test.ts`. Intentional — the package-local test must stay for Release-Please path inclusion. No change.
+- **[advisory / radical, NOT applied — out of M2 scope]**: run the tarball guard at PR time in `ci.yaml` (pack on unbumped versions; assert no `workspace:` leak / no hand-pinned sibling) to catch poisoning before release rather than only at publish. Touches `ci.yaml`; flag for operator/M-future consideration.
+
 ## Status
 
 - [x] Component analysis complete
@@ -129,6 +137,6 @@ No new technology — validation not required. Uses Node (already required), `pn
 - [x] Test planning complete (TDD)
 - [x] Implementation plan complete
 - [x] Technology validation complete
-- [ ] Preflight
+- [x] Preflight
 - [ ] Build
 - [ ] QA

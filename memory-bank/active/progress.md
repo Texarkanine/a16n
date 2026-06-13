@@ -27,3 +27,13 @@ Harden the automated release pipeline (Milestone 2 of v1-release-rollout) so a n
 * Insights
     - `pnpm publish` already no-ops on the private `docs` package, so the docs-skip requirement is a regression guard rather than a bug fix.
     - The registry-presence check must consult the waveSet *before* the registry, or legitimate multi-package waves (e.g. M4) would false-positive — this is the central correctness risk and gets dedicated unit coverage.
+
+## 2026-06-13 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the M2 plan against codebase reality across all 8 preflight checks. Wrote `.preflight-status` = PASS (with advisory).
+    - Confirmed per-unit TDD ordering, requirement→step coverage (R1-R6), no duplicative/conflicting tooling, and bounded dependency impact.
+* Decisions made
+    - No plan amendments required. Three advisories recorded (`.mjs` guard language; intentional access-test overlap; radical PR-time guard deferred as out-of-scope).
+* Insights
+    - Gate cleared for `/niko-build`; build is the operator-initiated phase (L3 workflow: Preflight PASS → Build requires operator input).

@@ -1,0 +1,11 @@
+PREFLIGHT: PASS (with advisory)
+task: v1-release-rollout-m2
+date: 2026-06-13
+phase: PREFLIGHT
+complexity: Level 3
+summary: M2 release-pipeline-hardening plan validated against codebase reality. TDD ordering is explicit per testable unit (manifest-access guard, pure analyzer); IO/glue steps (entry script, release.yaml wiring) sit over the tested analyzer. All requirements (R1-R6) map to concrete steps with tests. No blocking findings.
+advisories:
+  - Guard authored as plain ESM .mjs, deviating from the TS-everywhere norm; deliberate to avoid a build/loader dependency in the publish job. Acceptable; not blocking.
+  - Repo-wide publishConfig.access assertion overlaps agentsmd's package-local publish-shape test; intentional (package-local test exists for Release-Please inclusion).
+  - Radical (not applied, out of M2 scope): also run the tarball guard at PR time in ci.yaml to catch poisoning before release.
+gate: cleared for /niko-build
