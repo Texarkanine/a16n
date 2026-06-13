@@ -19,3 +19,7 @@ Before merging the generated Release-Please PR, confirm it bumps **both** `@a16n
 ## Wave ordering
 
 M3 (Wave A) must merge + publish **before** M4 (Wave B), which re-pins dependents to `@a16njs/models@1.0.0`.
+
+## QA (PASS)
+
+Semantic review clean — minimal, honest change; invariants intact; suite green. No findings, no fixes. Only residual is the inherent "did RP cut both releases" check, covered by the operator merge-gate above.

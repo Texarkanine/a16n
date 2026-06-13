@@ -26,3 +26,10 @@ Wave A of the v1 rollout (Milestone 3): promote the leaf-layer packages `@a16njs
     - No new unit test: release-orchestration config change, not code behavior; the `workspace:*` constraint is already guarded.
 * Insights
     - The honest path-touch (a real 1.0 stability note) doubles as useful user-facing documentation, avoiding a pure-fluff trigger commit.
+
+## 2026-06-13 - QA - COMPLETE
+
+* Work completed
+    - Semantic review (KISS/DRY/YAGNI/completeness/regression/integrity/docs) of the Wave A change. Wrote `.qa-validation-status` = PASS.
+* Result
+    - ✅ PASS, clean. No findings, no fixes. The only residual (does RP cut both 1.0.0 releases) is inherent and covered by the operator merge-gate.
