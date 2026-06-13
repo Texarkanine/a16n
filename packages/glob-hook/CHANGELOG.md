@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.5.2...@a16njs/glob-hook@1.0.0) (2026-06-13)
+
+
+### Bug Fixes
+
+* **release:** Wave A — promote models and glob-hook to 1.0.0 ([#123](https://github.com/Texarkanine/a16n/issues/123)) ([55003c7](https://github.com/Texarkanine/a16n/commit/55003c7a3cba5d7023182b21e6c376cdc85309e0))
+
 ## [0.5.2](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.5.1...@a16njs/glob-hook@0.5.2) (2026-06-13)
 
 
