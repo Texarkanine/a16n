@@ -51,3 +51,10 @@ Wave B of the v1 rollout (Milestone 4): promote the middle-layer packages `@a16n
     - agentsmd README note phrased as "Stable since 1.0.0" (honest — it is already 1.x) rather than "As of 1.0.0" (which the four promotions use), to avoid implying a promotion.
 * Insights
     - `lint` executes 0 turbo tasks in this repo (no package defines a `lint` task) — pre-existing, not introduced here.
+
+## 2026-06-13 - QA - COMPLETE
+
+* Work completed
+    - Semantic review (KISS/DRY/YAGNI/completeness/regression/integrity/docs) of the Wave B change. Wrote `.qa-validation-status` = PASS.
+* Result
+    - ✅ PASS, clean. No findings, no fixes. README claims verified accurate (incl. plugin-a16n's "described below" pointer and agentsmd's honest "Stable since 1.0.0" phrasing). The only residual (does RP cut all five at intended versions) is inherent and covered by the operator merge-gate + the required `fix(release):` PR title.

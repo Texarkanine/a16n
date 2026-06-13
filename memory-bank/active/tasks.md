@@ -70,4 +70,4 @@ No new technology - validation not required. (Verified: `packages/models` is `1.
 - [x] Technology validation complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA
