@@ -32,7 +32,8 @@ Restore `a16n@latest` installability by republishing `@a16njs/plugin-agentsmd` a
 * Work completed
     - Pack tests for agentsmd and CLI; `release-as` forced patches in `release-please-config.json`.
 * Decisions made
-    - 15s timeout on pack tests (parallel turbo run exceeds default 5s).
     - Skipped optional deprecation script; document as operator post-publish step.
+    - **Operator-reviewed test scope:** dropped the per-package `pnpm pack` tests — they assert pnpm's own rewrite (near-tautological) and cannot reproduce the real cause (operator ran `npm publish`). Replaced with one repo-level source-invariant test in the CLI package covering all workspace packages. The artifact-inspection guard that actually matches the failure mode is deferred to M2 (release-pipeline hardening).
 * Insights
-    - Local `pnpm pack` already rewrites correctly; breakage was manual `npm publish` bypass only.
+    - Local `pnpm pack` already rewrites correctly; the breakage was a wrong-tool (`npm publish`) bypass — a property of the publish *command*, not the source tree, so it can only be guarded in the pipeline (M2), not a unit test.
+    - A repo-level test must be hosted inside a workspace package (CLI) because `pnpm test` runs `turbo run test` per-package; a root-level test file would not run in CI.

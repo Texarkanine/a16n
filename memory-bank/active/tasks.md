@@ -9,34 +9,34 @@ Republish `@a16njs/plugin-agentsmd` (new patch via automated `pnpm publish` so `
 
 ## Test Plan (TDD)
 
+> **Revised after operator review.** The original plan added per-package `pnpm pack` tests asserting the tarball rewrites `workspace:*`. That assertion is near-tautological (pnpm always rewrites) and cannot reproduce the actual cause — an operator running `npm publish` instead of `pnpm publish`. Replaced with a single repo-level **source-invariant** test; the artifact-inspection guard that matches the failure mode is deferred to M2.
+
 ### Behaviors to Verify
 
-- **Pack rewrite (agentsmd)**: `pnpm --filter @a16njs/plugin-agentsmd pack` → unpack tarball → `package.json` `dependencies["@a16njs/models"]` is an exact semver, not `workspace:*`
-- **Pack rewrite (cli)**: `pnpm --filter a16n pack` → unpack tarball → no dependency value contains the `workspace:` protocol
-- **Source unchanged**: `packages/plugin-agentsmd/package.json` and `packages/cli/package.json` still declare `workspace:*` for internal siblings
+- **Source uses workspace protocol (all packages)**: for every workspace package, any dependency (in any bucket) that names another workspace package must use the `workspace:` protocol — guards invariant #3 (no hand-pinned siblings in source) repo-wide, covering current and future packages
 - **Release config targets correct versions**: `release-please-config.json` forces `@a16njs/plugin-agentsmd` → `1.0.3` and `a16n` → `0.15.3` (patch-only repair; avoids `bump-minor-pre-major` bumping CLI to `0.16.0` on a `fix:` commit)
 - **Post-release (operator)**: after merge + publish, `npx a16n@latest --version` exits 0 and `npm view @a16njs/plugin-agentsmd@latest dependencies` shows exact semver pin
+
+### Out of Scope (deferred to M2)
+
+- **Published-artifact `workspace:` guard**: inspecting the real to-be-published tarball regardless of which tool produced it. This is the protection that actually matches the npm-vs-pnpm operator error; it belongs in the release pipeline (M2), not a unit test.
 
 ### Test Infrastructure
 
 - Framework: Vitest (existing monorepo standard)
-- Test location: new root-level or `packages/plugin-agentsmd/test/` suite — prefer **`scripts/` + Vitest at repo root** only if no package-local home fits; use `packages/plugin-agentsmd/test/publish-pack.test.ts` to stay colocated with the broken package
-- Conventions: flat `test/` per package; `suiteTempDir` / `fs.mkdtemp` for temp dirs; spawn `pnpm pack` via `child_process`
-- New test files: `packages/plugin-agentsmd/test/publish-pack.test.ts` (agentsmd pack assertion); optionally extend with CLI pack assertion in `packages/cli/test/publish-pack.test.ts`
+- Test location: `packages/cli/test/workspace-publish-invariant.test.ts` — hosted in the CLI package (the top-level consumer) because `pnpm test` runs `turbo run test` per-package; a true repo-root test file would not execute in CI. The test discovers all workspace packages from disk (`packages/*/package.json`).
+- Conventions: flat `test/` per package; pure FS reads (no temp dirs / no subprocess)
+- New test files: `packages/cli/test/workspace-publish-invariant.test.ts`
 
 ## Implementation Plan
 
-1. **Stub test + pack helper**
-   - Files: `packages/plugin-agentsmd/test/publish-pack.test.ts`, optional shared helper under `packages/plugin-agentsmd/test/test-support/`
-   - Changes: empty `describe`; add `assertPackedDependenciesHaveNoWorkspaceProtocol(packageDir)` helper signature
+1. **Repo-level source-invariant test**
+   - Files: `packages/cli/test/workspace-publish-invariant.test.ts`
+   - Changes: discover all `packages/*/package.json`; for each package, assert every dependency (any bucket) naming another workspace package uses the `workspace:` protocol. Documents in-file that the npm-vs-pnpm cause is M2 scope.
 
-2. **Implement failing pack test (agentsmd)**
-   - Files: `packages/plugin-agentsmd/test/publish-pack.test.ts`
-   - Changes: run `pnpm pack` in package dir, untar to temp, assert `@a16njs/models` is exact semver matching published `@a16njs/models` version from workspace manifest (`0.14.1`)
+2. *(removed — per-package pack test; see Test Plan revision note)*
 
-3. **Implement failing pack test (cli) — optional same PR**
-   - Files: `packages/cli/test/publish-pack.test.ts`
-   - Changes: same helper pattern for all `@a16njs/*` deps in CLI tarball
+3. *(removed — CLI pack test; see Test Plan revision note)*
 
 4. **Force Release-Please patch bumps**
    - Files: `release-please-config.json`
