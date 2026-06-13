@@ -1,5 +1,12 @@
 # a16n
 
+## [1.0.0](https://github.com/Texarkanine/a16n/compare/a16n@0.15.4...a16n@1.0.0) (2026-06-13)
+
+
+### Bug Fixes
+
+* **release:** Wave C — promote a16n CLI to 1.0.0 ([#127](https://github.com/Texarkanine/a16n/issues/127)) ([76ad7e4](https://github.com/Texarkanine/a16n/commit/76ad7e49e2b433bf216d2c6c87b933d00683eb98))
+
 ## [0.15.4](https://github.com/Texarkanine/a16n/compare/a16n@0.15.3...a16n@0.15.4) (2026-06-13)
 
 
