@@ -58,3 +58,12 @@ Wave B of the v1 rollout (Milestone 4): promote the middle-layer packages `@a16n
     - Semantic review (KISS/DRY/YAGNI/completeness/regression/integrity/docs) of the Wave B change. Wrote `.qa-validation-status` = PASS.
 * Result
     - ✅ PASS, clean. No findings, no fixes. README claims verified accurate (incl. plugin-a16n's "described below" pointer and agentsmd's honest "Stable since 1.0.0" phrasing). The only residual (does RP cut all five at intended versions) is inherent and covered by the operator merge-gate + the required `fix(release):` PR title.
+
+## 2026-06-13 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `reflection/reflection-v1-release-rollout-m4.md`. Reconciled persistent files — none needed updating.
+* Decisions made
+    - Recorded the deliberate `fix(release):` deliverable-commit choice and the agentsmd promotion-vs-re-pin distinction as the reflection's durable lessons.
+* Insights
+    - Through-line across M1/M3/M4: the missing RP `linked-versions` plugin forces a per-package path-touch every wave. The elegant fix (auto-propagating releases) is M6-owned and out of scope here.

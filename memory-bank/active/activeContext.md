@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: v1-release-rollout-m4
-**Phase:** BUILD - COMPLETE → entering QA
+**Phase:** REFLECT COMPLETE
 
 ## What Was Done
 - Advanced the L4 to Milestone 4 (Wave B) after confirming M3 (Wave A) is published: `@a16njs/models@1.0.0` and `@a16njs/glob-hook@1.0.0` are live on npm; RP PRs merged.
@@ -18,5 +18,9 @@
 - Full suite green: build 8/8, test 17/17 (incl. `workspace-publish-invariant` + agentsmd `publish-shape`), typecheck 14/14. Source still `workspace:*`.
 - Deliverable committed as `fix(release): Wave B …` (conventional type is load-bearing — a `chore:` would not cut the release; the M1-class trap).
 
-## Next Step
-- Level 2 QA (`niko-qa` skill): semantic review of the Wave B change. On PASS → reflect. The eventual PR must be titled `fix(release): …` (squash-merge title drives Release-Please) and is operator merge-gated: PR must bump engine/plugin-cursor/plugin-claude/plugin-a16n → 1.0.0 and plugin-agentsmd → 1.0.4.
+## Reflection
+- `memory-bank/active/reflection/reflection-v1-release-rollout-m4.md` written. Clean execution, no QA findings. Key insight: the missing RP `linked-versions` plugin is why every wave needs a per-package path-touch (the M1/M3/M4 through-line); M6 owns the elegant fix.
+- Persistent files reconciled — no updates needed (release-config change doesn't invalidate productContext/systemPatterns/techContext).
+
+## Next Step (operator)
+- M4 sub-run is REFLECT COMPLETE. Operator action: open a PR titled `fix(release): Wave B — …` (squash-merge title drives Release-Please) from `fix-release.m4`. **Merge-gate:** the generated RP PR must bump engine/plugin-cursor/plugin-claude/plugin-a16n → 1.0.0 and plugin-agentsmd → 1.0.4 before merging. After merge + publish, run `/niko` to advance the L4 to M5 (Wave C: CLI → 1.0.0).
