@@ -1,0 +1,8 @@
+PREFLIGHT: PASS (with advisory)
+task: v1-release-rollout-m4
+date: 2026-06-13
+phase: PREFLIGHT
+complexity: Level 2
+summary: Wave B plan validated against codebase reality. Replicates the QA-passed M3 recipe (release-as + path-touching README per package). Verified: config has no plugins/linked-versions key (RP releases each package independently, so per-package path-touch is required and correct); engine's plugin devDeps are dev-only (no release edge); workspace models version is 1.0.0 (pnpm rewrite resolves dependents to 1.0.0); agentsmd@1.0.3 pins models@0.14.1 (re-pin needs a patch publish). No new unit test is justified (config+docs change; existing workspace-publish-invariant + agentsmd publish-shape guards cover the invariant; RP version output is operator merge-gated) — same reasoning M3 passed QA on. All 5 requirements + acceptance criteria map to concrete steps.
+advisory: A config-lint test asserting no release-as key targets a version already present in .release-please-manifest.json would mechanically catch the spent-key bug class. NOT built — expands beyond the Wave-B brief and is the dissolved-M2 machine-guard territory folded into M6's trap runbook. Flagged for M6/operator.
+gate: cleared for BUILD

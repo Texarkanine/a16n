@@ -5,6 +5,10 @@
 
 [AGENTS.md](https://agents.md/) plugin for a16n. Discovers and emits AGENTS.md files at any directory depth.
 
+## Stability
+
+Stable since `1.0.0`: the plugin's `discover`/`emit` behavior follows semantic versioning, and breaking changes to the public API bump the major version.
+
 ## Installation
 
 This plugin is bundled with the `a16n` CLI. For programmatic use:

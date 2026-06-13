@@ -1,8 +1,8 @@
 QA: PASS
-task: v1-release-rollout-m3
+task: v1-release-rollout-m4
 date: 2026-06-13
 phase: QA
-complexity: Level 1
-summary: Wave A 1.0.0 promotion validated. release-as:"1.0.0" set for models + glob-hook; path-touching README stability notes land each package in the Release-Please run (proven M1-rework recipe); spent M1 release-as keys removed. Full suite green (17 packages); source still workspace:* (invariant intact). No KISS/DRY/YAGNI/regression/integrity findings; change is minimal and honest.
-residual: Whether RP cuts BOTH 1.0.0 releases can only be confirmed when RP runs on merge — covered by the documented operator merge-gate (PR must bump both models→1.0.0 and glob-hook→1.0.0).
-gate: cleared for L1 wrap-up
+complexity: Level 2
+summary: Wave B change validated semantically (KISS/DRY/YAGNI/completeness/regression/integrity/docs). release-as:"1.0.0" on engine/plugin-cursor/plugin-claude/plugin-a16n; spent M3 keys removed from models/glob-hook; agentsmd left clean (patch-bump via path-touch only). Five README stability notes are accurate and honest (agentsmd phrased "Stable since 1.0.0", not a promotion). Full suite green (build 8/8, test 17/17 incl. workspace-publish-invariant + agentsmd publish-shape, typecheck 14/14); source still workspace:*. No findings, no fixes.
+residual: Whether RP cuts all five releases at the intended versions (4×1.0.0 + agentsmd 1.0.4) is only observable when RP runs on merge — covered by the operator merge-gate; the PR must be titled fix(release): so the squash-merge commit triggers the release.
+gate: cleared for L2 reflect
