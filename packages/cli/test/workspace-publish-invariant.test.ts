@@ -10,12 +10,20 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
  * pnpm's publish-time rewrite, so a hand-pinned sibling version in source is a
  * bug (it can silently drift from, or outright contradict, what gets published).
  *
- * Scope note: this does NOT protect against publishing with the wrong tool
- * (`npm publish` instead of `pnpm publish`), which is what produced the original
- * `@a16njs/plugin-agentsmd` breakage. A unit test that reads source manifests
- * cannot observe which command an operator runs. That failure mode is addressed
- * by the release-pipeline hardening in M2 (artifact inspection + removing the
- * need for manual recovery publishes).
+ * Scope note: a source-manifest test like this can only prove the source is
+ * correct — it cannot observe what actually gets published. The release pipeline
+ * publishes via `pnpm --filter publish` (see .github/workflows/release.yaml),
+ * which rewrites `workspace:` to an exact version. Two failure modes therefore
+ * live outside this test:
+ *   1. A package that is absent from the release set never republishes, so a
+ *      consumer (e.g. the CLI) re-pins a stale, still-poisoned sibling version.
+ *      Release-Please only releases a package when a commit touches its path;
+ *      `release-as` alone does not force a release. This is what broke the first
+ *      M1 attempt (agentsmd was never in the release; a16n re-pinned 1.0.2).
+ *   2. Publishing the built tarball with a tool that does not rewrite the
+ *      protocol.
+ * Published-artifact inspection that catches both is M2 (release-pipeline)
+ * scope, not a unit test.
  */
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');

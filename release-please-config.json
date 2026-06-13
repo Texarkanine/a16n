@@ -10,7 +10,7 @@
     "packages/cli": {
       "component": "a16n",
       "changelog-path": "CHANGELOG.md",
-      "release-as": "0.15.3"
+      "release-as": "0.15.4"
     },
     "packages/engine": {
       "component": "@a16njs/engine",
