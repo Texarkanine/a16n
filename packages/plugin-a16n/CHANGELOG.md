@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@0.7.3...@a16njs/plugin-a16n@1.0.0) (2026-06-13)
+
+
+### Bug Fixes
+
+* **release:** Wave B — promote engine + plugins to 1.0.0, re-pin agentsmd to models@1.0.0 ([#125](https://github.com/Texarkanine/a16n/issues/125)) ([d55fa92](https://github.com/Texarkanine/a16n/commit/d55fa9289bac5193187f5cd24f5ff8138d5c94cd))
+
 ## [0.7.3](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@0.7.2...@a16njs/plugin-a16n@0.7.3) (2026-06-13)
 
 

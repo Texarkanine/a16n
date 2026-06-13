@@ -1,11 +1,11 @@
 {
   "packages/cli": "0.15.4",
-  "packages/engine": "0.8.1",
+  "packages/engine": "1.0.0",
   "packages/models": "1.0.0",
-  "packages/plugin-cursor": "0.14.1",
-  "packages/plugin-claude": "0.14.1",
+  "packages/plugin-cursor": "1.0.0",
+  "packages/plugin-claude": "1.0.0",
   "packages/glob-hook": "1.0.0",
-  "packages/plugin-a16n": "0.7.3",
-  "packages/plugin-agentsmd": "1.0.3",
+  "packages/plugin-a16n": "1.0.0",
+  "packages/plugin-agentsmd": "1.0.4",
   "packages/docs": "0.12.2"
 }
