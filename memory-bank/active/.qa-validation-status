@@ -1,0 +1,6 @@
+QA: PASS
+task: v1-release-rollout-m1 (rework / "M1.1")
+date: 2026-06-13
+phase: QA
+summary: Rework implementation matches plan. agentsmd path-touching guard + CLI scope-note correction + release-as 0.15.4 all present. Full test suite green (17 packages, agentsmd publish-shape 2/2, CLI workspace-invariant 10/10). No blocking findings; minor non-blocking observations recorded in tasks.md.
+gate: cleared for operator action plan (PR creation, merge-gate, publish, deprecations)

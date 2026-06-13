@@ -30,33 +30,41 @@ Republish `@a16njs/plugin-agentsmd` (new patch via automated `pnpm publish` so `
 
 ## Implementation Plan
 
-1. **Repo-level source-invariant test**
+> **REWORK.** The first release (PR #119/#120) failed: agentsmd was never released (no path-touching commit) and the CLI re-pinned the poisoned `1.0.2`. The plan below makes both packages release together, with the CLI moving to `0.15.4`.
+
+1. **Repo-level source-invariant test** *(already landed in first release; keep)*
    - Files: `packages/cli/test/workspace-publish-invariant.test.ts`
-   - Changes: discover all `packages/*/package.json`; for each package, assert every dependency (any bucket) naming another workspace package uses the `workspace:` protocol. Documents in-file that the npm-vs-pnpm cause is M2 scope.
+   - Status: present and passing. Its scope-note comment is corrected in step 3 (it wrongly attributed the breakage to `npm publish`).
 
-2. *(removed — per-package pack test; see Test Plan revision note)*
+2. **agentsmd path-touching trigger + guard**
+   - Files: `packages/plugin-agentsmd/test/publish-shape.test.ts` (new)
+   - Changes: assert agentsmd's `package.json` declares `publishConfig.access === "public"` and uses the `workspace:` protocol for every sibling dep. This is a real regression guard for the two failure modes that have hit this package (missing public access on first publish; leaked `workspace:`), AND it touches the agentsmd path so Release-Please includes agentsmd in the release.
+   - Commit: `fix(plugin-agentsmd): guard published package shape (public access + workspace protocol)`
 
-3. *(removed — CLI pack test; see Test Plan revision note)*
+3. **CLI path-touching trigger + comment correction**
+   - Files: `packages/cli/test/workspace-publish-invariant.test.ts`
+   - Changes: rewrite the inaccurate scope-note (the pipeline uses `pnpm --filter publish`, not `npm publish`; the real M1 failure was a package being absent from the release set). Touches the CLI path so Release-Please includes `a16n` in the release.
+   - Commit: `fix(a16n): correct workspace-invariant test scope note and re-pin agentsmd`
 
-4. **Force Release-Please patch bumps**
+4. **Set forced release versions**
    - Files: `release-please-config.json`
-   - Changes: add per-package `"release-as": "1.0.3"` under `packages/plugin-agentsmd` and `"release-as": "0.15.3"` under `packages/cli`; add changelog-driving commit message (`fix(release): republish agentsmd and cli with rewritten workspace deps`)
+   - Changes: change `packages/cli` `release-as` `"0.15.3"` → `"0.15.4"` (0.15.3 is burned). Keep `packages/plugin-agentsmd` `release-as: "1.0.3"` (never published).
 
-5. **Document republish rationale in changelogs (Release-Please will generate on release PR)**
-   - Files: none in source — RP generates `CHANGELOG.md` entries on the Release PR branch
-   - Changes: ensure commit body explains poisoned-version context for RP changelog parser
+5. **Operator merge-gate (PR description / checklist)**
+   - Files: none (PR description)
+   - Changes: document that the generated release PR MUST bump BOTH `@a16njs/plugin-agentsmd → 1.0.3` AND `a16n → 0.15.4`. If either package is missing from the release PR, do NOT merge — investigate the path-touch.
 
-6. **Remove `release-as` after release (follow-up — operator task post-merge)**
+6. **Remove `release-as` after successful publish (operator follow-up)**
    - Files: `release-please-config.json`
-   - Changes: note in PR description that operator removes temporary `release-as` keys in a follow-up commit after successful publish (or leave until next organic bump — document choice in PR)
+   - Changes: note in PR that operator removes the temporary `release-as` keys post-publish.
 
-7. **Optional deprecation script/instructions**
-   - Files: `scripts/deprecate-poisoned-versions.sh` (new, executable) OR PR test-plan checklist only
-   - Changes: `npm deprecate @a16njs/plugin-agentsmd@1.0.1 "..."` etc.; operator runs manually with npm credentials (not CI)
+7. **Optional deprecation (now includes a16n@0.15.3)**
+   - Files: `scripts/deprecate-poisoned-versions.sh` (optional) OR PR checklist
+   - Changes: `npm deprecate` for `@a16njs/plugin-agentsmd@1.0.1`, `1.0.2`, `a16n@0.15.2`, and now `a16n@0.15.3` (poisoned-by-pin).
 
 8. **Verify locally before PR**
-   - Commands: `pnpm build && pnpm test && pnpm --filter @a16njs/plugin-agentsmd exec pnpm pack` (manual spot-check)
-   - Operator post-merge: `npx a16n@latest --version`
+   - Commands: `pnpm build && pnpm test`
+   - Operator post-merge: `npm view @a16njs/plugin-agentsmd@latest dependencies` (exact models pin) and `npx a16n@latest --version` (exit 0).
 
 ## Technology Validation
 
@@ -82,5 +90,23 @@ No new technology — validation not required. Uses existing pnpm pack/publish, 
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Preflight
-- [x] Build
-- [ ] QA
+- [x] Build (first attempt — released but did not fix the bug)
+- [x] Rework build (agentsmd + CLI path-touching triggers; CLI → 0.15.4)
+- [x] QA — PASS (semantic review clean; full suite green)
+
+## QA Result (2026-06-13)
+
+✅ **PASS** — the rework implementation matches the plan and all code requirements are satisfied.
+
+- **Completeness**: Plan steps 2–4 (the code-bearing steps) are all implemented:
+  - Step 2: `packages/plugin-agentsmd/test/publish-shape.test.ts` exists, asserts `publishConfig.access === "public"` + workspace protocol on every sibling, and touches the agentsmd path (the path-touch is the load-bearing fix for RP inclusion).
+  - Step 3: CLI `workspace-publish-invariant.test.ts` scope-note rewritten to reflect the real cause (package absent from release set + `pnpm --filter publish`), replacing the inaccurate `npm publish` theory.
+  - Step 4: `release-please-config.json` → CLI `release-as: "0.15.4"`, agentsmd `release-as: "1.0.3"` retained.
+  - Steps 5–8 are operator follow-ups (PR description, deprecations, post-publish verification) — out of scope for code QA.
+- **Regression**: New test mirrors existing conventions (flat `test/`, pure FS reads, Vitest, `PackageManifest`/`DEPENDENCY_BUCKETS` shape from the sibling CLI test). Source `package.json` files still use `workspace:*` — invariant #3 preserved.
+- **Integrity**: No debug artifacts, magic numbers, or placeholder values introduced.
+- **Tests**: `publish-shape.test.ts` (2) and `workspace-publish-invariant.test.ts` (10) pass; full `pnpm test` green (17 packages, 190 CLI tests).
+- **Observations (non-blocking, by design)**:
+  - The agentsmd test's workspace-protocol assertion overlaps the repo-wide CLI test. This duplication is intentional and load-bearing: the assertion must live in the agentsmd package path to trigger a Release-Please release. Its unique value is the `publishConfig.access` check the repo-wide test lacks.
+  - The agentsmd test iterates all four dependency buckets though agentsmd only populates two; this is defensive future-proofing consistent with the sibling test's style.
+  - Plan step 3's commit message says "re-pin agentsmd", but the CLI source change is comment-only (the re-pin happens at publish time via pnpm rewrite). Cosmetic wording note for the not-yet-made commit.

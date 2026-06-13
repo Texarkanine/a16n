@@ -1,12 +1,18 @@
 # Active Context
 
 ## Current Task: v1-release-rollout-m1
-**Phase:** BUILD - COMPLETE
+**Phase:** REFLECT - COMPLETE
 
 ## What Was Done
-- Set temporary `release-as` in `release-please-config.json`: `@a16njs/plugin-agentsmd` → `1.0.3`, `a16n` → `0.15.3`.
-- Replaced the original per-package `pnpm pack` tests (near-tautological; couldn't catch the npm-vs-pnpm cause) with a single repo-level source-invariant test `packages/cli/test/workspace-publish-invariant.test.ts`: every workspace sibling reference must use `workspace:` in source (invariant #3, repo-wide).
-- Deferred the real artifact-inspection guard (matches the operator's npm-publish error) to M2.
+- Rework build: agentsmd `publish-shape.test.ts` (path-touch + public-access + workspace guard), CLI scope-note correction in `workspace-publish-invariant.test.ts`, `release-as` → CLI `0.15.4` / agentsmd `1.0.3`.
+- QA passed: full suite green, no blocking findings.
+- Reflection captured in `memory-bank/active/reflection/reflection-v1-release-rollout-m1.md`.
+- `techContext.md` updated with Release-Please path-inclusion behavior.
+
+## Operator Follow-Up (not yet done)
+- Open PR with rework commits; confirm generated release PR bumps BOTH `agentsmd → 1.0.3` AND `a16n → 0.15.4` before merge.
+- After publish: verify `npm view @a16njs/plugin-agentsmd@latest dependencies` (exact models pin) and `npx a16n@latest --version`.
+- Optionally deprecate poisoned versions; remove temporary `release-as` keys from `release-please-config.json`.
 
 ## Next Step
-- Run `/niko-qa` for semantic review, then `/niko-reflect` after merge + publish verification.
+- Run `/niko` to continue to the next L4 milestone (M1 operator publish still pending, but sub-run code work is complete).

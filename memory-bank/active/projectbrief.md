@@ -36,3 +36,15 @@ A new `@a16njs/plugin-agentsmd` patch (≥ 1.0.3) is published via the automated
 2. After operator merge + publish: `npx a16n@latest --version` succeeds (install + run).
 3. Source `package.json` files for `packages/plugin-agentsmd` and `packages/cli` still use `workspace:*` for internal deps.
 4. A local/pre-merge test proves `pnpm pack` on agentsmd produces a tarball whose `package.json` dependencies contain no `workspace:` protocol.
+
+## Rework (post first-release failure)
+
+The first M1 release did not satisfy AC#1/AC#2: `a16n@0.15.3` published pinning the poisoned `@a16njs/plugin-agentsmd@1.0.2`, and `agentsmd@1.0.3` was never published.
+
+**Corrected understanding:** Release-Please only releases a package when a commit touches that package's path. `release-as` overrides the version *if a release is cut* but does not force one. The original fix touched no file under `packages/plugin-agentsmd/`, so agentsmd was silently excluded from the release.
+
+**Added requirements:**
+- R5. Each package to be republished (`@a16njs/plugin-agentsmd`, `a16n`) MUST receive a real `fix:` commit touching its own path so Release-Please includes it.
+- R6. The CLI target version is `0.15.4` (0.15.3 is immutable and pins the poisoned agentsmd).
+- R7. Operator merge-gate: the generated release PR must bump BOTH `agentsmd → 1.0.3` AND `a16n → 0.15.4` before it is merged. If either is missing, do not merge.
+- R8 (revised AC#4): the pre-merge proof is the existing repo-level source-invariant test plus the per-package path-touching commits; full published-artifact inspection remains M2 scope.
