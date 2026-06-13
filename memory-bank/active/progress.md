@@ -16,3 +16,14 @@ Wave B of the v1 rollout (Milestone 4): promote the middle-layer packages `@a16n
     - Verified published baseline: plugin-cursor 0.14.1, plugin-claude 0.14.1, plugin-a16n 0.7.3, engine 0.8.1, agentsmd 1.0.3.
 * Insights
     - The path-touch-per-package mechanic is again the one non-trivial detail; the difference from M3 is breadth (5 packages) and the agentsmd pin-refresh sub-case, not new design.
+
+## 2026-06-13 - PLAN - COMPLETE
+
+* Work completed
+    - Wrote the full Level 2 plan to `tasks.md`: `release-as: "1.0.0"` for engine + plugin-cursor + plugin-claude + plugin-a16n; remove spent M3 keys (models/glob-hook); one `fix(release):` commit touching all five package READMEs (the RP trigger); agentsmd patch bump only.
+    - Verified live facts: agentsmd@1.0.3 pins `@a16njs/models@0.14.1`; workspace `models` version is `1.0.0` (so pnpm rewrite resolves dependents to 1.0.0).
+* Decisions made
+    - **agentsmd: patch bump, NO `release-as`** (operator-confirmed). Forcing 1.0.0 would downgrade it and violate invariant #7. The patch (1.0.3→1.0.4) exists solely to re-pin its published `models` dep 0.14.1→1.0.0 via pnpm rewrite — dependency hygiene to avoid two `models` majors in the post-M5 CLI tree. Not invariant-required, but worth it.
+    - No new unit test (config+docs change; existing `workspace-publish-invariant` + agentsmd `publish-shape` guards cover source; RP versions are operator merge-gated). Mirrors M3.
+* Insights
+    - The honest distinction the operator surfaced: Wave B is two different operations wearing one label — a `0.x→1.0.0` *promotion* (4 packages) and a *dependency re-pin* (agentsmd). Only the former is "promotion"; the latter is immutable-tarball hygiene.
