@@ -1,50 +1,37 @@
 # Project Brief
 
-**Parent L4 task:** v1-release-rollout (see `memory-bank/active/milestones.md`)
+**Parent L4 task:** v1-release-rollout (see `memory-bank/active/milestones.md`) — this brief scopes **Milestone 3** (Wave A: leaf-layer `1.0.0` promotion).
 
 ## User Story
 
-As the maintainer of `a16n`, I want `npx a16n@latest` to install and run again so that users are not blocked by the poisoned `@a16njs/plugin-agentsmd@1.0.1`/`1.0.2` tarballs (literal `workspace:*` for `@a16njs/models`).
+As the maintainer of `a16n`, I want to promote the leaf-layer packages `@a16njs/models` and the standalone `@a16njs/glob-hook` from `0.x` to `1.0.0`, so that the dependency-ordered `1.0.0` rollout can begin with packages that have no internal dependents to coordinate.
 
 ## Use-Case(s)
 
-### Use-Case 1: Latest CLI installs cleanly
+### Use-Case 1: models reaches 1.0.0
 
-`npx a16n@latest` (currently `a16n@0.15.2`) resolves all dependencies and the binary runs without `EUNSUPPORTEDPROTOCOL`.
+`@a16njs/models` publishes as `1.0.0` on the next release. Existing published dependents (plugins/engine/CLI) are unaffected — they pin the exact prior `models` version (e.g. `0.14.1`), which remains on the registry; they will re-pin to `1.0.0` in their own later waves (M4/M5).
 
-### Use-Case 2: Republished agentsmd has real internal pins
+### Use-Case 2: glob-hook reaches 1.0.0
 
-A new `@a16njs/plugin-agentsmd` patch (≥ 1.0.3) is published via the automated `pnpm publish` path with `@a16njs/models` rewritten to an exact registry version.
+`@a16njs/glob-hook` (standalone; not part of the conversion pipeline) publishes as `1.0.0`.
 
 ## Requirements
 
-1. Publish a new `@a16njs/plugin-agentsmd` patch through the normal Release-Please → `pnpm publish` pipeline so `workspace:*` is rewritten.
-2. Publish a new `a16n` CLI patch that exact-pins the corrected agentsmd (via pnpm rewrite at publish time; source stays `workspace:*`).
-3. Preserve all L4 cross-milestone invariants (see `milestones.md`): source stays `workspace:*`, no behavioral code breaks, `docs` never published.
-4. Optionally deprecate poisoned versions (`@a16njs/plugin-agentsmd@1.0.1`, `1.0.2`, `a16n@0.15.2`) with a clear message pointing to fixed versions.
+1. Set `release-as: "1.0.0"` for `packages/models` and `packages/glob-hook` in `release-please-config.json`.
+2. Land a real, conventional path-touching commit under **each** of `packages/models/` and `packages/glob-hook/` so Release-Please actually cuts a release for each. (`release-as` overrides the *version* only if a release is cut; it does **not** force inclusion — the lesson that thrashed M1.)
+3. Preserve all L4 cross-milestone invariants: source inter-package deps stay `workspace:*`, no behavioral code changes, `a16n@latest` stays installable, `docs` never published.
 
 ## Constraints
 
-1. Immutable npm versions cannot be edited; repair is forward-only via new publishes.
-2. `bump-minor-pre-major: true` means a CLI `fix:` commit would bump to `0.16.0`; use per-package `release-as` in `release-please-config.json` to land `0.15.3` if a patch-only repair is preferred.
-3. Operator merges the PR and Release-Please publishes; this sub-run produces the repo changes that make that release land correctly.
-4. CI/publish hardening (tarball guards, repo-wide `publishConfig`) is **M2 scope** — do not expand into M2 here.
+1. **Wave A only.** Do not bump or re-pin dependents (`engine`, the `plugin-*` packages, the `a16n` CLI) — those are M4/M5. Their source stays `workspace:*`; they pick up `models@1.0.0` at their own next release.
+2. The CLI's temporary `release-as: "0.15.4"` and agentsmd's `release-as: "1.0.3"` keys from M1 should be removed if still present (they are spent; leaving them risks re-triggering or pinning stale versions). Verify against the manifest before editing.
+3. Immutable npm versions — forward-only; this is a version-policy promotion, not a behavioral break.
 
 ## Acceptance Criteria
 
-1. After operator merge + publish: `npm view @a16njs/plugin-agentsmd@latest dependencies` shows an exact semver for `@a16njs/models`, not `workspace:*`.
-2. After operator merge + publish: `npx a16n@latest --version` succeeds (install + run).
-3. Source `package.json` files for `packages/plugin-agentsmd` and `packages/cli` still use `workspace:*` for internal deps.
-4. A local/pre-merge test proves `pnpm pack` on agentsmd produces a tarball whose `package.json` dependencies contain no `workspace:` protocol.
-
-## Rework (post first-release failure)
-
-The first M1 release did not satisfy AC#1/AC#2: `a16n@0.15.3` published pinning the poisoned `@a16njs/plugin-agentsmd@1.0.2`, and `agentsmd@1.0.3` was never published.
-
-**Corrected understanding:** Release-Please only releases a package when a commit touches that package's path. `release-as` overrides the version *if a release is cut* but does not force one. The original fix touched no file under `packages/plugin-agentsmd/`, so agentsmd was silently excluded from the release.
-
-**Added requirements:**
-- R5. Each package to be republished (`@a16njs/plugin-agentsmd`, `a16n`) MUST receive a real `fix:` commit touching its own path so Release-Please includes it.
-- R6. The CLI target version is `0.15.4` (0.15.3 is immutable and pins the poisoned agentsmd).
-- R7. Operator merge-gate: the generated release PR must bump BOTH `agentsmd → 1.0.3` AND `a16n → 0.15.4` before it is merged. If either is missing, do not merge.
-- R8 (revised AC#4): the pre-merge proof is the existing repo-level source-invariant test plus the per-package path-touching commits; full published-artifact inspection remains M2 scope.
+1. `release-please-config.json` declares `release-as: "1.0.0"` for both `packages/models` and `packages/glob-hook`.
+2. A path-touching commit exists under each of `packages/models/` and `packages/glob-hook/`.
+3. The generated Release-Please PR bumps **both** `@a16njs/models → 1.0.0` and `@a16njs/glob-hook → 1.0.0` (operator merge-gate, per the M1 lesson).
+4. After operator merge + publish: `npm view @a16njs/models@1.0.0 version` and `npm view @a16njs/glob-hook@1.0.0 version` both resolve.
+5. Full test suite green; no runtime/behavioral changes.
