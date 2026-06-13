@@ -27,3 +27,14 @@ Wave B of the v1 rollout (Milestone 4): promote the middle-layer packages `@a16n
     - No new unit test (config+docs change; existing `workspace-publish-invariant` + agentsmd `publish-shape` guards cover source; RP versions are operator merge-gated). Mirrors M3.
 * Insights
     - The honest distinction the operator surfaced: Wave B is two different operations wearing one label — a `0.x→1.0.0` *promotion* (4 packages) and a *dependency re-pin* (agentsmd). Only the former is "promotion"; the latter is immutable-tarball hygiene.
+
+## 2026-06-13 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the Wave B plan against codebase reality. PASS (with one advisory). Wrote `.preflight-status`.
+    - Confirmed RP config has no `plugins`/`linked-versions` key → each package released independently → per-package path-touch is required (validates the plan's single 5-path commit). Confirmed via M3: releasing models@1.0.0 did NOT bump the still-0.x plugins.
+* Decisions made
+    - TDD: no new unit test is a justified PASS (config+docs change, no executable behavior; existing invariant guards + operator merge-gate cover it) — same basis M3 passed QA.
+    - Advisory (config-lint test for spent release-as keys) NOT built: out of Wave-B brief scope; dissolved-M2 machine-guard territory now owned by M6. Flagged only.
+* Insights
+    - The "no linked-versions plugin" fact is the load-bearing reason every wave needs an explicit path-touch per package — it's why M1 thrashed and why this plan touches all five READMEs in one commit.
