@@ -1,41 +1,38 @@
 # Project Brief
 
+**Parent L4 task:** v1-release-rollout (see `memory-bank/active/milestones.md`)
+
 ## User Story
 
-As the maintainer of `a16n`, I want to move every published package off major version `0.x` onto real `1.x` semver — without ever shipping a broken package — so that the library and all its components leave "beta" on a stable, trustworthy release footing.
+As the maintainer of `a16n`, I want `npx a16n@latest` to install and run again so that users are not blocked by the poisoned `@a16njs/plugin-agentsmd@1.0.1`/`1.0.2` tarballs (literal `workspace:*` for `@a16njs/models`).
 
 ## Use-Case(s)
 
-### Use-Case 1: A user can always install the latest CLI
+### Use-Case 1: Latest CLI installs cleanly
 
-`npx a16n@latest` (and `npm install -g a16n`) resolves and runs at every point during and after the rollout. The currently-published `latest` is broken and must be repaired first.
+`npx a16n@latest` (currently `a16n@0.15.2`) resolves all dependencies and the binary runs without `EUNSUPPORTEDPROTOCOL`.
 
-### Use-Case 2: The release pipeline cannot silently ship a broken package
+### Use-Case 2: Republished agentsmd has real internal pins
 
-A newly-added or republished package can never reach npm with an unresolved `workspace:` specifier or a pin to a sibling version that is absent from the registry. The failure mode that produced the current breakage is structurally prevented.
-
-### Use-Case 3: Every component reaches 1.0.0 in a safe, ordered rollout
-
-Each package is promoted to `1.0.0` (or already-1.x stays 1.x) through dependency-ordered waves, each wave landing as its own PR + merge + Release-Please publish, with no broken intermediate state.
+A new `@a16njs/plugin-agentsmd` patch (≥ 1.0.3) is published via the automated `pnpm publish` path with `@a16njs/models` rewritten to an exact registry version.
 
 ## Requirements
 
-1. Repair `a16n@latest` so it installs cleanly again (root cause: `@a16njs/plugin-agentsmd@1.0.1`/`1.0.2` were published with a literal `"@a16njs/models": "workspace:*"` because they were published via manual `npm publish`, bypassing pnpm's publish-time `workspace:` rewrite; `a16n@0.15.2` exact-pins the poisoned `1.0.2`).
-2. Harden the release/publish CI so the "new scoped package → automated publish fails → manual `npm publish` recovery → leaked `workspace:` protocol / phantom version" chain cannot recur, and so a non-resolvable package is never published.
-3. Promote all `0.x` packages to `1.0.0` in dependency order: leaf layer (`@a16njs/models`, plus standalone `@a16njs/glob-hook`) → middle layer (`@a16njs/plugin-cursor`, `@a16njs/plugin-claude`, `@a16njs/plugin-a16n`, `@a16njs/engine`) → `a16n` CLI. (`@a16njs/plugin-agentsmd` is already `1.x`.)
-4. Each milestone is shaped so the normal Niko workflow — PR + merge to `main` + Release-Please publish, performed by the operator after each milestone — makes the rollout "work out" with no broken publish.
+1. Publish a new `@a16njs/plugin-agentsmd` patch through the normal Release-Please → `pnpm publish` pipeline so `workspace:*` is rewritten.
+2. Publish a new `a16n` CLI patch that exact-pins the corrected agentsmd (via pnpm rewrite at publish time; source stays `workspace:*`).
+3. Preserve all L4 cross-milestone invariants (see `milestones.md`): source stays `workspace:*`, no behavioral code breaks, `docs` never published.
+4. Optionally deprecate poisoned versions (`@a16njs/plugin-agentsmd@1.0.1`, `1.0.2`, `a16n@0.15.2`) with a clear message pointing to fixed versions.
 
 ## Constraints
 
-1. Inter-package dependencies remain `workspace:*` in source; the concrete version is produced by pnpm's rewrite at publish time. We do not hand-pin sibling versions in source.
-2. Already-published immutable versions (`agentsmd@1.0.1`/`1.0.2`, `a16n@0.15.2`) cannot be edited in place; repair is by publishing new, correct versions (and optionally deprecating the poisoned ones).
-3. `packages/docs` is `private: true` and must never be published to npm.
-4. `bump-minor-pre-major: true` is set, so `0.x → 1.0.0` will not happen organically from conventional commits; each promotion must be explicitly forced (per-package `release-as` in `release-please-config.json`).
-5. The operator performs all PR merges and Release-Please publishes; this work produces the changes that, once merged and released, make each milestone land.
+1. Immutable npm versions cannot be edited; repair is forward-only via new publishes.
+2. `bump-minor-pre-major: true` means a CLI `fix:` commit would bump to `0.16.0`; use per-package `release-as` in `release-please-config.json` to land `0.15.3` if a patch-only repair is preferred.
+3. Operator merges the PR and Release-Please publishes; this sub-run produces the repo changes that make that release land correctly.
+4. CI/publish hardening (tarball guards, repo-wide `publishConfig`) is **M2 scope** — do not expand into M2 here.
 
 ## Acceptance Criteria
 
-1. `npx a16n@latest` installs and runs successfully — verified after milestone 1 and preserved at every subsequent milestone boundary.
-2. No published package tarball contains a `workspace:` specifier, and every internal pin resolves to a version present on the registry.
-3. CI cannot publish a non-resolvable package: a regression that would ship one fails the pipeline loudly instead of silently succeeding.
-4. Every published package is at `1.x` (none remain on `0.x`), each having been promoted via a dependency-ordered wave with no broken intermediate publish.
+1. After operator merge + publish: `npm view @a16njs/plugin-agentsmd@latest dependencies` shows an exact semver for `@a16njs/models`, not `workspace:*`.
+2. After operator merge + publish: `npx a16n@latest --version` succeeds (install + run).
+3. Source `package.json` files for `packages/plugin-agentsmd` and `packages/cli` still use `workspace:*` for internal deps.
+4. A local/pre-merge test proves `pnpm pack` on agentsmd produces a tarball whose `package.json` dependencies contain no `workspace:` protocol.
