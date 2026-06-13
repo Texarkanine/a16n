@@ -26,3 +26,13 @@ Restore `a16n@latest` installability by republishing `@a16njs/plugin-agentsmd` a
     - Validated M1 plan: TDD order, test conventions, release.yaml touchpoints, requirement coverage. Wrote `.preflight-status` (PASS with advisory).
 * Decisions made
     - No plan amendments required; advisories documented for build phase.
+
+## 2026-06-13 - BUILD - COMPLETE
+
+* Work completed
+    - Pack tests for agentsmd and CLI; `release-as` forced patches in `release-please-config.json`.
+* Decisions made
+    - 15s timeout on pack tests (parallel turbo run exceeds default 5s).
+    - Skipped optional deprecation script; document as operator post-publish step.
+* Insights
+    - Local `pnpm pack` already rewrites correctly; breakage was manual `npm publish` bypass only.

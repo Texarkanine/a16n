@@ -81,6 +81,6 @@ No new technology — validation not required. Uses existing pnpm pack/publish, 
 - [x] Test planning complete (TDD)
 - [x] Implementation plan complete
 - [x] Technology validation complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA
