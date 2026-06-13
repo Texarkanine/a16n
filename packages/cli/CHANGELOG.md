@@ -1,5 +1,12 @@
 # a16n
 
+## [0.15.4](https://github.com/Texarkanine/a16n/compare/a16n@0.15.3...a16n@0.15.4) (2026-06-13)
+
+
+### Bug Fixes
+
+* **release:** republish agentsmd@1.0.3 and a16n@0.15.4 (M1 rework) ([#121](https://github.com/Texarkanine/a16n/issues/121)) ([b6bbc66](https://github.com/Texarkanine/a16n/commit/b6bbc66a94915907680702fb501af70b7e89c9a2))
+
 ## [0.15.3](https://github.com/Texarkanine/a16n/compare/a16n@0.15.2...a16n@0.15.3) (2026-06-13)
 
 
