@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: v1-release-rollout
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE (PASS with advisory)
 
 ## What Was Done
 - Investigated the live breakage: `a16n@latest` (0.15.2) fails to install with `EUNSUPPORTEDPROTOCOL Unsupported URL Type "workspace:": workspace:*`.
@@ -10,4 +10,4 @@
 - Generated `memory-bank/active/milestones.md`: 5 milestones (M1 restore installability → M2 harden CI → M3–M5 the `1.0.0` waves leaf→middle→CLI) plus 7 cross-milestone invariants.
 
 ## Next Step
-- Run preflight to validate the milestone list.
+- Operator reviews the milestone plan, then runs `/niko` to begin the M1 sub-run (restore `a16n@latest` installability).

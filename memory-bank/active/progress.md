@@ -23,3 +23,13 @@ Move every published `a16n` package off `0.x` onto `1.x` semver without ever shi
     - Folded standalone `@a16njs/glob-hook` into the leaf wave (M3) since it has no internal edges.
     - `@a16njs/plugin-agentsmd` is already 1.x; it is repaired in M1 rather than getting its own promotion wave.
     - Estimated milestone scopes: M1 L2, M2 L2 (possibly L3), M3 L1, M4 L2, M5 L1 — advisory; actual classification happens at each sub-run start.
+
+## 2026-06-13 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the 5-milestone decomposition against codebase reality (release-please config, publish workflow, dependency graph). Result: PASS with advisory; no blocking findings. Wrote `.preflight-status`.
+* Decisions made
+    - TDD encoding is deferred to each sub-run's own plan/preflight (L4 has no dedicated build/QA phase).
+* Insights
+    - The publish loop passes no `--access public` and relies on per-package `publishConfig`, which only `plugin-agentsmd` has — this is the latent trigger for the original breakage and is folded into M2's scope.
+    - Advisory A1: release-please `node-workspace`/linked-versions would eliminate the phantom-pin class entirely but is a release-architecture change (out of current scope); flagged for operator, not applied.

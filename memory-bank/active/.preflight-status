@@ -1,0 +1,13 @@
+PASS (with advisory)
+date: 2026-06-13
+task: v1-release-rollout
+phase: L4 PLAN preflight (milestone-decomposition validation)
+summary: 5-milestone decomposition validated against codebase reality. No blocking findings.
+  Completeness: all projectbrief requirements + acceptance criteria map to milestones.
+  Ordering: M1 (fix) -> M2 (harden CI) -> M3 leaf -> M4 middle -> M5 CLI is correct topological order; invariants hold at every boundary (exact pins keep prior publishes resolvable).
+  TDD encoding: N/A at L4 milestone granularity; deferred to each sub-run's own plan/preflight (per level4-workflow: no dedicated L4 build/QA).
+advisory:
+  - A1: consider release-please node-workspace/linked-versions plugin (scope/complexity change; NOT applied).
+  - A2: M2 should make publish access explicit repo-wide (publishConfig on all packages or --access public in the publish loop), since the loop passes no --access and only agentsmd has publishConfig.
+  - A3: optionally include agentsmd in M4 to re-pin to models@1.0.0 for version-consistency (not required for correctness).
+next: operator reviews plan, then runs /niko to begin M1 sub-run.
