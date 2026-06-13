@@ -5,6 +5,10 @@
 
 Agent customization portability for AI coding tools.
 
+## Stability
+
+As of `1.0.0`, the CLI commands and public API are stable and follow semantic versioning: breaking changes to the public interface bump the major version.
+
 ## Installation
 
 ```bash
