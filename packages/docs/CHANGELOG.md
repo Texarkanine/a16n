@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.1](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.12.0...@a16njs/docs@0.12.1) (2026-06-13)
+
+
+### Bug Fixes
+
+* **deps:** bump commander from 12.1.0 to 15.0.0 ([#109](https://github.com/Texarkanine/a16n/issues/109)) ([da8266f](https://github.com/Texarkanine/a16n/commit/da8266f077e79f1d54fcb9b0b4559e3db442fa0e))
+* **deps:** bump react from 18.3.1 to 19.2.7 ([#111](https://github.com/Texarkanine/a16n/issues/111)) ([8650e3d](https://github.com/Texarkanine/a16n/commit/8650e3dfdfeecdba8077a5df197d2da9f4a196f1))
+
 ## [0.12.0](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.11.0...@a16njs/docs@0.12.0) (2026-06-12)
 
 
