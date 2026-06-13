@@ -1,0 +1,9 @@
+QA: PASS
+task: v1-release-rollout-m6
+date: 2026-06-13
+phase: QA
+complexity: Level 1
+summary: Documentation capstone + cruft cleanup validated semantically (KISS/DRY/YAGNI/completeness/regression/integrity/docs). CONTRIBUTING.md runbook covers all four M1 traps, OIDC first-publish bootstrap, post-publish tarball verification, and the dissolved-M2 lesson; .cursor/rules/shared/publishing-packages.mdc routes to it with load-bearing rules summarized (intentional pointer, not a DRY violation). Spent release-as:"1.0.0" removed from packages/cli; JSON valid, no release-as keys remain. Full suite green (build 8/8, test 17/17, typecheck 14/14); source still workspace:*.
+fixes: One trivial markdown-style fix — removed clarifying parenthetical from the "First-publish bootstrap" heading (now "First-publish OIDC bootstrap"; chicken-and-egg moved to body).
+residual: None. Removing the spent release-as is observable only on the next CLI release (operator merge-gate), which is the documented, intended behavior.
+gate: cleared for L1 wrap-up

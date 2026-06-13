@@ -54,9 +54,9 @@ Adding a new published `@a16njs/*` package has four traps that have each broken 
 
 4. **Configure a per-package trusted publisher (OIDC) on npmjs.com.** Each package needs its own trusted-publisher entry (repo + workflow) under its npm settings, or the pipeline publish fails with a 404. This is a per-package, one-time setup.
 
-#### First-publish bootstrap (the OIDC chicken-and-egg)
+#### First-publish OIDC bootstrap
 
-A trusted publisher can only be configured for a package that **already exists** on npm, but the package can't be published without a trusted publisher. Break the cycle with a one-time manual bootstrap **that still goes through pnpm**:
+A trusted publisher can only be configured for a package that **already exists** on npm, but the package can't be published without a trusted publisher — a chicken-and-egg. Break the cycle with a one-time manual bootstrap **that still goes through pnpm**:
 
 1. Locally, `pnpm --filter <pkg> publish` once (this performs the correct `workspace:` rewrite — do **not** fall back to `npm publish`). Use a granular automation token scoped to that package for this single bootstrap publish.
 2. On npmjs.com, add the GitHub Actions trusted publisher for the now-existing package.

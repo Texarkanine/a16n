@@ -12,4 +12,9 @@
 
 **Files changed:** `CONTRIBUTING.md`, `.cursor/rules/shared/publishing-packages.mdc`, `release-please-config.json`
 
-## QA — PENDING
+## QA — COMPLETE (PASS)
+
+- [x] All five brief requirements implemented; no scope drift
+- [x] Rule↔CONTRIBUTING overlap is an intentional pointer pattern, not a DRY violation
+- [x] Trivial fix: removed parenthetical from "First-publish bootstrap" heading (markdown-style compliance)
+- [x] No semantic blockers; cleanup verified (no `release-as` keys remain, JSON valid)

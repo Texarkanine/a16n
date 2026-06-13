@@ -28,3 +28,11 @@ Milestone 6 (documentation capstone) of the v1 rollout: write the canonical "add
     - Kept the `## Stability` README sections (legitimate docs) and publish guards.
 * Insights
     - The runbook's spent-key warning and the cleanup are mutually reinforcing: M6 documents the exact trap the cleanup remediates.
+
+## 2026-06-13 - QA - COMPLETE
+
+* Work completed
+    - Semantic review (KISS/DRY/YAGNI/completeness/regression/integrity/docs). Wrote `.qa-validation-status` = PASS.
+    - One trivial markdown-style fix: removed the clarifying parenthetical from the "First-publish bootstrap" heading.
+* Result
+    - ✅ PASS. All five brief requirements met; cleanup verified (no `release-as` keys, JSON valid). Residual (RP behavior on next CLI release) is the documented operator merge-gate.
