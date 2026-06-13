@@ -1,5 +1,0 @@
-PASS
-task: 20260612-dependabot-pr-remediation
-date: 2026-06-12
-findings: 0 blocking. Plan amended to encode explicit test-first substeps per PR remediation and to make #108 version-alignment strategy concrete.
-advisory: Keep #104/#103 treated as permission-scope blockers, not dependency-safety blockers, unless token/workflow scope changes.
