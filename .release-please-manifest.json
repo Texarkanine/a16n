@@ -6,6 +6,6 @@
   "packages/plugin-claude": "0.14.0",
   "packages/glob-hook": "0.5.1",
   "packages/plugin-a16n": "0.7.1",
-  "packages/plugin-agentsmd": "1.0.0",
+  "packages/plugin-agentsmd": "1.0.1",
   "packages/docs": "0.12.0"
 }
