@@ -1,50 +1,46 @@
 # Project Brief
 
-**Parent L4 task:** v1-release-rollout (see `memory-bank/active/milestones.md`)
+**Parent L4 task:** v1-release-rollout (see `memory-bank/active/milestones.md`) — this brief scopes **Milestone 2**.
 
 ## User Story
 
-As the maintainer of `a16n`, I want `npx a16n@latest` to install and run again so that users are not blocked by the poisoned `@a16njs/plugin-agentsmd@1.0.1`/`1.0.2` tarballs (literal `workspace:*` for `@a16njs/models`).
+As the maintainer of `a16n`, I want the automated release pipeline to make it *impossible* to publish a non-resolvable package, so that the M1 class of failure (a published tarball carrying a literal `workspace:*` specifier, or a package pinning a sibling version absent from the registry) can never recur — and so that no future release requires manual `npm publish` recovery.
 
 ## Use-Case(s)
 
-### Use-Case 1: Latest CLI installs cleanly
+### Use-Case 1: Every publishable package publishes publicly via the automated path
 
-`npx a16n@latest` (currently `a16n@0.15.2`) resolves all dependencies and the binary runs without `EUNSUPPORTEDPROTOCOL`.
+A release wave that includes any scoped `@a16njs/*` package publishes it publicly through the pipeline's `pnpm publish` path, with no manual `--access public` or manual `npm publish` step. Today only `@a16njs/plugin-agentsmd` declares `publishConfig.access: "public"`; the other six scoped packages rely on implicit/fragile defaults.
 
-### Use-Case 2: Republished agentsmd has real internal pins
+### Use-Case 2: A poisoned tarball fails the pipeline before it reaches npm
 
-A new `@a16njs/plugin-agentsmd` patch (≥ 1.0.3) is published via the automated `pnpm publish` path with `@a16njs/models` rewritten to an exact registry version.
+If any to-be-published tarball's `package.json` contains a `workspace:` specifier, or pins an internal `@a16njs/*` sibling to a version that is neither already on the registry nor part of the same release wave, the publish job fails loudly *before* publishing anything. No poisoned artifact escapes.
+
+### Use-Case 3: The private `docs` package is never published
+
+`packages/docs` (`private: true`) is never attempted by the publish loop, even if Release-Please reports its path.
 
 ## Requirements
 
-1. Publish a new `@a16njs/plugin-agentsmd` patch through the normal Release-Please → `pnpm publish` pipeline so `workspace:*` is rewritten.
-2. Publish a new `a16n` CLI patch that exact-pins the corrected agentsmd (via pnpm rewrite at publish time; source stays `workspace:*`).
-3. Preserve all L4 cross-milestone invariants (see `milestones.md`): source stays `workspace:*`, no behavioral code breaks, `docs` never published.
-4. Optionally deprecate poisoned versions (`@a16njs/plugin-agentsmd@1.0.1`, `1.0.2`, `a16n@0.15.2`) with a clear message pointing to fixed versions.
+1. Add `publishConfig.access: "public"` to every scoped `@a16njs/*` package that lacks it (`engine`, `models`, `plugin-cursor`, `plugin-claude`, `plugin-a16n`, `glob-hook`), matching `plugin-agentsmd`.
+2. Add a pipeline guard that, for each package about to be published, inspects the actual tarball (`pnpm pack`) `package.json` and fails the job if it contains any `workspace:` protocol specifier.
+3. Extend that guard to fail if any internal `@a16njs/*` dependency pins a version that is neither present on the npm registry nor part of the current release wave (same-wave siblings count as "will be present").
+4. Ensure the publish loop never attempts to publish a `private: true` package (`docs`).
+5. Publish in a dependency-safe order within a wave so that, when the registry-presence guard runs, same-wave siblings a package depends on are already published (or the guard correctly treats them as in-wave).
+6. Preserve all L4 cross-milestone invariants (`milestones.md`): source stays `workspace:*`, no behavioral code breaks, `docs` never published, `a16n@latest` stays installable, agentsmd never regresses below `1.0.3`.
 
 ## Constraints
 
-1. Immutable npm versions cannot be edited; repair is forward-only via new publishes.
-2. `bump-minor-pre-major: true` means a CLI `fix:` commit would bump to `0.16.0`; use per-package `release-as` in `release-please-config.json` to land `0.15.3` if a patch-only repair is preferred.
-3. Operator merges the PR and Release-Please publishes; this sub-run produces the repo changes that make that release land correctly.
-4. CI/publish hardening (tarball guards, repo-wide `publishConfig`) is **M2 scope** — do not expand into M2 here.
+1. Source inter-package deps MUST remain `workspace:*`; the concrete version is produced only by pnpm's publish-time rewrite (invariant #3). The guard inspects the *rewritten tarball*, not source.
+2. The guard must not produce false positives for legitimate same-wave multi-package releases (e.g. the M4 wave), where several siblings are published together and none is on the registry beforehand.
+3. Changes are confined to the release subsystem: `.github/workflows/release.yaml`, per-package `publishConfig`, and any guard script/test. No behavioral changes to package runtime code.
+4. The `1.0.0` promotion waves (M3–M5) are out of scope; M2 only hardens the pipeline they will run through.
 
 ## Acceptance Criteria
 
-1. After operator merge + publish: `npm view @a16njs/plugin-agentsmd@latest dependencies` shows an exact semver for `@a16njs/models`, not `workspace:*`.
-2. After operator merge + publish: `npx a16n@latest --version` succeeds (install + run).
-3. Source `package.json` files for `packages/plugin-agentsmd` and `packages/cli` still use `workspace:*` for internal deps.
-4. A local/pre-merge test proves `pnpm pack` on agentsmd produces a tarball whose `package.json` dependencies contain no `workspace:` protocol.
-
-## Rework (post first-release failure)
-
-The first M1 release did not satisfy AC#1/AC#2: `a16n@0.15.3` published pinning the poisoned `@a16njs/plugin-agentsmd@1.0.2`, and `agentsmd@1.0.3` was never published.
-
-**Corrected understanding:** Release-Please only releases a package when a commit touches that package's path. `release-as` overrides the version *if a release is cut* but does not force one. The original fix touched no file under `packages/plugin-agentsmd/`, so agentsmd was silently excluded from the release.
-
-**Added requirements:**
-- R5. Each package to be republished (`@a16njs/plugin-agentsmd`, `a16n`) MUST receive a real `fix:` commit touching its own path so Release-Please includes it.
-- R6. The CLI target version is `0.15.4` (0.15.3 is immutable and pins the poisoned agentsmd).
-- R7. Operator merge-gate: the generated release PR must bump BOTH `agentsmd → 1.0.3` AND `a16n → 0.15.4` before it is merged. If either is missing, do not merge.
-- R8 (revised AC#4): the pre-merge proof is the existing repo-level source-invariant test plus the per-package path-touching commits; full published-artifact inspection remains M2 scope.
+1. All seven scoped `@a16njs/*` packages declare `publishConfig.access: "public"`.
+2. A test/guard demonstrably fails when fed a tarball whose `package.json` contains a `workspace:` specifier, and passes for a correctly-rewritten tarball.
+3. The guard fails when an internal pin references a registry-absent, non-in-wave sibling, and passes when the sibling is on the registry or in the same wave.
+4. The publish job provably skips `private: true` packages.
+5. The release workflow publishes wave members in a dependency-safe order (or the guard is wave-aware), with no false failures for a multi-package wave.
+6. Full test suite green; no runtime/behavioral changes to package code.
