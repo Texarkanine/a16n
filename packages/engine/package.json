@@ -45,7 +45,7 @@
     "@a16njs/plugin-cursor": "workspace:*",
     "@a16njs/plugin-claude": "workspace:*",
     "@types/node": "^25.9.3",
-    "typescript": "^5.4.0",
+    "typescript": "^6.0.3",
     "vitest": "^2.0.0"
   },
   "engines": {
