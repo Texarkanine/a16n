@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@0.7.1...@a16njs/plugin-a16n@0.7.2) (2026-06-13)
+
+
+### Bug Fixes
+
+* **deps:** bump the deps-minor-patch group across 1 directory with 5 updates ([#107](https://github.com/Texarkanine/a16n/issues/107)) ([7a790e8](https://github.com/Texarkanine/a16n/commit/7a790e834d074bb80a8175b629d7536737a112e3))
+
 ## [0.7.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@0.7.0...@a16njs/plugin-a16n@0.7.1) (2026-06-12)
 
 

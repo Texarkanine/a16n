@@ -1,5 +1,12 @@
 # a16n
 
+## [0.15.1](https://github.com/Texarkanine/a16n/compare/a16n@0.15.0...a16n@0.15.1) (2026-06-13)
+
+
+### Bug Fixes
+
+* **deps:** bump commander from 12.1.0 to 15.0.0 ([#109](https://github.com/Texarkanine/a16n/issues/109)) ([da8266f](https://github.com/Texarkanine/a16n/commit/da8266f077e79f1d54fcb9b0b4559e3db442fa0e))
+
 ## [0.15.0](https://github.com/Texarkanine/a16n/compare/a16n@0.14.0...a16n@0.15.0) (2026-06-12)
 
 
