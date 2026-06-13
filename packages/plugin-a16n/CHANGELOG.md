@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@0.7.2...@a16njs/plugin-a16n@0.7.3) (2026-06-13)
+
+
+### Bug Fixes
+
+* **deps:** resolve all open Dependabot security alerts ([#117](https://github.com/Texarkanine/a16n/issues/117)) ([50e754f](https://github.com/Texarkanine/a16n/commit/50e754fc5d122380e9cf6b43ec2a3096a6fcc14a))
+
 ## [0.7.2](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@0.7.1...@a16njs/plugin-a16n@0.7.2) (2026-06-13)
 
 

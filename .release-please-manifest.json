@@ -1,11 +1,11 @@
 {
-  "packages/cli": "0.15.1",
-  "packages/engine": "0.8.0",
-  "packages/models": "0.14.0",
-  "packages/plugin-cursor": "0.14.0",
-  "packages/plugin-claude": "0.14.0",
-  "packages/glob-hook": "0.5.1",
-  "packages/plugin-a16n": "0.7.2",
-  "packages/plugin-agentsmd": "1.0.1",
-  "packages/docs": "0.12.1"
+  "packages/cli": "0.15.2",
+  "packages/engine": "0.8.1",
+  "packages/models": "0.14.1",
+  "packages/plugin-cursor": "0.14.1",
+  "packages/plugin-claude": "0.14.1",
+  "packages/glob-hook": "0.5.2",
+  "packages/plugin-a16n": "0.7.3",
+  "packages/plugin-agentsmd": "1.0.2",
+  "packages/docs": "0.12.2"
 }
