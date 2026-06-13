@@ -1,16 +1,17 @@
 # Active Context
 
 ## Current Task: v1-release-rollout-m6
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Advanced the L4 from M5 to M6: marked M5 `- [x]`, cleared M5 sub-run ephemerals (operator confirmed `a16n@1.0.0` is live).
-- Classified M6 (documentation capstone + rollout cruft cleanup) as **Level 1**: docs + one `.cursor/rules/` rule + one spent config-key removal; single component, low risk, no design work. Matches the milestone's own L1 estimate and M3/M5 precedent.
-- Re-scoped `projectbrief.md` to M6, folding in the operator's cruft-cleanup request.
+- Authored `CONTRIBUTING.md` runbook (Releases + Adding a publishable package): four M1 traps, OIDC first-publish bootstrap, post-publish tarball verification, dissolved-M2 lesson.
+- Added `.cursor/rules/shared/publishing-packages.mdc` routing agents to the runbook.
+- Cleanup: removed the spent `release-as: "1.0.0"` from `packages/cli` (last rollout key); config still valid, no keys remain.
+- Full validation green (build/test/typecheck); source still `workspace:*`.
 
 ## Decisions
 - Cruft scope: the only genuine "solely-scaffolding" item is the spent `release-as: "1.0.0"` on `packages/cli` (latent bug now that 1.0.0 is live). The `## Stability` README sections are real docs (keep); the `workspace-publish-invariant`/`publish-shape` tests are permanent guards (keep).
 - M6 absorbs dissolved M2: post-publish tarball verification is the real safety net, not in-pipeline guards.
 
 ## Next Step
-- Load Level 1 workflow → Build phase: author `CONTRIBUTING.md` runbook + `.cursor/rules/` rule, remove the spent CLI `release-as` key.
+- QA phase (niko-qa skill): semantic review of the runbook, rule, and config cleanup.

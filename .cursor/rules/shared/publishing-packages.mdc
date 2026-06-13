@@ -1,0 +1,21 @@
+---
+description: How to add a new publishable @a16njs/* package or cut a release. Apply when creating a new published package, editing release-please-config.json, configuring npm publishing/OIDC, or touching workspace dependency specifiers.
+globs:
+alwaysApply: false
+---
+# Publishing Packages
+
+Releasing and adding published packages in this monorepo has non-obvious rules that have each broken a real release. **Do not improvise.** Follow the canonical runbook in `CONTRIBUTING.md` → **Releases** → **Adding a publishable package**.
+
+## Load-Bearing Rules
+
+These are the traps the runbook exists to prevent — internalize them before editing release config or package manifests:
+
+1. **A release only happens when a commit touches the package's path.** `release-as` in `release-please-config.json` sets the version *if* a release is cut; it does **not** force one. Remove spent `release-as` keys after they publish — a stale one silently pins all future releases of that package.
+2. **Internal deps stay `workspace:*` in source.** Never hand-pin a sibling version; pnpm rewrites it at publish time. Enforced by `packages/cli/test/workspace-publish-invariant.test.ts`.
+3. **The first publish of any new package MUST go through `pnpm publish`, never `npm publish`.** Plain `npm publish` leaks the literal `workspace:*` string into the tarball and poisons consumers.
+4. **Each new package needs `publishConfig.access: "public"` and its own per-package OIDC trusted publisher** on npmjs.com, or the publish fails.
+
+## The Real Safety Net
+
+The pipeline already publishes correctly via `pnpm --filter publish`. Because pnpm's `workspace:` rewrite is non-standard, the actual protection is **post-publish tarball verification**, not any in-pipeline guard: after a release, `npm view <pkg>@<version> dependencies` must show no `workspace:` specifiers. See `CONTRIBUTING.md` for the full verification commands and the first-publish OIDC bootstrap.
