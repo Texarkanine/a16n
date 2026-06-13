@@ -5,6 +5,10 @@
 
 Claude Code plugin for a16n. Discovers and emits Claude configuration.
 
+## Stability
+
+As of `1.0.0`, the plugin's `discover`/`emit` behavior and supported-type contract are stable and follow semantic versioning: breaking changes to the public API bump the major version.
+
 ## Installation
 
 This plugin is bundled with the `a16n` CLI. For programmatic use:

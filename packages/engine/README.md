@@ -5,6 +5,10 @@
 
 Conversion engine for a16n. Orchestrates plugins to convert between tools.
 
+## Stability
+
+As of `1.0.0`, the `A16nEngine` API and the plugin-orchestration contract are stable and follow semantic versioning: breaking changes to the public API bump the major version.
+
 ## Installation
 
 ```bash

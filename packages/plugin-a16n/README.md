@@ -5,6 +5,10 @@
 
 This plugin enables reading and writing the a16n intermediate representation to/from disk in a human-readable, git-friendly format with versioned schema support.
 
+## Stability
+
+As of `1.0.0`, the plugin's `discover`/`emit` behavior is stable and follows semantic versioning: breaking changes to the public API bump the major version. (The on-disk IR schema carries its own independent Kubernetes-style version, described below.)
+
 ## Features
 
 - **Versioned Schema**: Kubernetes-style versioning (e.g., `v1beta1`) for forward compatibility

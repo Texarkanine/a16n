@@ -13,29 +13,31 @@
     },
     "packages/engine": {
       "component": "@a16njs/engine",
-      "changelog-path": "CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md",
+      "release-as": "1.0.0"
     },
     "packages/models": {
       "component": "@a16njs/models",
-      "changelog-path": "CHANGELOG.md",
-      "release-as": "1.0.0"
+      "changelog-path": "CHANGELOG.md"
     },
     "packages/plugin-cursor": {
       "component": "@a16njs/plugin-cursor",
-      "changelog-path": "CHANGELOG.md"
-    },
-    "packages/plugin-claude": {
-      "component": "@a16njs/plugin-claude",
-      "changelog-path": "CHANGELOG.md"
-    },
-    "packages/glob-hook": {
-      "component": "@a16njs/glob-hook",
       "changelog-path": "CHANGELOG.md",
       "release-as": "1.0.0"
     },
+    "packages/plugin-claude": {
+      "component": "@a16njs/plugin-claude",
+      "changelog-path": "CHANGELOG.md",
+      "release-as": "1.0.0"
+    },
+    "packages/glob-hook": {
+      "component": "@a16njs/glob-hook",
+      "changelog-path": "CHANGELOG.md"
+    },
     "packages/plugin-a16n": {
       "component": "@a16njs/plugin-a16n",
-      "changelog-path": "CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md",
+      "release-as": "1.0.0"
     },
     "packages/plugin-agentsmd": {
       "component": "@a16njs/plugin-agentsmd",

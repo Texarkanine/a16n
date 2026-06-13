@@ -38,3 +38,16 @@ Wave B of the v1 rollout (Milestone 4): promote the middle-layer packages `@a16n
     - Advisory (config-lint test for spent release-as keys) NOT built: out of Wave-B brief scope; dissolved-M2 machine-guard territory now owned by M6. Flagged only.
 * Insights
     - The "no linked-versions plugin" fact is the load-bearing reason every wave needs an explicit path-touch per package — it's why M1 thrashed and why this plan touches all five READMEs in one commit.
+
+## 2026-06-13 - BUILD - COMPLETE
+
+* Work completed
+    - `release-as: "1.0.0"` added to engine/plugin-cursor/plugin-claude/plugin-a16n; spent M3 keys removed from models/glob-hook; agentsmd left without `release-as`.
+    - `## Stability` README notes added to all five packages (the RP path-touch trigger).
+    - Full validation green: build 8/8, test 17/17 (incl. `workspace-publish-invariant` + agentsmd `publish-shape`), typecheck 14/14. Source still `workspace:*`.
+    - Committed deliverable as `fix(release): Wave B …`.
+* Decisions made
+    - Used a `fix(release):` deliverable commit, NOT the generic `chore: saving work before qa phase` — the conventional type is load-bearing for Release-Please; a `chore:` would not cut the release (the M1-class trap). The squash-merge PR title must likewise be `fix(release): …`.
+    - agentsmd README note phrased as "Stable since 1.0.0" (honest — it is already 1.x) rather than "As of 1.0.0" (which the four promotions use), to avoid implying a promotion.
+* Insights
+    - `lint` executes 0 turbo tasks in this repo (no package defines a `lint` task) — pre-existing, not introduced here.
