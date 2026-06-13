@@ -1,4 +1,0 @@
-PASS
-task: 20260611-agentsmd-plugin
-date: 2026-06-11
-findings: 4 trivial, all fixed in QA (systemPatterns.md bundled-plugin list + agentsmd asymmetry note; emit-helpers doc comment accuracy; .temp-emit/ gitignore gap; test coverage for ./ glob normalization). 0 substantive.
