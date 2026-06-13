@@ -1,5 +1,12 @@
 # @a16njs/engine
 
+## [0.8.1](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@0.8.0...@a16njs/engine@0.8.1) (2026-06-13)
+
+
+### Bug Fixes
+
+* **deps:** resolve all open Dependabot security alerts ([#117](https://github.com/Texarkanine/a16n/issues/117)) ([50e754f](https://github.com/Texarkanine/a16n/commit/50e754fc5d122380e9cf6b43ec2a3096a6fcc14a))
+
 ## [0.8.0](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@0.7.0...@a16njs/engine@0.8.0) (2026-04-21)
 
 
