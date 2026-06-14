@@ -35,46 +35,48 @@ This is a pnpm monorepo managed with Turborepo. Packages live under `packages/`:
 
 ## Releases
 
-Releases are automated with [Release-Please](https://github.com/googleapis/release-please) (`release-please-config.json`). It opens a release PR per package; merging that PR tags the release and triggers publishing. The pipeline publishes via `pnpm --filter publish` using npm **OIDC trusted publishing** (no long-lived tokens), and pnpm rewrites each `workspace:*` dependency to the concrete published version at pack time.
+Releases are automated with [Release-Please](https://github.com/googleapis/release-please) (`release-please-config.json`). It opens a release PR per package; merging that PR tags the release and triggers publishing. The pipeline publishes via `pnpm --filter publish` using npm [OIDC trusted publishing](https://docs.npmjs.com/trusted-publishers), and pnpm rewrites each `workspace:*` dependency to the concrete published version at pack time.
 
-Two non-obvious rules govern every release:
+Some non-obvious rules govern every release:
 
 - **A release only happens when a commit touches the package's path.** A `release-as` entry in `release-please-config.json` overrides the *version* when a release is cut, but it does **not** force one. A `release-as` with no path-touching commit is inert.
-- **Source dependencies stay `workspace:*`.** Never hand-pin a sibling version in a package's `package.json`. The concrete version is produced only by pnpm's publish-time rewrite; a hand-pinned version can silently drift from what actually publishes. This is enforced by `packages/cli/test/workspace-publish-invariant.test.ts`.
+- **Source dependencies stay `workspace:*`.** Never hand-pin a sibling version in a package's `package.json`. The concrete version is produced only by pnpm's publish-time rewrite; a hand-pinned version can silently drift from what actually publishes.
+- **`npm publish` breaks it**: A regular `npm publish` will not error, but will not rewrite the `workspace:` protocol, so the published tarball will contain the literal `workspace:*` string, poisoning every consumer that tries to use it. `pnpm publish` is required.
 
-### Adding a publishable package
+### Adding a Publishable Package
 
-Adding a new published `@a16njs/*` package has four traps that have each broken a real release. Do every step, in order.
+Adding a new published `@a16njs/*` package has many pitfalls that can cause a release to fail or worse, release a broken package. Follow these steps exactly:
 
-1. **Set `publishConfig.access` to `"public"`** in the new package's `package.json`. Scoped packages (`@a16njs/*`) default to *restricted*; without this, the very first publish fails. (Caught the first agentsmd publish.)
+1. **Author the package contents.** (as one does)
+	1. **Set `publishConfig.access` to `"public"`** in the new package's `package.json`. Scoped packages (`@a16njs/*`) default to *restricted*; without this, the very first publish fails.
+	2. **Keep internal deps as `workspace:*`**
 
-2. **Keep internal deps as `workspace:*`, and make the FIRST publish a `pnpm publish`.** Reference siblings as `"@a16njs/foo": "workspace:*"`. The first time the package goes to npm it MUST be published through the pnpm path (`pnpm --filter <pkg> publish`, which the release pipeline runs) — **never** a manual `npm publish`. Plain `npm publish` does not understand the `workspace:` protocol and leaks the literal `workspace:*` string into the published tarball, poisoning every consumer that pins it. (This is the manual-recovery mistake that poisoned `agentsmd@1.0.1`/`1.0.2` and dragged `a16n@0.15.2`/`0.15.3` down with it.)
+2. **Manually publish through the pnpm path.** The first time the package goes to npm it MUST be published through the pnpm path, never with regular `npm`:
+	```bash
+	pnpm --filter <pkg> publish
+	```
 
-3. **Cut the release with a real, path-touching conventional commit.** Add the package to `release-please-config.json`, then land a `feat:`/`fix:` commit that *touches a file under the package's path* (a README note is enough). `release-as` alone will not include the package in a release — see the rule above. Remove any `release-as` key once it has served its purpose; a stale forced version silently pins all future releases of that package to it.
+3. **Configure Trusted Publishing on npmjs.com.** The new package must be configured to allow Trusted Publishing so that future releases (automatic through CICD/release-please) can succeed:
 
-4. **Configure a per-package trusted publisher (OIDC) on npmjs.com.** Each package needs its own trusted-publisher entry (repo + workflow) under its npm settings, or the pipeline publish fails with a 404. This is a per-package, one-time setup.
+	| Field | Value |
+	|-------|-------|
+	| Publisher | GitHub Actions |
+	| User | `Texarkanine` (case-sensitive) |
+	| Repository | `a16n` |
+	| Workflow Filename | `release.yaml` |
+	| Environment Name | `npmjs.org` |
 
-#### First-publish OIDC bootstrap
+4. Future `release-please` releases will now succeed :)
 
-A trusted publisher can only be configured for a package that **already exists** on npm, but the package can't be published without a trusted publisher — a chicken-and-egg. Break the cycle with a one-time manual bootstrap **that still goes through pnpm**:
+#### Post-publish Verification
 
-1. Locally, `pnpm --filter <pkg> publish` once (this performs the correct `workspace:` rewrite — do **not** fall back to `npm publish`). Use a granular automation token scoped to that package for this single bootstrap publish.
-2. On npmjs.com, add the GitHub Actions trusted publisher for the now-existing package.
-3. From then on, all releases publish automatically through the pipeline's OIDC; the bootstrap token can be revoked.
-
-#### Post-publish verification
-
-The release pipeline already publishes correctly; because pnpm's `workspace:` rewrite is non-standard, the real safety net is verifying the **published tarball** after the fact — not any in-pipeline guard:
+The release pipeline already publishes correctly; sanity-check that first, manually-published package by running::
 
 ```bash
-# No workspace: specifiers leaked into the published deps:
 npm view <pkg>@<version> dependencies
-
-# Provenance/attestation present (OIDC trusted publishing):
-npm view <pkg>@<version> --json | grep -i provenance
 ```
 
-If `npm view ... dependencies` shows any `workspace:` string, the tarball is poisoned (a manual `npm publish` slipped in) — deprecate that version and republish through the pnpm path.
+If `npm view ... dependencies` shows any `workspace:` string, the tarball is poisoned - `unpublish` that version (or `deprecate` it if you can't) and republish through the pnpm path.
 
 ## Running Tests
 
