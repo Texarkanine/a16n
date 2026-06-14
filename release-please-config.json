@@ -9,8 +9,7 @@
   "packages": {
     "packages/cli": {
       "component": "a16n",
-      "changelog-path": "CHANGELOG.md",
-      "release-as": "1.0.0"
+      "changelog-path": "CHANGELOG.md"
     },
     "packages/engine": {
       "component": "@a16njs/engine",

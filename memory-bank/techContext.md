@@ -26,7 +26,7 @@ TypeScript ESM-only monorepo managed by pnpm workspaces, built with Turborepo, t
 ## CI/CD
 
 - **ci.yaml** — build, typecheck, test with coverage, docs build, Codecov upload (per-package flags) on PRs and pushes to main
-- **release.yaml** — Release-Please automation for semantic versioning; publishes via `pnpm --filter publish` (OIDC trusted publishing). Release-Please only cuts a release for a package when a commit touches that package's path — per-package `release-as` overrides the version *if* a release is cut but does not force inclusion
+- **release.yaml** — Release-Please automation for semantic versioning; publishes via `pnpm --filter publish` (OIDC trusted publishing). Release-Please only cuts a release for a package when a commit touches that package's path — per-package `release-as` overrides the version *if* a release is cut but does not force inclusion. The canonical "add a new publishable package" runbook (traps, first-publish OIDC bootstrap, post-publish verification) lives in `CONTRIBUTING.md`
 - **docs.yaml** — deploy Docusaurus to GitHub Pages
 - **release-lockfile-sync.yaml** — sync pnpm lockfile after releases
 

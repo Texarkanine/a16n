@@ -33,6 +33,51 @@ This is a pnpm monorepo managed with Turborepo. Packages live under `packages/`:
 | `glob-hook` | Standalone utility for Claude Code hooks (not part of the conversion pipeline) |
 | `docs` | Documentation site (Docusaurus) |
 
+## Releases
+
+Releases are automated with [Release-Please](https://github.com/googleapis/release-please) (`release-please-config.json`). It opens a release PR per package; merging that PR tags the release and triggers publishing. The pipeline publishes via `pnpm --filter publish` using npm [OIDC trusted publishing](https://docs.npmjs.com/trusted-publishers), and pnpm rewrites each `workspace:*` dependency to the concrete published version at pack time.
+
+Some non-obvious rules govern every release:
+
+- **A release only happens when a commit touches the package's path.** A `release-as` entry in `release-please-config.json` overrides the *version* when a release is cut, but it does **not** force one. A `release-as` with no path-touching commit is inert.
+- **Source dependencies stay `workspace:*`.** Never hand-pin a sibling version in a package's `package.json`. The concrete version is produced only by pnpm's publish-time rewrite; a hand-pinned version can silently drift from what actually publishes.
+- **`npm publish` breaks it**: A regular `npm publish` will not error, but will not rewrite the `workspace:` protocol, so the published tarball will contain the literal `workspace:*` string, poisoning every consumer that tries to use it. `pnpm publish` is required.
+
+### Adding a Publishable Package
+
+Adding a new published `@a16njs/*` package has many pitfalls that can cause a release to fail or worse, release a broken package. Follow these steps exactly:
+
+1. **Author the package contents.** (as one does)
+	1. **Set `publishConfig.access` to `"public"`** in the new package's `package.json`. Scoped packages (`@a16njs/*`) default to *restricted*; without this, the very first publish fails.
+	2. **Keep internal deps as `workspace:*`**
+
+2. **Manually publish through the pnpm path.** The first time the package goes to npm it MUST be published through the pnpm path, never with regular `npm`:
+	```bash
+	pnpm --filter <pkg> publish
+	```
+
+3. **Configure Trusted Publishing on npmjs.com.** The new package must be configured to allow Trusted Publishing so that future releases (automatic through CICD/release-please) can succeed:
+
+	| Field | Value |
+	|-------|-------|
+	| Publisher | GitHub Actions |
+	| User | `Texarkanine` (case-sensitive) |
+	| Repository | `a16n` |
+	| Workflow Filename | `release.yaml` |
+	| Environment Name | `npmjs.org` |
+
+4. Future `release-please` releases will now succeed :)
+
+#### Post-publish Verification
+
+The release pipeline already publishes correctly; sanity-check that first, manually-published package by running::
+
+```bash
+npm view <pkg>@<version> dependencies
+```
+
+If `npm view ... dependencies` shows any `workspace:` string, the tarball is poisoned - `unpublish` that version (or `deprecate` it if you can't) and republish through the pnpm path.
+
 ## Running Tests
 
 ```bash
