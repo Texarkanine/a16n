@@ -55,7 +55,7 @@
     "@docusaurus/module-type-aliases": "^3.10.1",
     "@docusaurus/types": "^3.10.1",
     "@easyops-cn/docusaurus-search-local": "^0.55.2",
-    "@swc/core": "^1.15.41",
+    "@swc/core": "^1.15.43",
     "@types/node": "^25.9.3",
     "commander": "^15.0.0",
     "tsx": "^4.22.4",
