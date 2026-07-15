@@ -49,3 +49,23 @@ Port the Texarkanine paper/ember docs palette onto a16n's Docusaurus site (light
     - Kept navbar color-mode switch enabled
 * Insights
     - Pre-existing broken-anchor warning on plugin-development page unrelated to theme
+
+## 2026-07-15 - QA - COMPLETE
+
+* Work completed
+    - Semantic review against brief/plan; wrote `.qa-validation-status` PASS
+    - Removed leftover Infima scaffold comments from custom.css
+* Decisions made
+    - No substantive rework; light link color inherits primary (matches slobac light link hex)
+* Insights
+    - Visual OS-preference check remains operator manual QA (localStorage caveat documented in plan)
+
+## 2026-07-15 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `reflection/reflection-texarkanine-docs-theme.md`
+    - Reconciled persistent files (techContext already current; others unchanged)
+* Decisions made
+    - None beyond recording reflection
+* Insights
+    - Missing `colorMode.respectPrefersColorScheme` explains prior "manual only" feel

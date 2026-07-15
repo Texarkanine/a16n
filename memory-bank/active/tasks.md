@@ -77,8 +77,12 @@ No new technology - validation not required (existing Docusaurus `colorMode` + I
 - [x] Technology validation complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA
 
+## QA Findings
+
+- PASS — requirements covered; KISS/YAGNI clean; techContext Design System updated
+- Trivial: removed leftover Infima scaffold comments from `custom.css`
 ## Preflight Findings
 
 - PASS — TDD ordering explicit (step 1 tests before config/CSS); touchpoints limited to `packages/docs` + `techContext.md`; VersionPicker already consumes `--ifm-*` so no separate restyle needed

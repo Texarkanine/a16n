@@ -1,14 +1,11 @@
 # Active Context
 
 ## Current Task: texarkanine-docs-theme
-**Phase:** BUILD - COMPLETE
+**Phase:** REFLECT COMPLETE
 
 ## What Was Done
-- Added `packages/docs/test/docs-theme-tokens.test.ts` (5 contract tests)
-- Set `themeConfig.colorMode.respectPrefersColorScheme: true` in `docusaurus.config.js`
-- Replaced Infima greens with Texarkanine paper/ember tokens in `custom.css`
-- Documented Design System pointer in `memory-bank/techContext.md`
-- Verification: 44/44 docs Vitest tests pass; `docs:build:prose` SUCCESS
+- Reflection written; techContext already reconciled during build (Design System section)
+- productContext / systemPatterns unchanged (no invalidation)
 
 ## Next Step
-- QA semantic review
+- Run `/niko-archive` to archive and clear ephemeral state
