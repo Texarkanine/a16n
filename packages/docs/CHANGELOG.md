@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.3](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.12.2...@a16njs/docs@0.12.3) (2026-07-15)
+
+
+### Bug Fixes
+
+* **docs:** Texarkanine paper/ember theme + system color mode ([#137](https://github.com/Texarkanine/a16n/issues/137)) ([b8221d7](https://github.com/Texarkanine/a16n/commit/b8221d7b879b59fe97e2ab02162de67cc759d12d))
+
 ## [0.12.2](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.12.1...@a16njs/docs@0.12.2) (2026-06-13)
 
 
