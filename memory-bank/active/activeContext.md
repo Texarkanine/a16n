@@ -1,11 +1,14 @@
 # Active Context
 
 ## Current Task: texarkanine-docs-theme
-**Phase:** PREFLIGHT - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Preflight PASS: TDD encoding OK, conventions OK, requirements mapped, no blocking conflicts
-- Advisory noted: skip cross-repo shared token package (out of scope)
+- Added `packages/docs/test/docs-theme-tokens.test.ts` (5 contract tests)
+- Set `themeConfig.colorMode.respectPrefersColorScheme: true` in `docusaurus.config.js`
+- Replaced Infima greens with Texarkanine paper/ember tokens in `custom.css`
+- Documented Design System pointer in `memory-bank/techContext.md`
+- Verification: 44/44 docs Vitest tests pass; `docs:build:prose` SUCCESS
 
 ## Next Step
-- Build phase (TDD implementation)
+- QA semantic review

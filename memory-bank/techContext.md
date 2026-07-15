@@ -30,6 +30,10 @@ TypeScript ESM-only monorepo managed by pnpm workspaces, built with Turborepo, t
 - **docs.yaml** — deploy Docusaurus to GitHub Pages
 - **release-lockfile-sync.yaml** — sync pnpm lockfile after releases
 
+## Design System
+
+- **Docs site chrome:** Texarkanine paper/ember Infima tokens in `packages/docs/src/css/custom.css` (cream light / warm charcoal dark). Color mode follows OS preference via `themeConfig.colorMode.respectPrefersColorScheme` in `packages/docs/docusaurus.config.js`.
+
 ## Notable Technical Decisions
 
 - MDC frontmatter is parsed with regex, not a YAML parser, because Cursor's format is not standards-compliant YAML

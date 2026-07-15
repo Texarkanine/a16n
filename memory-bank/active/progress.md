@@ -36,3 +36,16 @@ Port the Texarkanine paper/ember docs palette onto a16n's Docusaurus site (light
     - No plan amendments required; advisory only on cross-repo token packaging
 * Insights
     - `VersionPicker` already uses Infima vars — theme port propagates without component edits
+
+## 2026-07-15 - BUILD - COMPLETE
+
+* Work completed
+    - Theme contract tests (red → green)
+    - Infima Texarkanine tokens + system colorMode
+    - techContext Design System section
+    - Full docs Vitest (44) + docs:build:prose SUCCESS
+* Decisions made
+    - Infima shade ladder derived from slobac primary light/dark companions
+    - Kept navbar color-mode switch enabled
+* Insights
+    - Pre-existing broken-anchor warning on plugin-development page unrelated to theme

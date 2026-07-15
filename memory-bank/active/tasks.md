@@ -32,29 +32,25 @@ Port the Texarkanine paper/ember palette from [slobac#27](https://github.com/Tex
 
 ## Implementation Plan
 
-1. **Stub + implement theme contract tests (expect fail)**
+1. [x] **Stub + implement theme contract tests (expect fail)**
    - Files: `packages/docs/test/docs-theme-tokens.test.ts`
    - Changes: Read `src/css/custom.css` and `docusaurus.config.js` from package root; assert Texarkanine light/dark hex tokens and `respectPrefersColorScheme: true`; assert absence of Material scheme selectors; run suite and confirm new cases fail against current green Infima defaults / missing `colorMode` block
 
-2. **Enable system-preference color mode**
+2. [x] **Enable system-preference color mode**
    - Files: `packages/docs/docusaurus.config.js`
    - Changes: Add `themeConfig.colorMode` with `respectPrefersColorScheme: true`, `disableSwitch: false`, and a sensible `defaultMode` (unused when prefers-color-scheme is respected — document in comment or leave `'light'` as fallback for unsupported environments)
 
-3. **Apply Texarkanine Infima tokens**
+3. [x] **Apply Texarkanine Infima tokens**
    - Files: `packages/docs/src/css/custom.css`
-   - Changes: Replace green/teal primary ladders with Texarkanine paper/ember tokens mapped from slobac `extra.css`:
-     - Light (`:root`): bg `#f6f0e4`, fg `#1f1a14`, primary `#b45309` + shade ladder (`#92400e` / `#d97706` family), code bg `#ebe4d4`
-     - Dark (`[data-theme='dark']`): bg `#1c1914`, fg `#f0e6d4`, primary `#de8131` + shade ladder, `--ifm-link-color: #fb923c`, code bg `#2a251c`
-     - Set `--ifm-background-color` / `--ifm-background-surface-color` (and font base where needed) so chrome is not cool gray on cream/charcoal
-   - Re-run `docs-theme-tokens` tests until green
+   - Changes: Replace green/teal primary ladders with Texarkanine paper/ember tokens mapped from slobac `extra.css`
 
-4. **Document design-system pointer**
+4. [x] **Document design-system pointer**
    - Files: `memory-bank/techContext.md`
-   - Changes: Add a short **Design System** section pointing at `packages/docs/src/css/custom.css` as the Texarkanine docs token authority (mirror slobac techContext pattern; no session-specific content)
+   - Changes: Add a short **Design System** section pointing at `packages/docs/src/css/custom.css` as the Texarkanine docs token authority
 
-5. **Verify package suite + docs build path**
+5. [x] **Verify package suite + docs build path**
    - Files: none (verification)
-   - Changes: Run `packages/docs` Vitest suite; run docs build command used in CI / `docs:build:prose` or equivalent scoped build to confirm theme CSS does not break the site build
+   - Changes: Run `packages/docs` Vitest suite; run `docs:build:prose` — 44 tests pass; build SUCCESS
 
 ## Technology Validation
 
@@ -80,7 +76,7 @@ No new technology - validation not required (existing Docusaurus `colorMode` + I
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Preflight
-- [ ] Build
+- [x] Build
 - [ ] QA
 
 ## Preflight Findings
