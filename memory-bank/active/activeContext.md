@@ -1,12 +1,11 @@
 # Active Context
 
 ## Current Task: texarkanine-docs-theme
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE
 
 ## What Was Done
-- Level 2 plan written: TDD contract tests for CSS tokens + `respectPrefersColorScheme`, then Infima token port + config + techContext Design System pointer
-- Token source locked to Texarkanine palette from slobac#27; Material selectors explicitly out of scope
-- Color mode: enable `respectPrefersColorScheme: true`, keep navbar switch
+- Preflight PASS: TDD encoding OK, conventions OK, requirements mapped, no blocking conflicts
+- Advisory noted: skip cross-repo shared token package (out of scope)
 
 ## Next Step
-- Preflight validation (automated for L2)
+- Build phase (TDD implementation)

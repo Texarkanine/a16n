@@ -26,3 +26,13 @@ Port the Texarkanine paper/ember docs palette onto a16n's Docusaurus site (light
     - Prism/social-card/logo polish remains out of scope
 * Insights
     - No new dependencies; Infima + existing `colorMode` API suffice
+
+## 2026-07-15 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated plan against docs package conventions and Infima/`colorMode` APIs
+    - Wrote `.preflight-status` PASS
+* Decisions made
+    - No plan amendments required; advisory only on cross-repo token packaging
+* Insights
+    - `VersionPicker` already uses Infima vars — theme port propagates without component edits

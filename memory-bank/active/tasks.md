@@ -79,6 +79,11 @@ No new technology - validation not required (existing Docusaurus `colorMode` + I
 - [x] Test planning complete (TDD)
 - [x] Implementation plan complete
 - [x] Technology validation complete
-- [ ] Preflight
+- [x] Preflight
 - [ ] Build
 - [ ] QA
+
+## Preflight Findings
+
+- PASS — TDD ordering explicit (step 1 tests before config/CSS); touchpoints limited to `packages/docs` + `techContext.md`; VersionPicker already consumes `--ifm-*` so no separate restyle needed
+- Advisory: do not share a cross-repo token package with slobac in this task (out of brief / would raise complexity); keep a16n CSS as the local authority with techContext pointer
