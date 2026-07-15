@@ -1,11 +1,12 @@
 # Active Context
 
 ## Current Task: texarkanine-docs-theme
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Intent confirmed: port Texarkanine paper/ember colors to a16n Docusaurus; light + dark; system preference for color mode (not manual-only default)
-- Complexity determined: Level 2 (self-contained docs enhancement: Infima CSS + `colorMode` config)
+- Level 2 plan written: TDD contract tests for CSS tokens + `respectPrefersColorScheme`, then Infima token port + config + techContext Design System pointer
+- Token source locked to Texarkanine palette from slobac#27; Material selectors explicitly out of scope
+- Color mode: enable `respectPrefersColorScheme: true`, keep navbar switch
 
 ## Next Step
-- Load Level 2 workflow and execute plan phase
+- Preflight validation (automated for L2)

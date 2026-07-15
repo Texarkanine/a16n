@@ -14,3 +14,15 @@ Port the Texarkanine paper/ember docs palette onto a16n's Docusaurus site (light
     - Include `colorMode.respectPrefersColorScheme: true` in scope (fixes manual-only default)
 * Insights
     - Docusaurus defaults leave `respectPrefersColorScheme: false`; a16n config currently has no `colorMode` block
+
+## 2026-07-15 - PLAN - COMPLETE
+
+* Work completed
+    - Wrote Level 2 implementation plan with TDD theme-token contract tests
+    - Scoped files: `custom.css`, `docusaurus.config.js`, `docs-theme-tokens.test.ts`, `techContext.md` Design System pointer
+* Decisions made
+    - Contract-test CSS/config rather than visual snapshot tests (matches slobac theme-token approach; fits existing Vitest docs suite)
+    - Keep mode switch; system preference is the default path, not the only path
+    - Prism/social-card/logo polish remains out of scope
+* Insights
+    - No new dependencies; Infima + existing `colorMode` API suffice
