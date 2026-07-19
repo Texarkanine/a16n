@@ -1,12 +1,12 @@
 # Active Context
 
 ## Current Task: docs-llms-and-api-retention
-**Phase:** QA - COMPLETE (PASS)
+**Phase:** REFLECT - COMPLETE
 
 ## What Was Done
-- Semantic QA against plan + creative decisions
-- Trivial: fixed stale `hasMarkdown` JSDoc; tasks.md config path → `.ts`
-- `.qa-validation-status` = PASS
+- Wrote `memory-bank/active/reflection/reflection-docs-llms-and-api-retention.md`
+- Reconciled `techContext.md` (Docusaurus LLM plugin + retention + TS5101 note)
+- productContext / systemPatterns unchanged
 
 ## Next Step
-- Proceed to `/niko-reflect` (L3 autonomous)
+- Operator runs `/niko-archive` to archive and finalize

@@ -78,3 +78,13 @@ Add `docusaurus-plugin-llms` with prose/API-aware LLM artifact generation, resto
     - PASS — no substantive gaps; retention/LLM/TypeDoc/README all match plan
 * Insights
     - Prose vs API gating is entirely emergent from empty `.generated` scan — no special-case entrypoint wiring needed
+
+## 2026-07-19 - REFLECT - COMPLETE
+
+* Work completed
+    - Full lifecycle reflection written
+    - Persistent reconcile: `techContext.md` updated for LLM plugin / retention / TS5101
+* Decisions made
+    - Archive left for operator `/niko-archive` (L3 terminal after reflect)
+* Insights
+    - See reflection doc — `.generated` scan gating; TS6 `baseUrl` / TS5101
