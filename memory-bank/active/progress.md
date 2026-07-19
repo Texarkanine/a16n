@@ -88,3 +88,13 @@ Add `docusaurus-plugin-llms` with prose/API-aware LLM artifact generation, resto
     - Archive left for operator `/niko-archive` (L3 terminal after reflect)
 * Insights
     - See reflection doc — `.generated` scan gating; TS6 `baseUrl` / TS5101
+
+## 2026-07-19 - CREATIVE - COMPLETE (llms.txt local serving)
+
+* Work completed
+    - Standalone creative on Q3: `/llms.txt` 404 under `docusaurus start` (plugin postBuild-only)
+    - Documented in `creative-llms-dev-server-availability.md`
+* Decisions made
+    - Pre-start generate into `static/` using plugin generators; clear LLM static artifacts on sync; keep postBuild for deploy
+* Insights
+    - SPA HTML 200 for missing `/llms.txt` made the feature look absent; build-only verification was insufficient for operator localhost checks

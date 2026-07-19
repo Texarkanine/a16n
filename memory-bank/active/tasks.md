@@ -70,6 +70,7 @@ flowchart TD
 
 - [x] Q1: Root index/full asymmetry → Resolved: `generateLLMsFullTxt: false` + prose-only custom `llms-full.txt` (`creative-root-llms-asymmetry.md`)
 - [x] Q2: Per-API-version LLM emission → Resolved: dynamic `customLLMFiles` from `.generated` scan with nested filenames (`creative-per-api-version-llms.md`)
+- [x] Q3: llms.txt on `docusaurus start` → Resolved: pre-start generate into `static/` via plugin generators; clear on sync; postBuild remains production (`creative-llms-dev-server-availability.md`)
 
 ## Test Plan (TDD)
 
