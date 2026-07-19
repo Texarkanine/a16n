@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.12.3...@a16njs/docs@0.13.0) (2026-07-19)
+
+
+### Features
+
+* **docs:** llms.txt indexes, API retention, and local LLM serving ([#139](https://github.com/Texarkanine/a16n/issues/139)) ([f7978e1](https://github.com/Texarkanine/a16n/commit/f7978e1267a745664bcdf8c0c67627f55aa1d8db))
+
 ## [0.12.3](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.12.2...@a16njs/docs@0.12.3) (2026-07-15)
 
 
