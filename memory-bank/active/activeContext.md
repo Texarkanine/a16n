@@ -1,12 +1,13 @@
 # Active Context
 
 ## Current Task: docs-llms-and-api-retention
-**Phase:** CREATIVE - COMPLETE (Q3 llms.txt local serving)
+**Phase:** BUILD - COMPLETE (Q3 llms.txt local serving)
 
 ## What Was Done
-- Creative Q3: `docusaurus-plugin-llms` is postBuild-only → `/llms.txt` absent on `docs:dev:*`
-- Decision: pre-start generate into `static/` via plugin generators; clear on sync; postBuild stays production authority
-- Doc: `memory-bank/active/creative/creative-llms-dev-server-availability.md`
+- `scripts/llms-static.ts`: clear + generate into `static/` via plugin generators
+- `docs:site:start` runs `docs:llms:static` first; sync clears LLM static artifacts
+- Gitignore + README; 56 docs unit tests pass
+- Live check: `/a16n/llms.txt` returns `text/plain` (not SPA HTML)
 
 ## Next Step
-- Implement Q3 (TDD) when operator wants — or `/niko-archive` if deferring
+- Operator hard-refresh `/a16n/llms.txt`; then `/niko-archive` when ready

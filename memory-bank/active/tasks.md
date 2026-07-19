@@ -134,6 +134,11 @@ flowchart TD
     - `docs:build:prose` — root llms present; no per-version API `llms*.txt` under `build/`
     - Smoke versioned TypeDoc for one engine tag after config fix — OK (ignoreDeprecations)
     - `docs:build:current` — API pages + nested LLM files (6 pkg + CLI current)
+
+7. **llms.txt on docusaurus start (Q3)** ✅ — creative-llms-dev-server-availability.md
+    - TDD: `clearStaticLlmsArtifacts` + `generateLlmsIntoStatic` in `scripts/llms-static.ts`
+    - Wire `docs:site:start` → generate then `docusaurus start`; extend sync clear; gitignore; README
+    - Verified: `http://localhost:3000/a16n/llms.txt` → `text/plain` llmstxt body
 ## Technology Validation
 
 - **New dependency:** `docusaurus-plugin-llms@0.5.0` added via `pnpm add` in `packages/docs` — install succeeded.

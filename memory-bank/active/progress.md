@@ -98,3 +98,13 @@ Add `docusaurus-plugin-llms` with prose/API-aware LLM artifact generation, resto
     - Pre-start generate into `static/` using plugin generators; clear LLM static artifacts on sync; keep postBuild for deploy
 * Insights
     - SPA HTML 200 for missing `/llms.txt` made the feature look absent; build-only verification was insufficient for operator localhost checks
+
+## 2026-07-19 - BUILD - COMPLETE (Q3)
+
+* Work completed
+    - Implemented `llms-static.ts` + `docs:llms:static`; wired into `docs:site:start` and sync clear
+    - Verified localhost `/a16n/llms.txt` serves text/plain llmstxt
+* Decisions made
+    - Built to creative Q3 (plugin generators → static/; postBuild unchanged for deploy)
+* Insights
+    - Existing `docusaurus start` picks up new `static/llms.txt` without restart once generated

@@ -87,6 +87,8 @@ Site builds emit [llmstxt.org](https://llmstxt.org/)-style files via [`docusauru
 | `/<pkg>/api/<ver>/llms.txt` (+ `llms-full.txt`) | Per retained API version — only when that tree exists under `.generated/` |
 | Per-page `*.md` | Markdown mirrors of docs pages (`generateMarkdownFiles: true`) |
 
+`docusaurus-plugin-llms` only runs in production `postBuild`, so deploy artifacts land under `build/`. For local `docs:dev:*` / `docs:site:start`, `docs:llms:static` runs first and writes the same generators' output into `static/` (gitignored). `docs:sync` clears those static LLM files alongside `versions.json` so prose regenerations cannot leave a stale `/llms.txt`.
+
 `docs:…:prose` never runs TypeDoc, so per-version API LLM files are absent on prose-only builds. API-generating entrypoints (`docs:…:current`, `docs:build:all`) populate `.generated` first; config-time discovery then registers nested LLM files for whatever versions are present.
 
 ## Versioned API retention
