@@ -51,9 +51,7 @@ function listSubdirs(dir: string): string[] {
 }
 
 /**
- * Whether a directory contains at least one `.md` file (non-recursive check of
- * immediate children plus one level of nesting is enough for TypeDoc trees;
- * we use a shallow walk of the version root).
+ * Whether a directory tree contains at least one `.md` file.
  * @param dir - Absolute directory path
  */
 function hasMarkdown(dir: string): boolean {

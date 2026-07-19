@@ -41,7 +41,7 @@ flowchart TD
 
 - **`packages/docs/scripts/generate-versioned-api.ts`**: Discovers tags, runs TypeDoc per version, writes `versions.json` → add `selectVersionsForRetention()`, filter before generate; default `PREVIOUS_MAJORS = 2`.
 - **`packages/docs/typedoc.versioned.json`**: Versioned TypeDoc compiler options → fix TS5101 (`ignoreDeprecations: "6.0"` and/or migrate off deprecated `baseUrl`).
-- **`packages/docs/docusaurus.config.js`**: Site plugins → wire `docusaurus-plugin-llms` with Q1/Q2 decisions; `docsDir: '.generated'`.
+- **`packages/docs/docusaurus.config.ts`**: Site plugins → wire `docusaurus-plugin-llms` with Q1/Q2 decisions; `docsDir: '.generated'`.
 - **`packages/docs/scripts/llms-plugin-options.ts`** (new): Pure helpers — `discoverApiLlmCustomFiles(generatedRoot)` and `buildLlmsPluginOptions(generatedRoot)` — importable by config + Vitest (coverage already includes `scripts/**/*.ts`).
 - **`packages/docs/package.json` / lockfile**: Add `docusaurus-plugin-llms` (validated: 0.5.0 installed).
 - **`packages/docs/README.md`**: Document LLM outputs + retention behavior briefly.
@@ -162,4 +162,4 @@ flowchart TD
 - [x] Technology validation complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA

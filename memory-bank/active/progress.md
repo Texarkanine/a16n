@@ -67,3 +67,14 @@ Add `docusaurus-plugin-llms` with prose/API-aware LLM artifact generation, resto
     - Built to creative Q1/Q2 (custom prose-only `llms-full.txt`; dynamic `customLLMFiles` from `.generated` scan)
 * Insights
     - Current build registered 15 custom LLM files (1 root full + 7 version trees × 2)
+
+## 2026-07-19 - QA - COMPLETE
+
+* Work completed
+    - Semantic review against plan + creative Q1/Q2; acceptance criteria verified via build evidence
+    - Trivial fix: corrected stale `hasMarkdown` JSDoc; aligned tasks.md component path to `.ts`
+    - Wrote `.qa-validation-status` = PASS
+* Decisions made
+    - PASS — no substantive gaps; retention/LLM/TypeDoc/README all match plan
+* Insights
+    - Prose vs API gating is entirely emergent from empty `.generated` scan — no special-case entrypoint wiring needed
