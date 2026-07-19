@@ -35,3 +35,14 @@ Add `docusaurus-plugin-llms` with prose/API-aware LLM artifact generation, resto
     - Prefer plugin-native configuration over post-processors or `static/` sinks
 * Insights
     - Plugin `writeFile` mkdir -p enables nested `engine/api/<ver>/llms.txt` paths
+
+## 2026-07-19 - PLAN - COMPLETE
+
+* Work completed
+    - Full L3 plan in `tasks.md` (retention → TypeDoc fix → discovery helper → plugin wire → README → verify)
+    - Tech validation: `docusaurus-plugin-llms@0.5.0` installed successfully
+* Decisions made
+    - Default `PREVIOUS_MAJORS = 2`; apply per package before TypeDoc runs
+    - Keep task commits scoped to docs + memory-bank (unrelated staged package WIP left alone)
+* Insights
+    - How the TypeDoc error sneaked in: TypeScript 6 made deprecated `baseUrl` a hard error in the versioned TypeDoc config while current TypeDoc (no `baseUrl`) kept working

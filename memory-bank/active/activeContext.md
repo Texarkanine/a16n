@@ -1,11 +1,12 @@
 # Active Context
 
 ## Current Task: docs-llms-and-api-retention
-**Phase:** CREATIVE - IN-PROGRESS (Q1: root LLM asymmetry)
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Plan research: TypeDoc break = TS6 + `baseUrl` in `typedoc.versioned.json`
-- Flagged open questions Q1 (root index/full asymmetry) and Q2 (per-API-version LLM files)
+- Creative Q1/Q2 resolved (plugin-native root asymmetry + dynamic per-version customLLMFiles)
+- TypeDoc break diagnosed: TS6 + `baseUrl` in `typedoc.versioned.json` → TS5101
+- Plan written with TDD steps; `docusaurus-plugin-llms@0.5.0` installed
 
 ## Next Step
-- Resolve Q1 via architecture creative, then Q2, then finish PLAN
+- Preflight phase to validate the plan
