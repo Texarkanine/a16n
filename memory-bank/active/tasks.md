@@ -42,7 +42,7 @@ flowchart TD
 - **`packages/docs/scripts/generate-versioned-api.ts`**: Discovers tags, runs TypeDoc per version, writes `versions.json` → add `selectVersionsForRetention()`, filter before generate; default `PREVIOUS_MAJORS = 2`.
 - **`packages/docs/typedoc.versioned.json`**: Versioned TypeDoc compiler options → fix TS5101 (`ignoreDeprecations: "6.0"` and/or migrate off deprecated `baseUrl`).
 - **`packages/docs/docusaurus.config.js`**: Site plugins → wire `docusaurus-plugin-llms` with Q1/Q2 decisions; `docsDir: '.generated'`.
-- **New helper (e.g. `packages/docs/src/llms/discover-api-llm-files.ts` or under `scripts/`)**: Scan `.generated` → `customLLMFiles` entries for per-version LLM outputs.
+- **`packages/docs/scripts/llms-plugin-options.ts`** (new): Pure helpers — `discoverApiLlmCustomFiles(generatedRoot)` and `buildLlmsPluginOptions(generatedRoot)` — importable by config + Vitest (coverage already includes `scripts/**/*.ts`).
 - **`packages/docs/package.json` / lockfile**: Add `docusaurus-plugin-llms` (validated: 0.5.0 installed).
 - **`packages/docs/README.md`**: Document LLM outputs + retention behavior briefly.
 - **Tests**: Extend `generate-versioned-api.test.ts`; add discovery helper tests.
@@ -90,7 +90,7 @@ flowchart TD
 - Framework: Vitest (`packages/docs/vitest.config.ts`)
 - Test location: `packages/docs/test/`
 - Conventions: unit tests for pure helpers; no git/TypeDoc in unit tests (existing pattern in `generate-versioned-api.test.ts`)
-- New test files: `packages/docs/test/discover-api-llm-files.test.ts` (name to match helper module)
+- New test files: `packages/docs/test/llms-plugin-options.test.ts`
 - Extend: `packages/docs/test/generate-versioned-api.test.ts` for retention
 
 ### Integration Tests
@@ -100,24 +100,29 @@ flowchart TD
 ## Implementation Plan
 
 1. **Retention helper (TDD)**
-    - Files: `packages/docs/scripts/generate-versioned-api.ts`, `packages/docs/test/generate-versioned-api.test.ts`
-    - Changes: export `selectVersionsForRetention(versions, previousMajors = 2)`; filter `pkgTags` in `main()` before generate; dry-run shows filtered set; `versions.json` only retained successes
+    - Write failing tests in `packages/docs/test/generate-versioned-api.test.ts` for `selectVersionsForRetention` (behaviors above)
+    - Implement/export `selectVersionsForRetention(versions, previousMajors = 2)` in `packages/docs/scripts/generate-versioned-api.ts`
+    - Wire filter into `main()` before generate; dry-run shows filtered set; `versions.json` only retained successes
     - Creative ref: n/a
 
-2. **TypeDoc versioned config fix (TDD/smoke)**
+2. **TypeDoc versioned config fix**
     - Files: `packages/docs/typedoc.versioned.json`
-    - Changes: add `"ignoreDeprecations": "6.0"` under `compilerOptions` (minimal fix for TS5101); confirm one historical tag generates successfully
+    - Changes: add `"ignoreDeprecations": "6.0"` under `compilerOptions` (minimal fix for TS5101)
+    - Verify in step 6 smoke (config-only change; not a pure-function TDD unit)
     - Note: root cause was TypeScript 6 treating deprecated `baseUrl` as error — sneaked in via TS bump while versioned config still used `baseUrl`
 
-3. **API LLM discovery helper (TDD)**
-    - Files: new module under `packages/docs/` (prefer importable from config + tests), `packages/docs/test/discover-api-llm-files.test.ts`
-    - Changes: scan generated root → customLLMFiles array (nested filenames, index + full pairs)
-    - Creative ref: `creative-per-api-version-llms.md`
+3. **LLM plugin options helpers (TDD)**
+    - Write failing tests in `packages/docs/test/llms-plugin-options.test.ts` for:
+      - `discoverApiLlmCustomFiles`: empty root → `[]`; version dirs → nested `llms.txt` + `llms-full.txt` entries; `current` + CLI `reference/<ver>`
+      - `buildLlmsPluginOptions`: `generateMarkdownFiles: true`, `generateLLMsFullTxt: false`, prose-only custom `llms-full.txt` ignorePatterns, merges discovery results into `customLLMFiles`, `docsDir: '.generated'`
+    - Implement `packages/docs/scripts/llms-plugin-options.ts`
+    - Creative ref: `creative-per-api-version-llms.md`, `creative-root-llms-asymmetry.md`
 
-4. **Wire `docusaurus-plugin-llms`**
-    - Files: `packages/docs/docusaurus.config.js`, `packages/docs/package.json` (already has dep 0.5.0)
-    - Changes: plugin options per Q1 (`generateMarkdownFiles: true`, `generateLLMsFullTxt: false`, prose-only custom `llms-full.txt` ignorePatterns) + spread discovery helper results into `customLLMFiles`; `docsDir: '.generated'`; `excludeImports: true` recommended
-    - Creative ref: `creative-root-llms-asymmetry.md`, `creative-per-api-version-llms.md`
+4. **Wire helpers into Docusaurus config**
+    - Prefer renaming `docusaurus.config.js` → `docusaurus.config.ts` (supported by Docusaurus 3) so config can `import { buildLlmsPluginOptions } from './scripts/llms-plugin-options'`
+    - Call `buildLlmsPluginOptions(path to .generated)` and register `['docusaurus-plugin-llms', options]`
+    - No new behavior beyond what step 3 already tested — wiring only
+    - Creative ref: same as step 3
 
 5. **Docs README**
     - Files: `packages/docs/README.md`
@@ -125,10 +130,9 @@ flowchart TD
 
 6. **Verification**
     - Run docs unit tests
-    - `docs:build:prose` — root llms present; no `build/**/api/**/llms.txt` from version trees
+    - `docs:build:prose` — root llms present; no per-version API `llms*.txt` under `build/`
     - Smoke versioned TypeDoc for one engine tag after config fix
     - `docs:build:current` (or gen current + site build) — API pages + nested LLM files
-
 ## Technology Validation
 
 - **New dependency:** `docusaurus-plugin-llms@0.5.0` added via `pnpm add` in `packages/docs` — install succeeded.
@@ -142,6 +146,13 @@ flowchart TD
 - **TypeDoc may have further historical failures after TS5101 fix:** Retention reduces volume; fix deprecation first; if specific old tags still fail, warn-and-skip remains (existing behavior) but should not wipe all versions.
 - **Lockfile / unrelated staged WIP on branch:** Keep this task's commits scoped to docs + memory-bank; do not bundle unrelated package source edits.
 
+## Preflight Amendments
+
+- Helpers live under `scripts/` (matches Vitest coverage `scripts/**/*.ts` and existing test import style).
+- Extracted `buildLlmsPluginOptions` so plugin shape is unit-tested before config wiring (TDD encoding).
+- Config import path: rename to `docusaurus.config.ts` rather than inventing a parallel `.js` helper.
+- Step 2 (TypeDoc JSON) explicitly verified by smoke in step 6 — not a fake unit test.
+
 ## Status
 
 - [x] Component analysis complete
@@ -149,6 +160,6 @@ flowchart TD
 - [x] Test planning complete (TDD)
 - [x] Implementation plan complete
 - [x] Technology validation complete
-- [ ] Preflight
+- [x] Preflight
 - [ ] Build
 - [ ] QA

@@ -1,12 +1,11 @@
 # Active Context
 
 ## Current Task: docs-llms-and-api-retention
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE (PASS)
 
 ## What Was Done
-- Creative Q1/Q2 resolved (plugin-native root asymmetry + dynamic per-version customLLMFiles)
-- TypeDoc break diagnosed: TS6 + `baseUrl` in `typedoc.versioned.json` → TS5101
-- Plan written with TDD steps; `docusaurus-plugin-llms@0.5.0` installed
+- Preflight PASS with plan amendments (TDD encoding for plugin options; helpers under `scripts/`; config → `.ts`)
+- `.preflight-status` = PASS
 
 ## Next Step
-- Preflight phase to validate the plan
+- Operator runs `/niko-build` to start implementation

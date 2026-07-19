@@ -46,3 +46,14 @@ Add `docusaurus-plugin-llms` with prose/API-aware LLM artifact generation, resto
     - Keep task commits scoped to docs + memory-bank (unrelated staged package WIP left alone)
 * Insights
     - How the TypeDoc error sneaked in: TypeScript 6 made deprecated `baseUrl` a hard error in the versioned TypeDoc config while current TypeDoc (no `baseUrl`) kept working
+
+## 2026-07-19 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated plan against docs package conventions, TDD encoding, creative decisions
+    - Amended plan: `scripts/llms-plugin-options.ts` + `buildLlmsPluginOptions` TDD; `docusaurus.config.ts` for imports
+    - Wrote `.preflight-status` = PASS
+* Decisions made
+    - PASS with advisories (see preflight report) — build gated on operator `/niko-build`
+* Insights
+    - Vitest coverage only includes `scripts/**/*.ts` — helpers must not land under `src/`
