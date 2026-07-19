@@ -168,4 +168,4 @@ flowchart TD
 - [x] Technology validation complete
 - [x] Preflight
 - [x] Build
-- [x] QA
+- [x] QA (initial + rework Q3/VersionPicker — PASS)

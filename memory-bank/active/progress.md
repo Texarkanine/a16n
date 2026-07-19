@@ -108,3 +108,23 @@ Add `docusaurus-plugin-llms` with prose/API-aware LLM artifact generation, resto
     - Built to creative Q3 (plugin generators → static/; postBuild unchanged for deploy)
 * Insights
     - Existing `docusaurus start` picks up new `static/llms.txt` without restart once generated
+
+## 2026-07-19 - QA - COMPLETE (rework)
+
+* Work completed
+    - Semantic review of Q3 + versions.json sync-clear against creative and brief
+    - Trivial: renamed `clear-versions-manifest.ts` → `clear-static-generated.ts`; techContext LLM static note
+    - `.qa-validation-status` = PASS
+* Decisions made
+    - PASS — rework complete; no substantive gaps
+* Insights
+    - Script name must track dual clear responsibility (versions + LLM static)
+
+## 2026-07-19 - REFLECT - COMPLETE (rework)
+
+* Work completed
+    - Updated `reflection-docs-llms-and-api-retention.md` for post-reflect rework (Q3, VersionPicker)
+* Decisions made
+    - Archive deferred to operator; draft PR to follow
+* Insights
+    - Verify public docs URLs on `docs:dev:*`, not only `docs:build:*`

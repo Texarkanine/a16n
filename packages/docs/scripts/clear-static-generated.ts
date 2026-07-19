@@ -3,7 +3,7 @@
  * - versions.json (VersionPicker)
  * - LLM preview artifacts (llms*.txt and generated .md mirrors)
  *
- * Usage: npx tsx scripts/clear-versions-manifest.ts
+ * Usage: npx tsx scripts/clear-static-generated.ts
  */
 
 import { dirname, join } from 'node:path';
