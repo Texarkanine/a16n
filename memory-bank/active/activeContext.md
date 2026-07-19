@@ -1,11 +1,11 @@
 # Active Context
 
 ## Current Task: docs-llms-and-api-retention
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** CREATIVE - IN-PROGRESS (Q1: root LLM asymmetry)
 
 ## What Was Done
-- Confirmed intent with operator (llms plugin + API fix + retention filter + prose/API gating)
-- Classified as Level 3: multi-component docs feature (TypeDoc pipeline, retention policy, docusaurus-plugin-llms integration) with design choices, scoped to `packages/docs`
+- Plan research: TypeDoc break = TS6 + `baseUrl` in `typedoc.versioned.json`
+- Flagged open questions Q1 (root index/full asymmetry) and Q2 (per-API-version LLM files)
 
 ## Next Step
-- Load Level 3 workflow and begin PLAN phase
+- Resolve Q1 via architecture creative, then Q2, then finish PLAN
