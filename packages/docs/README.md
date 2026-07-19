@@ -11,6 +11,7 @@ Docusaurus-based documentation site for the [a16n](https://github.com/Texarkanin
 | Goal | Command |
 | --- | --- |
 | **Rebuild prose and launch the server** - I edited markdown (no API docs) | `docs:dev:prose` |
+| **Browse API references locally** - need TypeDoc trees + VersionPicker | `docs:dev:api` (current) or `docs:gen:versioned` then `docs:dev:only` |
 | **Rebuild everything from scratch**, slow, same as the deploy pipeline | `docs:build:all` |
 | **Just launch the server** - `.generated/` is already current, I want to browse it | `docs:dev:only` |
 | **Regenerate content from markdown**, no server | `docs:gen:prose` |
@@ -74,5 +75,26 @@ The suffix on every entrypoint picks *how much* to (re)generate - always in the 
 - `build/` - Docusaurus production output (gitignored)
 - `scripts/` - API and changelog generation scripts
 - `src/components/` - custom React components (`VersionPicker`, etc.)
+
+## LLM artifacts
+
+Site builds emit [llmstxt.org](https://llmstxt.org/)-style files via [`docusaurus-plugin-llms`](https://github.com/rachfop/docusaurus-plugin-llms):
+
+| Artifact | Contents |
+| --- | --- |
+| `/llms.txt` | Index links for prose **and** any generated API/reference pages present in `.generated/` |
+| `/llms-full.txt` | Inlined **prose only** (versioned/current API trees and CLI `reference/` excluded) |
+| `/<pkg>/api/<ver>/llms.txt` (+ `llms-full.txt`) | Per retained API version — only when that tree exists under `.generated/` |
+| Per-page `*.md` | Markdown mirrors of docs pages (`generateMarkdownFiles: true`) |
+
+`docusaurus-plugin-llms` only runs in production `postBuild`, so deploy artifacts land under `build/`. For local `docs:dev:*` / `docs:site:start`, `docs:llms:static` runs first and writes the same generators' output into `static/` (gitignored). `docs:sync` clears those static LLM files alongside `versions.json` so prose regenerations cannot leave a stale `/llms.txt`.
+
+`docs:…:prose` never runs TypeDoc, so per-version API LLM files are absent on prose-only builds. API-generating entrypoints (`docs:…:current`, `docs:build:all`) populate `.generated` first; config-time discovery then registers nested LLM files for whatever versions are present.
+
+## Versioned API retention
+
+`docs:gen:api:versioned` keeps, per package: **all versions in the current major**, plus the **newest version of each of the previous N majors** (default `N=2`). Older majors are skipped so historical TypeDoc stays feasible. The VersionPicker / `versions.json` list only successfully generated retained versions.
+
+`docs:sync` (used by every `docs:gen:*` entrypoint) clears `static/versions.json`. That prevents a stale VersionPicker dropdown after prose-only regenerations, which wipe `.generated/*/api/` trees but previously left the manifest behind. Re-run `docs:gen:api:versioned` (or `docs:gen:versioned`) to repopulate both the trees and the picker.
 
 For detailed development instructions, see the [a16n Documentation](https://texarkanine.github.io/a16n/).

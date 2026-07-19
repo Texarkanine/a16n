@@ -47,6 +47,15 @@ jobs:
       - name: Verify docs build (current API)
         run: pnpm --filter docs run docs:build:current
 
+      # postBuild succeeds silently even when LLM indexes are missing/empty; assert
+      # the production artifacts so broken plugin wiring fails CI before release.
+      - name: Verify docs LLM indexes
+        run: |
+          set -euo pipefail
+          test -s packages/docs/build/llms.txt
+          test -s packages/docs/build/llms-full.txt
+          grep -qE '^# ' packages/docs/build/llms.txt
+
       - name: Upload CLI coverage
         uses: codecov/codecov-action@v7
         with:

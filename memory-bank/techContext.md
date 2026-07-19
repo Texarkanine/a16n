@@ -14,7 +14,7 @@ TypeScript ESM-only monorepo managed by pnpm workspaces, built with Turborepo, t
 - **pnpm** — workspace dependency management (`pnpm-workspace.yaml` includes `packages/*`)
 - **Turborepo** — build orchestration and caching (`turbo.json`); `test` depends on `build`
 - **TypeScript** — strict mode, composite projects for monorepo references
-- **Docusaurus** — documentation site in `packages/docs/`; excluded from default `pnpm build` (use `pnpm build:full` to include)
+- **Docusaurus** — documentation site in `packages/docs/` (`docusaurus.config.ts`); excluded from default `pnpm build` (use `pnpm build:full` to include). LLM indexes via `docusaurus-plugin-llms` (options from `scripts/llms-plugin-options.ts`); local `docs:dev:*` also runs `docs:llms:static` because the plugin is postBuild-only. Versioned API gen applies per-package major retention in `scripts/generate-versioned-api.ts`; versioned TypeDoc config sets `ignoreDeprecations: "6.0"` because it still uses deprecated `baseUrl` under TypeScript 6.
 
 ## Testing Process
 
@@ -32,7 +32,8 @@ TypeScript ESM-only monorepo managed by pnpm workspaces, built with Turborepo, t
 
 ## Design System
 
-- **Docs site chrome:** Texarkanine paper/ember Infima tokens in `packages/docs/src/css/custom.css` (cream light / warm charcoal dark). Color mode follows OS preference via `themeConfig.colorMode.respectPrefersColorScheme` in `packages/docs/docusaurus.config.js`.
+- **Docs site chrome:** Texarkanine paper/ember Infima tokens in `packages/docs/src/css/custom.css` (cream light / warm charcoal dark). Color mode follows OS preference via `themeConfig.colorMode.respectPrefersColorScheme` in `packages/docs/docusaurus.config.ts`.
+
 
 ## Notable Technical Decisions
 

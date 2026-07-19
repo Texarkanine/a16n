@@ -39,3 +39,9 @@ packages/docs/build/
 packages/docs/.docusaurus/
 packages/docs/.generated/
 packages/docs/static/versions.json
+packages/docs/static/llms.txt
+packages/docs/static/llms-full.txt
+packages/docs/static/**/llms.txt
+packages/docs/static/**/llms-full.txt
+# Per-page .md mirrors from docs:llms:static (img/ is the only committed static content)
+packages/docs/static/**/*.md
