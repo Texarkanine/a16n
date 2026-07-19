@@ -48,6 +48,14 @@ jobs:
       - name: Build documentation site
         run: pnpm --filter docs run docs:build:all
 
+      # Fail deploy if docusaurus-plugin-llms did not emit production indexes.
+      - name: Verify docs LLM indexes
+        run: |
+          set -euo pipefail
+          test -s packages/docs/build/llms.txt
+          test -s packages/docs/build/llms-full.txt
+          grep -qE '^# ' packages/docs/build/llms.txt
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
