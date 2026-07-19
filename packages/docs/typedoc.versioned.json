@@ -15,6 +15,7 @@
     "Variable"
   ],
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "baseUrl": "../..",
     "rootDir": "../..",
     "paths": {

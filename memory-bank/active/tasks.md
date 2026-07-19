@@ -105,13 +105,13 @@ flowchart TD
     - Wire filter into `main()` before generate; dry-run shows filtered set; `versions.json` only retained successes
     - Creative ref: n/a
 
-2. **TypeDoc versioned config fix**
+2. **TypeDoc versioned config fix** ✅
     - Files: `packages/docs/typedoc.versioned.json`
     - Changes: add `"ignoreDeprecations": "6.0"` under `compilerOptions` (minimal fix for TS5101)
     - Verify in step 6 smoke (config-only change; not a pure-function TDD unit)
     - Note: root cause was TypeScript 6 treating deprecated `baseUrl` as error — sneaked in via TS bump while versioned config still used `baseUrl`
 
-3. **LLM plugin options helpers (TDD)**
+3. **LLM plugin options helpers (TDD)** ✅
     - Write failing tests in `packages/docs/test/llms-plugin-options.test.ts` for:
       - `discoverApiLlmCustomFiles`: empty root → `[]`; version dirs → nested `llms.txt` + `llms-full.txt` entries; `current` + CLI `reference/<ver>`
       - `buildLlmsPluginOptions`: `generateMarkdownFiles: true`, `generateLLMsFullTxt: false`, prose-only custom `llms-full.txt` ignorePatterns, merges discovery results into `customLLMFiles`, `docsDir: '.generated'`
