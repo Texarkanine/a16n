@@ -5,12 +5,16 @@
  * Does not test actual git operations or TypeDoc execution (those are integration tests).
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import {
   parseTag,
   groupTagsByPackage,
   getLatestVersion,
   selectVersionsForRetention,
+  writeVersionsManifestFile,
 } from '../scripts/generate-versioned-api.js';
 
 describe('parseTag', () => {
@@ -195,5 +199,38 @@ describe('selectVersionsForRetention', () => {
 
   it('returns empty array for empty input', () => {
     expect(selectVersionsForRetention([])).toEqual([]);
+  });
+});
+
+describe('writeVersionsManifestFile', () => {
+  /**
+   * Persists VersionPicker's versions.json under static/. An empty manifest
+   * clears the dropdown so prose-only sync cannot advertise missing API trees.
+   */
+  let docsDir: string;
+
+  beforeEach(() => {
+    docsDir = mkdtempSync(join(tmpdir(), 'versions-manifest-'));
+    mkdirSync(join(docsDir, 'static'), { recursive: true });
+  });
+
+  afterEach(() => {
+    rmSync(docsDir, { recursive: true, force: true });
+  });
+
+  it('writes an empty object when given an empty manifest', () => {
+    writeVersionsManifestFile(docsDir, {});
+    const raw = readFileSync(join(docsDir, 'static', 'versions.json'), 'utf-8');
+    expect(JSON.parse(raw)).toEqual({});
+  });
+
+  it('writes package version lists for a non-empty manifest', () => {
+    writeVersionsManifestFile(docsDir, {
+      'plugin-cursor': ['1.0.0', '0.14.1'],
+    });
+    const raw = readFileSync(join(docsDir, 'static', 'versions.json'), 'utf-8');
+    expect(JSON.parse(raw)).toEqual({
+      'plugin-cursor': ['1.0.0', '0.14.1'],
+    });
   });
 });

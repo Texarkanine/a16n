@@ -5,7 +5,7 @@
   "description": "Documentation site for a16n",
   "scripts": {
     "docusaurus": "docusaurus",
-    "docs:sync": "rm -rf .generated && mkdir -p .generated && cp -r docs/* .generated/ && bash scripts/stage-changelogs.sh",
+    "docs:sync": "rm -rf .generated && mkdir -p .generated && cp -r docs/* .generated/ && bash scripts/stage-changelogs.sh && tsx scripts/clear-versions-manifest.ts",
     "docs:gen:none": "node -e \"process.exit(0)\"",
     "docs:gen:api:current": "npm run apidoc:current",
     "docs:gen:api:versioned": "npm run apidoc:versioned",

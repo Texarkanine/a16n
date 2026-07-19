@@ -374,6 +374,24 @@ function generateForVersion(pkg: PackageConfig, tag: ParsedTag): GenerationResul
 }
 
 /**
+ * Write VersionPicker's versions.json under `docsDir/static/`.
+ *
+ * An empty manifest (`{}`) clears the dropdown so prose-only sync cannot
+ * advertise API versions whose trees are not present under `.generated/`.
+ *
+ * @param docsDir - Absolute path to packages/docs
+ * @param manifest - Package → version list map
+ */
+export function writeVersionsManifestFile(
+  docsDir: string,
+  manifest: VersionManifest
+): void {
+  const outputPath = join(docsDir, 'static', 'versions.json');
+  mkdirSync(join(docsDir, 'static'), { recursive: true });
+  writeFileSync(outputPath, `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
+/**
  * Generate the versions.json manifest file.
  * Outputs to static/versions.json so Docusaurus serves it at /versions.json.
  * @param tagGroups - Map of package name to tags
@@ -389,9 +407,7 @@ function generateVersionsManifest(tagGroups: Map<string, ParsedTag[]>): void {
     manifest[pkgName] = versions;
   }
 
-  // Output to static/ so Docusaurus serves it at /versions.json
-  const outputPath = join(getDocsDir(), 'static', 'versions.json');
-  writeFileSync(outputPath, JSON.stringify(manifest, null, 2));
+  writeVersionsManifestFile(getDocsDir(), manifest);
   console.log(`Generated versions.json with ${tagGroups.size} packages`);
 }
 

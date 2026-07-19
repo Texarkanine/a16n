@@ -11,6 +11,7 @@ Docusaurus-based documentation site for the [a16n](https://github.com/Texarkanin
 | Goal | Command |
 | --- | --- |
 | **Rebuild prose and launch the server** - I edited markdown (no API docs) | `docs:dev:prose` |
+| **Browse API references locally** - need TypeDoc trees + VersionPicker | `docs:dev:api` (current) or `docs:gen:versioned` then `docs:dev:only` |
 | **Rebuild everything from scratch**, slow, same as the deploy pipeline | `docs:build:all` |
 | **Just launch the server** - `.generated/` is already current, I want to browse it | `docs:dev:only` |
 | **Regenerate content from markdown**, no server | `docs:gen:prose` |
@@ -91,5 +92,7 @@ Site builds emit [llmstxt.org](https://llmstxt.org/)-style files via [`docusauru
 ## Versioned API retention
 
 `docs:gen:api:versioned` keeps, per package: **all versions in the current major**, plus the **newest version of each of the previous N majors** (default `N=2`). Older majors are skipped so historical TypeDoc stays feasible. The VersionPicker / `versions.json` list only successfully generated retained versions.
+
+`docs:sync` (used by every `docs:gen:*` entrypoint) clears `static/versions.json`. That prevents a stale VersionPicker dropdown after prose-only regenerations, which wipe `.generated/*/api/` trees but previously left the manifest behind. Re-run `docs:gen:api:versioned` (or `docs:gen:versioned`) to repopulate both the trees and the picker.
 
 For detailed development instructions, see the [a16n Documentation](https://texarkanine.github.io/a16n/).
