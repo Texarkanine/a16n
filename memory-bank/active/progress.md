@@ -128,3 +128,18 @@ Add `docusaurus-plugin-llms` with prose/API-aware LLM artifact generation, resto
     - Archive deferred to operator; draft PR to follow
 * Insights
     - Verify public docs URLs on `docs:dev:*`, not only `docs:build:*`
+
+## 2026-07-19 - POST-REFLECT (CI gate) - COMPLETE
+
+* Work completed
+    - CI/docs workflows assert non-empty production `build/llms.txt` + `llms-full.txt` after docs build (commit `fix: don't silently publish broken docsite`)
+    - Opened follow-up [#140](https://github.com/Texarkanine/a16n/issues/140) to migrate versioned TypeDoc off deprecated `baseUrl`
+* Decisions made
+    - Assert production postBuild artifacts in `ci.yaml` and `docs.yaml`; do not gate on `docs:llms:static` preview path
+* Insights
+    - Build green does not imply LLM indexes exist; filesystem asserts close that gap
+
+## 2026-07-19 - ARCHIVE - IN-PROGRESS
+
+* Work completed
+    - Operator invoked `/niko-archive` for docs-llms-and-api-retention on branch `llmstxt`
