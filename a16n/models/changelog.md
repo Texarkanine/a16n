@@ -1,0 +1,145 @@
+# Changelog
+
+> * **release:** Wave A — promote models and glob-hook to 1.0.0 ([#123](https://github.com/Texarkanine/a16n/issues/123)) ([55003c7](https://github.com/Texarkanine/a16n/commit/55003c7a3cba5d7023182b21e6c376cdc85309e0))
+
+# @a16njs/models
+
+## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.14.1...@a16njs/models@1.0.0) (2026-06-13)
+
+### Bug Fixes
+
+* **release:** Wave A — promote models and glob-hook to 1.0.0 ([#123](https://github.com/Texarkanine/a16n/issues/123)) ([55003c7](https://github.com/Texarkanine/a16n/commit/55003c7a3cba5d7023182b21e6c376cdc85309e0))
+
+## [0.14.1](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.14.0...@a16njs/models@0.14.1) (2026-06-13)
+
+### Bug Fixes
+
+* **deps:** resolve all open Dependabot security alerts ([#117](https://github.com/Texarkanine/a16n/issues/117)) ([50e754f](https://github.com/Texarkanine/a16n/commit/50e754fc5d122380e9cf6b43ec2a3096a6fcc14a))
+
+## [0.14.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.13.0...@a16njs/models@0.14.0) (2026-06-12)
+
+### Features
+
+* add AGENTS.md plugin (@a16njs/plugin-agentsmd) ([#100](https://github.com/Texarkanine/a16n/issues/100)) ([390994e](https://github.com/Texarkanine/a16n/commit/390994e2f5e05dc559555ee5c0ac83c890fc8bc2))
+
+## [0.13.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.12.0...@a16njs/models@0.13.0) (2026-04-21)
+
+### Features
+
+* **engine,models,plugin-cursor,plugin-claude,docs:** AgentSkillIO path-rewrites via WrittenFile.sourcePaths; bounded ride-along ref rewrite in scripts/ and references/; buildMapping collision warnings; empty sourcePaths hardening; docs for plugins and --rewrite-path-refs ([d7fbe10](https://github.com/Texarkanine/a16n/commit/d7fbe10f2c8c9184495c08158e5ac39469bc6eff))
+
+### Bug Fixes
+
+* AgentSkillIO path rewrites + rule filename case + CLI symlink detection ([#84](https://github.com/Texarkanine/a16n/issues/84)) ([d7fbe10](https://github.com/Texarkanine/a16n/commit/d7fbe10f2c8c9184495c08158e5ac39469bc6eff))
+* **cli:** symlink-safe ESM main-module detection using statSync device+inode instead of realpathSync string compare ([d7fbe10](https://github.com/Texarkanine/a16n/commit/d7fbe10f2c8c9184495c08158e5ac39469bc6eff))
+* **plugin-cursor,plugin-claude:** preserve source basename case for emitted rule files; plugin-local case-insensitive collision safety without changing @a16njs/models getUniqueFilename ([d7fbe10](https://github.com/Texarkanine/a16n/commit/d7fbe10f2c8c9184495c08158e5ac39469bc6eff))
+
+## [0.12.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.11.0...@a16njs/models@0.12.0) (2026-03-06)
+
+### Features
+
+* various polish ([#79](https://github.com/Texarkanine/a16n/issues/79)) ([c42cc28](https://github.com/Texarkanine/a16n/commit/c42cc28731013ae34a767bc1a9a47bc526150e7e))
+
+## [0.11.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.10.1...@a16njs/models@0.11.0) (2026-02-23)
+
+### Features
+
+* support name field on GlobalPrompts ([#68](https://github.com/Texarkanine/a16n/issues/68)) ([399f596](https://github.com/Texarkanine/a16n/commit/399f59638c2363395f9e455da1d1e35e5e1f6c8e))
+
+## [0.10.1](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.10.0...@a16njs/models@0.10.1) (2026-02-19)
+
+### Bug Fixes
+
+* SimpleAgentSkill and AgentSkillIO invocable names were lost in translation ([#64](https://github.com/Texarkanine/a16n/issues/64)) ([3266bff](https://github.com/Texarkanine/a16n/commit/3266bff0037f411091c2b7ded55ea7db50b01eba))
+
+## [0.10.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.9.0...@a16njs/models@0.10.0) (2026-02-17)
+
+### Features
+
+* make the plugin infrastructure real and good ([#59](https://github.com/Texarkanine/a16n/issues/59)) ([e3d1190](https://github.com/Texarkanine/a16n/commit/e3d1190f3097c57f56cb889881f6fdc6efb2f1cb))
+
+### Bug Fixes
+
+* niptick feadback ([#61](https://github.com/Texarkanine/a16n/issues/61)) ([4861ec3](https://github.com/Texarkanine/a16n/commit/4861ec3efaf1a55b9cc3fe1f361d66f3eb468da0))
+
+## [0.9.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.8.0...@a16njs/models@0.9.0) (2026-02-08)
+
+### Features
+
+* control over input/output destinations, and path re-writing accordingly ([#42](https://github.com/Texarkanine/a16n/issues/42)) ([943b9ce](https://github.com/Texarkanine/a16n/commit/943b9ce3220b4b8379919646199dfcfca05aaa64))
+
+## [0.8.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.7.0...@a16njs/models@0.8.0) (2026-02-07)
+
+### Features
+
+* Phase 9 Milestone 7 - Documentation & Polish ([#40](https://github.com/Texarkanine/a16n/issues/40)) ([8779631](https://github.com/Texarkanine/a16n/commit/87796312bb4d9965d80b1103a6c2444adc6f3f25))
+
+## [0.7.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.6.0...@a16njs/models@0.7.0) (2026-02-06)
+
+### ⚠ BREAKING CHANGES
+
+* Phase 9 Milestone 1 - IR Versioning & AgentSkills.io Utilities ([#32](https://github.com/Texarkanine/a16n/issues/32))
+
+### Features
+
+* Phase 9 Milestone 1 - IR Versioning & AgentSkills.io Utilities ([#32](https://github.com/Texarkanine/a16n/issues/32)) ([f9a4484](https://github.com/Texarkanine/a16n/commit/f9a4484c37fe973756f20822b675c1f25e36109a))
+
+## [0.6.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.5.0...@a16njs/models@0.6.0) (2026-02-04)
+
+### Features
+
+* Add Codecov coverage tracking with per-package flags ([#31](https://github.com/Texarkanine/a16n/issues/31)) ([228b89f](https://github.com/Texarkanine/a16n/commit/228b89f1c9dfb7a1a7f43d5c9456300e23b30863))
+
+### Bug Fixes
+
+* **docs:** Update package.json homepages to docsite links ([4a5f242](https://github.com/Texarkanine/a16n/commit/4a5f242012ae8d95eb3fb9183b7a64dbd153a83f))
+
+## [0.5.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.4.0...@a16njs/models@0.5.0) (2026-02-01)
+
+### Features
+
+* Phase 8 - handle full AgentSkills.io packages AND Claude Code "rules" ([#27](https://github.com/Texarkanine/a16n/issues/27)) ([ab4001e](https://github.com/Texarkanine/a16n/commit/ab4001e9b70045eb6d416a15966b25469bb8ebb3))
+
+## [0.4.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.3.0...@a16njs/models@0.4.0) (2026-02-01)
+
+### Features
+
+* **docs:** Fill out docs and make them mostly right ([#25](https://github.com/Texarkanine/a16n/issues/25)) ([e37eba3](https://github.com/Texarkanine/a16n/commit/e37eba3f0b32a013d018b3ecd3f2bf6fa9d26cff))
+
+## [0.3.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.2.0...@a16njs/models@0.3.0) (2026-01-28)
+
+### Features
+
+* Phase 7 - AgentSkills open standard alignment, AgentCommand-&gt;ManualPrompt ([#15](https://github.com/Texarkanine/a16n/issues/15)) ([3f367c2](https://github.com/Texarkanine/a16n/commit/3f367c2b7f945e65742fe526e35af75169125fa1))
+
+## [0.2.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.1.0...@a16njs/models@0.2.0) (2026-01-28)
+
+### Features
+
+* add npm publishing infrastructure ([#5](https://github.com/Texarkanine/a16n/issues/5)) ([104c8a2](https://github.com/Texarkanine/a16n/commit/104c8a2aacf0837b457e98d8e43816800855b726))
+* AgentCommand (phase 4) ([#8](https://github.com/Texarkanine/a16n/issues/8)) ([051a464](https://github.com/Texarkanine/a16n/commit/051a46447dee3406b298a8bc6b31f6b32cc47ca7))
+* Phase 5 - gitignore management ([#11](https://github.com/Texarkanine/a16n/issues/11)) ([b39e658](https://github.com/Texarkanine/a16n/commit/b39e6588a5b813f44f0b14aa074fb60374f184d1))
+* Phase1 - GlobalPrompt MVP ([592d4c7](https://github.com/Texarkanine/a16n/commit/592d4c7acf44ecbfaf158bb47124d5630b8b1567))
+* Task 1 - Monorepo setup with pnpm workspaces ([4016df2](https://github.com/Texarkanine/a16n/commit/4016df2c201c991af6304cda3d0aeb88af252d49))
+* Task 2 - Models package with TDD ([6af74a4](https://github.com/Texarkanine/a16n/commit/6af74a4748659cbab4dc3b2649e6e9b31963d329))
+
+### Bug Fixes
+
+* **docs:** Remove erroneous claim of MIT license ([e44260a](https://github.com/Texarkanine/a16n/commit/e44260a941fa2276ff7fdb1c3a7ebdf4f40b122f))
+* PR Feedback ([972f2b7](https://github.com/Texarkanine/a16n/commit/972f2b7e26088c4dc0ed255182e80212dda2c6f2))
+
+## 0.1.0
+
+### Minor Changes
+
+- 051a464: feat: Add AgentCommand support (Cursor commands → Claude skills)
+
+  - Add `AgentCommand` type to models package with `commandName` field
+  - Add `isAgentCommand()` type guard
+  - Cursor plugin discovers `.cursor/commands/**/*.md` files
+    - Simple commands (plain prompt text) become AgentCommand
+    - Complex commands ($ARGUMENTS, !, @, allowed-tools) are skipped with warning
+  - Claude plugin emits AgentCommand as `.claude/skills/*/SKILL.md`
+    - Skills include `description: "Invoke with /command-name"` for slash invocation
+  - Claude plugin never discovers AgentCommand (one-way conversion)
+  - Cursor plugin supports command pass-through emission

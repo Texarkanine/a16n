@@ -1,0 +1,544 @@
+# engine/api/0.8.1 API
+
+> Full LLM content for engine/api/0.8.1
+
+This file contains all documentation content in a single document following the llmstxt.org standard.
+
+## Class: A16nEngine
+
+[**@a16njs/engine**](../)
+
+***
+
+[@a16njs/engine](../) / A16nEngine
+
+# Class: A16nEngine
+
+Defined in: [index.ts:103](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L103)
+
+The a16n conversion engine.
+Orchestrates plugins to discover and emit agent customizations.
+
+## Constructors
+
+### Constructor
+
+> **new A16nEngine**(`plugins?`): `A16nEngine`
+
+Defined in: [index.ts:111](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L111)
+
+Create a new engine with the given plugins.
+
+#### Parameters
+
+##### plugins?
+
+`A16nPlugin`[] = `[]`
+
+Plugins to register (registered as 'bundled')
+
+#### Returns
+
+`A16nEngine`
+
+## Methods
+
+### registerPlugin()
+
+> **registerPlugin**(`plugin`, `source?`): `void`
+
+Defined in: [index.ts:123](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L123)
+
+Register a plugin with the engine.
+
+#### Parameters
+
+##### plugin
+
+`A16nPlugin`
+
+The plugin to register
+
+##### source?
+
+`"bundled"` \| `"installed"`
+
+Whether the plugin is bundled or installed
+
+#### Returns
+
+`void`
+
+***
+
+### discoverAndRegisterPlugins()
+
+> **discoverAndRegisterPlugins**(`options?`): `Promise`\<[`DiscoverAndRegisterResult`](../interfaces/DiscoverAndRegisterResult.md)\>
+
+Defined in: [index.ts:132](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L132)
+
+Discover and register installed plugins from node_modules.
+
+#### Parameters
+
+##### options?
+
+`PluginDiscoveryOptions`
+
+Plugin discovery options
+
+#### Returns
+
+`Promise`\<[`DiscoverAndRegisterResult`](../interfaces/DiscoverAndRegisterResult.md)\>
+
+Result with registered, skipped, and error info
+
+***
+
+### listPlugins()
+
+> **listPlugins**(): [`PluginInfo`](../interfaces/PluginInfo.md)[]
+
+Defined in: [index.ts:155](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L155)
+
+List all registered plugins.
+
+#### Returns
+
+[`PluginInfo`](../interfaces/PluginInfo.md)[]
+
+Array of plugin info
+
+***
+
+### getPlugin()
+
+> **getPlugin**(`id`): `A16nPlugin` \| `undefined`
+
+Defined in: [index.ts:169](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L169)
+
+Get a plugin by its ID.
+
+#### Parameters
+
+##### id
+
+`string`
+
+The plugin ID
+
+#### Returns
+
+`A16nPlugin` \| `undefined`
+
+The plugin or undefined if not found
+
+***
+
+### discover()
+
+> **discover**(`pluginId`, `rootOrWorkspace`): `Promise`\<`DiscoveryResult`\>
+
+Defined in: [index.ts:179](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L179)
+
+Discover customizations using a specific plugin.
+
+#### Parameters
+
+##### pluginId
+
+`string`
+
+The plugin to use for discovery
+
+##### rootOrWorkspace
+
+`string` \| `Workspace`
+
+The project root path or Workspace to scan
+
+#### Returns
+
+`Promise`\<`DiscoveryResult`\>
+
+Discovery result with items and warnings
+
+***
+
+### convert()
+
+> **convert**(`options`): `Promise`\<[`ConversionResult`](../interfaces/ConversionResult.md)\>
+
+Defined in: [index.ts:195](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L195)
+
+Convert customizations from one format to another.
+
+#### Parameters
+
+##### options
+
+[`ConversionOptions`](../interfaces/ConversionOptions.md)
+
+Conversion options
+
+#### Returns
+
+`Promise`\<[`ConversionResult`](../interfaces/ConversionResult.md)\>
+
+Conversion result with discovered items, written files, and warnings
+
+---
+
+## 0.8.1
+
+**@a16njs/engine**
+
+***
+
+# @a16njs/engine
+
+## Classes
+
+- [A16nEngine](classes/A16nEngine.md)
+
+## Interfaces
+
+- [ConversionOptions](interfaces/ConversionOptions.md)
+- [GitIgnoreResult](interfaces/GitIgnoreResult.md)
+- [ConversionResult](interfaces/ConversionResult.md)
+- [PluginInfo](interfaces/PluginInfo.md)
+- [DiscoverAndRegisterResult](interfaces/DiscoverAndRegisterResult.md)
+
+---
+
+## Interface: ConversionOptions
+
+[**@a16njs/engine**](../)
+
+***
+
+[@a16njs/engine](../) / ConversionOptions
+
+# Interface: ConversionOptions
+
+Defined in: [index.ts:23](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L23)
+
+Options for a conversion operation.
+
+## Properties
+
+### source
+
+> **source**: `string`
+
+Defined in: [index.ts:25](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L25)
+
+Source plugin ID
+
+***
+
+### target
+
+> **target**: `string`
+
+Defined in: [index.ts:27](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L27)
+
+Target plugin ID
+
+***
+
+### root
+
+> **root**: `string`
+
+Defined in: [index.ts:29](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L29)
+
+Project root directory
+
+***
+
+### dryRun?
+
+> `optional` **dryRun?**: `boolean`
+
+Defined in: [index.ts:31](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L31)
+
+If true, only discover without writing
+
+***
+
+### sourceRoot?
+
+> `optional` **sourceRoot?**: `string`
+
+Defined in: [index.ts:33](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L33)
+
+Override root for discovery (source plugin)
+
+***
+
+### targetRoot?
+
+> `optional` **targetRoot?**: `string`
+
+Defined in: [index.ts:35](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L35)
+
+Override root for emission (target plugin)
+
+***
+
+### sourceWorkspace?
+
+> `optional` **sourceWorkspace?**: `Workspace`
+
+Defined in: [index.ts:37](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L37)
+
+Workspace for source discovery (takes precedence over sourceRoot/root)
+
+***
+
+### targetWorkspace?
+
+> `optional` **targetWorkspace?**: `Workspace`
+
+Defined in: [index.ts:39](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L39)
+
+Workspace for target emission (takes precedence over targetRoot/root)
+
+***
+
+### ~~rewritePathRefs?~~
+
+> `optional` **rewritePathRefs?**: `boolean`
+
+Defined in: [index.ts:44](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L44)
+
+If true, rewrite path references in content during conversion.
+
+#### Deprecated
+
+Use `transformations: [new PathRewritingTransformation()]` instead.
+
+***
+
+### transformations?
+
+> `optional` **transformations?**: `ContentTransformation`[]
+
+Defined in: [index.ts:46](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L46)
+
+Content transformations to apply between discovery and emission
+
+---
+
+## Interface: ConversionResult
+
+[**@a16njs/engine**](../)
+
+***
+
+[@a16njs/engine](../) / ConversionResult
+
+# Interface: ConversionResult
+
+Defined in: [index.ts:62](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L62)
+
+Result of a conversion operation.
+
+## Properties
+
+### discovered
+
+> **discovered**: `AgentCustomization`[]
+
+Defined in: [index.ts:64](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L64)
+
+Items discovered from source
+
+***
+
+### written
+
+> **written**: `WrittenFile`[]
+
+Defined in: [index.ts:66](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L66)
+
+Files written to target
+
+***
+
+### warnings
+
+> **warnings**: `Warning`[]
+
+Defined in: [index.ts:68](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L68)
+
+Warnings from discovery and emission
+
+***
+
+### unsupported
+
+> **unsupported**: `AgentCustomization`[]
+
+Defined in: [index.ts:70](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L70)
+
+Items that couldn't be represented by target
+
+***
+
+### gitIgnoreChanges?
+
+> `optional` **gitIgnoreChanges?**: [`GitIgnoreResult`](GitIgnoreResult.md)[]
+
+Defined in: [index.ts:72](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L72)
+
+Git-ignore changes made (if --gitignore-output-with was used)
+
+***
+
+### deletedSources?
+
+> `optional` **deletedSources?**: `string`[]
+
+Defined in: [index.ts:74](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L74)
+
+Source files that were deleted (if --delete-source was used)
+
+---
+
+## Interface: DiscoverAndRegisterResult
+
+[**@a16njs/engine**](../)
+
+***
+
+[@a16njs/engine](../) / DiscoverAndRegisterResult
+
+# Interface: DiscoverAndRegisterResult
+
+Defined in: [index.ts:90](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L90)
+
+Result of discovering and registering plugins.
+
+## Properties
+
+### registered
+
+> **registered**: `string`[]
+
+Defined in: [index.ts:92](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L92)
+
+Plugin IDs that were successfully registered
+
+***
+
+### skipped
+
+> **skipped**: `string`[]
+
+Defined in: [index.ts:94](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L94)
+
+Plugin IDs that were skipped (already registered)
+
+***
+
+### errors
+
+> **errors**: `object`[]
+
+Defined in: [index.ts:96](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L96)
+
+Errors encountered during discovery
+
+#### packageName
+
+> **packageName**: `string`
+
+#### error
+
+> **error**: `string`
+
+---
+
+## Interface: GitIgnoreResult
+
+[**@a16njs/engine**](../)
+
+***
+
+[@a16njs/engine](../) / GitIgnoreResult
+
+# Interface: GitIgnoreResult
+
+Defined in: [index.ts:52](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L52)
+
+Git-ignore change information.
+
+## Properties
+
+### file
+
+> **file**: `string`
+
+Defined in: [index.ts:54](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L54)
+
+The file that was modified
+
+***
+
+### added
+
+> **added**: `string`[]
+
+Defined in: [index.ts:56](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L56)
+
+Entries that were added
+
+---
+
+## Interface: PluginInfo
+
+[**@a16njs/engine**](../)
+
+***
+
+[@a16njs/engine](../) / PluginInfo
+
+# Interface: PluginInfo
+
+Defined in: [index.ts:80](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L80)
+
+Information about a registered plugin.
+
+## Properties
+
+### id
+
+> **id**: `string`
+
+Defined in: [index.ts:81](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L81)
+
+***
+
+### name
+
+> **name**: `string`
+
+Defined in: [index.ts:82](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L82)
+
+***
+
+### supports
+
+> **supports**: `CustomizationType`[]
+
+Defined in: [index.ts:83](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L83)
+
+***
+
+### source
+
+> **source**: `"bundled"` \| `"installed"`
+
+Defined in: [index.ts:84](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L84)

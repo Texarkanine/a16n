@@ -1,0 +1,10 @@
+# plugin-claude/api/1.0.0 API
+
+> LLM index for plugin-claude/api/1.0.0
+
+This file contains links to documentation sections following the llmstxt.org standard.
+
+## Table of Contents
+
+- [1.0.0](https://texarkanine.github.io/a16n/plugin-claude/api/1.0.0.md): **@a16njs/plugin-claude**
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-claude/api/1.0.0/variables/default.md): [**@a16njs/plugin-claude**](../)

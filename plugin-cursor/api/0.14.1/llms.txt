@@ -1,0 +1,10 @@
+# plugin-cursor/api/0.14.1 API
+
+> LLM index for plugin-cursor/api/0.14.1
+
+This file contains links to documentation sections following the llmstxt.org standard.
+
+## Table of Contents
+
+- [0.14.1](https://texarkanine.github.io/a16n/plugin-cursor/api/0.14.1.md): **@a16njs/plugin-cursor**
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-cursor/api/0.14.1/variables/default.md): [**@a16njs/plugin-cursor**](../)

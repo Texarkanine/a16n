@@ -1,0 +1,62 @@
+# Changelog
+
+> * **release:** Wave A — promote models and glob-hook to 1.0.0 ([#123](https://github.com/Texarkanine/a16n/issues/123)) ([55003c7](https://github.com/Texarkanine/a16n/commit/55003c7a3cba5d7023182b21e6c376cdc85309e0))
+
+# Changelog
+
+## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.5.2...@a16njs/glob-hook@1.0.0) (2026-06-13)
+
+### Bug Fixes
+
+* **release:** Wave A — promote models and glob-hook to 1.0.0 ([#123](https://github.com/Texarkanine/a16n/issues/123)) ([55003c7](https://github.com/Texarkanine/a16n/commit/55003c7a3cba5d7023182b21e6c376cdc85309e0))
+
+## [0.5.2](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.5.1...@a16njs/glob-hook@0.5.2) (2026-06-13)
+
+### Bug Fixes
+
+* **deps:** resolve all open Dependabot security alerts ([#117](https://github.com/Texarkanine/a16n/issues/117)) ([50e754f](https://github.com/Texarkanine/a16n/commit/50e754fc5d122380e9cf6b43ec2a3096a6fcc14a))
+
+## [0.5.1](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.5.0...@a16njs/glob-hook@0.5.1) (2026-06-12)
+
+### Bug Fixes
+
+* **test:** remediate SLOBAC test suite audit findings across plugins and CLI ([#88](https://github.com/Texarkanine/a16n/issues/88)) ([98b616a](https://github.com/Texarkanine/a16n/commit/98b616a0f0bf0110569e8bd25f42cf5fc323c662))
+
+## [0.5.0](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.4.0...@a16njs/glob-hook@0.5.0) (2026-03-06)
+
+### Features
+
+* various polish ([#79](https://github.com/Texarkanine/a16n/issues/79)) ([c42cc28](https://github.com/Texarkanine/a16n/commit/c42cc28731013ae34a767bc1a9a47bc526150e7e))
+
+## [0.4.0](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.3.0...@a16njs/glob-hook@0.4.0) (2026-02-04)
+
+### Features
+
+* Add Codecov coverage tracking with per-package flags ([#31](https://github.com/Texarkanine/a16n/issues/31)) ([228b89f](https://github.com/Texarkanine/a16n/commit/228b89f1c9dfb7a1a7f43d5c9456300e23b30863))
+
+### Bug Fixes
+
+* **docs:** Update package.json homepages to docsite links ([4a5f242](https://github.com/Texarkanine/a16n/commit/4a5f242012ae8d95eb3fb9183b7a64dbd153a83f))
+
+## [0.3.0](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.2.0...@a16njs/glob-hook@0.3.0) (2026-02-01)
+
+### Features
+
+* **docs:** Fill out docs and make them mostly right ([#25](https://github.com/Texarkanine/a16n/issues/25)) ([e37eba3](https://github.com/Texarkanine/a16n/commit/e37eba3f0b32a013d018b3ecd3f2bf6fa9d26cff))
+
+## [0.2.0](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.1.0...@a16njs/glob-hook@0.2.0) (2026-01-30)
+
+### Features
+
+* **docs:** Add Docusaurus-based docs module w/ generated, versioned APIDoc ([#18](https://github.com/Texarkanine/a16n/issues/18)) ([414882f](https://github.com/Texarkanine/a16n/commit/414882f6f0249a8cb9a507848eddcce371bce4d2))
+
+## [0.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.0.1...@a16njs/glob-hook@0.1.0) (2026-01-28)
+
+### Features
+
+* add npm publishing infrastructure ([#5](https://github.com/Texarkanine/a16n/issues/5)) ([104c8a2](https://github.com/Texarkanine/a16n/commit/104c8a2aacf0837b457e98d8e43816800855b726))
+* **glob-hook:** Add @a16n/glob-hook package for Phase 2 FileRule support ([#2](https://github.com/Texarkanine/a16n/issues/2)) ([761bfc0](https://github.com/Texarkanine/a16n/commit/761bfc06f11d6d666698ae37909b933cf4d17daf))
+
+### Bug Fixes
+
+* **docs:** Remove erroneous claim of MIT license ([e44260a](https://github.com/Texarkanine/a16n/commit/e44260a941fa2276ff7fdb1c3a7ebdf4f40b122f))

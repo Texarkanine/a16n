@@ -1,0 +1,10 @@
+# plugin-agentsmd/api/1.0.3 API
+
+> LLM index for plugin-agentsmd/api/1.0.3
+
+This file contains links to documentation sections following the llmstxt.org standard.
+
+## Table of Contents
+
+- [1.0.3](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.3.md): **@a16njs/plugin-agentsmd**
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.3/variables/default.md): [**@a16njs/plugin-agentsmd**](../)

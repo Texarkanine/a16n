@@ -1,0 +1,182 @@
+# a16n Documentation
+
+> AI agent configuration translation toolkit
+
+This file contains links to documentation sections following the llmstxt.org standard.
+
+## Table of Contents
+
+- [Changelog](https://texarkanine.github.io/a16n/cli/changelog.md): * **release:** Wave C — promote a16n CLI to 1.0.0 ([#127](https://github.com/Texarkanine/a16n/issues/127)) ([76ad7e4](https://github.com/Texarkanin...
+- [CLI Overview](https://texarkanine.github.io/a16n/cli.md): The **a16n CLI**, `a16n`, provides command-line tools for converting AI agent configuration files between various agentic development toolchains.
+- [0.15.4](https://texarkanine.github.io/a16n/cli/reference/0.15.4.md): Agent customization portability for AI coding tools
+- [1.0.0](https://texarkanine.github.io/a16n/cli/reference/1.0.0.md): Agent customization portability for AI coding tools
+- [CLI Reference](https://texarkanine.github.io/a16n/cli/reference.md): <VersionPicker pkg="cli" />
+- [Class: A16nEngine](https://texarkanine.github.io/a16n/engine/api/0.8.1/classes/A16nEngine.md): [**@a16njs/engine**](../)
+- [0.8.1](https://texarkanine.github.io/a16n/engine/api/0.8.1.md): **@a16njs/engine**
+- [Interface: ConversionOptions](https://texarkanine.github.io/a16n/engine/api/0.8.1/interfaces/ConversionOptions.md): [**@a16njs/engine**](../)
+- [Interface: ConversionResult](https://texarkanine.github.io/a16n/engine/api/0.8.1/interfaces/ConversionResult.md): [**@a16njs/engine**](../)
+- [Interface: DiscoverAndRegisterResult](https://texarkanine.github.io/a16n/engine/api/0.8.1/interfaces/DiscoverAndRegisterResult.md): [**@a16njs/engine**](../)
+- [Interface: GitIgnoreResult](https://texarkanine.github.io/a16n/engine/api/0.8.1/interfaces/GitIgnoreResult.md): [**@a16njs/engine**](../)
+- [Interface: PluginInfo](https://texarkanine.github.io/a16n/engine/api/0.8.1/interfaces/PluginInfo.md): [**@a16njs/engine**](../)
+- [Class: A16nEngine](https://texarkanine.github.io/a16n/engine/api/1.0.0/classes/A16nEngine.md): [**@a16njs/engine**](../)
+- [1.0.0](https://texarkanine.github.io/a16n/engine/api/1.0.0.md): **@a16njs/engine**
+- [Interface: ConversionOptions](https://texarkanine.github.io/a16n/engine/api/1.0.0/interfaces/ConversionOptions.md): [**@a16njs/engine**](../)
+- [Interface: ConversionResult](https://texarkanine.github.io/a16n/engine/api/1.0.0/interfaces/ConversionResult.md): [**@a16njs/engine**](../)
+- [Interface: DiscoverAndRegisterResult](https://texarkanine.github.io/a16n/engine/api/1.0.0/interfaces/DiscoverAndRegisterResult.md): [**@a16njs/engine**](../)
+- [Interface: GitIgnoreResult](https://texarkanine.github.io/a16n/engine/api/1.0.0/interfaces/GitIgnoreResult.md): [**@a16njs/engine**](../)
+- [Interface: PluginInfo](https://texarkanine.github.io/a16n/engine/api/1.0.0/interfaces/PluginInfo.md): [**@a16njs/engine**](../)
+- [Engine API Reference](https://texarkanine.github.io/a16n/engine/api.md): <VersionPicker pkg="engine" />
+- [Changelog](https://texarkanine.github.io/a16n/engine/changelog.md): * **release:** Wave B — promote engine + plugins to 1.0.0, re-pin agentsmd to models@1.0.0 ([#125](https://github.com/Texarkanine/a16n/issues/125))...
+- [Engine Overview](https://texarkanine.github.io/a16n/engine.md): The **@a16njs/engine** package provides the core conversion engine that orchestrates the translation between AI agent configuration formats. Use th...
+- [FAQ](https://texarkanine.github.io/a16n/faq.md): Frequently asked questions about a16n
+- [Changelog](https://texarkanine.github.io/a16n/glob-hook/changelog.md): * **release:** Wave A — promote models and glob-hook to 1.0.0 ([#123](https://github.com/Texarkanine/a16n/issues/123)) ([55003c7](https://github.co...
+- [Glob Hook CLI](https://texarkanine.github.io/a16n/glob-hook.md): :::caution Not Required for Claude Code (January 2026+)
+- [Introduction](https://texarkanine.github.io/a16n/.generated.md): **a16n** (short for "agent customization") is a toolkit for converting AI agent customization between different AI coding tools.
+- [Class: LocalWorkspace](https://texarkanine.github.io/a16n/models/api/0.14.1/classes/LocalWorkspace.md): [**@a16njs/models**](../)
+- [Enumeration: CustomizationType](https://texarkanine.github.io/a16n/models/api/0.14.1/enumerations/CustomizationType.md): [**@a16njs/models**](../)
+- [Enumeration: WarningCode](https://texarkanine.github.io/a16n/models/api/0.14.1/enumerations/WarningCode.md): [**@a16njs/models**](../)
+- [Function: areVersionsCompatible()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/areVersionsCompatible.md): [**@a16njs/models**](../)
+- [Function: createId()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/createId.md): [**@a16njs/models**](../)
+- [Function: getCurrentVersion()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/getCurrentVersion.md): [**@a16njs/models**](../)
+- [Function: getUniqueFilename()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/getUniqueFilename.md): [**@a16njs/models**](../)
+- [Function: inferGlobalPromptName()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/inferGlobalPromptName.md): [**@a16njs/models**](../)
+- [Function: isAgentIgnore()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/isAgentIgnore.md): [**@a16njs/models**](../)
+- [Function: isAgentSkillIO()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/isAgentSkillIO.md): [**@a16njs/models**](../)
+- [Function: isFileRule()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/isFileRule.md): [**@a16njs/models**](../)
+- [Function: isGlobalPrompt()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/isGlobalPrompt.md): [**@a16njs/models**](../)
+- [Function: isManualPrompt()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/isManualPrompt.md): [**@a16njs/models**](../)
+- [Function: isSimpleAgentSkill()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/isSimpleAgentSkill.md): [**@a16njs/models**](../)
+- [Function: normalizeReservedRuleStem()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/normalizeReservedRuleStem.md): [**@a16njs/models**](../)
+- [Function: parseIRVersion()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/parseIRVersion.md): [**@a16njs/models**](../)
+- [Function: parseSkillFrontmatter()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/parseSkillFrontmatter.md): [**@a16njs/models**](../)
+- [Function: readAgentSkillIO()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/readAgentSkillIO.md): [**@a16njs/models**](../)
+- [Function: readSkillFiles()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/readSkillFiles.md): [**@a16njs/models**](../)
+- [Function: resolveRoot()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/resolveRoot.md): [**@a16njs/models**](../)
+- [Function: toWorkspace()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/toWorkspace.md): [**@a16njs/models**](../)
+- [Function: writeAgentSkillIO()](https://texarkanine.github.io/a16n/models/api/0.14.1/functions/writeAgentSkillIO.md): [**@a16njs/models**](../)
+- [0.14.1](https://texarkanine.github.io/a16n/models/api/0.14.1.md): **@a16njs/models**
+- [Interface: A16nPlugin](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/A16nPlugin.md): [**@a16njs/models**](../)
+- [Interface: AgentCustomization](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/AgentCustomization.md): [**@a16njs/models**](../)
+- [Interface: AgentIgnore](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/AgentIgnore.md): [**@a16njs/models**](../)
+- [Interface: AgentSkillIO](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/AgentSkillIO.md): [**@a16njs/models**](../)
+- [Interface: DiscoveryResult](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/DiscoveryResult.md): [**@a16njs/models**](../)
+- [Interface: EmitOptions](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/EmitOptions.md): [**@a16njs/models**](../)
+- [Interface: EmitResult](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/EmitResult.md): [**@a16njs/models**](../)
+- [Interface: FileRule](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/FileRule.md): [**@a16njs/models**](../)
+- [Interface: GlobalPrompt](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/GlobalPrompt.md): [**@a16njs/models**](../)
+- [Interface: ManualPrompt](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/ManualPrompt.md): [**@a16njs/models**](../)
+- [Interface: ParsedIRVersion](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/ParsedIRVersion.md): [**@a16njs/models**](../)
+- [Interface: ParsedSkill](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/ParsedSkill.md): [**@a16njs/models**](../)
+- [Interface: ParsedSkillFrontmatter](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/ParsedSkillFrontmatter.md): [**@a16njs/models**](../)
+- [Interface: PluginPathPatterns](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/PluginPathPatterns.md): [**@a16njs/models**](../)
+- [Interface: SimpleAgentSkill](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/SimpleAgentSkill.md): [**@a16njs/models**](../)
+- [Interface: Warning](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/Warning.md): [**@a16njs/models**](../)
+- [Interface: Workspace](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/Workspace.md): [**@a16njs/models**](../)
+- [Interface: WorkspaceEntry](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/WorkspaceEntry.md): [**@a16njs/models**](../)
+- [Interface: WrittenFile](https://texarkanine.github.io/a16n/models/api/0.14.1/interfaces/WrittenFile.md): [**@a16njs/models**](../)
+- [~~Type Alias: AgentSkill~~](https://texarkanine.github.io/a16n/models/api/0.14.1/type-aliases/AgentSkill.md): [**@a16njs/models**](../)
+- [Type Alias: IRVersion](https://texarkanine.github.io/a16n/models/api/0.14.1/type-aliases/IRVersion.md): [**@a16njs/models**](../)
+- [Variable: CURRENT\_IR\_VERSION](https://texarkanine.github.io/a16n/models/api/0.14.1/variables/CURRENT_IR_VERSION.md): [**@a16njs/models**](../)
+- [~~Variable: isAgentSkill~~](https://texarkanine.github.io/a16n/models/api/0.14.1/variables/isAgentSkill.md): [**@a16njs/models**](../)
+- [Class: LocalWorkspace](https://texarkanine.github.io/a16n/models/api/1.0.0/classes/LocalWorkspace.md): [**@a16njs/models**](../)
+- [Enumeration: CustomizationType](https://texarkanine.github.io/a16n/models/api/1.0.0/enumerations/CustomizationType.md): [**@a16njs/models**](../)
+- [Enumeration: WarningCode](https://texarkanine.github.io/a16n/models/api/1.0.0/enumerations/WarningCode.md): [**@a16njs/models**](../)
+- [Function: areVersionsCompatible()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/areVersionsCompatible.md): [**@a16njs/models**](../)
+- [Function: createId()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/createId.md): [**@a16njs/models**](../)
+- [Function: getCurrentVersion()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/getCurrentVersion.md): [**@a16njs/models**](../)
+- [Function: getUniqueFilename()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/getUniqueFilename.md): [**@a16njs/models**](../)
+- [Function: inferGlobalPromptName()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/inferGlobalPromptName.md): [**@a16njs/models**](../)
+- [Function: isAgentIgnore()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/isAgentIgnore.md): [**@a16njs/models**](../)
+- [Function: isAgentSkillIO()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/isAgentSkillIO.md): [**@a16njs/models**](../)
+- [Function: isFileRule()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/isFileRule.md): [**@a16njs/models**](../)
+- [Function: isGlobalPrompt()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/isGlobalPrompt.md): [**@a16njs/models**](../)
+- [Function: isManualPrompt()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/isManualPrompt.md): [**@a16njs/models**](../)
+- [Function: isSimpleAgentSkill()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/isSimpleAgentSkill.md): [**@a16njs/models**](../)
+- [Function: normalizeReservedRuleStem()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/normalizeReservedRuleStem.md): [**@a16njs/models**](../)
+- [Function: parseIRVersion()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/parseIRVersion.md): [**@a16njs/models**](../)
+- [Function: parseSkillFrontmatter()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/parseSkillFrontmatter.md): [**@a16njs/models**](../)
+- [Function: readAgentSkillIO()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/readAgentSkillIO.md): [**@a16njs/models**](../)
+- [Function: readSkillFiles()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/readSkillFiles.md): [**@a16njs/models**](../)
+- [Function: resolveRoot()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/resolveRoot.md): [**@a16njs/models**](../)
+- [Function: toWorkspace()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/toWorkspace.md): [**@a16njs/models**](../)
+- [Function: writeAgentSkillIO()](https://texarkanine.github.io/a16n/models/api/1.0.0/functions/writeAgentSkillIO.md): [**@a16njs/models**](../)
+- [1.0.0](https://texarkanine.github.io/a16n/models/api/1.0.0.md): **@a16njs/models**
+- [Interface: A16nPlugin](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/A16nPlugin.md): [**@a16njs/models**](../)
+- [Interface: AgentCustomization](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/AgentCustomization.md): [**@a16njs/models**](../)
+- [Interface: AgentIgnore](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/AgentIgnore.md): [**@a16njs/models**](../)
+- [Interface: AgentSkillIO](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/AgentSkillIO.md): [**@a16njs/models**](../)
+- [Interface: DiscoveryResult](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/DiscoveryResult.md): [**@a16njs/models**](../)
+- [Interface: EmitOptions](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/EmitOptions.md): [**@a16njs/models**](../)
+- [Interface: EmitResult](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/EmitResult.md): [**@a16njs/models**](../)
+- [Interface: FileRule](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/FileRule.md): [**@a16njs/models**](../)
+- [Interface: GlobalPrompt](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/GlobalPrompt.md): [**@a16njs/models**](../)
+- [Interface: ManualPrompt](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/ManualPrompt.md): [**@a16njs/models**](../)
+- [Interface: ParsedIRVersion](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/ParsedIRVersion.md): [**@a16njs/models**](../)
+- [Interface: ParsedSkill](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/ParsedSkill.md): [**@a16njs/models**](../)
+- [Interface: ParsedSkillFrontmatter](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/ParsedSkillFrontmatter.md): [**@a16njs/models**](../)
+- [Interface: PluginPathPatterns](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/PluginPathPatterns.md): [**@a16njs/models**](../)
+- [Interface: SimpleAgentSkill](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/SimpleAgentSkill.md): [**@a16njs/models**](../)
+- [Interface: Warning](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/Warning.md): [**@a16njs/models**](../)
+- [Interface: Workspace](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/Workspace.md): [**@a16njs/models**](../)
+- [Interface: WorkspaceEntry](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/WorkspaceEntry.md): [**@a16njs/models**](../)
+- [Interface: WrittenFile](https://texarkanine.github.io/a16n/models/api/1.0.0/interfaces/WrittenFile.md): [**@a16njs/models**](../)
+- [~~Type Alias: AgentSkill~~](https://texarkanine.github.io/a16n/models/api/1.0.0/type-aliases/AgentSkill.md): [**@a16njs/models**](../)
+- [Type Alias: IRVersion](https://texarkanine.github.io/a16n/models/api/1.0.0/type-aliases/IRVersion.md): [**@a16njs/models**](../)
+- [Variable: CURRENT\_IR\_VERSION](https://texarkanine.github.io/a16n/models/api/1.0.0/variables/CURRENT_IR_VERSION.md): [**@a16njs/models**](../)
+- [~~Variable: isAgentSkill~~](https://texarkanine.github.io/a16n/models/api/1.0.0/variables/isAgentSkill.md): [**@a16njs/models**](../)
+- [Models API Reference](https://texarkanine.github.io/a16n/models/api.md): <VersionPicker pkg="models" />
+- [Changelog](https://texarkanine.github.io/a16n/models/changelog.md): * **release:** Wave A — promote models and glob-hook to 1.0.0 ([#123](https://github.com/Texarkanine/a16n/issues/123)) ([55003c7](https://github.co...
+- [Models Overview](https://texarkanine.github.io/a16n/models.md): The **@a16njs/models** package defines shared TypeScript types and interfaces used across the a16n toolkit. It provides the foundation for the plug...
+- [Function: discover()](https://texarkanine.github.io/a16n/plugin-a16n/api/0.7.3/functions/discover.md): [**@a16njs/plugin-a16n**](../)
+- [Function: emit()](https://texarkanine.github.io/a16n/plugin-a16n/api/0.7.3/functions/emit.md): [**@a16njs/plugin-a16n**](../)
+- [Function: extractRelativeDir()](https://texarkanine.github.io/a16n/plugin-a16n/api/0.7.3/functions/extractRelativeDir.md): [**@a16njs/plugin-a16n**](../)
+- [Function: formatIRFile()](https://texarkanine.github.io/a16n/plugin-a16n/api/0.7.3/functions/formatIRFile.md): [**@a16njs/plugin-a16n**](../)
+- [Function: getNameWithoutExtension()](https://texarkanine.github.io/a16n/plugin-a16n/api/0.7.3/functions/getNameWithoutExtension.md): [**@a16njs/plugin-a16n**](../)
+- [Function: parseIRFile()](https://texarkanine.github.io/a16n/plugin-a16n/api/0.7.3/functions/parseIRFile.md): [**@a16njs/plugin-a16n**](../)
+- [Function: slugify()](https://texarkanine.github.io/a16n/plugin-a16n/api/0.7.3/functions/slugify.md): [**@a16njs/plugin-a16n**](../)
+- [0.7.3](https://texarkanine.github.io/a16n/plugin-a16n/api/0.7.3.md): **@a16njs/plugin-a16n**
+- [Interface: ParseIRFileResult](https://texarkanine.github.io/a16n/plugin-a16n/api/0.7.3/interfaces/ParseIRFileResult.md): [**@a16njs/plugin-a16n**](../)
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-a16n/api/0.7.3/variables/default.md): [**@a16njs/plugin-a16n**](../)
+- [Function: discover()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/discover.md): [**@a16njs/plugin-a16n**](../)
+- [Function: emit()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/emit.md): [**@a16njs/plugin-a16n**](../)
+- [Function: extractRelativeDir()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/extractRelativeDir.md): [**@a16njs/plugin-a16n**](../)
+- [Function: formatIRFile()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/formatIRFile.md): [**@a16njs/plugin-a16n**](../)
+- [Function: getNameWithoutExtension()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/getNameWithoutExtension.md): [**@a16njs/plugin-a16n**](../)
+- [Function: parseIRFile()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/parseIRFile.md): [**@a16njs/plugin-a16n**](../)
+- [Function: slugify()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/slugify.md): [**@a16njs/plugin-a16n**](../)
+- [1.0.0](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0.md): **@a16njs/plugin-a16n**
+- [Interface: ParseIRFileResult](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/interfaces/ParseIRFileResult.md): [**@a16njs/plugin-a16n**](../)
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/variables/default.md): [**@a16njs/plugin-a16n**](../)
+- [a16n IR Plugin API Reference](https://texarkanine.github.io/a16n/plugin-a16n/api.md): <VersionPicker pkg="plugin-a16n" />
+- [Changelog](https://texarkanine.github.io/a16n/plugin-a16n/changelog.md): * **release:** Wave B — promote engine + plugins to 1.0.0, re-pin agentsmd to models@1.0.0 ([#125](https://github.com/Texarkanine/a16n/issues/125))...
+- [a16n IR Plugin Overview](https://texarkanine.github.io/a16n/plugin-a16n.md): The **@a16njs/plugin-a16n** package enables reading and writing the a16n intermediate representation (IR) to/from disk in a human-readable, git-fri...
+- [1.0.0](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.0.md): **@a16njs/plugin-agentsmd**
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.0/variables/default.md): [**@a16njs/plugin-agentsmd**](../)
+- [1.0.1](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.1.md): **@a16njs/plugin-agentsmd**
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.1/variables/default.md): [**@a16njs/plugin-agentsmd**](../)
+- [1.0.2](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.2.md): **@a16njs/plugin-agentsmd**
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.2/variables/default.md): [**@a16njs/plugin-agentsmd**](../)
+- [1.0.3](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.3.md): **@a16njs/plugin-agentsmd**
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.3/variables/default.md): [**@a16njs/plugin-agentsmd**](../)
+- [1.0.4](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.4.md): **@a16njs/plugin-agentsmd**
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.4/variables/default.md): [**@a16njs/plugin-agentsmd**](../)
+- [AGENTS.md Plugin API Reference](https://texarkanine.github.io/a16n/plugin-agentsmd/api.md): <VersionPicker pkg="plugin-agentsmd" />
+- [Changelog](https://texarkanine.github.io/a16n/plugin-agentsmd/changelog.md): * **release:** Wave B — promote engine + plugins to 1.0.0, re-pin agentsmd to models@1.0.0 ([#125](https://github.com/Texarkanine/a16n/issues/125))...
+- [AGENTS.md Plugin Overview](https://texarkanine.github.io/a16n/plugin-agentsmd.md): The **@a16njs/plugin-agentsmd** package implements agent customization awareness for the [AGENTS.md](https://agents.md/) standard — the cross-tool ...
+- [0.14.1](https://texarkanine.github.io/a16n/plugin-claude/api/0.14.1.md): **@a16njs/plugin-claude**
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-claude/api/0.14.1/variables/default.md): [**@a16njs/plugin-claude**](../)
+- [1.0.0](https://texarkanine.github.io/a16n/plugin-claude/api/1.0.0.md): **@a16njs/plugin-claude**
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-claude/api/1.0.0/variables/default.md): [**@a16njs/plugin-claude**](../)
+- [Claude Plugin API Reference](https://texarkanine.github.io/a16n/plugin-claude/api.md): <VersionPicker pkg="plugin-claude" />
+- [Changelog](https://texarkanine.github.io/a16n/plugin-claude/changelog.md): * **release:** Wave B — promote engine + plugins to 1.0.0, re-pin agentsmd to models@1.0.0 ([#125](https://github.com/Texarkanine/a16n/issues/125))...
+- [Claude Code Plugin Overview](https://texarkanine.github.io/a16n/plugin-claude.md): The **@a16njs/plugin-claude** package implements agent customization awareness for [Claude Code](https://code.claude.com/).
+- [0.14.1](https://texarkanine.github.io/a16n/plugin-cursor/api/0.14.1.md): **@a16njs/plugin-cursor**
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-cursor/api/0.14.1/variables/default.md): [**@a16njs/plugin-cursor**](../)
+- [1.0.0](https://texarkanine.github.io/a16n/plugin-cursor/api/1.0.0.md): **@a16njs/plugin-cursor**
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-cursor/api/1.0.0/variables/default.md): [**@a16njs/plugin-cursor**](../)
+- [Cursor Plugin API Reference](https://texarkanine.github.io/a16n/plugin-cursor/api.md): <VersionPicker pkg="plugin-cursor" />
+- [Changelog](https://texarkanine.github.io/a16n/plugin-cursor/changelog.md): * **release:** Wave B — promote engine + plugins to 1.0.0, re-pin agentsmd to models@1.0.0 ([#125](https://github.com/Texarkanine/a16n/issues/125))...
+- [Cursor Plugin Overview](https://texarkanine.github.io/a16n/plugin-cursor.md): The **@a16njs/plugin-cursor** package implements agent customization awareness for [Cursor](https://cursor.com/).
+- [Plugin Development](https://texarkanine.github.io/a16n/plugin-development.md): How to create plugins for a16n
+- [Why Not Hooks](https://texarkanine.github.io/a16n/understanding-conversions/hooks.md): Why hooks are fundamentally different from rules, and what would need to change
+- [Core Concepts](https://texarkanine.github.io/a16n/understanding-conversions.md): How a16n converts agent customization between different AI coding tools

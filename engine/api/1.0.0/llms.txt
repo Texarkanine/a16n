@@ -1,0 +1,15 @@
+# engine/api/1.0.0 API
+
+> LLM index for engine/api/1.0.0
+
+This file contains links to documentation sections following the llmstxt.org standard.
+
+## Table of Contents
+
+- [Class: A16nEngine](https://texarkanine.github.io/a16n/engine/api/1.0.0/classes/A16nEngine.md): [**@a16njs/engine**](../)
+- [1.0.0](https://texarkanine.github.io/a16n/engine/api/1.0.0.md): **@a16njs/engine**
+- [Interface: ConversionOptions](https://texarkanine.github.io/a16n/engine/api/1.0.0/interfaces/ConversionOptions.md): [**@a16njs/engine**](../)
+- [Interface: ConversionResult](https://texarkanine.github.io/a16n/engine/api/1.0.0/interfaces/ConversionResult.md): [**@a16njs/engine**](../)
+- [Interface: DiscoverAndRegisterResult](https://texarkanine.github.io/a16n/engine/api/1.0.0/interfaces/DiscoverAndRegisterResult.md): [**@a16njs/engine**](../)
+- [Interface: GitIgnoreResult](https://texarkanine.github.io/a16n/engine/api/1.0.0/interfaces/GitIgnoreResult.md): [**@a16njs/engine**](../)
+- [Interface: PluginInfo](https://texarkanine.github.io/a16n/engine/api/1.0.0/interfaces/PluginInfo.md): [**@a16njs/engine**](../)

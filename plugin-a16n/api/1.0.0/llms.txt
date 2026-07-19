@@ -1,0 +1,18 @@
+# plugin-a16n/api/1.0.0 API
+
+> LLM index for plugin-a16n/api/1.0.0
+
+This file contains links to documentation sections following the llmstxt.org standard.
+
+## Table of Contents
+
+- [Function: discover()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/discover.md): [**@a16njs/plugin-a16n**](../)
+- [Function: emit()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/emit.md): [**@a16njs/plugin-a16n**](../)
+- [Function: extractRelativeDir()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/extractRelativeDir.md): [**@a16njs/plugin-a16n**](../)
+- [Function: formatIRFile()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/formatIRFile.md): [**@a16njs/plugin-a16n**](../)
+- [Function: getNameWithoutExtension()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/getNameWithoutExtension.md): [**@a16njs/plugin-a16n**](../)
+- [Function: parseIRFile()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/parseIRFile.md): [**@a16njs/plugin-a16n**](../)
+- [Function: slugify()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/functions/slugify.md): [**@a16njs/plugin-a16n**](../)
+- [1.0.0](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0.md): **@a16njs/plugin-a16n**
+- [Interface: ParseIRFileResult](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/interfaces/ParseIRFileResult.md): [**@a16njs/plugin-a16n**](../)
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-a16n/api/1.0.0/variables/default.md): [**@a16njs/plugin-a16n**](../)

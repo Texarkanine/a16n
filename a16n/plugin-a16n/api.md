@@ -1,0 +1,11 @@
+# a16n IR Plugin API Reference
+
+> <VersionPicker pkg="plugin-a16n" />
+
+import VersionPicker from '@site/src/components/VersionPicker';
+
+# a16n IR Plugin API Reference
+
+Complete API documentation for the `@a16njs/plugin-a16n` package - plugin for reading and writing the a16n intermediate representation (`.a16n/` directory with versioned YAML frontmatter Markdown files).
+
+Select a version above to browse the API documentation, or use the sidebar to navigate.
