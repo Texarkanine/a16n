@@ -75,4 +75,21 @@ The suffix on every entrypoint picks *how much* to (re)generate - always in the 
 - `scripts/` - API and changelog generation scripts
 - `src/components/` - custom React components (`VersionPicker`, etc.)
 
+## LLM artifacts
+
+Site builds emit [llmstxt.org](https://llmstxt.org/)-style files via [`docusaurus-plugin-llms`](https://github.com/rachfop/docusaurus-plugin-llms):
+
+| Artifact | Contents |
+| --- | --- |
+| `/llms.txt` | Index links for prose **and** any generated API/reference pages present in `.generated/` |
+| `/llms-full.txt` | Inlined **prose only** (versioned/current API trees and CLI `reference/` excluded) |
+| `/<pkg>/api/<ver>/llms.txt` (+ `llms-full.txt`) | Per retained API version — only when that tree exists under `.generated/` |
+| Per-page `*.md` | Markdown mirrors of docs pages (`generateMarkdownFiles: true`) |
+
+`docs:…:prose` never runs TypeDoc, so per-version API LLM files are absent on prose-only builds. API-generating entrypoints (`docs:…:current`, `docs:build:all`) populate `.generated` first; config-time discovery then registers nested LLM files for whatever versions are present.
+
+## Versioned API retention
+
+`docs:gen:api:versioned` keeps, per package: **all versions in the current major**, plus the **newest version of each of the previous N majors** (default `N=2`). Older majors are skipped so historical TypeDoc stays feasible. The VersionPicker / `versions.json` list only successfully generated retained versions.
+
 For detailed development instructions, see the [a16n Documentation](https://texarkanine.github.io/a16n/).

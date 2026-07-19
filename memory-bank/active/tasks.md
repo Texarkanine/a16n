@@ -118,21 +118,21 @@ flowchart TD
     - Implement `packages/docs/scripts/llms-plugin-options.ts`
     - Creative ref: `creative-per-api-version-llms.md`, `creative-root-llms-asymmetry.md`
 
-4. **Wire helpers into Docusaurus config**
+4. **Wire helpers into Docusaurus config** ✅
     - Prefer renaming `docusaurus.config.js` → `docusaurus.config.ts` (supported by Docusaurus 3) so config can `import { buildLlmsPluginOptions } from './scripts/llms-plugin-options'`
     - Call `buildLlmsPluginOptions(path to .generated)` and register `['docusaurus-plugin-llms', options]`
     - No new behavior beyond what step 3 already tested — wiring only
     - Creative ref: same as step 3
 
-5. **Docs README**
+5. **Docs README** ✅
     - Files: `packages/docs/README.md`
     - Changes: note LLM endpoints, retention policy, prose vs API gating
 
-6. **Verification**
-    - Run docs unit tests
+6. **Verification** ✅
+    - Run docs unit tests — 49 passed
     - `docs:build:prose` — root llms present; no per-version API `llms*.txt` under `build/`
-    - Smoke versioned TypeDoc for one engine tag after config fix
-    - `docs:build:current` (or gen current + site build) — API pages + nested LLM files
+    - Smoke versioned TypeDoc for one engine tag after config fix — OK (ignoreDeprecations)
+    - `docs:build:current` — API pages + nested LLM files (6 pkg + CLI current)
 ## Technology Validation
 
 - **New dependency:** `docusaurus-plugin-llms@0.5.0` added via `pnpm add` in `packages/docs` — install succeeded.
@@ -161,5 +161,5 @@ flowchart TD
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Preflight
-- [ ] Build
+- [x] Build
 - [ ] QA

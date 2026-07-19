@@ -32,7 +32,8 @@ TypeScript ESM-only monorepo managed by pnpm workspaces, built with Turborepo, t
 
 ## Design System
 
-- **Docs site chrome:** Texarkanine paper/ember Infima tokens in `packages/docs/src/css/custom.css` (cream light / warm charcoal dark). Color mode follows OS preference via `themeConfig.colorMode.respectPrefersColorScheme` in `packages/docs/docusaurus.config.js`.
+- **Docs site chrome:** Texarkanine paper/ember Infima tokens in `packages/docs/src/css/custom.css` (cream light / warm charcoal dark). Color mode follows OS preference via `themeConfig.colorMode.respectPrefersColorScheme` in `packages/docs/docusaurus.config.ts`.
+
 
 ## Notable Technical Decisions
 

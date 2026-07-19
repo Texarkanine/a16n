@@ -57,3 +57,13 @@ Add `docusaurus-plugin-llms` with prose/API-aware LLM artifact generation, resto
     - PASS with advisories (see preflight report) — build gated on operator `/niko-build`
 * Insights
     - Vitest coverage only includes `scripts/**/*.ts` — helpers must not land under `src/`
+
+## 2026-07-19 - BUILD - COMPLETE
+
+* Work completed
+    - Retention helper + main()/dry-run wiring; TypeDoc TS5101 fix; LLM plugin helpers; config rename+wire; README
+    - Verification: 49 unit tests; `docs:build:prose` (root LLM, no nested API); TypeDoc versioned smoke; `docs:build:current` (nested LLM files)
+* Decisions made
+    - Built to creative Q1/Q2 (custom prose-only `llms-full.txt`; dynamic `customLLMFiles` from `.generated` scan)
+* Insights
+    - Current build registered 15 custom LLM files (1 root full + 7 version trees × 2)
