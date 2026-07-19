@@ -154,6 +154,58 @@ export function getLatestVersion(versions: string[]): string {
   )[0];
 }
 
+/** Default number of previous majors to retain alongside the current major. */
+export const PREVIOUS_MAJORS = 2;
+
+/**
+ * Select versions to retain for API doc generation.
+ *
+ * Keeps every version in the current major (highest major present), plus the
+ * newest version of each of the previous `previousMajors` majors. Older majors
+ * are dropped entirely.
+ *
+ * @param versions - Candidate version strings (semver-like `major.minor.patch…`)
+ * @param previousMajors - How many prior majors to keep a single latest of (default {@link PREVIOUS_MAJORS})
+ * @returns Retained versions, newest-first
+ */
+export function selectVersionsForRetention(
+  versions: string[],
+  previousMajors: number = PREVIOUS_MAJORS
+): string[] {
+  if (versions.length === 0) return [];
+
+  const majorOf = (version: string): number => {
+    const major = Number.parseInt(version.split('.')[0] ?? '', 10);
+    return Number.isFinite(major) ? major : 0;
+  };
+
+  const sorted = [...versions].sort((a, b) =>
+    b.localeCompare(a, undefined, { numeric: true })
+  );
+  const currentMajor = majorOf(sorted[0]);
+
+  const byMajor = new Map<number, string[]>();
+  for (const version of sorted) {
+    const major = majorOf(version);
+    const list = byMajor.get(major) ?? [];
+    list.push(version);
+    byMajor.set(major, list);
+  }
+
+  const retained: string[] = [...(byMajor.get(currentMajor) ?? [])];
+
+  for (let i = 1; i <= previousMajors; i++) {
+    const priorMajor = currentMajor - i;
+    if (priorMajor < 0) break;
+    const priorVersions = byMajor.get(priorMajor);
+    if (priorVersions && priorVersions.length > 0) {
+      retained.push(priorVersions[0]);
+    }
+  }
+
+  return retained;
+}
+
 /**
  * Get the commit SHA for a git tag.
  * @param tag - Git tag
@@ -358,9 +410,27 @@ export async function main(dryRun = false): Promise<void> {
   const tagGroups = groupTagsByPackage(tags);
   console.log(`Found tags for ${tagGroups.size} packages\n`);
 
+  // Apply per-package retention before generate / dry-run listing
+  const retainedTagGroups = new Map<string, ParsedTag[]>();
+  for (const [pkgName, pkgTags] of tagGroups) {
+    const retainedVersions = new Set(
+      selectVersionsForRetention(
+        pkgTags.map((t) => t.version),
+        PREVIOUS_MAJORS
+      )
+    );
+    const retained = pkgTags.filter((t) => retainedVersions.has(t.version));
+    retainedTagGroups.set(pkgName, retained);
+    if (retained.length < pkgTags.length) {
+      console.log(
+        `Retention (${pkgName}): ${pkgTags.length} → ${retained.length} versions (previousMajors=${PREVIOUS_MAJORS})`
+      );
+    }
+  }
+
   if (dryRun) {
     console.log('DRY RUN - would generate:');
-    for (const [pkgName, pkgTags] of tagGroups) {
+    for (const [pkgName, pkgTags] of retainedTagGroups) {
       console.log(`  ${pkgName}:`);
       for (const tag of pkgTags) {
         console.log(`    - ${tag.version}`);
@@ -374,7 +444,7 @@ export async function main(dryRun = false): Promise<void> {
 
   // Generate docs for each package version
   for (const pkg of PACKAGES) {
-    const pkgTags = tagGroups.get(pkg.name);
+    const pkgTags = retainedTagGroups.get(pkg.name);
     if (!pkgTags || pkgTags.length === 0) {
       console.log(`Skipping ${pkg.name}: no tags found`);
       continue;
@@ -389,7 +459,7 @@ export async function main(dryRun = false): Promise<void> {
   }
 
   // Generate CLI docs separately (CLI uses different generation approach)
-  const cliTags = tagGroups.get('cli');
+  const cliTags = retainedTagGroups.get('cli');
   if (cliTags && cliTags.length > 0) {
     console.log(`\nProcessing cli (${cliTags.length} versions):`);
 

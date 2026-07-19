@@ -1,11 +1,12 @@
 # Active Context
 
 ## Current Task: docs-llms-and-api-retention
-**Phase:** PREFLIGHT - COMPLETE (PASS)
+**Phase:** BUILD - IN-PROGRESS
 
 ## What Was Done
-- Preflight PASS with plan amendments (TDD encoding for plugin options; helpers under `scripts/`; config → `.ts`)
-- `.preflight-status` = PASS
+- Preflight PASS; entering build
+- Creative decisions reviewed (Q1 root asymmetry, Q2 per-API-version customLLMFiles)
+- Step 1: `selectVersionsForRetention` + wiring into `main()` / dry-run (22 unit tests pass)
 
 ## Next Step
-- Operator runs `/niko-build` to start implementation
+- Implementation plan step 2: TypeDoc versioned config TS5101 fix

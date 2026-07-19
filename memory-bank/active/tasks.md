@@ -99,7 +99,7 @@ flowchart TD
 
 ## Implementation Plan
 
-1. **Retention helper (TDD)**
+1. **Retention helper (TDD)** ✅
     - Write failing tests in `packages/docs/test/generate-versioned-api.test.ts` for `selectVersionsForRetention` (behaviors above)
     - Implement/export `selectVersionsForRetention(versions, previousMajors = 2)` in `packages/docs/scripts/generate-versioned-api.ts`
     - Wire filter into `main()` before generate; dry-run shows filtered set; `versions.json` only retained successes

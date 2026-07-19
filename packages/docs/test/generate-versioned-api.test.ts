@@ -10,6 +10,7 @@ import {
   parseTag,
   groupTagsByPackage,
   getLatestVersion,
+  selectVersionsForRetention,
 } from '../scripts/generate-versioned-api.js';
 
 describe('parseTag', () => {
@@ -139,5 +140,60 @@ describe('getLatestVersion', () => {
     const result = getLatestVersion(versions);
     // 1.0.0-beta.1 > 1.0.0 in string comparison, which is fine for display
     expect(['1.0.0', '1.0.0-beta.1']).toContain(result);
+  });
+});
+
+describe('selectVersionsForRetention', () => {
+  /**
+   * Keeps all versions in the current major plus the newest version of each of
+   * the previous N majors. Default N is 2.
+   */
+
+  it('retains all current-major versions and latest of previous majors (N=2)', () => {
+    const versions = ['0.1.0', '0.8.1', '1.0.0', '1.0.1'];
+    expect(selectVersionsForRetention(versions, 2)).toEqual([
+      '1.0.1',
+      '1.0.0',
+      '0.8.1',
+    ]);
+  });
+
+  it('retains all current major plus latest of each of N previous majors at major 4', () => {
+    const versions = [
+      '0.9.0',
+      '1.2.0',
+      '2.0.0',
+      '2.1.0',
+      '3.0.0',
+      '4.0.0',
+      '4.5.6',
+    ];
+    expect(selectVersionsForRetention(versions, 2)).toEqual([
+      '4.5.6',
+      '4.0.0',
+      '3.0.0',
+      '2.1.0',
+    ]);
+  });
+
+  it('retains all versions when only major 0 exists', () => {
+    const versions = ['0.1.0', '0.5.0', '0.9.0'];
+    expect(selectVersionsForRetention(versions, 2)).toEqual([
+      '0.9.0',
+      '0.5.0',
+      '0.1.0',
+    ]);
+  });
+
+  it('retains only current major when N=0', () => {
+    const versions = ['0.1.0', '0.8.1', '1.0.0', '1.0.1'];
+    expect(selectVersionsForRetention(versions, 0)).toEqual([
+      '1.0.1',
+      '1.0.0',
+    ]);
+  });
+
+  it('returns empty array for empty input', () => {
+    expect(selectVersionsForRetention([])).toEqual([]);
   });
 });
