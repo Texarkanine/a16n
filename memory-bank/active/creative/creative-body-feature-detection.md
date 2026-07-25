@@ -82,7 +82,7 @@ Detection rules, each independently testable:
 Integration points:
 
 - Lives in a new `packages/plugin-claude/src/spec-compliance.ts`, exporting a pure function `detectNonSpecFeatures(frontmatter, body): string[]`. Pure and dependency-free, so it is unit-testable without filesystem fixtures and extractable to `@a16njs/models` later if Cursor ever needs it. Not extracted now — YAGNI.
-- Called from `discoverSkills()` in `packages/plugin-claude/src/discover.ts`, after `parseSkillFrontmatter()` and before classification.
+- Called from the skill-discovery loop in `packages/plugin-claude/src/discover.ts`, after `parseSkillFrontmatter()`. *(Preflight correction: this originally said `discoverSkills()`, which does not exist in `plugin-claude` — unlike `plugin-cursor`, the skill loop is inlined in `discover()`. The advisory must be emitted only when an item is actually produced, not merely "before classification": several classification branches skip the skill outright and must not also warn.)*
 - `parseSkillFrontmatter()` currently discards all keys except four. It must retain the raw `data` object (or a computed key list) so frontmatter detection can see the non-spec keys.
 - Emits a single `WarningCode.Approximated` per skill listing all detected features, worded against the AgentSkills.io spec.
 

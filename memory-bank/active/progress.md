@@ -43,3 +43,22 @@ Realign a16n's conversion gates with what the AgentSkills.io spec and each harne
     - `$N` cannot be disambiguated lexically — a Claude positional and a shell positional are *identical strings*. The old gate's `\$[1-9]` is a direct ancestor of the #142 defect. Document-level context (does this skill declare arguments?) is the only available discriminator.
     - OQ2 produced a general classifier worth more than its own answer: *loss that silently removes an author-specified restriction must fail closed; loss that visibly breaks a substitution can fail open.* A lost `$ARGUMENTS` is self-evidently broken in the output; a lost `hooks:` block leaves a clean-looking skill that still claims to enforce security — the project's own `secure-operations` fixture is exactly that trap.
     - A third fidelity category surfaced that neither the issue nor the operator's framing anticipated: spec-compliant fields a16n's IR drops regardless. Being spec-compliant is necessary but not sufficient for surviving a spec-shaped IR.
+
+## 2026-07-25 - PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+
+* Work completed
+    - Validated all 11 implementation steps against the actual source, correcting three factual errors about the codebase and one TDD ordering defect.
+    - Discharged the plan's own flagged mitigation by scripting the blast-radius scan instead of grepping file-by-file: all 27 `SKILL.md` fixtures repo-wide against the Category-A trigger set, and all 12 `.cursor/commands/*.md` files against the four current gate patterns.
+    - Empirically verified the post-gate-removal emit path by driving the built `plugin-claude` `emit()` with the exact ManualPrompt that `discoverCommands()` will produce.
+    - Amended `tasks.md` (steps 3/4 swapped, steps 6/8/9 corrected and expanded, four test behaviors added) and surgically corrected the integration note in `creative-body-feature-detection.md`.
+    - Wrote `memory-bank/active/.preflight-status`.
+* Decisions made
+    - **PASS WITH ADVISORY**, not FAIL: every blocking-class finding was a plan-accuracy defect fixable in place, not an approach defect. The architecture, the taxonomy, and both creative decisions survived validation unchanged.
+    - Advisory Finding C left unfixed by design — the malformed emit only reachable through fixtures encoding input Cursor cannot produce. Recommended the build assert byte-identity on the `@mention` fixtures (where it guards #142) rather than on frontmatter-bearing ones, and file the passthrough with the Category-B issue in step 10.
+    - Accepted one in-scope structural amendment (single exported `NON_SPEC_FEATURES` array) and deferred one out-of-scope observation (`plugin-cursor`'s regex frontmatter parser) to existing debt.
+* Insights
+    - The blast radius the plan treated as its largest unknown is essentially nil. No existing Claude fixture trips the new detector, and the only Cursor fixtures whose item counts move are the two the plan already named. The "new warnings are so noisy users ignore all warnings" pre-mortem risk has no purchase on the test suite.
+    - The plan and a creative doc both directed the implementer to call into `discoverSkills()` in `plugin-claude` — a function that exists in `plugin-cursor` but **not** in `plugin-claude`, where the skill loop is inlined in `discover()`. Symmetric-looking plugins are not symmetric, and planning read across them by analogy.
+    - "Call detection after the `hooks:` skip" was precise-sounding but wrong: three later branches also `continue` without producing an item, so a description-less skill would have collected both a `Skipped` and an `Approximated`. The correct predicate is *an item was produced*, not *a position in the function*. This is the same double-warning trap OQ2 pinned a test for, reached by a different path.
+    - Cursor commands do not support frontmatter at all — so the gate's fourth pattern, `allowed-tools:`, guarded a capability Cursor never had, exactly as `fileRefs: /@\S+/` did. Two of the four gate patterns were checking for *Claude* features on the *Cursor* side. The gate was not merely stale; it was written against the wrong harness's feature set from the start.
+    - Deleting a gate is never purely subtractive: it admits inputs that downstream code has never been exercised against. `discoverCommands()` stores raw bytes while `classifyRule()` strips frontmatter, and only the gate was hiding that inconsistency.

@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: issue-142-spec-compliance-gates
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
 
 ## What Was Done
 - Pre-verified issue #142's premise against current primary sources instead of taking it at face value. Result: the premise inverts.
@@ -30,5 +30,16 @@
 - **OQ2 resolved** (`creative-hooks-disposition.md`): keep `hooks:` as a hard `Skipped`. Generalized into a reusable disposition rule — *loss that silently removes an author-specified restriction fails closed; loss that visibly breaks a substitution fails open.* Zero churn to existing hooks tests and docs.
 - 11 ordered implementation steps, 40+ enumerated test behaviors, no new dependencies.
 
+## Preflight Phase Outcome
+- **PASS WITH ADVISORY.** The approach, taxonomy, and both creative decisions survived validation unchanged; every blocking-class finding was a plan-accuracy defect, fixed in place.
+- Corrected three factual errors about the codebase and one TDD ordering defect in `tasks.md`:
+  - `plugin-claude` has **no** `discoverSkills()` — the skill loop is inlined in `discover()` (lines 376–478). The plan and `creative-body-feature-detection.md` both named it by analogy to `plugin-cursor`.
+  - "Emit the advisory after the `hooks:` skip" would double-warn: three later branches also `continue` without producing an item. Correct predicate is *an item was produced*.
+  - Step 9 missed two hand-maintained docs-site pages (`docs/plugin-cursor/index.md:37`, `docs/understanding-conversions/index.md:82`).
+  - Steps 3/4 swapped so the CLI integration test inversion precedes the gate deletion.
+- Discharged the plan's largest flagged unknown by scripted scan: **no** existing Claude fixture trips the new detector (only the two `hooks:` fixtures match, and both are skipped before detection), and only the two already-named Cursor fixture dirs change item counts.
+- **Advisory (Finding C):** Cursor commands do not support frontmatter, so the gate's `allowed-tools` pattern — like `fileRefs` — guarded a capability Cursor never had. Deleting the gate exposes a latent defect: `discoverCommands()` stores raw bytes (unlike `classifyRule()`, which strips frontmatter), so frontmatter-bearing commands emit a SKILL.md with a stray YAML block in its body. Verified empirically. Non-blocking — only reachable via fixtures encoding impossible input. Build should assert byte-identity on the `@mention` fixtures rather than the frontmatter ones, and file the passthrough with the Category-B issue in step 10.
+- One in-scope amendment accepted: export a single `NON_SPEC_FEATURES` array so the feature list is not hand-copied into four drifting places.
+
 ## Next Step
-- Proceed to the Level 3 PREFLIGHT phase (`niko-preflight` skill) to validate the plan before build.
+- Operator input required (Level 3: Preflight PASS → Build is an operator-initiated transition). Run `/niko-build` when ready.

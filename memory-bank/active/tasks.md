@@ -149,13 +149,16 @@ Pinned because it classifies every present and future Claude feature without re-
 - `@modelcontextprotocol/sdk` → **not** detected *(accepted false negative)*
 - Each of `argument-hint`, `arguments`, `model`, `effort`, `context`, `agent`, `shell`, `disallowed-tools`, `user-invocable` → detected
 - `paths`, `disable-model-invocation` (Category C) → **not** detected
+- `hooks` passed directly to the pure function → **not** detected *(OQ2: hooks are handled by the skip, never the advisory)*
 - Multiple features → all returned, deduplicated, stable order
+- Every entry in the exported `NON_SPEC_FEATURES` array is reachable by at least one positive case *(guards against the list and the detector drifting apart)*
 
 **plugin-claude — discovery integration**
 
 - Skill using non-spec features → item still discovered **and** exactly one `Approximated` warning naming them
 - Spec-clean skill → zero warnings
 - Hooks skill → exactly one `Skipped`, zero `Approximated` *(OQ2)*
+- Description-less skill that also uses non-spec features → exactly one `Skipped`, zero `Approximated` *(preflight: the advisory fires only when an item is produced)*
 - Warning message contains "AgentSkills.io" and names no destination harness
 
 **CLI integration**
@@ -175,12 +178,13 @@ Pinned because it classifies every present and future Claude feature without re-
 2. **Write failing cursor tests**
     - Files: `packages/plugin-cursor/test/discover-commands.test.ts`
     - Changes: replace `describe('complex commands (skipped)')` with `describe('commands with runtime features (discovered)')`; add `describe('@mention false positives (#142)')`; update mixed-fixture count 1 → 2; add content-fidelity assertion.
-3. **Delete the gate**
-    - Files: `packages/plugin-cursor/src/discover.ts`
-    - Changes: remove `COMPLEX_COMMAND_PATTERNS` (lines ~144–156) and `isComplexCommand()` (~158–179); drop the `isComplex` branch in `discoverCommands()` (~233–245). Verify `WarningCode` import is still needed elsewhere in the file.
-4. **Invert the CLI integration test**
+3. **Invert the CLI integration test** *(test-first: must fail before step 4)*
     - Files: `packages/cli/test/integration/integration-commands.test.ts`
-    - Changes: rewrite `cursor-command-complex-skipped` → `cursor-command-with-runtime-features-converts`; assert 1 ManualPrompt and no skip warning.
+    - Changes: rewrite `cursor-command-complex-skipped` (lines 64–94) → `cursor-command-with-runtime-features-converts`; assert 1 ManualPrompt and no skip warning.
+4. **Delete the gate** *(makes steps 2 and 3 pass)*
+    - Files: `packages/plugin-cursor/src/discover.ts`
+    - Changes: remove `COMPLEX_COMMAND_PATTERNS` (lines 147–156) and `isComplexCommand()` (162–179); drop the `isComplex` branch in `discoverCommands()` (234–245); update the `discoverCommands()` doc comment, which still says "Complex commands → Skip with warning" (line 211).
+    - **Preflight-verified:** the `WarningCode` import stays — still used by `discoverSkills()` at lines 470, 517, 524.
 5. **Write failing unit tests for detection**
     - Files: `packages/plugin-claude/test/spec-compliance.test.ts` *(new)*
     - Changes: full behavior table above against `detectNonSpecFeatures()`.
@@ -188,17 +192,22 @@ Pinned because it classifies every present and future Claude feature without re-
 6. **Implement the detection module**
     - Files: `packages/plugin-claude/src/spec-compliance.ts` *(new)*
     - Changes: `SPEC_FRONTMATTER_KEYS` / `MODELED_FRONTMATTER_KEYS` sets; per-feature body patterns; `$N` gating; export `detectNonSpecFeatures(frontmatter: Record<string, unknown>, body: string): string[]`.
+    - **Preflight amendment — single source of truth for the feature list.** The set of Claude non-spec features would otherwise be hand-copied into four places (the detector, the unit test table, `plugin-claude/README.md`, and the docs site) and drift. Export one `NON_SPEC_FEATURES` array of `{ id, label }` from this module; have the unit test iterate it to assert every entry is reachable, and derive the README table from it by hand-check rather than reinvention. `hooks` is deliberately **absent** from this array (see OQ2).
     - Creative ref: `creative-body-feature-detection.md`
 7. **Write failing discovery-integration tests + fixture**
     - Files: `packages/plugin-claude/test/discover-spec-compliance.test.ts` *(new)*, `packages/plugin-claude/test/fixtures/claude-skills-nonspec/from-claude/.claude/skills/{deploy,clean}/SKILL.md` *(new)*
     - Changes: one skill using several non-spec features, one fully spec-clean.
 8. **Wire detection into discovery**
     - Files: `packages/plugin-claude/src/discover.ts`
-    - Changes: extend `SkillFrontmatter` with the raw key list; call `detectNonSpecFeatures()` after the `hooks:` skip; push a single `Approximated` warning when non-empty. Add the disposition-rule comment above the hooks skip.
+    - Changes: extend `SkillFrontmatter` with the raw key list (`parseSkillFrontmatter()` at lines 150–171 currently keeps only four fields and drops the rest — until this changes, frontmatter detection sees nothing).
+    - **Preflight correction — there is no `discoverSkills()` in `plugin-claude`.** Unlike `plugin-cursor`, Claude skill discovery is inlined directly in `discover()` (the `for (const { relativePath, dirName } of skillDirs)` loop, lines 376–478). The plan and `creative-body-feature-detection.md` both named a function that does not exist; wire into that loop instead.
+    - **Preflight correction — warning placement.** "After the `hooks:` skip" is not precise enough: three later branches also `continue` without producing an item (invalid frontmatter, resource files without a description, missing description). Emitting the advisory immediately after the hooks skip would give those skills both a `Skipped` and an `Approximated` warning. The `Approximated` warning must be pushed **only when an item is actually added** to `items`. Pin this with a test: a description-less skill yields exactly one `Skipped` and zero `Approximated`.
+    - Add the disposition-rule comment above the hooks skip.
     - Creative ref: `creative-hooks-disposition.md`
 9. **Documentation**
-    - Files: `packages/plugin-cursor/README.md`, `packages/plugin-claude/README.md`, `memory-bank/systemPatterns.md`
+    - Files: `packages/plugin-cursor/README.md` (lines 42–56), `packages/plugin-claude/README.md`, `packages/docs/docs/plugin-cursor/index.md` (line 37), `packages/docs/docs/understanding-conversions/index.md` (line 82), `memory-bank/systemPatterns.md`
     - Changes: delete the cursor "Complex commands" table and explain that all commands convert; document the Claude spec-compliance advisory and its feature list; add the disposition rule to the warn-and-continue section of `systemPatterns.md`.
+    - **Preflight addition — two docs-site files the plan missed.** `packages/docs/docs/plugin-cursor/index.md:37` ("Complex Commands (placeholders, $ARGUMENTS, $1, etc.): Skipped") and the "What Gets Skipped" row at `packages/docs/docs/understanding-conversions/index.md:82` ("Complex Commands | Cursor | Claude | `$ARGUMENTS`, `!`, and `allowed-tools` have no equivalent"). These are hand-maintained user-facing pages, not generated. Delete the skipped-row and add a corresponding row to the **"What Gets Approximated"** table (line 70) for the new Claude spec-compliance advisory.
 10. **File the Category-B follow-up issue**
     - Changes: `gh issue create` describing spec-compliant fields (`allowed-tools`, `license`, `compatibility`) that a16n's IR silently drops.
 11. **Full verification**
@@ -224,6 +233,56 @@ No new technology — validation not required. Detection uses native `RegExp` an
 - **The new warnings are so noisy on real Claude repos that users ignore all warnings.** Response: one warning per skill (operator decision), silence as the default for spec-clean skills, and Category C excluded. If real-world output still proves noisy, the gating thresholds in `spec-compliance.ts` are the single tuning point.
 - **Turbo caching masks stale test results across the two packages.** Response: step 11 runs the full pipeline; if results look inconsistent, re-run with cache disabled before trusting them.
 
+## Preflight Findings
+
+Validated against the codebase on 2026-07-25. Findings A, B, D and the TDD ordering fix are already folded into the plan above; C and E are recorded here.
+
+### A — Blast radius is fully enumerated (de-risks a flagged mitigation)
+
+The plan's mitigation "grep for warning-count assertions across `packages/cli/test/`, not only the three files already identified" is discharged:
+
+- **Claude side:** all 27 `SKILL.md` fixtures repo-wide were scanned against the Category-A trigger set. Only two match, both on `hooks:` (`claude-skills-complex/.../secure-deploy`, `claude-skills-with-hooks/.../secure-ops`), and both are skipped *before* detection runs. **No existing Claude fixture will newly warn.** Zero churn to existing assertions.
+- **Cursor side:** of 12 `.cursor/commands/*.md` files repo-wide, exactly 6 are currently gate-skipped, and they live in exactly the two fixture directories the plan already names (`cursor-command-complex`, `cursor-command-mixed`). Item counts change nowhere else. The CLI integration test builds its command inline rather than from a fixture.
+
+### B — TDD ordering (fixed in-plan)
+
+Step 4 (invert the CLI integration test) originally came after step 3 (delete the gate), which would have meant repairing a test after the implementation broke it. Steps swapped so both test steps precede the deletion.
+
+### C — Cursor commands do not support frontmatter, and the gate deletion exposes a latent emit defect *(advisory — not blocking)*
+
+`discoverCommands()` reads command files with `fs.readFile` and stores the **raw bytes** as `content` — unlike `.mdc` rules, which go through `parseMdc()` and get frontmatter split off. Three of the six currently-gated fixtures (`secure.md`, `deploy.md`, `cursor-command-mixed/complex.md`) carry `allowed-tools:` frontmatter. Once the gate is deleted they become ManualPrompts whose content still contains that block, and `formatManualPromptAsSkill()` splices content verbatim after its own frontmatter. Verified empirically against the built `plugin-claude` emit:
+
+```markdown
+---
+name: "secure"
+description: "Invoke with /secure"
+disable-model-invocation: true
+---
+
+---
+allowed-tools: Bash(npm:audit), Read
+---
+
+Perform a security audit of this project.
+```
+
+The emitted skill has a stray YAML block at the top of its body, and `allowed-tools` — a *spec* field — is silently demoted into prose.
+
+**Why this is advisory rather than blocking:** multiple independent sources confirm Cursor commands are plain Markdown with **no frontmatter support** (filename is the command name; the whole file is the prompt). So these fixtures encode input Cursor cannot actually produce — they were written to exercise the gate's `allowedTools` pattern, which was itself modeled on *Claude* command frontmatter. Real-world Cursor commands have no frontmatter, no output is lost (only cosmetically malformed), and no test asserts on this content today.
+
+**This also independently confirms the task's thesis:** the gate's fourth pattern guarded a Cursor capability that does not exist, exactly as `fileRefs: /@\S+/` did.
+
+**Recommended handling during build:** keep the fixtures (they are the regression proof that `allowed-tools:` no longer causes a skip), but do **not** write the planned "content is byte-identical to source" assertion against a frontmatter-bearing command — it would enshrine the malformed emit. Assert byte-identity on the `@mention` fixtures, which is where it actually guards #142. Then file the frontmatter passthrough alongside the Category-B issue in step 10.
+
+### D — Documentation scope was incomplete (fixed in-plan)
+
+Two hand-maintained docs-site pages restate the gate and were not in the plan; step 9 now covers them.
+
+### E — Advisory: two structural notes for later, not this task
+
+- **Four copies of the feature list.** Folded into step 6 as a single exported `NON_SPEC_FEATURES` array — the one amendment made under the plan's own scope.
+- **`plugin-cursor` cannot do spec-compliance detection at all today.** Its `parseSkillFrontmatter()` (lines 283–343) is a hand-rolled regex parser that only recognizes three keys, so it structurally cannot surface unknown frontmatter the way `gray-matter` does. Irrelevant now (Cursor is near-spec), but it is the blocker if detection ever needs to be symmetric. Already tracked as known debt in `techContext.md`.
+
 ## Status
 
 - [x] Component analysis complete
@@ -232,6 +291,6 @@ No new technology — validation not required. Detection uses native `RegExp` an
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
+- [x] Preflight — PASS WITH ADVISORY
 - [ ] Build
 - [ ] QA

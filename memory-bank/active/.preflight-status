@@ -1,0 +1,18 @@
+PASS WITH ADVISORY
+
+Task: issue-142-spec-compliance-gates
+Level: 3
+Date: 2026-07-25
+
+TDD plan encoding: PASS (after amendment — steps 3/4 swapped so the CLI
+integration test inversion precedes the gate deletion).
+Convention compliance: PASS
+Dependency impact: PASS (blast radius fully enumerated; see Finding A)
+Conflict detection: PASS
+Completeness: PASS (after amendment — two docs-site pages added to step 9)
+
+Advisory: Finding C — Cursor commands do not support frontmatter; deleting the
+gate exposes a latent double-frontmatter emit defect on three unrealistic
+fixtures. Non-blocking, handling recorded in tasks.md.
+
+Full findings: memory-bank/active/tasks.md § Preflight Findings
