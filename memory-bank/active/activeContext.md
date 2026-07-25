@@ -38,8 +38,13 @@
   - Step 9 missed two hand-maintained docs-site pages (`docs/plugin-cursor/index.md:37`, `docs/understanding-conversions/index.md:82`).
   - Steps 3/4 swapped so the CLI integration test inversion precedes the gate deletion.
 - Discharged the plan's largest flagged unknown by scripted scan: **no** existing Claude fixture trips the new detector (only the two `hooks:` fixtures match, and both are skipped before detection), and only the two already-named Cursor fixture dirs change item counts.
-- **Advisory (Finding C):** Cursor commands do not support frontmatter, so the gate's `allowed-tools` pattern — like `fileRefs` — guarded a capability Cursor never had. Deleting the gate exposes a latent defect: `discoverCommands()` stores raw bytes (unlike `classifyRule()`, which strips frontmatter), so frontmatter-bearing commands emit a SKILL.md with a stray YAML block in its body. Verified empirically. Non-blocking — only reachable via fixtures encoding impossible input. Build should assert byte-identity on the `@mention` fixtures rather than the frontmatter ones, and file the passthrough with the Category-B issue in step 10.
+- **Finding C — CORRECTED, now blocking on a scope decision (OQ4).** Initially recorded as a non-blocking advisory because the malformed emit looked "only reachable via fixtures encoding input Cursor cannot produce." That reasoning was backwards — it used the artificiality of a16n's own fixtures as evidence about what users can write. Operator challenged it; direct experiment against unmodified `main` disproved it.
+  - Any `.cursor/commands/*.md` whose content begins with a `---` block is **silently corrupted today**, gate in place, zero warnings. The gate never masked this — it only masked the subset that also contained `allowed-tools`/`@`/`$ARGUMENTS`/`` !`cmd` ``.
+  - Likeliest victim is a16n's core user: Claude Code commands *do* support frontmatter, so half-migrated config hits it. A plain markdown thematic break (`---` as a title rule) hits it too.
+  - Survives round-trip unchanged (never self-heals), and `--delete-source` deletes the original — the malformed skill becomes the only artifact.
+  - Root cause is an IR inconsistency a16n owns: `ManualPrompt.content` means "raw bytes" from `discoverCommands()` but "body only" from `classifyRule()`.
+  - Gate removal does not cause this, but widens the aperture. Awaiting operator's OQ4 call before build.
 - One in-scope amendment accepted: export a single `NON_SPEC_FEATURES` array so the feature list is not hand-copied into four drifting places.
 
 ## Next Step
-- Operator input required (Level 3: Preflight PASS → Build is an operator-initiated transition). Run `/niko-build` when ready.
+- **Operator must resolve OQ4** (fix the command-frontmatter passthrough in this task, fix-and-map, or defer). Then run `/niko-build`.

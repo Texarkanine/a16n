@@ -108,6 +108,10 @@ Pinned because it classifies every present and future Claude feature without re-
 - [x] **OQ1 — Body-level detection strategy** → Resolved: frontmatter-gated hybrid; shape-tightened regexes with `$N` gated on an independent argument signal. Fence-stripping rejected as semantically wrong (Claude substitutes inside fences). See `creative-body-feature-detection.md`.
 - [x] **OQ2 — `hooks:` disposition** → Resolved: keep hard `Skipped`, justified by the new fail-closed/fail-open rule. Zero churn to existing hooks tests/docs. See `creative-hooks-disposition.md`.
 - [x] **OQ3 — Warning axis** → Resolved in-plan: axis is non-spec (Category A). Category B filed separately.
+- [ ] **OQ4 — Command frontmatter passthrough** *(raised in preflight, Finding C)* → How should `discoverCommands()` treat a leading `---` block, given `ManualPrompt.content` currently means "raw bytes" there but "body only" everywhere else? Blocks nothing until the operator sets scope. Candidate dispositions:
+    - **Mirror `classifyRule()`**: parse frontmatter out, body into `content`, keys into `metadata`. Consistent with the rest of the plugin; the keys are then dropped on emit (a Category-B loss, already a filed concern).
+    - **Mirror and map**: as above, but let a command's own `description:` become the emitted skill's description instead of the synthesized `"Invoke with /name"`. Better fidelity, but changes emit behavior beyond this task's stated surface.
+    - **Defer**: file separately and ship the gate removal alone. Cheapest, but knowingly widens exposure to a live corruption path.
 
 ## Test Plan (TDD)
 
@@ -248,31 +252,52 @@ The plan's mitigation "grep for warning-count assertions across `packages/cli/te
 
 Step 4 (invert the CLI integration test) originally came after step 3 (delete the gate), which would have meant repairing a test after the implementation broke it. Steps swapped so both test steps precede the deletion.
 
-### C — Cursor commands do not support frontmatter, and the gate deletion exposes a latent emit defect *(advisory — not blocking)*
+### C — Commands whose content starts with `---` silently emit a malformed skill *(live defect on `main`; scope decision required)*
 
-`discoverCommands()` reads command files with `fs.readFile` and stores the **raw bytes** as `content` — unlike `.mdc` rules, which go through `parseMdc()` and get frontmatter split off. Three of the six currently-gated fixtures (`secure.md`, `deploy.md`, `cursor-command-mixed/complex.md`) carry `allowed-tools:` frontmatter. Once the gate is deleted they become ManualPrompts whose content still contains that block, and `formatManualPromptAsSkill()` splices content verbatim after its own frontmatter. Verified empirically against the built `plugin-claude` emit:
+**This finding was initially recorded as a non-blocking advisory on the grounds that it was "only reachable through fixtures encoding input Cursor cannot produce." That was wrong, and the reasoning was backwards** — it used the artificiality of a16n's *own test fixtures* as evidence about what *users* can write. A human can put any bytes in `.cursor/commands/*.md`. Corrected by direct experiment against unmodified `main`:
+
+**The defect is live today, with the gate fully in place, and produces zero warnings.** The gate never masked it. The gate only masked the subset of frontmatter-bearing commands that *also* contained `allowed-tools`, `@`, `$ARGUMENTS`, or `` !`cmd` ``. This command trips none of those patterns and is silently corrupted right now:
 
 ```markdown
 ---
-name: "secure"
-description: "Invoke with /secure"
+description: Review a pull request
+model: claude-sonnet-4
+---
+
+Review this pull request.
+```
+
+becomes `.claude/skills/pr/SKILL.md`:
+
+```markdown
+---
+name: "pr"
+description: "Invoke with /pr"
 disable-model-invocation: true
 ---
 
 ---
-allowed-tools: Bash(npm:audit), Read
+description: Review a pull request
+model: claude-sonnet-4
 ---
 
-Perform a security audit of this project.
+Review this pull request.
 ```
 
-The emitted skill has a stray YAML block at the top of its body, and `allowed-tools` — a *spec* field — is silently demoted into prose.
+**Root cause is an IR inconsistency a16n owns.** `ManualPrompt.content` means two different things depending on which function produced it: `classifyRule()` runs `.mdc` through `parseMdc()` and stores only the **body**, with frontmatter in `metadata`; `discoverCommands()` stores **raw bytes**. `formatManualPromptAsSkill()` then splices content verbatim after its own frontmatter. Nothing about this is Cursor's behavior or the fixtures' fault.
 
-**Why this is advisory rather than blocking:** multiple independent sources confirm Cursor commands are plain Markdown with **no frontmatter support** (filename is the command name; the whole file is the prompt). So these fixtures encode input Cursor cannot actually produce — they were written to exercise the gate's `allowedTools` pattern, which was itself modeled on *Claude* command frontmatter. Real-world Cursor commands have no frontmatter, no output is lost (only cosmetically malformed), and no test asserts on this content today.
+**Reachability (all verified):**
 
-**This also independently confirms the task's thesis:** the gate's fourth pattern guarded a Cursor capability that does not exist, exactly as `fileRefs: /@\S+/` did.
+- **The likeliest victim is a16n's core user.** Claude Code commands *do* support frontmatter (`description`, `argument-hint`, `model`, `allowed-tools`). Anyone with half-migrated config — precisely the person this tool exists for — hits it.
+- **Plain markdown triggers it too.** A file opening with `---` used as a thematic break is corrupted identically. That is valid markdown, not a mistake.
+- **It survives round-trip and is permanent.** claude→cursor re-discovery reads the stray block as body text and re-emits it unchanged. It stabilizes rather than compounding, so it never self-heals either.
+- **`--delete-source` makes it unrecoverable.** `handleDeleteSource()` (`packages/cli/src/commands/convert.ts:502`) deletes any source that produced a written file and is not named in a `Skipped` warning. This case produces a file and zero warnings, so the original command is deleted and the malformed skill becomes the only surviving artifact.
 
-**Recommended handling during build:** keep the fixtures (they are the regression proof that `allowed-tools:` no longer causes a skip), but do **not** write the planned "content is byte-identical to source" assertion against a frontmatter-bearing command — it would enshrine the malformed emit. Assert byte-identity on the `@mention` fixtures, which is where it actually guards #142. Then file the frontmatter passthrough alongside the Category-B issue in step 10.
+**Relationship to this task:** gate removal does not *cause* this, but it widens the aperture — every `allowed-tools`-bearing command currently skipped starts flowing down the corrupting path. Shipping the gate removal alone increases exposure to a live silent-corruption bug.
+
+**Still true and still confirming the thesis:** Cursor commands genuinely do not *support* frontmatter (filename is the command name, whole file is the prompt), so the gate's `allowed-tools` pattern guarded a Cursor capability that does not exist — exactly as `fileRefs: /@\S+/` did. Two of the four gate patterns were checking for *Claude* features on the *Cursor* side.
+
+**Open scope decision (see OQ4).**
 
 ### D — Documentation scope was incomplete (fixed in-plan)
 

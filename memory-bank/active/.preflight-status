@@ -1,18 +1,26 @@
-PASS WITH ADVISORY
+HOLD - PASS WITH ADVISORY, PENDING OQ4 SCOPE DECISION
 
 Task: issue-142-spec-compliance-gates
 Level: 3
-Date: 2026-07-25
+Date: 2026-07-25 (revised)
 
 TDD plan encoding: PASS (after amendment — steps 3/4 swapped so the CLI
 integration test inversion precedes the gate deletion).
 Convention compliance: PASS
 Dependency impact: PASS (blast radius fully enumerated; see Finding A)
 Conflict detection: PASS
-Completeness: PASS (after amendment — two docs-site pages added to step 9)
+Completeness: HOLD — see Finding C / OQ4.
 
-Advisory: Finding C — Cursor commands do not support frontmatter; deleting the
-gate exposes a latent double-frontmatter emit defect on three unrealistic
-fixtures. Non-blocking, handling recorded in tasks.md.
+Finding C was first recorded as a non-blocking advisory on the mistaken
+grounds that the malformed emit was only reachable via unrealistic
+fixtures. Direct experiment against unmodified main disproved that: any
+.cursor/commands/*.md whose content begins with a `---` block is
+silently corrupted today, gate in place, zero warnings, and
+--delete-source makes it unrecoverable. Root cause is an a16n IR
+inconsistency (ManualPrompt.content means "raw bytes" from
+discoverCommands() but "body only" from classifyRule()).
+
+Gate removal does not cause this but widens the aperture. Operator must
+resolve OQ4 (fix in-task vs. defer) before build starts.
 
 Full findings: memory-bank/active/tasks.md § Preflight Findings
