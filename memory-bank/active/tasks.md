@@ -192,17 +192,17 @@ Pinned because it classifies every present and future Claude feature without re-
 
 ## Implementation Plan
 
-1. **Add #142 regression fixture** (test-only, proves the bug)
+1. ✅ **Add #142 regression fixture** (test-only, proves the bug)
     - Files: `packages/plugin-cursor/test/fixtures/cursor-command-mentions/from-cursor/.cursor/commands/{pr-feedback-judge.md,coderabbit-pr.md}`
     - Changes: reduced excerpts from the issue — `by @author`, `| @reviewer |` table cells, and `gh pr comment <n> --body "@coderabbitai review"`.
-2. **Write failing cursor tests**
+2. ✅ **Write failing cursor tests**
     - Files: `packages/plugin-cursor/test/discover-commands.test.ts`, `packages/plugin-cursor/test/mdc.test.ts` *(preflight-verified: both already exist; `hasFrontmatterBlock()` unit cases belong in the latter, alongside the existing `parseMdc` coverage)*
     - Changes: replace `describe('complex commands (skipped)')` with `describe('commands with runtime features (discovered)')`; add `describe('@mention false positives (#142)')`; add `describe('command frontmatter advisory (OQ4)')`; update mixed-fixture count 1 → 2; add content-fidelity assertions throughout; unit-test `hasFrontmatterBlock()` including the thematic-break negatives.
     - Add a Claude-migrated command to the `cursor-command-mentions/` fixture (or a sibling) reproducing the Finding C case.
-3. **Invert the CLI integration test** *(test-first: must fail before step 4)*
+3. ✅ **Invert the CLI integration test** *(test-first: must fail before step 4)*
     - Files: `packages/cli/test/integration/integration-commands.test.ts`
     - Changes: rewrite `cursor-command-complex-skipped` (lines 64–94) → `cursor-command-with-runtime-features-converts`; assert 1 ManualPrompt and no skip warning.
-4. **Delete the gate and add the frontmatter advisory** *(makes steps 2 and 3 pass)*
+4. ✅ **Delete the gate and add the frontmatter advisory** *(makes steps 2 and 3 pass)*
     - Files: `packages/plugin-cursor/src/discover.ts`, `packages/plugin-cursor/src/mdc.ts`
     - Changes: remove `COMPLEX_COMMAND_PATTERNS` (lines 147–156) and `isComplexCommand()` (162–179); drop the `isComplex` branch in `discoverCommands()` (234–245); update the `discoverCommands()` doc comment, which still says "Complex commands → Skip with warning" (line 211).
     - **OQ4 — add the courtesy advisory.** Export `hasFrontmatterBlock(content: string): boolean` from `mdc.ts` (parsing utilities already live there). A command has a frontmatter block when **all three** hold, which keeps thematic breaks out:

@@ -18,7 +18,7 @@ import {
   resolveRoot,
   CURRENT_IR_VERSION,
 } from '@a16njs/models';
-import { parseMdc, type MdcFrontmatter } from './mdc.js';
+import { hasFrontmatterBlock, parseMdc, type MdcFrontmatter } from './mdc.js';
 
 /**
  * Recursively find all .mdc files in a directory and its subdirectories.
@@ -142,43 +142,6 @@ function classifyRule(
 }
 
 /**
- * Patterns for detecting complex command features that cannot be converted to Claude.
- */
-const COMPLEX_COMMAND_PATTERNS = {
-  /** $ARGUMENTS or positional parameters like $1, $2, etc. */
-  arguments: /\$ARGUMENTS|\$[1-9]/,
-  /** Bash execution syntax: !`command` */
-  bashExecution: /!\s*`[^`]+`/,
-  /** File references like @src/utils.js */
-  fileRefs: /@\S+/,
-  /** allowed-tools in YAML frontmatter */
-  allowedTools: /^---[\s\S]*?allowed-tools:/m,
-};
-
-/**
- * Check if a command contains complex features that cannot be converted.
- * Returns an object with isComplex flag and list of reasons.
- */
-function isComplexCommand(content: string): { isComplex: boolean; reasons: string[] } {
-  const reasons: string[] = [];
-
-  if (COMPLEX_COMMAND_PATTERNS.arguments.test(content)) {
-    reasons.push('$ARGUMENTS or positional parameters');
-  }
-  if (COMPLEX_COMMAND_PATTERNS.bashExecution.test(content)) {
-    reasons.push('bash execution (!)');
-  }
-  if (COMPLEX_COMMAND_PATTERNS.fileRefs.test(content)) {
-    reasons.push('file references (@)');
-  }
-  if (COMPLEX_COMMAND_PATTERNS.allowedTools.test(content)) {
-    reasons.push('allowed-tools frontmatter');
-  }
-
-  return { isComplex: reasons.length > 0, reasons };
-}
-
-/**
  * Recursively find all .md files in .cursor/commands/ directory.
  * Returns paths relative to commandsDir (e.g., "frontend/component.md").
  */
@@ -207,8 +170,8 @@ async function findCommandFiles(commandsDir: string, relativePath: string = ''):
 
 /**
  * Discover commands from .cursor/commands/**\/*.md
- * - Simple commands → ManualPrompt
- * - Complex commands → Skip with warning
+ * - Every command → ManualPrompt, content stored as raw bytes
+ * - Commands opening with a frontmatter block → advisory warning
  *
  * NON-ROUNDTRIP NOTE: Commands are discovered for legacy support only.
  * The emit side now produces Agent Skills (disable-model-invocation) instead of
@@ -230,24 +193,22 @@ async function discoverCommands(root: string): Promise<{
     const content = await fs.readFile(filePath, 'utf-8');
     const sourcePath = `.cursor/commands/${file}`;
 
-    // Check for complex features
-    const { isComplex, reasons } = isComplexCommand(content);
-
-    if (isComplex) {
-      // Extract prompt name for warning message
-      const promptName = nodePath.basename(file, '.md');
-      warnings.push({
-        code: WarningCode.Skipped,
-        message: `Skipped command '${promptName}': Contains ${reasons.join(', ')} (not convertible to Claude)`,
-        sources: [sourcePath],
-      });
-      continue;
-    }
-
-    // Simple command - create ManualPrompt
     // Preserve directory nesting via relativeDir to avoid name collisions
     // e.g., "foo/bar/baz.md" → promptName: "baz", relativeDir: "foo/bar"
     const promptName = nodePath.basename(file, '.md');
+
+    // Cursor commands have no frontmatter concept: the filename is the command
+    // name and the whole file is the prompt. A leading `---` block is therefore
+    // content the author wrote, not configuration we can act on — so it is kept
+    // verbatim and reported once rather than stripped or silently passed through.
+    if (hasFrontmatterBlock(content)) {
+      warnings.push({
+        code: WarningCode.Approximated,
+        message: `Command '${promptName}': Cursor commands do not support frontmatter; the leading block is preserved as body content`,
+        sources: [sourcePath],
+      });
+    }
+
     const dir = nodePath.dirname(file);
     const relativeDir = dir === '.' ? undefined : dir.split(nodePath.sep).join('/');
     items.push({

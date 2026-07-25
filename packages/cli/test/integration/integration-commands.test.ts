@@ -61,35 +61,66 @@ describe('Integration Tests - ManualPrompt (Commands)', () => {
     });
   });
 
-  describe('cursor-command-complex-skipped', () => {
-    it('should skip complex commands and emit warning', async () => {
-      // Create a fixture with complex commands
+  describe('cursor-command-with-runtime-features-converts', () => {
+    it('should convert a command using $ARGUMENTS instead of skipping it', async () => {
       await fs.mkdir(path.join(tempDir, '.cursor', 'commands'), { recursive: true });
-      
-      // Complex command with $ARGUMENTS
+
       await fs.writeFile(
         path.join(tempDir, '.cursor', 'commands', 'fix-issue.md'),
         'Fix issue #$ARGUMENTS following best practices.',
         'utf-8'
       );
-      
-      // Run conversion
+
       const result = await engine.convert({
         source: 'cursor',
         target: 'claude',
         root: tempDir,
       });
-      
-      // No commands should be discovered (complex is skipped)
+
       const manualPrompts = result.discovered.filter(d => d.type === 'manual-prompt');
-      expect(manualPrompts).toHaveLength(0);
-      
-      // Should have a skipped warning
-      const skippedWarning = result.warnings.find(
-        w => w.code === 'skipped' && w.message.includes('fix-issue')
+      expect(manualPrompts).toHaveLength(1);
+
+      expect(result.warnings.filter(w => w.code === 'skipped')).toHaveLength(0);
+
+      const skillContent = await fs.readFile(
+        path.join(tempDir, '.claude', 'skills', 'fix-issue', 'SKILL.md'),
+        'utf-8'
       );
-      expect(skippedWarning).toBeDefined();
-      expect(skippedWarning?.message).toContain('$ARGUMENTS');
+      expect(skillContent).toContain('$ARGUMENTS');
+    });
+
+    it('should preserve command frontmatter as body content and warn once', async () => {
+      await fs.mkdir(path.join(tempDir, '.cursor', 'commands'), { recursive: true });
+
+      const commandContent = `---
+description: Review a pull request
+model: claude-sonnet-4
+---
+
+Review this pull request.
+`;
+      await fs.writeFile(
+        path.join(tempDir, '.cursor', 'commands', 'pr.md'),
+        commandContent,
+        'utf-8'
+      );
+
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+
+      const advisories = result.warnings.filter(w => w.code === 'approximated');
+      expect(advisories).toHaveLength(1);
+      expect(advisories[0]?.message).toContain('pr');
+
+      // The user's original block survives verbatim in the emitted body.
+      const skillContent = await fs.readFile(
+        path.join(tempDir, '.claude', 'skills', 'pr', 'SKILL.md'),
+        'utf-8'
+      );
+      expect(skillContent).toContain(commandContent.trim());
     });
   });
 
