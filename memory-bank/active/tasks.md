@@ -231,15 +231,15 @@ Pinned because it classifies every present and future Claude feature without re-
     - **Preflight correction — warning placement.** "After the `hooks:` skip" is not precise enough: three later branches also `continue` without producing an item (invalid frontmatter, resource files without a description, missing description). Emitting the advisory immediately after the hooks skip would give those skills both a `Skipped` and an `Approximated` warning. The `Approximated` warning must be pushed **only when an item is actually added** to `items`. Pin this with a test: a description-less skill yields exactly one `Skipped` and zero `Approximated`.
     - Add the disposition-rule comment above the hooks skip.
     - Creative ref: `creative-hooks-disposition.md`
-9. **Documentation**
+9. ✅ **Documentation**
     - Files: `packages/plugin-cursor/README.md` (lines 42–56), `packages/plugin-claude/README.md`, `packages/docs/docs/plugin-cursor/index.md` (line 37), `packages/docs/docs/understanding-conversions/index.md` (line 82), `memory-bank/systemPatterns.md`
     - Changes: delete the cursor "Complex commands" table and explain that all commands convert; document the new OQ4 frontmatter advisory (Cursor commands do not support frontmatter, so a leading `---` block is carried through as body content and flagged once); document the Claude spec-compliance advisory and its feature list; add the disposition rule to the warn-and-continue section of `systemPatterns.md`.
     - **OQ4 note for `systemPatterns.md`:** the two advisories added by this task share one shape worth naming in the warn-and-continue section — *content the source harness cannot act on semantically is preserved verbatim and reported once, never stripped and never silently passed through.* The Cursor advisory is keyed to what Cursor supports; the Claude one to what the spec supports.
     - **Preflight addition — two docs-site files the plan missed.** `packages/docs/docs/plugin-cursor/index.md:37` ("Complex Commands (placeholders, $ARGUMENTS, $1, etc.): Skipped") and the "What Gets Skipped" row at `packages/docs/docs/understanding-conversions/index.md:82` ("Complex Commands | Cursor | Claude | `$ARGUMENTS`, `!`, and `allowed-tools` have no equivalent"). These are hand-maintained user-facing pages, not generated. Delete the skipped-row and add a corresponding row to the **"What Gets Approximated"** table (line 70) for the new Claude spec-compliance advisory.
-10. **File the Category-B follow-up issue**
+10. ✅ **File the Category-B follow-up issue**
     - Changes: `gh issue create` describing spec-compliant fields (`allowed-tools`, `license`, `compatibility`) that a16n's IR silently drops.
     - **Also worth filing separately (preflight):** `--delete-source` derives its safety entirely from `Skipped` warnings (`handleDeleteSource()`, `packages/cli/src/commands/convert.ts:531`), so any path that degrades content *without* warning is invisible to it and its source gets deleted anyway. Finding C was exactly that shape before OQ4. Propose treating `Approximated` as delete-blocking too, or stating the invariant explicitly.
-11. **Full verification**
+11. ✅ **Full verification**
     - Changes: `pnpm build && pnpm test && pnpm lint && pnpm typecheck`.
 
 ## Technology Validation
@@ -342,5 +342,5 @@ Two hand-maintained docs-site pages restate the gate and were not in the plan; s
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
 - [x] Preflight — PASS (OQ4 resolved; plan amended)
-- [ ] Build
+- [x] Build
 - [ ] QA

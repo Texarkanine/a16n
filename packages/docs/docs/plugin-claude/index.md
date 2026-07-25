@@ -34,6 +34,7 @@ npm install @a16njs/plugin-claude
 		* `description:` present → [AgentSkillIO](/models#agentskillio)
 		* `description:` missing → Skipped w/ Warning
 	* **Skills with hooks** → Skipped w/ Warning (skill hooks are unique to Claude Code & can't translate, but also [hooks can't translate](../understanding-conversions/hooks))
+	* **Skills using non-spec Claude features** → Discovered, content preserved, warned w/ `approximated` (`$ARGUMENTS`, `$1`, `` !`cmd` ``, `${CLAUDE_*}`, `@path`, and frontmatter keys like `model:` or `argument-hint:` are outside the [AgentSkills.io spec](https://agentskills.io/specification), so their runtime behavior is lost)
 * [Claude Settings](https://docs.anthropic.com/en/docs/claude-code/settings): `.claude/settings.json`
 	* `permissions.deny` with `Read()`: [AgentIgnore](/models#agentignore)
 	* Other permission types: Skipped

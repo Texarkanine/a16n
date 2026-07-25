@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: issue-142-spec-compliance-gates
-**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
 - Pre-verified issue #142's premise against current primary sources instead of taking it at face value. Result: the premise inverts.
@@ -54,5 +54,27 @@
   - **The bug was never the passthrough; it was the silence.**
 - One in-scope amendment accepted: export a single `NON_SPEC_FEATURES` array so the feature list is not hand-copied into four drifting places.
 
+## Build Phase Outcome
+- All 11 implementation steps complete, built to plan. Full suite green: **1042 tests**, zero failures. `pnpm build`, `pnpm typecheck` pass. (`pnpm lint` is a no-op in this repo — no package defines a `lint` task.)
+- Two commits, one per half:
+  - `ce21f318 fix(plugin-cursor): discover all commands, warn on frontmatter passthrough`
+  - `5b46f4ab feat(plugin-claude): warn when a skill uses non-spec features`
+- **Files created:** `packages/plugin-claude/src/spec-compliance.ts`, `packages/plugin-claude/test/{spec-compliance,discover-spec-compliance}.test.ts`, fixtures `cursor-command-mentions/` (2 commands) and `claude-skills-nonspec/` (3 skills).
+- **Files modified:** `plugin-cursor/src/{discover,mdc}.ts`, `plugin-cursor/test/{discover-commands,mdc}.test.ts`, `plugin-claude/src/discover.ts`, `cli/test/integration/integration-commands.test.ts`, four docs files, `systemPatterns.md`.
+- **Fixture renamed:** `cursor-command-complex/` → `cursor-command-runtime-features/` (the name no longer described anything complex).
+- Blast-radius prediction from preflight Finding A held exactly: **zero churn to any pre-existing assertion** outside the three files the plan named. No existing Claude fixture newly warns.
+
+## Build Implementation Decisions
+- **"An item was produced" implemented as a watermark**, not a branch restructure: `const itemsBefore = items.length` before the classification chain, `if (items.length > itemsBefore)` after it. Smallest diff that satisfies the preflight correction, and it stays correct if further `continue` branches are added later.
+- **`hasFrontmatterBlock()` is 6 lines** over `content.split('\n')` — first non-empty line is `---`, some later line is `---`, at least one line between matches `/^[A-Za-z_][\w-]*\s*:/`. No YAML parse, matching the plan's three-condition rule verbatim.
+- **`NON_SPEC_FEATURES` is derived, not hand-listed twice**: the nine frontmatter keys are spread from one array via `.map()`, so key list and label list cannot drift. The detector reads `feature.id in frontmatter` as its fallback predicate, so adding a key to that array is the only edit needed to support it.
+- **`@path` regex terminates the extension with a lookahead** (`\S+\.[A-Za-z0-9]{1,4}(?=[\s.,;:!?)\]]|$)`) rather than consuming trailing punctuation, so `@src/utils.js.` at end of sentence still matches.
+- **Advisory label style is the literal syntax** (`argument-hint:`, `$ARGUMENTS`, `` !`cmd` bash injection ``) so the warning names what the user can grep for in their own file.
+
+## Deviations from Plan
+- **Claude-migrated command fixture placement.** Step 2 said "add to `cursor-command-mentions/` (or a sibling)". Put `pr.md` in `cursor-command-runtime-features/` instead, keeping `cursor-command-mentions/` a pure zero-warning #142 regression — a fixture that asserts `warnings).toHaveLength(0)` at whole-fixture granularity is a stronger statement than one scoped per source path.
+- **One extra docs file.** Also updated `packages/docs/docs/plugin-claude/index.md`, which enumerates Claude discovery dispositions and would otherwise have been the only page not mentioning the new advisory. Step 9 listed four files; this is a fifth of the same kind.
+- **Two issues filed, not one.** Step 10 called for the Category-B issue plus a separate `--delete-source` filing: [#143](https://github.com/Texarkanine/a16n/issues/143) (spec-compliant fields dropped by the IR) and [#144](https://github.com/Texarkanine/a16n/issues/144) (`--delete-source` safety rests entirely on `Skipped`).
+
 ## Next Step
-- Preflight **PASS**, OQ4 resolved and folded into the plan (steps 2, 4, 9, 10 amended). Run `/niko-build` when ready.
+- Build **COMPLETE**. QA review runs next (`/niko-qa`).
