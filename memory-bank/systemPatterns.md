@@ -58,6 +58,8 @@ The system fails fast on invalid input (bad syntax, missing required fields) but
 
 **Preserve and report, never strip.** Content the source harness cannot act on semantically still belongs to the author, so it is carried through verbatim and reported exactly once. Two ingest advisories share this shape: `plugin-cursor` warns when a command opens with a `---` block (Cursor commands have no frontmatter), and `plugin-claude` warns when a skill uses features outside the AgentSkills.io spec. The Cursor advisory is keyed to what Cursor supports; the Claude one to what the spec supports. Neither mutates content.
 
+**Report the loss, do not inventory the instances.** a16n's job is to convert faithfully and be honest about when it cannot — not to lint the author's files. A warning names *what will not survive*; it does not enumerate every construct in the body that depends on it. Concretely: **every detector must be able to raise a warning on its own.** One that can only fire alongside another is re-reporting a loss already reported, and does not belong. `plugin-claude`'s `spec-compliance.ts` pins this by asserting each feature's positive case yields exactly one label.
+
 **Skipped vs. Approximated is a safety question, not a severity one.** Loss that silently removes a restriction the author specified fails closed (`Skipped`); loss that visibly breaks a substitution fails open (`Approximated`). A dropped `$ARGUMENTS` leaves a self-evidently broken body; a dropped `hooks:` block leaves a clean-looking skill that still claims to enforce checks it no longer enforces. `hooks:` is currently the only fail-closed case.
 
 ## Test File Organization

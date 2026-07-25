@@ -51,13 +51,15 @@ a16n's IR is shaped after the [AgentSkills.io specification](https://agentskills
 | Category | Features |
 |----------|----------|
 | Frontmatter keys | `argument-hint:`, `arguments:`, `model:`, `effort:`, `context:`, `agent:`, `shell:`, `disallowed-tools:`, `user-invocable:` |
-| Body substitutions | `$ARGUMENTS`, `$1` positionals, `$name` named arguments, `` !`cmd` `` bash injection, `${CLAUDE_*}` variables, `@path` file includes |
+| Body substitutions | `$ARGUMENTS`, `` !`cmd` `` bash injection, `${CLAUDE_*}` variables, `@path` file includes |
 
 `hooks:` is deliberately absent from that list: it is skipped outright rather than advised. Losing a substitution leaves visibly broken output, but losing a `PreToolUse` hook leaves a clean-looking skill that no longer enforces what it claims to. Restriction-removing loss fails closed; substitution-breaking loss fails open.
 
 `paths:` and `disable-model-invocation:` are also non-spec, but a16n models them natively, so they convert without a warning.
 
-Detection is conservative where Claude syntax collides with ordinary shell or prose. `$1` is reported only when the skill declares arguments elsewhere (so `awk '{print $1}'` stays silent), and `@` references need path shape (so `@reviewer` and `@scope/pkg` stay silent). The tradeoff is a known false negative on extensionless references like `@src/utils`, which are lexically identical to a scoped package name.
+`$1` positionals and `$name` named arguments are absent for a different reason: neither can appear in a skill that is not already warned about by `$ARGUMENTS`, `arguments:`, or `argument-hint:`. Reporting a loss is this warning's job; listing every construct in your body that depends on that loss would be linting your file. So the advisory names what will not survive, once.
+
+Detection is otherwise conservative where Claude syntax collides with ordinary shell or prose: `@` references need path shape, so `@reviewer` and `@scope/pkg` stay silent. The tradeoff is a known false negative on extensionless references like `@src/utils`, which are lexically identical to a scoped package name.
 
 ### Emission
 

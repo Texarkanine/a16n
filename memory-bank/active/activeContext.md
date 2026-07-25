@@ -76,5 +76,19 @@
 - **One extra docs file.** Also updated `packages/docs/docs/plugin-claude/index.md`, which enumerates Claude discovery dispositions and would otherwise have been the only page not mentioning the new advisory. Step 9 listed four files; this is a fifth of the same kind.
 - **Two issues filed, not one.** Step 10 called for the Category-B issue plus a separate `--delete-source` filing: [#143](https://github.com/Texarkanine/a16n/issues/143) (spec-compliant fields dropped by the IR) and [#144](https://github.com/Texarkanine/a16n/issues/144) (`--delete-source` safety rests entirely on `Skipped`).
 
+## QA Phase Outcome
+- **PASS.** Full pipeline re-run independently at QA time: 1042 tests green, `pnpm build` + `pnpm typecheck` clean, `pnpm lint` confirmed vacuous (Turbo runs zero tasks).
+- **One fix applied:** positional-argument pattern `/\$[0-9]/` → `/\$[1-9]/` in `spec-compliance.ts`. `$0` is not a Claude positional; the feature's own label reads "$1 positional arguments" and the deleted gate used `[1-9]`.
+- **`named-arguments` trimmed on operator decision.** Proven empirically that it never fires without `arguments:` also firing. Removed the feature, `declaredArgumentNames()`, its test case, and the README cell. Suite 1042 → 1041, warning counts unchanged on every input.
+- **One observation left open:** `techContext.md`'s "Full validation" line lists `pnpm lint`, which runs nothing. Pre-existing, out of scope.
+- **`positional-arguments` trimmed on the generalized rule.** I argued to keep its `argument-hint:`-gated path; operator overruled. Removed the feature, its gate, and `declaresArguments`.
+- **Rule made self-enforcing:** per-feature test assertion tightened from `toContain(label)` to `toEqual([label])`, so a detector that cannot warn on its own now fails CI the day it is added.
+- **Net:** `NON_SPEC_FEATURES` 15 → 13, suite 1042 → 1038, warning counts unchanged on every possible input.
+
+## Operator Decisions (QA)
+- **"Our job is not to lint people's files. Our job is to faithfully convert them and be honest about WHEN we cannot."** Resolved the `named-arguments` scope question and generalized past it.
+- **"Detectors that can't fire alone get cut; we keep only the top-level detectors we need so that we DO emit a warning when something that should warn, happens."** The operational form of the above, and the one that decided `positional-arguments` against my recommendation to keep half of it. Recorded in the warn-and-continue section of `systemPatterns.md` and enforced by test.
+- **Clean on every other axis:** no orphaned gate references in source/tests/fixtures/docs, no TODOs or debug artifacts, docs complete across five surfaces, `plugin-claude/README.md` feature table matches `NON_SPEC_FEATURES` exactly.
+
 ## Next Step
-- Build **COMPLETE**. QA review runs next (`/niko-qa`).
+- QA **PASSED**. Reflection runs next (`/niko-reflect`).

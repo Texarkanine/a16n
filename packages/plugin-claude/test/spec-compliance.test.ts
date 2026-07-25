@@ -9,7 +9,8 @@ function labelFor(id: string): string {
 }
 
 /**
- * One positive case per exported feature.
+ * One positive case per exported feature, each of which must produce that
+ * feature's label and nothing else.
  *
  * Keyed by feature id so a coverage test can assert this table and
  * NON_SPEC_FEATURES never drift apart.
@@ -25,14 +26,6 @@ const POSITIVE_CASES: Record<string, { frontmatter?: Record<string, unknown>; bo
   'disallowed-tools': { frontmatter: { 'disallowed-tools': 'Bash' } },
   'user-invocable': { frontmatter: { 'user-invocable': true } },
   'arguments-substitution': { body: 'Fix issue $ARGUMENTS then report back.' },
-  'positional-arguments': {
-    frontmatter: { 'argument-hint': '<pr>' },
-    body: 'Review PR $1 for correctness.',
-  },
-  'named-arguments': {
-    frontmatter: { arguments: [{ name: 'pr' }] },
-    body: 'Review PR $pr for correctness.',
-  },
   'bash-injection': { body: '- Current diff: !`gh pr diff`' },
   'claude-variables': { body: 'See ${CLAUDE_SKILL_DIR}/references/guide.md' },
   'path-includes': { body: 'Read @src/utils.js before editing.' },
@@ -65,9 +58,12 @@ describe('detectNonSpecFeatures', () => {
   });
 
   describe('positive detection', () => {
-    it.each(Object.keys(POSITIVE_CASES))('should detect %s', id => {
+    // Asserting the exact array, not `toContain`, is what pins the module's
+    // fire-alone rule: a feature that cannot warn by itself only ever repeats
+    // a loss another feature already reported, and does not belong in the list.
+    it.each(Object.keys(POSITIVE_CASES))('should detect %s, and nothing else', id => {
       const { frontmatter = {}, body = '' } = POSITIVE_CASES[id]!;
-      expect(detectNonSpecFeatures(frontmatter, body)).toContain(labelFor(id));
+      expect(detectNonSpecFeatures(frontmatter, body)).toEqual([labelFor(id)]);
     });
 
     it('should have a positive case for every exported feature', () => {
@@ -114,24 +110,14 @@ describe('detectNonSpecFeatures', () => {
       expect(detectNonSpecFeatures({}, 'Install @modelcontextprotocol/sdk first.')).toEqual([]);
     });
 
-    it('should not report $1 when the skill declares no arguments', () => {
-      expect(detectNonSpecFeatures({}, "Run awk '{print $1}' on the output.")).toEqual([]);
-    });
-
     it('should not report literal-preserved KEY=!`cmd` assignments', () => {
       expect(detectNonSpecFeatures({}, 'BRANCH=!`git branch --show-current`')).toEqual([]);
     });
-  });
 
-  describe('$N gating', () => {
-    it('should report $1 when frontmatter declares argument-hint', () => {
-      const result = detectNonSpecFeatures({ 'argument-hint': '<n>' }, "awk '{print $1}'");
-      expect(result).toContain(labelFor('positional-arguments'));
-    });
-
-    it('should report $1 when the body also uses $ARGUMENTS', () => {
-      const result = detectNonSpecFeatures({}, 'Target $ARGUMENTS, starting with $1.');
-      expect(result).toContain(labelFor('positional-arguments'));
+    it('should not report positional $1, which never warrants its own warning', () => {
+      expect(detectNonSpecFeatures({ 'argument-hint': '<n>' }, "awk '{print $1}'")).toEqual([
+        labelFor('argument-hint'),
+      ]);
     });
   });
 
@@ -146,7 +132,6 @@ describe('detectNonSpecFeatures', () => {
         labelFor('argument-hint'),
         labelFor('model'),
         labelFor('arguments-substitution'),
-        labelFor('positional-arguments'),
         labelFor('bash-injection'),
       ]);
     });

@@ -67,11 +67,11 @@ The [AGENTS.md standard](https://agents.md/) supports only two of these concepts
 
 Some features exist in both ecosystems but behave slightly differently. In these cases a16n chooses the closest equivalent and warns you.
 
-| Feature              | From   | To    | Behavior                                                                          |
-| -------------------- | ------ | ----- | --------------------------------------------------------------------------------- |
-| Ignore patterns      | Cursor | Claude | ≈ Converted to read-deny permissions                                              |
-| Command frontmatter  | Cursor | Any   | ≈ Preserved as body content (Cursor commands have no frontmatter)                  |
-| Non-spec skill features | Claude | Any | ≈ Content preserved, runtime behavior not (`$ARGUMENTS`, `` !`cmd` ``, `model:`, …) |
+| Feature                 | From   | To     | Behavior                                                                            |
+| ----------------------- | ------ | ------ | ----------------------------------------------------------------------------------- |
+| Ignore patterns         | Cursor | Claude | ≈ Converted to read-deny permissions                                                |
+| Command frontmatter     | Cursor | Any    | ≈ Preserved as body content (Cursor commands have no frontmatter)                   |
+| Non-spec skill features | Claude | Any    | ≈ Content preserved, runtime behavior not (`$ARGUMENTS`, `` !`cmd` ``, `model:`, …) |
 
 Approximate translations are chosen to keep **agent behavior as close as possible** to the original configuration.
 
