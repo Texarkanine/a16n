@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: issue-142-spec-compliance-gates
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
 - Pre-verified issue #142's premise against current primary sources instead of taking it at face value. Result: the premise inverts.
@@ -22,5 +22,13 @@
 - **Granularity:** one warning per skill listing all detected features (not one per feature).
 - **Issue #142:** post the spec research as a comment before/alongside the work.
 
+## Plan Phase Outcome
+- Posted the spec research to issue #142 ([comment](https://github.com/Texarkanine/a16n/issues/142#issuecomment-5080265945)).
+- Component analysis: 10 affected files across `plugin-cursor`, `plugin-claude`, `cli`, and docs. No `A16nPlugin` interface change; the blast radius is the observable warning surface.
+- Discovered a **third fidelity category** the operator's framing did not cover: spec-compliant fields (`allowed-tools`, `license`, `compatibility`) that a16n's IR silently drops anyway. Scoped **out** (OQ3) as a distinct defect; filing a separate issue is an explicit plan deliverable.
+- **OQ1 resolved** (`creative-body-feature-detection.md`): frontmatter-gated hybrid detection. Two findings drove it — Claude does *not* exempt fenced code blocks from substitution, so fence-stripping is semantically wrong; and because these warnings are `Approximated` rather than `Skipped`, a false positive costs one advisory line instead of dropping content, which inverts the calibration relative to #142.
+- **OQ2 resolved** (`creative-hooks-disposition.md`): keep `hooks:` as a hard `Skipped`. Generalized into a reusable disposition rule — *loss that silently removes an author-specified restriction fails closed; loss that visibly breaks a substitution fails open.* Zero churn to existing hooks tests and docs.
+- 11 ordered implementation steps, 40+ enumerated test behaviors, no new dependencies.
+
 ## Next Step
-- Load `.cursor/skills/shared/niko/references/level3/level3-workflow.md` and begin the Level 3 PLAN phase.
+- Proceed to the Level 3 PREFLIGHT phase (`niko-preflight` skill) to validate the plan before build.

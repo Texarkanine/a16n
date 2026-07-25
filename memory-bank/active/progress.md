@@ -23,3 +23,23 @@ Realign a16n's conversion gates with what the AgentSkills.io spec and each harne
     - The real degradation direction is not a plugin pair but a spec relationship: Claude-authored skills look spec-compliant while carrying non-portable runtime behavior, so any spec-only consumer of a16n's IR loses it silently.
     - Both vendors converged on a16n's existing model independently: Claude merged commands into skills (identical docs pages), and Cursor deprecated commands in favor of skills with `disable-model-invocation: true`. a16n's discover/emit asymmetry was right; only the gate was stale.
     - The chief implementation risk is self-referential: over-broad detection patterns are precisely the defect under repair, so new patterns need explicit false-positive fixtures (prose `@mentions`, `@` inside shell strings, fenced examples discussing Claude syntax).
+
+## 2026-07-25 - PLAN - COMPLETE
+
+* Work completed
+    - Posted the spec research findings to issue #142 as [comment 5080265945](https://github.com/Texarkanine/a16n/issues/142#issuecomment-5080265945).
+    - Mapped 10 affected files across `plugin-cursor`, `plugin-claude`, `cli`, and documentation, plus cross-module dependencies and boundary changes.
+    - Ran two creative-phase explorations and resolved both open questions.
+    - Enumerated 40+ test behaviors across three tiers (pure unit, plugin discovery, CLI integration) and wrote an 11-step ordered implementation plan.
+    - Recorded challenges, mitigations, and a pre-mortem in `tasks.md`.
+* Decisions made
+    - **OQ1 — detection strategy:** frontmatter-gated hybrid. Shape-tightened regexes, with `$N` positional detection gated on an independent argument signal (`$ARGUMENTS` in body, or `arguments:`/`argument-hint:` in frontmatter). Rejected fence-stripping and full substitution emulation.
+    - **OQ2 — `hooks:` disposition:** keep the hard `Skipped`, now justified by an explicit rule rather than inheritance. Rejected per-event triage as unsafe-by-default.
+    - **OQ3 — warning axis:** non-spec (Category A) only. Spec-compliant-but-unmodeled fields are a separate defect to be filed, not absorbed.
+    - Detection lives in a new pure module `packages/plugin-claude/src/spec-compliance.ts`; not extracted to `@a16njs/models` until a second consumer exists.
+* Insights
+    - Claude does **not** exempt fenced code blocks from substitution — its docs say substitution "runs once over the original file," and the only documented positional exemption is for `!`. So the intuitively-cautious "strip fences before scanning" approach is actually *incorrect*, producing false negatives in the higher-cost direction.
+    - The false-positive cost model here is categorically different from #142. There, an over-broad match caused a hard skip and destroyed content; here it prints one advisory line. That asymmetry justifies leaning slightly permissive on ambiguous constructs while still eliminating zero-signal noise like `@reviewer`.
+    - `$N` cannot be disambiguated lexically — a Claude positional and a shell positional are *identical strings*. The old gate's `\$[1-9]` is a direct ancestor of the #142 defect. Document-level context (does this skill declare arguments?) is the only available discriminator.
+    - OQ2 produced a general classifier worth more than its own answer: *loss that silently removes an author-specified restriction must fail closed; loss that visibly breaks a substitution can fail open.* A lost `$ARGUMENTS` is self-evidently broken in the output; a lost `hooks:` block leaves a clean-looking skill that still claims to enforce security — the project's own `secure-operations` fixture is exactly that trap.
+    - A third fidelity category surfaced that neither the issue nor the operator's framing anticipated: spec-compliant fields a16n's IR drops regardless. Being spec-compliant is necessary but not sufficient for surviving a spec-shaped IR.
