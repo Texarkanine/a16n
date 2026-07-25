@@ -19,6 +19,7 @@ import {
   CURRENT_IR_VERSION,
   inferGlobalPromptName,
 } from '@a16njs/models';
+import { detectNonSpecFeatures } from './spec-compliance.js';
 
 /** Post-normalization frontmatter for Claude rules files. */
 interface ClaudeRuleFrontmatter {
@@ -139,13 +140,16 @@ interface SkillFrontmatter {
 
 interface ParsedSkill {
   frontmatter: SkillFrontmatter;
+  /** Every frontmatter key as parsed, for spec-compliance detection. */
+  data: Record<string, unknown>;
   body: string;
   parseError?: string;
 }
 
 /**
  * Parse YAML frontmatter from a SKILL.md file via gray-matter.
- * Only extracts the fields the discovery pipeline needs.
+ * Extracts the fields the discovery pipeline classifies on, and retains the
+ * raw key-values so spec-compliance detection can see non-spec keys too.
  */
 function parseSkillFrontmatter(content: string): ParsedSkill {
   try {
@@ -160,10 +164,11 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
     }
     if ('hooks' in data) frontmatter.hasHooks = true;
 
-    return { frontmatter, body: parsed.content.trim() };
+    return { frontmatter, data, body: parsed.content.trim() };
   } catch (err) {
     return {
       frontmatter: {},
+      data: {},
       body: content.trim(),
       parseError: err instanceof Error ? err.message : String(err),
     };
@@ -391,8 +396,9 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
         continue;
       }
 
-      const { frontmatter, body } = parsedSkill;
+      const { frontmatter, data, body } = parsedSkill;
       const displayName = frontmatter.name || dirName;
+      const itemsBefore = items.length;
       
       // Read all other files in the skill directory
       const files = await readSkillFiles(skillDir);
@@ -405,6 +411,11 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
       // 3. disable-model-invocation: true → ManualPrompt
       // 4. description present → SimpleAgentSkill
 
+      // Disposition rule for non-spec features: loss that silently removes an
+      // author-specified restriction fails closed (Skipped); loss that visibly
+      // breaks a substitution fails open (Approximated, below). Hooks are the
+      // sole fail-closed case — a dropped PreToolUse gate leaves a clean-looking
+      // skill that still claims to enforce checks it no longer enforces.
       if (hasHooks) {
         warnings.push({
           code: WarningCode.Skipped,
@@ -467,6 +478,19 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
           message: `Skipped skill '${displayName}': Missing required description field`,
           sources: [skillPath],
         });
+      }
+
+      // Advise only on skills that actually produced an item: a skipped skill
+      // has already been reported, and must not collect a second warning.
+      if (items.length > itemsBefore) {
+        const nonSpec = detectNonSpecFeatures(data, body);
+        if (nonSpec.length > 0) {
+          warnings.push({
+            code: WarningCode.Approximated,
+            message: `Skill '${displayName}': Uses features outside the AgentSkills.io spec (${nonSpec.join(', ')}); their content is preserved but their runtime behavior is not`,
+            sources: [skillPath],
+          });
+        }
       }
     } catch (error) {
       warnings.push({

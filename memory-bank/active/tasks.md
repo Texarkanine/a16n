@@ -212,19 +212,19 @@ Pinned because it classifies every present and future Claude feature without re-
     - In `discoverCommands()`, still store **raw content unchanged**, and additionally push one `WarningCode.Approximated` warning per frontmatter-bearing command. Message names the command, states that Cursor commands do not support frontmatter, and says the block is preserved as body content. `Approximated` is the right code — "translated imperfectly" — because the content survives while its apparent semantics do not.
     - **Do not** call `parseMdc()` on command content, and do not move anything into `metadata`. Content fidelity is the requirement (OQ4).
     - **Preflight-verified:** the `WarningCode` import stays — still used by `discoverSkills()` at lines 470, 517, 524, and now by this advisory too.
-5. **Write failing unit tests for detection**
+5. ✅ **Write failing unit tests for detection**
     - Files: `packages/plugin-claude/test/spec-compliance.test.ts` *(new)*
     - Changes: full behavior table above against `detectNonSpecFeatures()`.
     - Creative ref: `creative-body-feature-detection.md`
-6. **Implement the detection module**
+6. ✅ **Implement the detection module**
     - Files: `packages/plugin-claude/src/spec-compliance.ts` *(new)*
     - Changes: `SPEC_FRONTMATTER_KEYS` / `MODELED_FRONTMATTER_KEYS` sets; per-feature body patterns; `$N` gating; export `detectNonSpecFeatures(frontmatter: Record<string, unknown>, body: string): string[]`.
     - **Preflight amendment — single source of truth for the feature list.** The set of Claude non-spec features would otherwise be hand-copied into four places (the detector, the unit test table, `plugin-claude/README.md`, and the docs site) and drift. Export one `NON_SPEC_FEATURES` array of `{ id, label }` from this module; have the unit test iterate it to assert every entry is reachable, and derive the README table from it by hand-check rather than reinvention. `hooks` is deliberately **absent** from this array (see OQ2).
     - Creative ref: `creative-body-feature-detection.md`
-7. **Write failing discovery-integration tests + fixture**
+7. ✅ **Write failing discovery-integration tests + fixture**
     - Files: `packages/plugin-claude/test/discover-spec-compliance.test.ts` *(new)*, `packages/plugin-claude/test/fixtures/claude-skills-nonspec/from-claude/.claude/skills/{deploy,clean}/SKILL.md` *(new)*
     - Changes: one skill using several non-spec features, one fully spec-clean.
-8. **Wire detection into discovery**
+8. ✅ **Wire detection into discovery**
     - Files: `packages/plugin-claude/src/discover.ts`
     - Changes: extend `SkillFrontmatter` with the raw key list (`parseSkillFrontmatter()` at lines 150–171 currently keeps only four fields and drops the rest — until this changes, frontmatter detection sees nothing).
     - **Preflight correction — there is no `discoverSkills()` in `plugin-claude`.** Unlike `plugin-cursor`, Claude skill discovery is inlined directly in `discover()` (the `for (const { relativePath, dirName } of skillDirs)` loop, lines 376–478). The plan and `creative-body-feature-detection.md` both named a function that does not exist; wire into that loop instead.
