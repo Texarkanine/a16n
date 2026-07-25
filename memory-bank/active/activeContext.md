@@ -90,5 +90,17 @@
 - **"Detectors that can't fire alone get cut; we keep only the top-level detectors we need so that we DO emit a warning when something that should warn, happens."** The operational form of the above, and the one that decided `positional-arguments` against my recommendation to keep half of it. Recorded in the warn-and-continue section of `systemPatterns.md` and enforced by test.
 - **Clean on every other axis:** no orphaned gate references in source/tests/fixtures/docs, no TODOs or debug artifacts, docs complete across five surfaces, `plugin-claude/README.md` feature table matches `NON_SPEC_FEATURES` exactly.
 
+## Reflect Phase Outcome
+- Wrote `memory-bank/active/reflection/reflection-issue-142-spec-compliance-gates.md`.
+- **Independently discharged the pre-mortem's last open risk.** `pnpm test` returned FULL TURBO (17/17 cached), which is exactly the "caching masks stale results" scenario the pre-mortem named. Forced an uncached run: 17/17 tasks executed, **1038 tests**, zero failures — identical to QA's number, so the figure is real rather than replayed.
+- **Requirements vs outcome:** all 8 delivered, 2 reinterpreted. Requirement 2 ("cover *all* non-spec features") was deliberately *not* met — `$1` and `$name` are real Claude features excluded on operator principle, documented in the module header so nobody "fixes" the omission. AC6 is vacuous in its fourth term (`pnpm lint` runs zero tasks). Three deliverables were added beyond plan: the OQ4 Cursor advisory, a second follow-up issue, and a fifth docs surface.
+- **Creative phase split its record.** `creative-hooks-disposition.md` held completely, zero churn, and its generalized rule was reused in `systemPatterns.md`. `creative-body-feature-detection.md` was overturned in its *selection* and vindicated in its *eliminations*: cutting `$1`/`$name` deleted the gating machinery that was the sole distinction between Option C and Option A, so **what shipped is Option A**. Its rejection of fence-stripping on correctness grounds remains a real, non-obvious save.
+- **Forecasting record was poor in a specific way.** Ten predictions (5 Challenges + 5 Pre-Mortem); essentially none materialized, while both events that actually reshaped the task — preflight Finding C and the fire-alone redundancy — were unforecast by every phase.
+- **Root cause of the only expensive rework chain sits at requirement-writing time.** "Cover every non-spec feature" (feature enumeration) and "report every loss" (loss enumeration) read as the same instruction and produce different sets. The divergence is invisible while enumerating and obvious once you ask which members can fire alone.
+- **Persistent files reconciled — no changes needed.** `productContext.md` unaffected; `systemPatterns.md` already updated in-task during build/QA; `techContext.md` left alone deliberately (see below).
+
+## Open Item Routed Out of Reflect
+- **`techContext.md`'s "Full validation" line lists `pnpm lint`, which executes zero tasks.** Not reconciled, for two reasons: it is pre-existing rather than invalidated by this task (the reconcile guardrail forbids auditing unrelated staleness), and more importantly **the fix is a decision, not a correction** — deleting the mention is right only if the repo should have no lint task, and papers over a real gap if it should. Same claim also sits in this task's own AC6. Needs an operator call: drop the claim, or add the task.
+
 ## Next Step
-- QA **PASSED**. Reflection runs next (`/niko-reflect`).
+- Reflection **COMPLETE**. Run `/niko-archive` to create the archive document and finalize the project.
