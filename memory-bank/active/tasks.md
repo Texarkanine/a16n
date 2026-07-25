@@ -74,7 +74,8 @@ Pinned because it classifies every present and future Claude feature without re-
 - **`packages/plugin-claude/src/spec-compliance.ts`** *(new)*: pure `detectNonSpecFeatures(frontmatter, body): string[]`.
 - **`packages/plugin-claude/src/discover.ts`**: retain raw frontmatter keys in `parseSkillFrontmatter()`; call detection in `discoverSkills()`; emit one `Approximated` warning per skill. `hooks:` skip unchanged.
 - **`packages/plugin-cursor/test/discover-commands.test.ts`**: `describe('complex commands (skipped)')` asserts deleted behavior → invert; add #142 regressions.
-- **`packages/plugin-cursor/test/fixtures/cursor-command-complex/`, `cursor-command-mixed/`**: repurpose as "these all convert"; add `cursor-command-mentions/` for #142.
+- **`packages/plugin-cursor/test/fixtures/cursor-command-complex/`, `cursor-command-mixed/`**: repurpose as "these all convert" — and the three that carry `allowed-tools:` (`secure.md`, `deploy.md`, `complex.md`) now double as coverage for the OQ4 advisory. Add `cursor-command-mentions/` for #142.
+- **`packages/plugin-cursor/src/mdc.ts`**: gains exported `hasFrontmatterBlock()` (OQ4).
 - **`packages/cli/test/integration/integration-commands.test.ts`**: `cursor-command-complex-skipped` (lines 64–94) → invert.
 - **`packages/plugin-claude/test/spec-compliance.test.ts`** *(new)*, **`discover-spec-compliance.test.ts`** *(new)*, **`fixtures/claude-skills-nonspec/`** *(new)*.
 - **`packages/plugin-cursor/README.md`** lines 48–56, **`packages/plugin-claude/README.md`** line 44.
@@ -108,10 +109,17 @@ Pinned because it classifies every present and future Claude feature without re-
 - [x] **OQ1 — Body-level detection strategy** → Resolved: frontmatter-gated hybrid; shape-tightened regexes with `$N` gated on an independent argument signal. Fence-stripping rejected as semantically wrong (Claude substitutes inside fences). See `creative-body-feature-detection.md`.
 - [x] **OQ2 — `hooks:` disposition** → Resolved: keep hard `Skipped`, justified by the new fail-closed/fail-open rule. Zero churn to existing hooks tests/docs. See `creative-hooks-disposition.md`.
 - [x] **OQ3 — Warning axis** → Resolved in-plan: axis is non-spec (Category A). Category B filed separately.
-- [ ] **OQ4 — Command frontmatter passthrough** *(raised in preflight, Finding C)* → How should `discoverCommands()` treat a leading `---` block, given `ManualPrompt.content` currently means "raw bytes" there but "body only" everywhere else? Blocks nothing until the operator sets scope. Candidate dispositions:
-    - **Mirror `classifyRule()`**: parse frontmatter out, body into `content`, keys into `metadata`. Consistent with the rest of the plugin; the keys are then dropped on emit (a Category-B loss, already a filed concern).
-    - **Mirror and map**: as above, but let a command's own `description:` become the emitted skill's description instead of the synthesized `"Invoke with /name"`. Better fidelity, but changes emit behavior beyond this task's stated surface.
-    - **Defer**: file separately and ship the gate removal alone. Cheapest, but knowingly widens exposure to a live corruption path.
+- [x] **OQ4 — Command frontmatter passthrough** *(raised in preflight, Finding C)* → **Resolved by operator: preserve it, and warn.**
+
+    Every option I offered assumed the frontmatter was a problem to be removed. All of them were wrong, because they confused *harness semantics* with *user intent*:
+
+    > "If it IS a command and has frontmatter — keep the frontmatter as body content. Then it persists. The user might've been doing something like we do in `memory-bank/archive` — for all we know they cared about the frontmatter. That it's not semantic to the harnesses isn't relevant to the user; they still want the content. WE just can't respond to it semantically because we know it's got no place in our target IR/object. Courtesy: we should warn on ingest in the cursor plugin if a command has frontmatter, that we're preserving it as body content because Cursor commands don't support frontmatter."
+
+    **Consequences:**
+    1. **Current content handling is correct and stays.** `discoverCommands()` keeps storing raw bytes. No `parseMdc()` call, no `metadata` extraction, no stripping anywhere. The emitted skill's leading `---` block is the *preserved user content*, exactly as intended — Claude's `gray-matter` takes the first block as frontmatter and the stray block survives verbatim in the body.
+    2. **Byte-identity becomes the correct assertion everywhere**, including on frontmatter-bearing commands. This reverses the recommendation originally recorded in Finding C.
+    3. **A new ingest advisory is added** in `plugin-cursor` — the courtesy warning. See step 4.
+    4. **The bug was never the passthrough; it was the silence.** Content fidelity was right all along. What was missing is telling the user that a block they may have believed was configuration is being carried as prose.
 
 ## Test Plan (TDD)
 
@@ -131,11 +139,18 @@ Pinned because it classifies every present and future Claude feature without re-
 - Command containing `$ARGUMENTS` → discovered, zero warnings
 - Command containing `$1` / `$2` → discovered, zero warnings
 - Command containing `` !`git branch --show-current` `` → discovered, zero warnings
-- Command with `allowed-tools:` frontmatter → discovered, zero warnings
 - *(#142)* Command with prose `@author` / `@reviewer` → discovered, zero warnings
 - *(#142)* Command with `@coderabbitai` inside a shell string → discovered, zero warnings
-- Mixed fixture → **2** commands discovered (was 1), zero warnings
-- Command content is byte-identical to source — no `@mention` mutation
+- Command content is byte-identical to source, for **every** case above and below — no `@mention` mutation, no frontmatter stripping
+
+**plugin-cursor — frontmatter advisory (OQ4)**
+
+- Command with `allowed-tools:` frontmatter → discovered, content byte-identical, **exactly one** `Approximated` warning (not `Skipped`)
+- Warning message names the command and says the frontmatter is preserved as body content
+- Claude-migrated command (`description:` + `model:`) → discovered, one `Approximated` *(the Finding C case that is silently broken on `main` today)*
+- Command with no frontmatter → zero warnings
+- `hasFrontmatterBlock()` unit cases: `---\nkey: v\n---\nbody` → true; `---\n\n# Title\n\nbody` (thematic break, no closer) → false; `---\n\n# Title\n\n---\n\nmore` (two breaks, no key line) → false; body-only → false; `---` appearing first mid-file after prose → false
+- Mixed fixture → **2** commands discovered (was 1); `simple.md` contributes zero warnings, `complex.md` contributes one `Approximated` for its `allowed-tools:` block
 
 **plugin-claude — `detectNonSpecFeatures()` unit**
 
@@ -168,6 +183,7 @@ Pinned because it classifies every present and future Claude feature without re-
 **CLI integration**
 
 - cursor→claude with a `$ARGUMENTS` command → ManualPrompt discovered, no skip warning (inverted from current test)
+- cursor→claude with a frontmatter-bearing command → skill written, one `Approximated` warning, and the original block present verbatim in the emitted body *(pins the OQ4 contract end to end: preserved, not stripped, not silent)*
 
 ### Integration Tests
 
@@ -180,15 +196,22 @@ Pinned because it classifies every present and future Claude feature without re-
     - Files: `packages/plugin-cursor/test/fixtures/cursor-command-mentions/from-cursor/.cursor/commands/{pr-feedback-judge.md,coderabbit-pr.md}`
     - Changes: reduced excerpts from the issue — `by @author`, `| @reviewer |` table cells, and `gh pr comment <n> --body "@coderabbitai review"`.
 2. **Write failing cursor tests**
-    - Files: `packages/plugin-cursor/test/discover-commands.test.ts`
-    - Changes: replace `describe('complex commands (skipped)')` with `describe('commands with runtime features (discovered)')`; add `describe('@mention false positives (#142)')`; update mixed-fixture count 1 → 2; add content-fidelity assertion.
+    - Files: `packages/plugin-cursor/test/discover-commands.test.ts`, `packages/plugin-cursor/test/mdc.test.ts` *(preflight-verified: both already exist; `hasFrontmatterBlock()` unit cases belong in the latter, alongside the existing `parseMdc` coverage)*
+    - Changes: replace `describe('complex commands (skipped)')` with `describe('commands with runtime features (discovered)')`; add `describe('@mention false positives (#142)')`; add `describe('command frontmatter advisory (OQ4)')`; update mixed-fixture count 1 → 2; add content-fidelity assertions throughout; unit-test `hasFrontmatterBlock()` including the thematic-break negatives.
+    - Add a Claude-migrated command to the `cursor-command-mentions/` fixture (or a sibling) reproducing the Finding C case.
 3. **Invert the CLI integration test** *(test-first: must fail before step 4)*
     - Files: `packages/cli/test/integration/integration-commands.test.ts`
     - Changes: rewrite `cursor-command-complex-skipped` (lines 64–94) → `cursor-command-with-runtime-features-converts`; assert 1 ManualPrompt and no skip warning.
-4. **Delete the gate** *(makes steps 2 and 3 pass)*
-    - Files: `packages/plugin-cursor/src/discover.ts`
+4. **Delete the gate and add the frontmatter advisory** *(makes steps 2 and 3 pass)*
+    - Files: `packages/plugin-cursor/src/discover.ts`, `packages/plugin-cursor/src/mdc.ts`
     - Changes: remove `COMPLEX_COMMAND_PATTERNS` (lines 147–156) and `isComplexCommand()` (162–179); drop the `isComplex` branch in `discoverCommands()` (234–245); update the `discoverCommands()` doc comment, which still says "Complex commands → Skip with warning" (line 211).
-    - **Preflight-verified:** the `WarningCode` import stays — still used by `discoverSkills()` at lines 470, 517, 524.
+    - **OQ4 — add the courtesy advisory.** Export `hasFrontmatterBlock(content: string): boolean` from `mdc.ts` (parsing utilities already live there). A command has a frontmatter block when **all three** hold, which keeps thematic breaks out:
+        1. the first non-empty line is exactly `---`;
+        2. some later line is exactly `---`;
+        3. at least one line between them matches a YAML-ish key, `/^[A-Za-z_][\w-]*\s*:/`.
+    - In `discoverCommands()`, still store **raw content unchanged**, and additionally push one `WarningCode.Approximated` warning per frontmatter-bearing command. Message names the command, states that Cursor commands do not support frontmatter, and says the block is preserved as body content. `Approximated` is the right code — "translated imperfectly" — because the content survives while its apparent semantics do not.
+    - **Do not** call `parseMdc()` on command content, and do not move anything into `metadata`. Content fidelity is the requirement (OQ4).
+    - **Preflight-verified:** the `WarningCode` import stays — still used by `discoverSkills()` at lines 470, 517, 524, and now by this advisory too.
 5. **Write failing unit tests for detection**
     - Files: `packages/plugin-claude/test/spec-compliance.test.ts` *(new)*
     - Changes: full behavior table above against `detectNonSpecFeatures()`.
@@ -210,10 +233,12 @@ Pinned because it classifies every present and future Claude feature without re-
     - Creative ref: `creative-hooks-disposition.md`
 9. **Documentation**
     - Files: `packages/plugin-cursor/README.md` (lines 42–56), `packages/plugin-claude/README.md`, `packages/docs/docs/plugin-cursor/index.md` (line 37), `packages/docs/docs/understanding-conversions/index.md` (line 82), `memory-bank/systemPatterns.md`
-    - Changes: delete the cursor "Complex commands" table and explain that all commands convert; document the Claude spec-compliance advisory and its feature list; add the disposition rule to the warn-and-continue section of `systemPatterns.md`.
+    - Changes: delete the cursor "Complex commands" table and explain that all commands convert; document the new OQ4 frontmatter advisory (Cursor commands do not support frontmatter, so a leading `---` block is carried through as body content and flagged once); document the Claude spec-compliance advisory and its feature list; add the disposition rule to the warn-and-continue section of `systemPatterns.md`.
+    - **OQ4 note for `systemPatterns.md`:** the two advisories added by this task share one shape worth naming in the warn-and-continue section — *content the source harness cannot act on semantically is preserved verbatim and reported once, never stripped and never silently passed through.* The Cursor advisory is keyed to what Cursor supports; the Claude one to what the spec supports.
     - **Preflight addition — two docs-site files the plan missed.** `packages/docs/docs/plugin-cursor/index.md:37` ("Complex Commands (placeholders, $ARGUMENTS, $1, etc.): Skipped") and the "What Gets Skipped" row at `packages/docs/docs/understanding-conversions/index.md:82` ("Complex Commands | Cursor | Claude | `$ARGUMENTS`, `!`, and `allowed-tools` have no equivalent"). These are hand-maintained user-facing pages, not generated. Delete the skipped-row and add a corresponding row to the **"What Gets Approximated"** table (line 70) for the new Claude spec-compliance advisory.
 10. **File the Category-B follow-up issue**
     - Changes: `gh issue create` describing spec-compliant fields (`allowed-tools`, `license`, `compatibility`) that a16n's IR silently drops.
+    - **Also worth filing separately (preflight):** `--delete-source` derives its safety entirely from `Skipped` warnings (`handleDeleteSource()`, `packages/cli/src/commands/convert.ts:531`), so any path that degrades content *without* warning is invisible to it and its source gets deleted anyway. Finding C was exactly that shape before OQ4. Propose treating `Approximated` as delete-blocking too, or stating the invariant explicitly.
 11. **Full verification**
     - Changes: `pnpm build && pnpm test && pnpm lint && pnpm typecheck`.
 
@@ -293,11 +318,11 @@ Review this pull request.
 - **It survives round-trip and is permanent.** claude→cursor re-discovery reads the stray block as body text and re-emits it unchanged. It stabilizes rather than compounding, so it never self-heals either.
 - **`--delete-source` makes it unrecoverable.** `handleDeleteSource()` (`packages/cli/src/commands/convert.ts:502`) deletes any source that produced a written file and is not named in a `Skipped` warning. This case produces a file and zero warnings, so the original command is deleted and the malformed skill becomes the only surviving artifact.
 
-**Relationship to this task:** gate removal does not *cause* this, but it widens the aperture — every `allowed-tools`-bearing command currently skipped starts flowing down the corrupting path. Shipping the gate removal alone increases exposure to a live silent-corruption bug.
+**Relationship to this task:** gate removal does not *cause* this, but it widens the aperture — every `allowed-tools`-bearing command currently skipped starts flowing down this path. Shipping the gate removal alone increases exposure without addressing it.
 
 **Still true and still confirming the thesis:** Cursor commands genuinely do not *support* frontmatter (filename is the command name, whole file is the prompt), so the gate's `allowed-tools` pattern guarded a Cursor capability that does not exist — exactly as `fileRefs: /@\S+/` did. Two of the four gate patterns were checking for *Claude* features on the *Cursor* side.
 
-**Open scope decision (see OQ4).**
+**Resolved by OQ4 — and the resolution reframes the finding.** The passthrough is not a corruption to be fixed; preserving the block is correct, because the user wrote those bytes and may well have wanted them. The defect is that a16n does it *silently*. Fix is the ingest advisory in step 4, not a parser change. Both of my proposed "fix" dispositions and my original "leave it" advisory were wrong for the same underlying reason: I kept reasoning about what the *harness* means by those bytes instead of what the *user* meant by them.
 
 ### D — Documentation scope was incomplete (fixed in-plan)
 
@@ -316,6 +341,6 @@ Two hand-maintained docs-site pages restate the gate and were not in the plan; s
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [x] Preflight — PASS WITH ADVISORY
+- [x] Preflight — PASS (OQ4 resolved; plan amended)
 - [ ] Build
 - [ ] QA

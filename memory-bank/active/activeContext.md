@@ -43,8 +43,16 @@
   - Likeliest victim is a16n's core user: Claude Code commands *do* support frontmatter, so half-migrated config hits it. A plain markdown thematic break (`---` as a title rule) hits it too.
   - Survives round-trip unchanged (never self-heals), and `--delete-source` deletes the original — the malformed skill becomes the only artifact.
   - Root cause is an IR inconsistency a16n owns: `ManualPrompt.content` means "raw bytes" from `discoverCommands()` but "body only" from `classifyRule()`.
-  - Gate removal does not cause this, but widens the aperture. Awaiting operator's OQ4 call before build.
+  - Gate removal does not cause this, but widens the aperture.
+
+## Operator Decisions (cont.)
+- **OQ4 — command frontmatter: preserve it, and warn.** Every option offered assumed the frontmatter was a problem to remove; all were wrong for the same reason — they reasoned about what the *harness* means by those bytes instead of what the *user* meant. The user wrote them and may well have wanted them (cf. how this repo uses frontmatter in `memory-bank/archive`). a16n just cannot respond to them semantically.
+  - Content handling is **unchanged**: `discoverCommands()` keeps storing raw bytes. No `parseMdc()` on commands, no `metadata` extraction, no stripping. The leading `---` block in the emitted skill body is preserved user content, which is the desired outcome.
+  - New courtesy advisory in `plugin-cursor`: one `WarningCode.Approximated` per frontmatter-bearing command, saying Cursor commands do not support frontmatter and the block is being kept as body content.
+  - Detection via a new exported `hasFrontmatterBlock()` in `mdc.ts`, requiring a leading `---`, a closing `---`, and at least one YAML-ish key line between — so markdown thematic breaks do not trigger it.
+  - Byte-identity is now the correct test assertion everywhere, reversing what Finding C originally recommended.
+  - **The bug was never the passthrough; it was the silence.**
 - One in-scope amendment accepted: export a single `NON_SPEC_FEATURES` array so the feature list is not hand-copied into four drifting places.
 
 ## Next Step
-- **Operator must resolve OQ4** (fix the command-frontmatter passthrough in this task, fix-and-map, or defer). Then run `/niko-build`.
+- Preflight **PASS**, OQ4 resolved and folded into the plan (steps 2, 4, 9, 10 amended). Run `/niko-build` when ready.
