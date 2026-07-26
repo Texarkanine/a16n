@@ -40,5 +40,5 @@ A user converts a `.claude/skills/deploy/SKILL.md` that uses `$ARGUMENTS`, `` !`
 3. A Claude skill using non-spec features yields exactly one `Approximated` warning naming those features; a fully spec-compliant skill yields none.
 4. False-positive fixtures (prose `@mentions`, `@` inside shell strings) produce no warnings.
 5. The `hooks:` disposition decision is recorded with rationale in the creative-phase doc and reflected in code.
-6. `pnpm build && pnpm test && pnpm lint && pnpm typecheck` all pass.
+6. `pnpm build && pnpm test && pnpm typecheck` all pass. (`pnpm lint` was listed here originally, but it executes zero tasks — no package in this repo defines a `lint` script — so it verifies nothing and cannot be counted as coverage.)
 7. Issue #142 carries a comment with the spec research.

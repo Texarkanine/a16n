@@ -189,3 +189,24 @@ Realign a16n's conversion gates with what the AgentSkills.io spec and each harne
     - **The one question that would have prevented the expensive chain is cheap and askable at plan time: "can each member of this set fire alone?"** "Cover every X" and "report every loss" look like the same instruction while you are writing the list and produce different sets. Now enforced in CI by one assertion (`toEqual([label])`) rather than left to judgment.
     - **Preflight's detection and its judgment came apart.** It found Finding C — a live silent-corruption defect on `main`, unrelated to the task premise — and then dismissed it on reasoning that used a16n's own fixtures as evidence about what users can write. Only the operator's challenge recovered it. The mechanical half of the phase (read the real code) was reliable; the evaluative half was not.
     - **A consolidation justified as future insurance paid three times at review time.** The single `NON_SPEC_FEATURES` array was accepted at preflight as anti-drift protection for future edits; it instead paid at build (ordering contract for free), at QA (docs verification became counting, not judging), and at QA again (it was the hook that made the fire-alone rule enforceable in one word). None was the predicted benefit.
+
+## 2026-07-25 - PR REVIEW (PR #145) - COMPLETE
+
+* Work completed
+    - Opened [PR #145](https://github.com/Texarkanine/a16n/pull/145) and judged CodeRabbit review 4780506510: five findings, three fixed, one deferred, one dismissed.
+    - **Probed the one code-touching suggestion instead of accepting it.** Ran the current and proposed `hasFrontmatterBlock` side by side over 11 inputs covering real frontmatter shapes and the reviewer's own counter-example.
+    - Pinned the resulting over-report with a characterization test asserting `true`, added a multi-line-value (`allowed-tools:` as a list) test, and recorded the "at least one key line, not every line" rationale in the `mdc.ts` doc comment.
+    - Corrected the stale "9 frontmatter keys + 6 body substitutions" arithmetic in `tasks.md` to "9 + 4 = 13".
+    - Replaced "all 8 requirements delivered" with "seven of eight delivered as written" in the reflection and `activeContext.md`.
+    - Corrected the `pnpm lint` claim at all three sites: `projectbrief.md` AC6, `tasks.md` step 11, and the persistent `techContext.md`.
+    - Full suite re-run cache-disabled after the edits.
+* Decisions made
+    - **Dismissed the `hasFrontmatterBlock` patch on evidence.** It fails its own motivating case — the single non-blank inner line *is* the key-shaped line, so `every()` is trivially true — and breaks four real frontmatter shapes. Current wrong on 1/11 probe inputs, proposed wrong on 5/11.
+    - **Declined the retroactive rewrites** of `projectbrief.md` requirement 2 and `tasks.md` steps 219-223. Those are historical records; the gap between requirement framing and outcome is the reflection's central finding, and editing the brief to match the result would erase it.
+    - **Fixed `pnpm lint` on operator direction**, reversing my own "defer, it's a decision" call. Correcting a false coverage claim is a correction; deciding whether the repo should gain a lint task remains separate and still open.
+    - Operator supplied the discriminator that settled which record edits were legitimate: **`memory-bank/active` documents feed the archive, so they must be factually correct** — distinct from rewriting intent, which stays off-limits.
+* Insights
+    - **A reviewer can be right about the symptom and wrong about the cure, and only running the cure tells you which.** The colon-line false positive was real and worth knowing about; the proposed fix did not even eliminate it, while silently breaking the single most common Claude frontmatter shape (`allowed-tools:` as a list) — which is exactly the population this advisory exists to serve. Reading the patch made it look plausible; executing it took eleven lines and settled it. Same lesson the task already learned three times, now four.
+    - **"Fails its own test case" is the cheapest possible rebuttal, and it is only available if you actually run the suggestion.** The reviewer even supplied the assertion it would have failed.
+    - **Historical records and archive-feeding records are different things, and the distinction is finer than "don't rewrite history."** Wrong *facts* (a bad sum, a self-contradicting summary) must be fixed because the archive inherits them. Wrong-in-hindsight *intent* (a requirement that turned out too broad) must not be, because the divergence is the finding. I had been treating both as untouchable.
+    - **Deferring on "this is a decision, not a correction" can smuggle in a real correction.** The `pnpm lint` claim bundled two things: a false statement about what validation runs, and an open question about whether linting should exist. The first was correctable all along; I let the second hold it hostage.

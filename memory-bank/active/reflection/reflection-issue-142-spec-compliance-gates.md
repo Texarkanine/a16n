@@ -8,11 +8,11 @@ complexity_level: 3
 
 ## Summary
 
-Deleted `plugin-cursor`'s obsolete four-pattern command-complexity gate (issue #142) and added AgentSkills.io spec-compliance detection to `plugin-claude` skill discovery, plus an unplanned third deliverable — a Cursor ingest advisory for command frontmatter passthrough. Succeeded: 1038 tests green on a cache-disabled run, all 8 requirements delivered, two of them reinterpreted mid-flight on operator principle.
+Deleted `plugin-cursor`'s obsolete four-pattern command-complexity gate (issue #142) and added AgentSkills.io spec-compliance detection to `plugin-claude` skill discovery, plus an unplanned third deliverable — a Cursor ingest advisory for command frontmatter passthrough. Succeeded: 1038 tests green on a cache-disabled run, with seven of the eight requirements delivered as written and the eighth deliberately narrowed mid-flight on operator principle.
 
 ## Requirements vs Outcome
 
-All 8 requirements delivered. Two were reinterpreted and one deliverable was added that no phase before preflight anticipated.
+Seven of the eight requirements were delivered as written. Requirement 2 was deliberately narrowed and is **not** met as written; one acceptance criterion is satisfied only vacuously; and three deliverables were added that no phase before preflight anticipated.
 
 **Reinterpreted — Requirement 2 ("cover *all* non-spec Claude features").** The shipped detector covers 13 features, deliberately excluding `$1` positionals and `$name` named arguments, which *are* genuine non-spec Claude features. The operator narrowed the requirement at QA with a governing principle — *our job is not to lint people's files; it is to convert them faithfully and be honest about when we cannot* — and its operational form: **detectors that cannot fire alone get cut.** So the requirement as written was not met, and that is the correct outcome. This is documented in the module header so the next reader does not "fix" the omission.
 
@@ -98,7 +98,7 @@ The eliminations, by contrast, hold and still matter. Option B (strip fenced cod
 - **Content fidelity and semantic fidelity are separate obligations, and a conversion tool can only fully discharge the first.** Bytes it cannot interpret still belong to the author. The correct default for anything unrecognized is preserve-and-report — never strip-because-meaningless, and never pass through silently. Both halves of this task collapsed onto that rule.
 - **`--delete-source` converts every silent-degradation bug into a data-loss bug**, because its safety rests entirely on `Skipped` warnings. Any path that degrades content without warning is invisible to it by construction. Filed as [#144](https://github.com/Texarkanine/a16n/issues/144); worth treating as a standing invariant when touching any emit path.
 - **The gitignored `.generated/` docs under `packages/docs/static/` are a standing false alarm** for any orphan or stale-claim scan. They surfaced stale "Complex Commands" rows that look like missed documentation until you confirm they are untracked build output.
-- **`pnpm lint` is a no-op in this repo** — no package defines the task. Any checklist, acceptance criterion, or doc that lists it as validation is overstating coverage. Present in `techContext.md` and in this task's own AC6.
+- **`pnpm lint` is a no-op in this repo** — no package defines the task. Any checklist, acceptance criterion, or doc that lists it as validation is overstating coverage. It was claimed in `techContext.md`, in this task's own AC6, and in the step-11 verification list; all three were corrected during PR review to name only the three commands that actually verify something. Whether the repo *should* gain a real lint task remains open.
 
 ### Process
 

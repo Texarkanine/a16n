@@ -20,7 +20,7 @@ TypeScript ESM-only monorepo managed by pnpm workspaces, built with Turborepo, t
 
 - **Vitest** — unit and integration tests; `pnpm test` (via Turbo) is canonical and always runs Vitest inside each package directory using each package's own `vitest.config.ts`; the root `vitest.config.ts` is a fallback for ad-hoc `npx vitest` invocations
 - Integration tests use fixture directories (see `test/integration/fixtures/` in each package)
-- Full validation: `pnpm install && pnpm build && pnpm test && pnpm lint && pnpm typecheck`
+- Full validation: `pnpm install && pnpm build && pnpm test && pnpm typecheck`. There is deliberately no `lint` step here: no package defines a `lint` script, so `pnpm lint` runs zero tasks and passing it means nothing
 - TDD process and test-running practices are defined in `.cursor/rules/shared/always-tdd.mdc` and `.cursor/rules/shared/test-running-practices.mdc` — do not duplicate those here
 
 ## CI/CD

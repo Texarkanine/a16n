@@ -129,6 +129,21 @@ describe('hasFrontmatterBlock', () => {
     expect(hasFrontmatterBlock('---\n\n# Title\n\n---\n\nmore')).toBe(false);
   });
 
+  // Deliberate over-report, pinned so it stays a known behavior. `Note: see docs.`
+  // between two breaks is a valid single-key YAML document, so nothing lexical
+  // separates it from real frontmatter. Over-reporting costs one advisory line and
+  // never touches content; under-reporting restores the silent passthrough this
+  // advisory exists to break.
+  it('should report a paired-break block whose prose line parses as a YAML key', () => {
+    expect(hasFrontmatterBlock('---\n\nNote: see docs.\n\n---\n\nmore')).toBe(true);
+  });
+
+  it('should detect frontmatter whose value spans multiple lines', () => {
+    expect(hasFrontmatterBlock('---\nallowed-tools:\n  - Bash(git:*)\n  - Read\n---\nbody')).toBe(
+      true,
+    );
+  });
+
   it('should return false for a body with no delimiters at all', () => {
     expect(hasFrontmatterBlock('Just a prompt.\n')).toBe(false);
   });

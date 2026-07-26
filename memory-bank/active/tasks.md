@@ -240,7 +240,7 @@ Pinned because it classifies every present and future Claude feature without re-
     - Changes: `gh issue create` describing spec-compliant fields (`allowed-tools`, `license`, `compatibility`) that a16n's IR silently drops.
     - **Also worth filing separately (preflight):** `--delete-source` derives its safety entirely from `Skipped` warnings (`handleDeleteSource()`, `packages/cli/src/commands/convert.ts:531`), so any path that degrades content *without* warning is invisible to it and its source gets deleted anyway. Finding C was exactly that shape before OQ4. Propose treating `Approximated` as delete-blocking too, or stating the invariant explicitly.
 11. ✅ **Full verification**
-    - Changes: `pnpm build && pnpm test && pnpm lint && pnpm typecheck`.
+    - Changes: `pnpm build && pnpm test && pnpm typecheck`. (`pnpm lint` was in the original list but executes zero tasks — no package defines a `lint` script — so it is not verification.)
 
 ## Technology Validation
 
@@ -356,4 +356,4 @@ Reviewed 2026-07-25 against the plan above. Full suite re-run at QA time rather 
 - **Net:** `NON_SPEC_FEATURES` 15 → 13, suite 1042 → 1038. Warning *counts* are unchanged on every possible input in both trims — only the label lists shorten.
 - **Observation (not fixed, out of scope) — `techContext.md` overstates validation.** Its "Full validation" line lists `pnpm lint`, which executes zero tasks in this repo. Pre-existing.
 - **Verified clean:** no orphaned `COMPLEX_COMMAND_PATTERNS` / `isComplexCommand` / `cursor-command-complex` references in source, tests, fixtures, or docs (remaining hits are CHANGELOGs and memory-bank history, both correctly immutable). No TODOs, stubs, debug artifacts, or placeholder values introduced. The stale "Complex Commands" rows under `packages/docs/static/a16n/.generated/` are gitignored build output, not tracked files.
-- **Documentation complete:** five docs surfaces plus the warn-and-continue section of `systemPatterns.md`, all landed in-commit with the code. `plugin-claude/README.md`'s feature table matches `NON_SPEC_FEATURES` exactly (9 frontmatter keys + 6 body substitutions).
+- **Documentation complete:** five docs surfaces plus the warn-and-continue section of `systemPatterns.md`, all landed in-commit with the code. `plugin-claude/README.md`'s feature table matches `NON_SPEC_FEATURES` exactly (9 frontmatter keys + 4 body substitutions = 13).
