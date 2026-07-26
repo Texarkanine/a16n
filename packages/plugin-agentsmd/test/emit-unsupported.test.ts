@@ -68,6 +68,27 @@ describe('AGENTS.md Plugin Emission (unsupported types)', () => {
     await expect(fs.access(path.join(tempDir, 'AGENTS.md'))).rejects.toThrow();
   });
 
+  it('should mark ManualPrompt with authored description as unsupported without writing', async () => {
+    const models: AgentCustomization[] = [
+      {
+        id: createId(CustomizationType.ManualPrompt, '.claude/skills/cleanup/SKILL.md'),
+        type: CustomizationType.ManualPrompt,
+        sourcePath: '.claude/skills/cleanup/SKILL.md',
+        content: 'Clean up temporary files.',
+        promptName: 'cleanup',
+        description: 'Remove build artifacts and temp files',
+        metadata: {},
+      } as AgentCustomization,
+    ];
+
+    const result = await agentsmdPlugin.emit(models, tempDir);
+
+    expect(result.written).toHaveLength(0);
+    expect(result.unsupported).toHaveLength(1);
+    expect(result.unsupported[0]?.type).toBe(CustomizationType.ManualPrompt);
+    await expect(fs.access(path.join(tempDir, 'AGENTS.md'))).rejects.toThrow();
+  });
+
   it('should emit supported items while returning unsupported ones', async () => {
     const gp: GlobalPrompt = {
       id: createId(CustomizationType.GlobalPrompt, 'CLAUDE.md'),

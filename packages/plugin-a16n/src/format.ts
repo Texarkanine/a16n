@@ -43,6 +43,9 @@ export function formatIRFile(item: AgentCustomization): string {
   }
   // ManualPrompt: DO NOT include promptName (derived from relativeDir + filename)
   // GlobalPrompt: no extra fields
+  if (isManualPrompt(item) && item.description) {
+    frontmatter.description = item.description;
+  }
 
   if (isSimpleAgentSkill(item) || isManualPrompt(item)) {
     // Spec key names (`allowed-tools`, `metadata`, …) live in models so the IR

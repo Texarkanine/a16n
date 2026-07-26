@@ -201,8 +201,9 @@ ${skill.content}
  * Format a ManualPrompt as a Cursor Agent Skill (disable-model-invocation).
  *
  * Emits to .cursor/skills/<sanitized-promptName>/SKILL.md with YAML frontmatter
- * including name, description ("Invoke with /<name>"), and disable-model-invocation: true.
- * Matches the Claude Code reference implementation for consistency.
+ * including name, description, and disable-model-invocation: true.
+ * Preserves authored description when present; otherwise synthesizes
+ * `Invoke with /<name>` so command-origin prompts remain valid skills.
  *
  * @param prompt - The ManualPrompt to format
  * @param specFields - Rendered AgentSkills.io spec-field YAML, from {@link specFieldsFor}
@@ -210,7 +211,7 @@ ${skill.content}
  */
 function formatManualPromptAsSkill(prompt: ManualPrompt, specFields: string): string {
   const safeName = JSON.stringify(prompt.promptName);
-  const description = `Invoke with /${prompt.promptName}`;
+  const description = prompt.description ?? `Invoke with /${prompt.promptName}`;
   const safeDescription = JSON.stringify(description);
 
   return `---

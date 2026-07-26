@@ -151,6 +151,29 @@ describe('parseIRFile', () => {
         expect(result.item.relativeDir).toBeUndefined();
       }
     });
+
+    it('should parse optional authored description', async () => {
+      const result = await parseIRFile(
+        ws,
+        'parse-manualPrompt/with-description.md',
+        'with-description.md',
+        '.a16n/manual-prompt'
+      );
+
+      expect(result.error).toBeUndefined();
+      if (result.item?.type === CustomizationType.ManualPrompt) {
+        expect(result.item.description).toBe('Remove build artifacts and temp files');
+      }
+    });
+
+    it('should leave description undefined when absent', async () => {
+      const result = await parseIRFile(ws, 'parse-manualPrompt/basic.md', 'basic.md', '.a16n/manual-prompt');
+
+      expect(result.error).toBeUndefined();
+      if (result.item?.type === CustomizationType.ManualPrompt) {
+        expect(result.item.description).toBeUndefined();
+      }
+    });
   });
 
   describe('AgentIgnore', () => {

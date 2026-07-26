@@ -163,6 +163,7 @@ export async function parseIRFile(
           ...baseItem,
           type: CustomizationType.ManualPrompt,
           promptName,
+          ...(frontmatter.description ? { description: frontmatter.description } : {}),
           ...specFields,
         };
         return { item };

@@ -104,6 +104,46 @@ describe('Cursor ManualPrompt Emission (Agent Skills)', () => {
       expect(content).toContain('disable-model-invocation: true');
       expect(content).toContain('Deploy instructions here.');
     });
+
+    it('should synthesize description when absent', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.cursor/commands/review.md',
+          content: 'Review content',
+          promptName: 'review',
+          metadata: {},
+        },
+      ];
+
+      await cursorPlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'review', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('Invoke with /review');
+    });
+
+    it('should preserve authored description when present', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.claude/skills/cleanup/SKILL.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.claude/skills/cleanup/SKILL.md',
+          content: 'Clean up temporary files.',
+          promptName: 'cleanup',
+          description: 'Remove build artifacts and temp files',
+          metadata: {},
+        },
+      ];
+
+      await cursorPlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.cursor', 'skills', 'cleanup', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('description: "Remove build artifacts and temp files"');
+      expect(content).not.toContain('Invoke with /cleanup');
+    });
   });
 
   describe('multiple ManualPrompts', () => {

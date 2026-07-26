@@ -471,6 +471,7 @@ async function discoverSkills(root: string): Promise<{
           sourcePath: skillPath,
           content: body,
           promptName: dirName,
+          ...(frontmatter.description ? { description: frontmatter.description } : {}),
           metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
           ...specFields,
         } as ManualPrompt);

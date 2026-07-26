@@ -460,6 +460,7 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
           sourcePath: skillPath,
           content: body,
           promptName: dirName,
+          ...(frontmatter.description ? { description: frontmatter.description } : {}),
           metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
           ...specFields,
         };
