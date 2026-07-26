@@ -43,17 +43,9 @@ This plugin supports five customization types:
 
 Commands in `.cursor/commands/*.md` are prepackaged prompts invoked via `/command-name`.
 
-**Simple commands** (just prompt text) are discovered and can be converted to Claude skills.
+**Every command is discovered**, and its content is preserved byte-for-byte. Commands are plain prompt text to Cursor — the filename is the command name and the whole file is the prompt — so nothing in a command file needs interpreting at discovery time.
 
-**Complex commands** are skipped with a warning. Complex commands contain features that cannot be converted:
-
-| Feature | Example | Reason |
-|---------|---------|--------|
-| `$ARGUMENTS` | `Fix issue #$ARGUMENTS` | Runtime argument injection |
-| Positional params | `Review PR #$1` | Runtime argument injection |
-| Bash execution | `!git branch --show-current` | Shell execution |
-| File references | `@src/utils.js` | Context injection |
-| `allowed-tools` | Frontmatter key | Tool permissions |
+**Commands opening with a `---` block** get one `approximated` warning. Cursor commands do not support frontmatter, so such a block is prose the author wrote rather than configuration. a16n keeps it as body content and tells you it did, rather than stripping it or passing it through silently. This is common in half-migrated setups, since Claude Code commands *do* support frontmatter.
 
 ### Emission
 

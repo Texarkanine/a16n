@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseMdc } from '../src/mdc.js';
+import { parseMdc, hasFrontmatterBlock } from '../src/mdc.js';
 
 describe('parseMdc', () => {
   it('should parse frontmatter with alwaysApply: true', () => {
@@ -113,5 +113,42 @@ alwaysApply: true
 
     expect(result.frontmatter.alwaysApply).toBe(true);
     expect(result.body).toBe('');
+  });
+});
+
+describe('hasFrontmatterBlock', () => {
+  it('should detect a leading frontmatter block', () => {
+    expect(hasFrontmatterBlock('---\ndescription: v\n---\nbody')).toBe(true);
+  });
+
+  it('should ignore a thematic break with no closing delimiter', () => {
+    expect(hasFrontmatterBlock('---\n\n# Title\n\nbody')).toBe(false);
+  });
+
+  it('should ignore paired thematic breaks with no key line between', () => {
+    expect(hasFrontmatterBlock('---\n\n# Title\n\n---\n\nmore')).toBe(false);
+  });
+
+  // Deliberate over-report, pinned so it stays a known behavior. `Note: see docs.`
+  // between two breaks is a valid single-key YAML document, so nothing lexical
+  // separates it from real frontmatter. Over-reporting costs one advisory line and
+  // never touches content; under-reporting restores the silent passthrough this
+  // advisory exists to break.
+  it('should report a paired-break block whose prose line parses as a YAML key', () => {
+    expect(hasFrontmatterBlock('---\n\nNote: see docs.\n\n---\n\nmore')).toBe(true);
+  });
+
+  it('should detect frontmatter whose value spans multiple lines', () => {
+    expect(hasFrontmatterBlock('---\nallowed-tools:\n  - Bash(git:*)\n  - Read\n---\nbody')).toBe(
+      true,
+    );
+  });
+
+  it('should return false for a body with no delimiters at all', () => {
+    expect(hasFrontmatterBlock('Just a prompt.\n')).toBe(false);
+  });
+
+  it('should return false when the first --- appears after prose', () => {
+    expect(hasFrontmatterBlock('Intro prose.\n\n---\nkey: v\n---\n')).toBe(false);
   });
 });

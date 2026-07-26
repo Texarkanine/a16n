@@ -33,8 +33,8 @@ npm install @a16njs/plugin-cursor
 		* `description:` present → [AgentSkillIO](/models#agentskillio)
 		* `description:` missing → Skipped w/ Warning
 * [Cursor Commands](https://cursor.com/docs/context/commands): `.cursor/commands/**/*.md`
-	* Simple Commands: [ManualPrompt](/models#manualprompt)
-	* Complex Commands (placeholders, $ARGUMENTS, $1, etc.): Skipped
+	* All commands: [ManualPrompt](/models#manualprompt), content preserved verbatim
+	* Commands opening with a `---` block: warned w/ `approximated` (Cursor commands have no frontmatter, so the block is kept as body content)
 * [Cursor Ignore](https://cursor.com/docs/context/ignore-files): `.cursorignore`
 	* [AgentIgnore](/models#agentignore)
 

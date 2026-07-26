@@ -16,6 +16,32 @@ export interface ParsedMdc {
 }
 
 /**
+ * Report whether content opens with a YAML frontmatter block.
+ *
+ * Requires all three of: a leading `---`, a later closing `---`, and at least
+ * one YAML-ish key line between them. The key-line requirement keeps markdown
+ * thematic breaks — which are valid prose, not configuration — from matching.
+ *
+ * "At least one" rather than "every" line, because frontmatter values routinely
+ * span lines — `allowed-tools:` as a list, block scalars, nested maps — and
+ * demanding that every line look like a key would miss them. The accepted cost is
+ * an over-report on prose that happens to parse as YAML, such as a lone `Note:`
+ * between two breaks. That direction is deliberate: a spurious advisory costs one
+ * line and never touches content, while a miss restores the silent passthrough
+ * this advisory exists to break.
+ */
+export function hasFrontmatterBlock(content: string): boolean {
+  const lines = content.split('\n');
+  const open = lines.findIndex(line => line.trim() !== '');
+  if (open === -1 || lines[open]!.trim() !== '---') return false;
+
+  const close = lines.findIndex((line, i) => i > open && line.trim() === '---');
+  if (close === -1) return false;
+
+  return lines.slice(open + 1, close).some(line => /^[A-Za-z_][\w-]*\s*:/.test(line));
+}
+
+/**
  * Parse MDC file content into frontmatter and body.
  * Uses line-by-line regex parsing for safety with Cursor's format.
  */
