@@ -240,6 +240,11 @@ interface SkillFrontmatter {
   name?: string;
   description?: string;
   disableModelInvocation?: boolean;
+  /**
+   * True when Cursor's harness-specific `paths:` key is declared (even if empty).
+   * Category A (#148): converting without it would widen skill scope, so discovery refuses.
+   */
+  hasPaths?: boolean;
 }
 
 interface ParsedSkill {
@@ -247,11 +252,6 @@ interface ParsedSkill {
   /** Optional AgentSkills.io spec fields, carried straight onto the emitted item. */
   specFields: AgentSkillSpecFields;
   body: string;
-  /**
-   * True when Cursor's harness-specific `paths:` key is declared (even if empty).
-   * Category A (#148): converting without it would widen skill scope, so discovery refuses.
-   */
-  hasPaths?: boolean;
   parseError?: string;
 }
 
@@ -273,13 +273,13 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
     if (typeof data['disable-model-invocation'] === 'boolean') {
       frontmatter.disableModelInvocation = data['disable-model-invocation'];
     }
+    // Key presence, not value shape — empty/`paths: "src/**"` still scopes in Cursor.
+    if ('paths' in data) frontmatter.hasPaths = true;
 
     return {
       frontmatter,
       specFields: extractSpecFields(data),
       body: parsed.content.trim(),
-      // Key presence, not value shape — empty/`paths: "src/**"` still scopes in Cursor.
-      hasPaths: 'paths' in data,
     };
   } catch (err) {
     return {
@@ -398,7 +398,7 @@ async function discoverSkills(root: string): Promise<{
     
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
-      const { frontmatter, specFields, body, hasPaths, parseError } = parseSkillFrontmatter(content);
+      const { frontmatter, specFields, body, parseError } = parseSkillFrontmatter(content);
 
       if (parseError) {
         warnings.push({
@@ -414,7 +414,7 @@ async function discoverSkills(root: string): Promise<{
 
       // Cursor `paths:` scopes the skill to matching files. a16n does not model it
       // (Category A / #148). Emitting without it would widen scope, so refuse.
-      if (hasPaths) {
+      if (frontmatter.hasPaths) {
         warnings.push({
           code: WarningCode.Skipped,
           message:

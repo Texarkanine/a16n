@@ -50,3 +50,14 @@ Refuse conversion of Cursor skills that declare harness-specific `paths:` scopin
     - Key-presence detection (`'paths' in data`); message cites Cursor scoping / widen scope
 * Insights
     - Same control-flow slot as Claude `hasHooks` made the change a near-port
+
+## 2026-07-26 - QA - COMPLETE
+
+* Work completed
+    - Semantic review against plan (KISS/DRY/YAGNI/completeness/regression/integrity/docs)
+    - Aligned `hasPaths` onto `SkillFrontmatter` to match Claude `hasHooks` placement
+    - Wrote `.qa-validation-status` PASS
+* Decisions made
+    - No substantive gaps; refuse-only scope preserved
+* Insights
+    - Mirror sibling-plugin field placement early to avoid QA nits
