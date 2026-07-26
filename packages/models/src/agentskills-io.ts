@@ -115,6 +115,31 @@ export function formatSpecFieldsYaml(fields: AgentSkillSpecFields): string {
 }
 
 /**
+ * Copy an item's AgentSkills.io spec fields into a frontmatter object under
+ * their *spec* key names (`allowed-tools`, `metadata`, …).
+ *
+ * The object-form counterpart of {@link formatSpecFieldsYaml}: use this when the
+ * caller builds a data object for `gray-matter` / `yaml.stringify`, and the
+ * string form when it hand-builds YAML lines. Both spell the same four keys.
+ *
+ * Empty `specMetadata` is omitted rather than written as `{}`.
+ *
+ * @param target - Frontmatter object being built, mutated in place
+ * @param fields - The item whose spec fields should be copied
+ */
+export function assignSpecFields(
+  target: Record<string, unknown>,
+  fields: AgentSkillSpecFields
+): void {
+  if (fields.license) target.license = fields.license;
+  if (fields.compatibility) target.compatibility = fields.compatibility;
+  if (fields.specMetadata && Object.keys(fields.specMetadata).length > 0) {
+    target.metadata = fields.specMetadata;
+  }
+  if (fields.allowedTools) target['allowed-tools'] = fields.allowedTools;
+}
+
+/**
  * A parsed AgentSkills.io skill with content and frontmatter.
  */
 export interface ParsedSkill {
@@ -289,21 +314,7 @@ export async function writeAgentSkillIO(
     yamlData['disable-model-invocation'] = frontmatter.disableModelInvocation;
   }
 
-  if (frontmatter.license) {
-    yamlData.license = frontmatter.license;
-  }
-
-  if (frontmatter.compatibility) {
-    yamlData.compatibility = frontmatter.compatibility;
-  }
-
-  if (frontmatter.specMetadata && Object.keys(frontmatter.specMetadata).length > 0) {
-    yamlData.metadata = frontmatter.specMetadata;
-  }
-
-  if (frontmatter.allowedTools) {
-    yamlData['allowed-tools'] = frontmatter.allowedTools;
-  }
+  assignSpecFields(yamlData, frontmatter);
 
   // Write SKILL.md with gray-matter
   const skillContent = matter.stringify(content, yamlData);

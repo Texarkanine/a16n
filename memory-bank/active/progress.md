@@ -82,3 +82,15 @@ All 13 steps implemented. Final verification (cache-disabled): **1147 tests** gr
     - The property test earned its place immediately. Rather than trust that it passed, mutating the emitter proved it fails for the right reasons — worth doing for any test whose whole purpose is catching silence.
     - Deviation from TDD, recorded honestly: step 7's implementation was written directly after its test rather than stubbing first, so the observed red was an unresolved-import error rather than assertion failures. Steps 9 and 10 followed the intended cycle and produced real assertion-level reds.
     - Two of my own test bugs (`parseSkillFrontmatter`'s `{success, skill}` shape, and a document missing the required `description`) were caught only by the full-suite run, because the package under edit was green while `models` was not. Per-package runs during iteration are not a substitute for the sweep.
+
+## 2026-07-26 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Reviewed the build against the plan, creative docs (OQ1–OQ3), and the seven brief requirements.
+    - Confirmed discover/emit/round-trip coverage for all four fields on `SimpleAgentSkill`, `AgentSkillIO`, and `ManualPrompt`; disposition table matches Option C; docs and `systemPatterns.md` current; follow-ups [#147](https://github.com/Texarkanine/a16n/issues/147) / [#148](https://github.com/Texarkanine/a16n/issues/148) filed.
+    - One trivial DRY fix: exported `assignSpecFields` from `@a16njs/models` and routed `writeAgentSkillIO` + `plugin-a16n` `formatIRFile` through it (object-form counterpart of `formatSpecFieldsYaml`).
+    - Wrote `.qa-validation-status` = PASS.
+* Decisions made
+    - Treated the object-form key-mapping duplication as in-scope for QA (completes the build's "spell key names once" intent) rather than a design question to FAIL on.
+* Insights
+    - The same stale-`dist` trap from build resurfaced immediately when `plugin-a16n` imported a brand-new models export before rebuild — the failure mode is now predictable enough to check for first.

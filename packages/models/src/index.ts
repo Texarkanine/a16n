@@ -61,6 +61,7 @@ export {
   type ParsedSkill,
   extractSpecFields,
   formatSpecFieldsYaml,
+  assignSpecFields,
   parseSkillFrontmatter,
   readSkillFiles,
   writeAgentSkillIO,

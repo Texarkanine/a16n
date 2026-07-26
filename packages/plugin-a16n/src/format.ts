@@ -1,47 +1,12 @@
 import * as yaml from 'yaml';
 import {
   type AgentCustomization,
-  type GlobalPrompt,
-  type FileRule,
-  type SimpleAgentSkill,
-  type ManualPrompt,
-  type AgentIgnore,
-  type AgentSkillSpecFields,
-  CustomizationType,
-  isGlobalPrompt,
+  assignSpecFields,
   isFileRule,
   isSimpleAgentSkill,
   isManualPrompt,
   isAgentIgnore,
 } from '@a16njs/models';
-
-/**
- * Copy an item's AgentSkills.io spec fields into a frontmatter object under
- * their *spec* key names.
- *
- * The IR stores these camelCase (`allowedTools`, `specMetadata`); on disk they
- * must be `allowed-tools` and `metadata`, so an `.a16n/` file stays legible to
- * anything that already reads AgentSkills.io frontmatter.
- *
- * `specMetadata` writing as `metadata:` is not a conflict with the rule that
- * `AgentCustomization.metadata` is never serialized: they are unrelated things
- * that happen to share a name. The IR property is transient plugin bookkeeping;
- * this one is author-written content that must persist.
- *
- * @param frontmatter - Frontmatter object being built, mutated in place
- * @param fields - The item whose spec fields should be copied
- */
-function addSpecFields(
-  frontmatter: Record<string, unknown>,
-  fields: AgentSkillSpecFields
-): void {
-  if (fields.license) frontmatter.license = fields.license;
-  if (fields.compatibility) frontmatter.compatibility = fields.compatibility;
-  if (fields.specMetadata && Object.keys(fields.specMetadata).length > 0) {
-    frontmatter.metadata = fields.specMetadata;
-  }
-  if (fields.allowedTools) frontmatter['allowed-tools'] = fields.allowedTools;
-}
 
 /**
  * Format an IR item as a markdown file with YAML frontmatter.
@@ -80,7 +45,9 @@ export function formatIRFile(item: AgentCustomization): string {
   // GlobalPrompt: no extra fields
 
   if (isSimpleAgentSkill(item) || isManualPrompt(item)) {
-    addSpecFields(frontmatter, item);
+    // Spec key names (`allowed-tools`, `metadata`, …) live in models so the IR
+    // on-disk format cannot drift from native SKILL.md writers.
+    assignSpecFields(frontmatter, item);
   }
   
   // Generate YAML frontmatter with clean, readable output

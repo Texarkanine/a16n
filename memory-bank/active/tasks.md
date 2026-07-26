@@ -292,15 +292,13 @@ Verified by scripted probe against the codebase rather than by reading, per the 
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
 - [x] Preflight
-- [ ] Build
-- [ ] QA
+- [x] Build
+- [x] QA
 
-- [x] Component analysis complete
-- [ ] Open questions resolved
-- [ ] Test planning complete (TDD)
-- [ ] Implementation plan complete
-- [ ] Technology validation complete
-- [ ] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
-- [ ] QA
+## QA Results
+
+**Result:** PASS
+
+**Findings:**
+- DRY: `writeAgentSkillIO` and `plugin-a16n`'s local `addSpecFields` both mapped IR fields → spec key names. Consolidated into exported `assignSpecFields` in `@a16njs/models`, matching the build's "spell the key names once" intent. Unused imports cleaned from `format.ts`.
+- Completeness, YAGNI, regression, integrity, documentation: no blocking issues. All seven brief requirements map to implemented behavior; creative dispositions (OQ1–OQ3) hold; docs and `systemPatterns.md` are current; follow-ups [#147](https://github.com/Texarkanine/a16n/issues/147) / [#148](https://github.com/Texarkanine/a16n/issues/148) correctly deferred.
