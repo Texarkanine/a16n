@@ -10,7 +10,7 @@
 
 # Interface: ConversionResult
 
-Defined in: [index.ts:62](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L62)
+Defined in: [index.ts:62](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L62)
 
 Result of a conversion operation.
 
@@ -20,7 +20,7 @@ Result of a conversion operation.
 
 > **discovered**: `AgentCustomization`[]
 
-Defined in: [index.ts:64](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L64)
+Defined in: [index.ts:64](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L64)
 
 Items discovered from source
 
@@ -30,7 +30,7 @@ Items discovered from source
 
 > **written**: `WrittenFile`[]
 
-Defined in: [index.ts:66](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L66)
+Defined in: [index.ts:66](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L66)
 
 Files written to target
 
@@ -40,7 +40,7 @@ Files written to target
 
 > **warnings**: `Warning`[]
 
-Defined in: [index.ts:68](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L68)
+Defined in: [index.ts:68](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L68)
 
 Warnings from discovery and emission
 
@@ -50,7 +50,7 @@ Warnings from discovery and emission
 
 > **unsupported**: `AgentCustomization`[]
 
-Defined in: [index.ts:70](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L70)
+Defined in: [index.ts:70](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L70)
 
 Items that couldn't be represented by target
 
@@ -60,7 +60,7 @@ Items that couldn't be represented by target
 
 > `optional` **gitIgnoreChanges?**: [`GitIgnoreResult`](GitIgnoreResult.md)[]
 
-Defined in: [index.ts:72](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L72)
+Defined in: [index.ts:72](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L72)
 
 Git-ignore changes made (if --gitignore-output-with was used)
 
@@ -70,6 +70,6 @@ Git-ignore changes made (if --gitignore-output-with was used)
 
 > `optional` **deletedSources?**: `string`[]
 
-Defined in: [index.ts:74](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L74)
+Defined in: [index.ts:74](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L74)
 
 Source files that were deleted (if --delete-source was used)

@@ -1,8 +1,21 @@
 # Changelog
 
-> * **release:** Wave B — promote engine + plugins to 1.0.0, re-pin agentsmd to models@1.0.0 ([#125](https://github.com/Texarkanine/a16n/issues/125)) ([d55fa92](https://github.com/Texarkanine/a16n/commit/d55fa9289bac5193187f5cd24f5ff8138d5c94cd))
+> * **models:** preserve AgentSkills.io skill fields through conversion [[#143](https://github.com/Texarkanine/a16n/issues/143)] ([#149](https://github.com/Texarkanine/a16n/issues/149)) ([250f246](https://github.com/Texarkanine/a16n/commit/250f2466e8307c00d9ce1966a1f839155841768d))
+* **models:** preserve ManualPrompt authored description [[#147](https://github.com/Texarkanine/a16n/issues/147)] ([#151](https://github.com/Texarkanine/a16n/issues/151)) ([cc1eb2f](https://github.com/Texarkanine/a16n/commit/cc1eb2ff1f58e0849376f13656cf6693fa5a9b9f))
 
 # @a16njs/plugin-cursor
+
+## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@1.0.0...@a16njs/plugin-cursor@1.1.0) (2026-07-26)
+
+### Features
+
+* **models:** preserve AgentSkills.io skill fields through conversion [[#143](https://github.com/Texarkanine/a16n/issues/143)] ([#149](https://github.com/Texarkanine/a16n/issues/149)) ([250f246](https://github.com/Texarkanine/a16n/commit/250f2466e8307c00d9ce1966a1f839155841768d))
+* **models:** preserve ManualPrompt authored description [[#147](https://github.com/Texarkanine/a16n/issues/147)] ([#151](https://github.com/Texarkanine/a16n/issues/151)) ([cc1eb2f](https://github.com/Texarkanine/a16n/commit/cc1eb2ff1f58e0849376f13656cf6693fa5a9b9f))
+
+### Bug Fixes
+
+* **plugin-cursor:** refuse Cursor skills that declare paths: [[#148](https://github.com/Texarkanine/a16n/issues/148)] ([#150](https://github.com/Texarkanine/a16n/issues/150)) ([4891aff](https://github.com/Texarkanine/a16n/commit/4891affd126bc150ad94c9f9f6a8e6d7aa9f2199))
+* realign conversion gates with the AgentSkills.io spec ([#145](https://github.com/Texarkanine/a16n/issues/145)) ([5246865](https://github.com/Texarkanine/a16n/commit/52468651da678557b3199d90f81b6b14c7e8dbf9))
 
 ## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@0.14.1...@a16njs/plugin-cursor@1.0.0) (2026-06-13)
 

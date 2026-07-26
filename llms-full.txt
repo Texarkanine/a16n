@@ -8,6 +8,17 @@ This file contains all documentation content in a single document following the 
 
 # a16n
 
+## [1.1.0](https://github.com/Texarkanine/a16n/compare/a16n@1.0.0...a16n@1.1.0) (2026-07-26)
+
+### Features
+
+* **models:** preserve AgentSkills.io skill fields through conversion [[#143](https://github.com/Texarkanine/a16n/issues/143)] ([#149](https://github.com/Texarkanine/a16n/issues/149)) ([250f246](https://github.com/Texarkanine/a16n/commit/250f2466e8307c00d9ce1966a1f839155841768d))
+
+### Bug Fixes
+
+* **plugin-cursor:** refuse Cursor skills that declare paths: [[#148](https://github.com/Texarkanine/a16n/issues/148)] ([#150](https://github.com/Texarkanine/a16n/issues/150)) ([4891aff](https://github.com/Texarkanine/a16n/commit/4891affd126bc150ad94c9f9f6a8e6d7aa9f2199))
+* realign conversion gates with the AgentSkills.io spec ([#145](https://github.com/Texarkanine/a16n/issues/145)) ([5246865](https://github.com/Texarkanine/a16n/commit/52468651da678557b3199d90f81b6b14c7e8dbf9))
+
 ## [1.0.0](https://github.com/Texarkanine/a16n/compare/a16n@0.15.4...a16n@1.0.0) (2026-06-13)
 
 ### Bug Fixes
@@ -1239,6 +1250,13 @@ Visit our [GitHub repository](https://github.com/Texarkanine/a16n) to get starte
 
 # @a16njs/models
 
+## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@1.0.0...@a16njs/models@1.1.0) (2026-07-26)
+
+### Features
+
+* **models:** preserve AgentSkills.io skill fields through conversion [[#143](https://github.com/Texarkanine/a16n/issues/143)] ([#149](https://github.com/Texarkanine/a16n/issues/149)) ([250f246](https://github.com/Texarkanine/a16n/commit/250f2466e8307c00d9ce1966a1f839155841768d))
+* **models:** preserve ManualPrompt authored description [[#147](https://github.com/Texarkanine/a16n/issues/147)] ([#151](https://github.com/Texarkanine/a16n/issues/151)) ([cc1eb2f](https://github.com/Texarkanine/a16n/commit/cc1eb2ff1f58e0849376f13656cf6693fa5a9b9f))
+
 ## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@0.14.1...@a16njs/models@1.0.0) (2026-06-13)
 
 ### Bug Fixes
@@ -1449,6 +1467,8 @@ Examples include:
 - Cursor rules with no `globs` or `description`, when `@mention`'d
 - AgentSkills.io Skills with `disable-model-invocation: true`
 
+Optional `description` holds authored prose from skill frontmatter when present (skills with `disable-model-invocation: true`). Command-origin prompts leave it unset; emitters synthesize `Invoke with /<promptName>` only in that case so the emitted skill remains valid.
+
 ### AgentIgnore
 
 An AgentIgnore is a file pattern specifying files that should be ignored - not read, not written, maybe not even visible to - the agent.
@@ -1456,6 +1476,30 @@ An AgentIgnore is a file pattern specifying files that should be ignored - not r
 Examples include:
 - `.cursorignore`
 - Claude Code `permissions.deny` Read rule
+
+---
+
+## AgentSkills.io Spec Fields
+
+Every skill-like type — `SimpleAgentSkill`, `AgentSkillIO`, and `ManualPrompt` — carries the four optional metadata fields defined by the [AgentSkills.io](https://agentskills.io) specification, via the shared `AgentSkillSpecFields` interface.
+
+| IR field        | Frontmatter key  | Meaning                                                    |
+| --------------- | ---------------- | ---------------------------------------------------------- |
+| `license`       | `license`        | SPDX identifier or free-form license text                  |
+| `compatibility` | `compatibility`  | Human-readable environment requirements                    |
+| `specMetadata`  | `metadata`       | Arbitrary author-supplied string key-values                |
+| `allowedTools`  | `allowed-tools`  | Tools the skill is permitted to invoke                     |
+
+`ManualPrompt` carries them too, even though it is not itself an AgentSkills.io concept: a Claude skill with `disable-model-invocation: true` is classified as a `ManualPrompt`, so leaving the fields off that type would silently discard the `allowed-tools` of exactly the skills most likely to run shell commands.
+
+### `metadata` vs. `specMetadata`
+
+These are different things that collided on a name:
+
+- **`AgentCustomization.metadata`** is transient plugin bookkeeping — discovery hints, original display names, classification breadcrumbs. It is **never serialized**; it exists only for the duration of a conversion.
+- **`AgentSkillSpecFields.specMetadata`** is author-written content from the skill's `metadata:` frontmatter. It **is** serialized, and it round-trips through `.a16n/` unchanged.
+
+The IR spells the second one `specMetadata` to keep the two apart in code. On disk it is always written under the spec's key name, `metadata`.
 
 ---
 
@@ -1542,6 +1586,13 @@ See the [Models API Reference](/models/api) for complete interface definitions, 
 
 ## Changelog(Plugin-a16n)
 
+
+## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@1.0.0...@a16njs/plugin-a16n@1.1.0) (2026-07-26)
+
+### Features
+
+* **models:** preserve AgentSkills.io skill fields through conversion [[#143](https://github.com/Texarkanine/a16n/issues/143)] ([#149](https://github.com/Texarkanine/a16n/issues/149)) ([250f246](https://github.com/Texarkanine/a16n/commit/250f2466e8307c00d9ce1966a1f839155841768d))
+* **models:** preserve ManualPrompt authored description [[#147](https://github.com/Texarkanine/a16n/issues/147)] ([#151](https://github.com/Texarkanine/a16n/issues/151)) ([cc1eb2f](https://github.com/Texarkanine/a16n/commit/cc1eb2ff1f58e0849376f13656cf6693fa5a9b9f))
 
 ## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@0.7.3...@a16njs/plugin-a16n@1.0.0) (2026-06-13)
 
@@ -1732,7 +1783,7 @@ All six IR types can be emitted to `.a16n/`:
 
 The plugin uses Kubernetes-style version semantics:
 
-- **Forward compatible**: A reader with version `v1beta2` can read files with `v1beta1`
+- **Forward compatible**: A reader with version `v1beta4` can read files with `v1beta1` or `v1beta2`
 - **Major version must match**: `v1` is not compatible with `v2`
 - **Stability must match**: `beta` is not compatible with `alpha` or `stable`
 - Files with incompatible versions are still processed but emit a `VersionMismatch` warning
@@ -1812,6 +1863,12 @@ For complete plugin API details, see the [Plugin a16n API Reference](/plugin-a16
 
 ## Changelog(Plugin-agentsmd)
 
+
+## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-agentsmd@1.0.4...@a16njs/plugin-agentsmd@1.1.0) (2026-07-26)
+
+### Features
+
+* **models:** preserve ManualPrompt authored description [[#147](https://github.com/Texarkanine/a16n/issues/147)] ([#151](https://github.com/Texarkanine/a16n/issues/151)) ([cc1eb2f](https://github.com/Texarkanine/a16n/commit/cc1eb2ff1f58e0849376f13656cf6693fa5a9b9f))
 
 ## [1.0.4](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-agentsmd@1.0.3...@a16njs/plugin-agentsmd@1.0.4) (2026-06-13)
 
@@ -1956,6 +2013,17 @@ For complete plugin API details, see the [Plugin AGENTS.md API Reference](/plugi
 ## Changelog(Plugin-claude)
 
 # @a16njs/plugin-claude
+
+## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@1.0.0...@a16njs/plugin-claude@1.1.0) (2026-07-26)
+
+### Features
+
+* **models:** preserve AgentSkills.io skill fields through conversion [[#143](https://github.com/Texarkanine/a16n/issues/143)] ([#149](https://github.com/Texarkanine/a16n/issues/149)) ([250f246](https://github.com/Texarkanine/a16n/commit/250f2466e8307c00d9ce1966a1f839155841768d))
+* **models:** preserve ManualPrompt authored description [[#147](https://github.com/Texarkanine/a16n/issues/147)] ([#151](https://github.com/Texarkanine/a16n/issues/151)) ([cc1eb2f](https://github.com/Texarkanine/a16n/commit/cc1eb2ff1f58e0849376f13656cf6693fa5a9b9f))
+
+### Bug Fixes
+
+* realign conversion gates with the AgentSkills.io spec ([#145](https://github.com/Texarkanine/a16n/issues/145)) ([5246865](https://github.com/Texarkanine/a16n/commit/52468651da678557b3199d90f81b6b14c7e8dbf9))
 
 ## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.14.1...@a16njs/plugin-claude@1.0.0) (2026-06-13)
 
@@ -2171,6 +2239,7 @@ npm install @a16njs/plugin-claude
 		* `description:` present → [AgentSkillIO](/models#agentskillio)
 		* `description:` missing → Skipped w/ Warning
 	* **Skills with hooks** → Skipped w/ Warning (skill hooks are unique to Claude Code & can't translate, but also [hooks can't translate](../understanding-conversions/hooks))
+	* **Skills using non-spec Claude features** → Discovered, content preserved, warned w/ `approximated` (`$ARGUMENTS`, `` !`cmd` ``, `${CLAUDE_*}`, `@path`, and frontmatter keys like `model:` or `argument-hint:` are outside the [AgentSkills.io spec](https://agentskills.io/specification), so their runtime behavior is lost)
 * [Claude Settings](https://docs.anthropic.com/en/docs/claude-code/settings): `.claude/settings.json`
 	* `permissions.deny` with `Read()`: [AgentIgnore](/models#agentignore)
 	* Other permission types: Skipped
@@ -2241,6 +2310,18 @@ For complete plugin API details, see the [Plugin Claude API Reference](/plugin-c
 ## Changelog(Plugin-cursor)
 
 # @a16njs/plugin-cursor
+
+## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@1.0.0...@a16njs/plugin-cursor@1.1.0) (2026-07-26)
+
+### Features
+
+* **models:** preserve AgentSkills.io skill fields through conversion [[#143](https://github.com/Texarkanine/a16n/issues/143)] ([#149](https://github.com/Texarkanine/a16n/issues/149)) ([250f246](https://github.com/Texarkanine/a16n/commit/250f2466e8307c00d9ce1966a1f839155841768d))
+* **models:** preserve ManualPrompt authored description [[#147](https://github.com/Texarkanine/a16n/issues/147)] ([#151](https://github.com/Texarkanine/a16n/issues/151)) ([cc1eb2f](https://github.com/Texarkanine/a16n/commit/cc1eb2ff1f58e0849376f13656cf6693fa5a9b9f))
+
+### Bug Fixes
+
+* **plugin-cursor:** refuse Cursor skills that declare paths: [[#148](https://github.com/Texarkanine/a16n/issues/148)] ([#150](https://github.com/Texarkanine/a16n/issues/150)) ([4891aff](https://github.com/Texarkanine/a16n/commit/4891affd126bc150ad94c9f9f6a8e6d7aa9f2199))
+* realign conversion gates with the AgentSkills.io spec ([#145](https://github.com/Texarkanine/a16n/issues/145)) ([5246865](https://github.com/Texarkanine/a16n/commit/52468651da678557b3199d90f81b6b14c7e8dbf9))
 
 ## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@0.14.1...@a16njs/plugin-cursor@1.0.0) (2026-06-13)
 
@@ -2450,8 +2531,8 @@ npm install @a16njs/plugin-cursor
 		* `description:` present → [AgentSkillIO](/models#agentskillio)
 		* `description:` missing → Skipped w/ Warning
 * [Cursor Commands](https://cursor.com/docs/context/commands): `.cursor/commands/**/*.md`
-	* Simple Commands: [ManualPrompt](/models#manualprompt)
-	* Complex Commands (placeholders, $ARGUMENTS, $1, etc.): Skipped
+	* All commands: [ManualPrompt](/models#manualprompt), content preserved verbatim
+	* Commands opening with a `---` block: warned w/ `approximated` (Cursor commands have no frontmatter, so the block is kept as body content)
 * [Cursor Ignore](https://cursor.com/docs/context/ignore-files): `.cursorignore`
 	* [AgentIgnore](/models#agentignore)
 
@@ -2957,6 +3038,7 @@ Some concepts have clear equivalents across tools.
 | AgentSkills.io Skills | `.cursor/skills/*/SKILL.md` | `.claude/skills/*/SKILL.md`                  |
 | Manual Prompts        | `.cursor/commands/*.md`     | Skills with `disable-model-invocation: true` |
 | Ignore Patterns       | `.cursorignore`             | `permissions.deny` rules                     |
+| Skill `license`, `compatibility`, `metadata` | `.cursor/skills/*/SKILL.md` frontmatter | `.claude/skills/*/SKILL.md` frontmatter |
 
 These translations preserve both meaning and behavior, though file layout may differ.
 
@@ -2966,9 +3048,12 @@ The [AGENTS.md standard](https://agents.md/) supports only two of these concepts
 
 Some features exist in both ecosystems but behave slightly differently. In these cases a16n chooses the closest equivalent and warns you.
 
-| Feature         | From   | To     | Behavior                             |
-| --------------- | ------ | ------ | ------------------------------------ |
-| Ignore patterns | Cursor | Claude | ≈ Converted to read-deny permissions |
+| Feature                 | From   | To     | Behavior                                                                            |
+| ----------------------- | ------ | ------ | ----------------------------------------------------------------------------------- |
+| Ignore patterns         | Cursor | Claude | ≈ Converted to read-deny permissions                                                |
+| Command frontmatter     | Cursor | Any    | ≈ Preserved as body content (Cursor commands have no frontmatter)                   |
+| Non-spec skill features | Claude | Any    | ≈ Content preserved, runtime behavior not (`$ARGUMENTS`, `` !`cmd` ``, `model:`, …) |
+| Skill `license`, `compatibility`, `metadata` | Any | Cursor rule (`.mdc`) | ≈ Dropped — `.mdc` frontmatter has a fixed schema |
 
 Approximate translations are chosen to keep **agent behavior as close as possible** to the original configuration.
 
@@ -2978,11 +3063,26 @@ Some features simply do not exist in the target toolchain. These are skipped and
 
 | Feature           | From   | To     | Reason                                                    |
 | ----------------- | ------ | ------ | --------------------------------------------------------- |
-| Complex Commands  | Cursor | Claude | `$ARGUMENTS`, `!`, and `allowed-tools` have no equivalent |
 | Skills with hooks | Claude | Cursor | Hooks are Claude-specific                                 |
 | Hooks             | Any    | Any    | [Not convertible](./hooks)                                |
 | Non-directory File Rules | Any | AGENTS.md | AGENTS.md scoping is directory-only (no glob patterns)    |
 | Skills, Manual Prompts, Ignores | Any | AGENTS.md | AGENTS.md is plain markdown with no frontmatter           |
+| Skill `allowed-tools` | Any | Cursor | Cursor does not enforce tool restrictions ([see below](#tool-restrictions-are-never-silently-relaxed)) |
+
+### Tool restrictions are never silently relaxed
+
+`allowed-tools` is the one skill field where writing it out is not enough. a16n
+copies the value verbatim into `.cursor/skills/*/SKILL.md`, so nothing is lost
+on disk — but Cursor does not act on it, which means the converted skill is
+**more permissive than the one you wrote**. That is a real change in behavior,
+so a16n reports it as skipped rather than as a clean translation.
+
+The practical consequence is that `--delete-source` will refuse to remove a
+skill whose `allowed-tools` could not be carried across. The original stays put,
+because the converted copy is not a faithful substitute for it.
+
+A skill routed to a Cursor **rule** file (`.mdc`) loses the field outright,
+since that format has a fixed frontmatter schema.
 
 ## Structural Differences and Non-Invertibility
 

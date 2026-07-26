@@ -10,7 +10,7 @@
 
 # Interface: A16nPlugin
 
-Defined in: [plugin.ts:84](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L84)
+Defined in: [plugin.ts:84](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L84)
 
 The plugin interface that all a16n plugins must implement.
 Plugins bridge between a16n's internal model and a specific tool's format.
@@ -21,7 +21,7 @@ Plugins bridge between a16n's internal model and a specific tool's format.
 
 > **id**: `string`
 
-Defined in: [plugin.ts:86](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L86)
+Defined in: [plugin.ts:86](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L86)
 
 Unique identifier, e.g., 'cursor', 'claude', 'codex'
 
@@ -31,7 +31,7 @@ Unique identifier, e.g., 'cursor', 'claude', 'codex'
 
 > **name**: `string`
 
-Defined in: [plugin.ts:88](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L88)
+Defined in: [plugin.ts:88](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L88)
 
 Human-readable name
 
@@ -41,7 +41,7 @@ Human-readable name
 
 > **supports**: [`CustomizationType`](../enumerations/CustomizationType.md)[]
 
-Defined in: [plugin.ts:90](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L90)
+Defined in: [plugin.ts:90](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L90)
 
 Which customization types this plugin supports
 
@@ -51,7 +51,7 @@ Which customization types this plugin supports
 
 > `optional` **pathPatterns?**: [`PluginPathPatterns`](PluginPathPatterns.md)
 
-Defined in: [plugin.ts:92](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L92)
+Defined in: [plugin.ts:92](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L92)
 
 Path patterns for this plugin's file format (used by transformations)
 
@@ -61,7 +61,7 @@ Path patterns for this plugin's file format (used by transformations)
 
 > **discover**(`rootOrWorkspace`): `Promise`\<[`DiscoveryResult`](DiscoveryResult.md)\>
 
-Defined in: [plugin.ts:99](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L99)
+Defined in: [plugin.ts:99](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L99)
 
 Discover all agent customizations in a directory tree.
 
@@ -85,7 +85,7 @@ All customizations found and any warnings
 
 > **emit**(`models`, `rootOrWorkspace`, `options?`): `Promise`\<[`EmitResult`](EmitResult.md)\>
 
-Defined in: [plugin.ts:108](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L108)
+Defined in: [plugin.ts:108](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L108)
 
 Emit customization models to disk in this plugin's format.
 

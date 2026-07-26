@@ -10,7 +10,7 @@
 
 # Interface: PluginInfo
 
-Defined in: [index.ts:80](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L80)
+Defined in: [index.ts:80](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L80)
 
 Information about a registered plugin.
 
@@ -20,7 +20,7 @@ Information about a registered plugin.
 
 > **id**: `string`
 
-Defined in: [index.ts:81](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L81)
+Defined in: [index.ts:81](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L81)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [index.ts:81](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2
 
 > **name**: `string`
 
-Defined in: [index.ts:82](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L82)
+Defined in: [index.ts:82](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L82)
 
 ***
 
@@ -36,7 +36,7 @@ Defined in: [index.ts:82](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2
 
 > **supports**: `CustomizationType`[]
 
-Defined in: [index.ts:83](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L83)
+Defined in: [index.ts:83](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L83)
 
 ***
 
@@ -44,4 +44,4 @@ Defined in: [index.ts:83](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2
 
 > **source**: `"bundled"` \| `"installed"`
 
-Defined in: [index.ts:84](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L84)
+Defined in: [index.ts:84](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L84)

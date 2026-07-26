@@ -12,7 +12,7 @@
 
 > **parseIRFile**(`rootOrWorkspace`, `filePath`, `filename`, `sourcePath`): `Promise`\<[`ParseIRFileResult`](../interfaces/ParseIRFileResult.md)\>
 
-Defined in: [parse.ts:51](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/plugin-a16n/src/parse.ts#L51)
+Defined in: [parse.ts:51](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/parse.ts#L51)
 
 Parse an IR file from a workspace.
 

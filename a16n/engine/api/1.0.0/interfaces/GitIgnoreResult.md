@@ -10,7 +10,7 @@
 
 # Interface: GitIgnoreResult
 
-Defined in: [index.ts:52](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L52)
+Defined in: [index.ts:52](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L52)
 
 Git-ignore change information.
 
@@ -20,7 +20,7 @@ Git-ignore change information.
 
 > **file**: `string`
 
-Defined in: [index.ts:54](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L54)
+Defined in: [index.ts:54](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L54)
 
 The file that was modified
 
@@ -30,6 +30,6 @@ The file that was modified
 
 > **added**: `string`[]
 
-Defined in: [index.ts:56](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L56)
+Defined in: [index.ts:56](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L56)
 
 Entries that were added

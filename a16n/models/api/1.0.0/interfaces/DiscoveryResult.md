@@ -10,7 +10,7 @@
 
 # Interface: DiscoveryResult
 
-Defined in: [plugin.ts:8](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L8)
+Defined in: [plugin.ts:8](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L8)
 
 Result of discovering customizations from a project.
 
@@ -20,7 +20,7 @@ Result of discovering customizations from a project.
 
 > **items**: [`AgentCustomization`](AgentCustomization.md)[]
 
-Defined in: [plugin.ts:10](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L10)
+Defined in: [plugin.ts:10](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L10)
 
 All customization items found
 
@@ -30,6 +30,6 @@ All customization items found
 
 > **warnings**: [`Warning`](Warning.md)[]
 
-Defined in: [plugin.ts:12](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L12)
+Defined in: [plugin.ts:12](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L12)
 
 Any warnings encountered during discovery

@@ -10,7 +10,7 @@
 
 # Enumeration: WarningCode
 
-Defined in: [warnings.ts:4](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L4)
+Defined in: [warnings.ts:4](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L4)
 
 Warning codes indicating the type of issue encountered.
 
@@ -20,7 +20,7 @@ Warning codes indicating the type of issue encountered.
 
 > **Merged**: `"merged"`
 
-Defined in: [warnings.ts:6](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L6)
+Defined in: [warnings.ts:6](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L6)
 
 Multiple items were collapsed into one file
 
@@ -30,7 +30,7 @@ Multiple items were collapsed into one file
 
 > **Approximated**: `"approximated"`
 
-Defined in: [warnings.ts:8](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L8)
+Defined in: [warnings.ts:8](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L8)
 
 Feature was translated imperfectly
 
@@ -40,7 +40,7 @@ Feature was translated imperfectly
 
 > **Skipped**: `"skipped"`
 
-Defined in: [warnings.ts:10](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L10)
+Defined in: [warnings.ts:10](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L10)
 
 Feature was not supported and omitted
 
@@ -50,7 +50,7 @@ Feature was not supported and omitted
 
 > **Overwritten**: `"overwritten"`
 
-Defined in: [warnings.ts:12](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L12)
+Defined in: [warnings.ts:12](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L12)
 
 Existing file was replaced
 
@@ -60,7 +60,7 @@ Existing file was replaced
 
 > **FileRenamed**: `"file-renamed"`
 
-Defined in: [warnings.ts:14](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L14)
+Defined in: [warnings.ts:14](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L14)
 
 File was renamed to avoid collision
 
@@ -70,7 +70,7 @@ File was renamed to avoid collision
 
 > **BoundaryCrossing**: `"boundary-crossing"`
 
-Defined in: [warnings.ts:16](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L16)
+Defined in: [warnings.ts:16](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L16)
 
 Git-ignored source with tracked output (or vice versa)
 
@@ -80,7 +80,7 @@ Git-ignored source with tracked output (or vice versa)
 
 > **GitStatusConflict**: `"git-status-conflict"`
 
-Defined in: [warnings.ts:18](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L18)
+Defined in: [warnings.ts:18](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L18)
 
 Sources have conflicting git status (some ignored, some tracked)
 
@@ -90,7 +90,7 @@ Sources have conflicting git status (some ignored, some tracked)
 
 > **VersionMismatch**: `"version-mismatch"`
 
-Defined in: [warnings.ts:20](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L20)
+Defined in: [warnings.ts:20](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L20)
 
 IR file version is incompatible with current reader version
 
@@ -100,7 +100,7 @@ IR file version is incompatible with current reader version
 
 > **OrphanPathRef**: `"orphan-path-ref"`
 
-Defined in: [warnings.ts:22](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L22)
+Defined in: [warnings.ts:22](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L22)
 
 A path reference in content points to a source-format file not in the conversion set
 
@@ -110,6 +110,6 @@ A path reference in content points to a source-format file not in the conversion
 
 > **OperationFailed**: `"operation-failed"`
 
-Defined in: [warnings.ts:24](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L24)
+Defined in: [warnings.ts:24](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L24)
 
 A post-conversion operation (e.g. gitignore cleanup) failed

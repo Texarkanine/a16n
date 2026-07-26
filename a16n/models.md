@@ -69,6 +69,8 @@ Examples include:
 - Cursor rules with no `globs` or `description`, when `@mention`'d
 - AgentSkills.io Skills with `disable-model-invocation: true`
 
+Optional `description` holds authored prose from skill frontmatter when present (skills with `disable-model-invocation: true`). Command-origin prompts leave it unset; emitters synthesize `Invoke with /<promptName>` only in that case so the emitted skill remains valid.
+
 ### AgentIgnore
 
 An AgentIgnore is a file pattern specifying files that should be ignored - not read, not written, maybe not even visible to - the agent.
@@ -76,6 +78,30 @@ An AgentIgnore is a file pattern specifying files that should be ignored - not r
 Examples include:
 - `.cursorignore`
 - Claude Code `permissions.deny` Read rule
+
+---
+
+## AgentSkills.io Spec Fields
+
+Every skill-like type — `SimpleAgentSkill`, `AgentSkillIO`, and `ManualPrompt` — carries the four optional metadata fields defined by the [AgentSkills.io](https://agentskills.io) specification, via the shared `AgentSkillSpecFields` interface.
+
+| IR field        | Frontmatter key  | Meaning                                                    |
+| --------------- | ---------------- | ---------------------------------------------------------- |
+| `license`       | `license`        | SPDX identifier or free-form license text                  |
+| `compatibility` | `compatibility`  | Human-readable environment requirements                    |
+| `specMetadata`  | `metadata`       | Arbitrary author-supplied string key-values                |
+| `allowedTools`  | `allowed-tools`  | Tools the skill is permitted to invoke                     |
+
+`ManualPrompt` carries them too, even though it is not itself an AgentSkills.io concept: a Claude skill with `disable-model-invocation: true` is classified as a `ManualPrompt`, so leaving the fields off that type would silently discard the `allowed-tools` of exactly the skills most likely to run shell commands.
+
+### `metadata` vs. `specMetadata`
+
+These are different things that collided on a name:
+
+- **`AgentCustomization.metadata`** is transient plugin bookkeeping — discovery hints, original display names, classification breadcrumbs. It is **never serialized**; it exists only for the duration of a conversion.
+- **`AgentSkillSpecFields.specMetadata`** is author-written content from the skill's `metadata:` frontmatter. It **is** serialized, and it round-trips through `.a16n/` unchanged.
+
+The IR spells the second one `specMetadata` to keep the two apart in code. On disk it is always written under the spec's key name, `metadata`.
 
 ---
 

@@ -10,7 +10,7 @@
 
 # Interface: ManualPrompt
 
-Defined in: [types.ts:140](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L140)
+Defined in: [types.ts:140](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L140)
 
 A manually-invoked prompt (slash command or skill with disable-model-invocation).
 Examples: Cursor commands in .cursor/commands/, skills with disable-model-invocation: true
@@ -27,7 +27,7 @@ These prompts are only activated when explicitly invoked by the user.
 
 > **id**: `string`
 
-Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L31)
+Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L31)
 
 Unique identifier for this item
 
@@ -41,7 +41,7 @@ Unique identifier for this item
 
 > **version**: `string`
 
-Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L35)
+Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L35)
 
 IR version (required, e.g., 'v1beta1')
 
@@ -55,7 +55,7 @@ IR version (required, e.g., 'v1beta1')
 
 > `optional` **sourcePath?**: `string`
 
-Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L37)
+Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L37)
 
 Original file path where this was discovered (optional, omitted in IR format)
 
@@ -69,7 +69,7 @@ Original file path where this was discovered (optional, omitted in IR format)
 
 > `optional` **relativeDir?**: `string`
 
-Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L39)
+Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L39)
 
 Relative directory path for preserving directory structure (optional)
 
@@ -83,7 +83,7 @@ Relative directory path for preserving directory structure (optional)
 
 > **content**: `string`
 
-Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L41)
+Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L41)
 
 The actual prompt/rule content
 
@@ -97,7 +97,7 @@ The actual prompt/rule content
 
 > **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L43)
+Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L43)
 
 Tool-specific extras that don't fit the standard model (transient, not serialized in IR)
 
@@ -111,7 +111,7 @@ Tool-specific extras that don't fit the standard model (transient, not serialize
 
 > **type**: [`ManualPrompt`](../enumerations/CustomizationType.md#manualprompt)
 
-Defined in: [types.ts:141](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L141)
+Defined in: [types.ts:141](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L141)
 
 The type of customization
 
@@ -125,6 +125,6 @@ The type of customization
 
 > **promptName**: `string`
 
-Defined in: [types.ts:143](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L143)
+Defined in: [types.ts:143](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L143)
 
 Prompt name for invocation (e.g., "review" for /review)

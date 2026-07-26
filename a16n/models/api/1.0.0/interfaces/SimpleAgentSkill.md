@@ -10,7 +10,7 @@
 
 # Interface: SimpleAgentSkill
 
-Defined in: [types.ts:67](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L67)
+Defined in: [types.ts:67](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L67)
 
 A simple skill that is activated by description matching.
 Examples: Cursor rules with description but no globs, simple SKILL.md files
@@ -28,7 +28,7 @@ use AgentSkillIO instead.
 
 > **id**: `string`
 
-Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L31)
+Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L31)
 
 Unique identifier for this item
 
@@ -42,7 +42,7 @@ Unique identifier for this item
 
 > **version**: `string`
 
-Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L35)
+Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L35)
 
 IR version (required, e.g., 'v1beta1')
 
@@ -56,7 +56,7 @@ IR version (required, e.g., 'v1beta1')
 
 > `optional` **sourcePath?**: `string`
 
-Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L37)
+Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L37)
 
 Original file path where this was discovered (optional, omitted in IR format)
 
@@ -70,7 +70,7 @@ Original file path where this was discovered (optional, omitted in IR format)
 
 > `optional` **relativeDir?**: `string`
 
-Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L39)
+Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L39)
 
 Relative directory path for preserving directory structure (optional)
 
@@ -84,7 +84,7 @@ Relative directory path for preserving directory structure (optional)
 
 > **content**: `string`
 
-Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L41)
+Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L41)
 
 The actual prompt/rule content
 
@@ -98,7 +98,7 @@ The actual prompt/rule content
 
 > **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L43)
+Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L43)
 
 Tool-specific extras that don't fit the standard model (transient, not serialized in IR)
 
@@ -112,7 +112,7 @@ Tool-specific extras that don't fit the standard model (transient, not serialize
 
 > **type**: [`SimpleAgentSkill`](../enumerations/CustomizationType.md#simpleagentskill)
 
-Defined in: [types.ts:68](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L68)
+Defined in: [types.ts:68](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L68)
 
 The type of customization
 
@@ -126,7 +126,7 @@ The type of customization
 
 > **name**: `string`
 
-Defined in: [types.ts:70](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L70)
+Defined in: [types.ts:70](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L70)
 
 Invocation name — the directory name (or rule filename) used for slash-command invocation (e.g., "banana" for /banana). Required for skills to invoke properly.
 
@@ -136,6 +136,6 @@ Invocation name — the directory name (or rule filename) used for slash-command
 
 > **description**: `string`
 
-Defined in: [types.ts:72](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/types.ts#L72)
+Defined in: [types.ts:72](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L72)
 
 What triggers this skill

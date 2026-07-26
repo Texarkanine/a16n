@@ -10,7 +10,7 @@
 
 # Interface: Warning
 
-Defined in: [warnings.ts:31](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L31)
+Defined in: [warnings.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L31)
 
 A warning about something that happened during conversion.
 Warnings don't stop the conversion but should be surfaced to users.
@@ -21,7 +21,7 @@ Warnings don't stop the conversion but should be surfaced to users.
 
 > **code**: [`WarningCode`](../enumerations/WarningCode.md)
 
-Defined in: [warnings.ts:33](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L33)
+Defined in: [warnings.ts:33](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L33)
 
 The type of warning
 
@@ -31,7 +31,7 @@ The type of warning
 
 > **message**: `string`
 
-Defined in: [warnings.ts:35](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L35)
+Defined in: [warnings.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L35)
 
 Human-readable description of the issue
 
@@ -41,7 +41,7 @@ Human-readable description of the issue
 
 > `optional` **sources?**: `string`[]
 
-Defined in: [warnings.ts:37](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L37)
+Defined in: [warnings.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L37)
 
 Source files that were affected (optional)
 
@@ -51,6 +51,6 @@ Source files that were affected (optional)
 
 > `optional` **details?**: `Record`\<`string`, `unknown`\>
 
-Defined in: [warnings.ts:39](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/warnings.ts#L39)
+Defined in: [warnings.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L39)
 
 Additional details about the warning (optional)

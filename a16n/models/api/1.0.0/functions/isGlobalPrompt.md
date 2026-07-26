@@ -12,7 +12,7 @@
 
 > **isGlobalPrompt**(`item`): `item is GlobalPrompt`
 
-Defined in: [helpers.ts:61](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/helpers.ts#L61)
+Defined in: [helpers.ts:61](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L61)
 
 Type guard to check if an item is a GlobalPrompt.
 

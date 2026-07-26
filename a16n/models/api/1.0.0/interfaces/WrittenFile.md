@@ -10,7 +10,7 @@
 
 # Interface: WrittenFile
 
-Defined in: [plugin.ts:18](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L18)
+Defined in: [plugin.ts:18](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L18)
 
 Information about a file that was written.
 
@@ -20,7 +20,7 @@ Information about a file that was written.
 
 > **path**: `string`
 
-Defined in: [plugin.ts:20](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L20)
+Defined in: [plugin.ts:20](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L20)
 
 Path to the written file
 
@@ -30,7 +30,7 @@ Path to the written file
 
 > **type**: [`CustomizationType`](../enumerations/CustomizationType.md)
 
-Defined in: [plugin.ts:22](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L22)
+Defined in: [plugin.ts:22](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L22)
 
 Type of customization written
 
@@ -40,7 +40,7 @@ Type of customization written
 
 > **itemCount**: `number`
 
-Defined in: [plugin.ts:24](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L24)
+Defined in: [plugin.ts:24](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L24)
 
 How many models went into this file (1 for 1:1, more if merged)
 
@@ -50,7 +50,7 @@ How many models went into this file (1 for 1:1, more if merged)
 
 > **isNewFile**: `boolean`
 
-Defined in: [plugin.ts:26](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L26)
+Defined in: [plugin.ts:26](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L26)
 
 True if this file was created fresh; false if merged/edited existing
 
@@ -60,7 +60,7 @@ True if this file was created fresh; false if merged/edited existing
 
 > `optional` **sourceItems?**: [`AgentCustomization`](AgentCustomization.md)[]
 
-Defined in: [plugin.ts:32](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L32)
+Defined in: [plugin.ts:32](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L32)
 
 Which source AgentCustomizations contributed to this output file.
 Optional for backwards compatibility.
@@ -72,7 +72,7 @@ Enables accurate git-ignore conflict detection in match mode.
 
 > `optional` **sourcePaths?**: `string`[]
 
-Defined in: [plugin.ts:46](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/plugin.ts#L46)
+Defined in: [plugin.ts:46](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L46)
 
 Explicit source-relative paths this output file represents, used by
 path-rewriting. When set (and non-empty), takes precedence over

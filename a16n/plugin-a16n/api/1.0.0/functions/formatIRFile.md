@@ -12,7 +12,7 @@
 
 > **formatIRFile**(`item`): `string`
 
-Defined in: [format.ts:29](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/plugin-a16n/src/format.ts#L29)
+Defined in: [format.ts:29](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/format.ts#L29)
 
 Format an IR item as a markdown file with YAML frontmatter.
 

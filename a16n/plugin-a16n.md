@@ -120,7 +120,7 @@ All six IR types can be emitted to `.a16n/`:
 
 The plugin uses Kubernetes-style version semantics:
 
-- **Forward compatible**: A reader with version `v1beta2` can read files with `v1beta1`
+- **Forward compatible**: A reader with version `v1beta4` can read files with `v1beta1` or `v1beta2`
 - **Major version must match**: `v1` is not compatible with `v2`
 - **Stability must match**: `beta` is not compatible with `alpha` or `stable`
 - Files with incompatible versions are still processed but emit a `VersionMismatch` warning

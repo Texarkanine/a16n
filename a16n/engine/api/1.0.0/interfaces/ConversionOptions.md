@@ -10,7 +10,7 @@
 
 # Interface: ConversionOptions
 
-Defined in: [index.ts:23](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L23)
+Defined in: [index.ts:23](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L23)
 
 Options for a conversion operation.
 
@@ -20,7 +20,7 @@ Options for a conversion operation.
 
 > **source**: `string`
 
-Defined in: [index.ts:25](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L25)
+Defined in: [index.ts:25](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L25)
 
 Source plugin ID
 
@@ -30,7 +30,7 @@ Source plugin ID
 
 > **target**: `string`
 
-Defined in: [index.ts:27](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L27)
+Defined in: [index.ts:27](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L27)
 
 Target plugin ID
 
@@ -40,7 +40,7 @@ Target plugin ID
 
 > **root**: `string`
 
-Defined in: [index.ts:29](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L29)
+Defined in: [index.ts:29](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L29)
 
 Project root directory
 
@@ -50,7 +50,7 @@ Project root directory
 
 > `optional` **dryRun?**: `boolean`
 
-Defined in: [index.ts:31](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L31)
+Defined in: [index.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L31)
 
 If true, only discover without writing
 
@@ -60,7 +60,7 @@ If true, only discover without writing
 
 > `optional` **sourceRoot?**: `string`
 
-Defined in: [index.ts:33](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L33)
+Defined in: [index.ts:33](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L33)
 
 Override root for discovery (source plugin)
 
@@ -70,7 +70,7 @@ Override root for discovery (source plugin)
 
 > `optional` **targetRoot?**: `string`
 
-Defined in: [index.ts:35](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L35)
+Defined in: [index.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L35)
 
 Override root for emission (target plugin)
 
@@ -80,7 +80,7 @@ Override root for emission (target plugin)
 
 > `optional` **sourceWorkspace?**: `Workspace`
 
-Defined in: [index.ts:37](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L37)
+Defined in: [index.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L37)
 
 Workspace for source discovery (takes precedence over sourceRoot/root)
 
@@ -90,7 +90,7 @@ Workspace for source discovery (takes precedence over sourceRoot/root)
 
 > `optional` **targetWorkspace?**: `Workspace`
 
-Defined in: [index.ts:39](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L39)
+Defined in: [index.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L39)
 
 Workspace for target emission (takes precedence over targetRoot/root)
 
@@ -100,7 +100,7 @@ Workspace for target emission (takes precedence over targetRoot/root)
 
 > `optional` **rewritePathRefs?**: `boolean`
 
-Defined in: [index.ts:44](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L44)
+Defined in: [index.ts:44](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L44)
 
 If true, rewrite path references in content during conversion.
 
@@ -114,6 +114,6 @@ Use `transformations: [new PathRewritingTransformation()]` instead.
 
 > `optional` **transformations?**: `ContentTransformation`[]
 
-Defined in: [index.ts:46](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/engine/src/index.ts#L46)
+Defined in: [index.ts:46](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L46)
 
 Content transformations to apply between discovery and emission

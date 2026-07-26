@@ -12,7 +12,7 @@
 
 > **writeAgentSkillIO**(`outputDir`, `frontmatter`, `content`, `files`): `Promise`\<`string`[]\>
 
-Defined in: [agentskills-io.ts:168](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/agentskills-io.ts#L168)
+Defined in: [agentskills-io.ts:168](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L168)
 
 Write an AgentSkillIO to disk in verbatim AgentSkills.io format.
 

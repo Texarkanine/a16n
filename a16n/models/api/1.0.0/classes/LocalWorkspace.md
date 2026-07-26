@@ -10,7 +10,7 @@
 
 # Class: LocalWorkspace
 
-Defined in: [workspace.ts:115](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/workspace.ts#L115)
+Defined in: [workspace.ts:115](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L115)
 
 Workspace backed by the local filesystem.
 
@@ -34,7 +34,7 @@ await ws.write('.claude/rules/my-rule.md', content);
 
 > **new LocalWorkspace**(`id`, `root`): `LocalWorkspace`
 
-Defined in: [workspace.ts:121](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/workspace.ts#L121)
+Defined in: [workspace.ts:121](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L121)
 
 Create a new LocalWorkspace.
 
@@ -62,7 +62,7 @@ Absolute path to the workspace root directory
 
 > `readonly` **id**: `string`
 
-Defined in: [workspace.ts:122](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/workspace.ts#L122)
+Defined in: [workspace.ts:122](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L122)
 
 Unique identifier for this workspace
 
@@ -76,7 +76,7 @@ Unique identifier for this workspace
 
 > `readonly` **root**: `string`
 
-Defined in: [workspace.ts:123](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/workspace.ts#L123)
+Defined in: [workspace.ts:123](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L123)
 
 Absolute path to the workspace root directory
 
@@ -90,7 +90,7 @@ Absolute path to the workspace root directory
 
 > **resolve**(`relativePath`): `string`
 
-Defined in: [workspace.ts:126](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/workspace.ts#L126)
+Defined in: [workspace.ts:126](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L126)
 
 Resolve a relative path within this workspace to an absolute path.
 
@@ -118,7 +118,7 @@ Absolute path
 
 > **exists**(`relativePath`): `Promise`\<`boolean`\>
 
-Defined in: [workspace.ts:131](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/workspace.ts#L131)
+Defined in: [workspace.ts:131](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L131)
 
 Check if a path exists in this workspace.
 
@@ -146,7 +146,7 @@ true if the path exists
 
 > **read**(`relativePath`): `Promise`\<`string`\>
 
-Defined in: [workspace.ts:140](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/workspace.ts#L140)
+Defined in: [workspace.ts:140](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L140)
 
 Read a file from this workspace.
 
@@ -178,7 +178,7 @@ If the file does not exist
 
 > **write**(`relativePath`, `content`): `Promise`\<`void`\>
 
-Defined in: [workspace.ts:144](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/workspace.ts#L144)
+Defined in: [workspace.ts:144](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L144)
 
 Write a file to this workspace.
 Creates parent directories as needed.
@@ -215,7 +215,7 @@ If the workspace is read-only
 
 > **readdir**(`relativePath`): `Promise`\<[`WorkspaceEntry`](../interfaces/WorkspaceEntry.md)[]\>
 
-Defined in: [workspace.ts:150](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/workspace.ts#L150)
+Defined in: [workspace.ts:150](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L150)
 
 List entries in a directory.
 
@@ -247,7 +247,7 @@ If the directory does not exist
 
 > **mkdir**(`relativePath`): `Promise`\<`void`\>
 
-Defined in: [workspace.ts:159](https://github.com/Texarkanine/a16n/blob/da80b7ce7e1c2f673a173df8051c4e7a36d9fe05/packages/models/src/workspace.ts#L159)
+Defined in: [workspace.ts:159](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L159)
 
 Create a directory (and any missing parents).
 
