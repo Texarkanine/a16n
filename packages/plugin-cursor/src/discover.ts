@@ -66,6 +66,19 @@ function parseGlobs(globsString: string): string[] {
 }
 
 /**
+ * Coerce Cursor skill `paths:` (YAML list or comma-separated string) to globs.
+ */
+function coerceSkillPaths(raw: unknown): string[] {
+  if (typeof raw === 'string') {
+    return parseGlobs(raw);
+  }
+  if (Array.isArray(raw)) {
+    return raw.filter((p): p is string => typeof p === 'string').map(p => p.trim()).filter(p => p.length > 0);
+  }
+  return [];
+}
+
+/**
  * Classify a Cursor rule based on its frontmatter.
  * 
  * Classification priority:
@@ -242,9 +255,12 @@ interface SkillFrontmatter {
   disableModelInvocation?: boolean;
   /**
    * True when Cursor's harness-specific `paths:` key is declared (even if empty).
-   * Category A (#148): converting without it would widen skill scope, so discovery refuses.
+   * Bare skills with non-empty paths become FileRules; otherwise discovery refuses
+   * rather than widen scope (#148).
    */
   hasPaths?: boolean;
+  /** Normalised `paths:` globs when `hasPaths` is true. */
+  paths?: string[];
 }
 
 interface ParsedSkill {
@@ -273,8 +289,10 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
     if (typeof data['disable-model-invocation'] === 'boolean') {
       frontmatter.disableModelInvocation = data['disable-model-invocation'];
     }
-    // Key presence, not value shape — empty/`paths: "src/**"` still scopes in Cursor.
-    if ('paths' in data) frontmatter.hasPaths = true;
+    if ('paths' in data) {
+      frontmatter.hasPaths = true;
+      frontmatter.paths = coerceSkillPaths(data.paths);
+    }
 
     return {
       frontmatter,
@@ -375,11 +393,14 @@ async function readSkillFiles(skillDir: string): Promise<Record<string, string>>
  * Discover skills from .cursor/skills/.
  *
  * Classification:
- * - Skills with `paths:` → SKIP (Cursor harness scoping is not portable; dropping it widens scope)
- * - Skills with extra files -> AgentSkillIO (Phase 8 B3)
- * - Skills with disable-model-invocation: true -> ManualPrompt
- * - Skills with description only -> SimpleAgentSkill
- * - Skills without description or disable-model-invocation -> Skip with warning
+ * - Extra files + `paths:` → SKIP (ride-alongs cannot become a FileRule; dropping paths widens scope)
+ * - Extra files → AgentSkillIO
+ * - `paths:` + disable-model-invocation → SKIP (slash-only is not a FileRule)
+ * - `paths:` with non-empty globs → FileRule (same scoping as a globbed rule)
+ * - Empty `paths:` → SKIP
+ * - disable-model-invocation: true → ManualPrompt
+ * - description only → SimpleAgentSkill
+ * - Otherwise → Skip with warning
  */
 async function discoverSkills(root: string): Promise<{
   items: AgentCustomization[];
@@ -411,33 +432,25 @@ async function discoverSkills(root: string): Promise<{
 
       // Display name from frontmatter; invocation name is always the dirName
       const displayName = frontmatter.name?.trim() || dirName;
-
-      // Cursor `paths:` scopes the skill to matching files. a16n does not model it
-      // (Category A / #148). Emitting without it would widen scope, so refuse.
-      if (frontmatter.hasPaths) {
-        warnings.push({
-          code: WarningCode.Skipped,
-          message:
-            `Skipped skill '${displayName}': Cursor paths: scoping is not portable; ` +
-            `converting would widen skill scope`,
-          sources: [skillPath],
-        });
-        continue;
-      }
       
       // Read all other files in the skill directory
       const files = await readSkillFiles(skillDir);
       const hasExtraFiles = Object.keys(files).length > 0;
-      
-      // Classification priority:
-      // 1. Has paths → SKIP (above)
-      // 2. Has extra files → AgentSkillIO (with description required)
-      // 3. disable-model-invocation: true → ManualPrompt
-      // 4. description present → SimpleAgentSkill
-      // 5. Neither → Skip with warning
-      
+      const paths = frontmatter.paths ?? [];
+
       if (hasExtraFiles) {
-        // AgentSkillIO - complex skill with resources
+        // AgentSkillIO cannot express `paths:` — refuse rather than widen.
+        if (frontmatter.hasPaths) {
+          warnings.push({
+            code: WarningCode.Skipped,
+            message:
+              `Skipped skill '${displayName}': Cursor paths: scoping cannot be preserved ` +
+              `on a skill with resource files; converting would widen skill scope`,
+            sources: [skillPath],
+          });
+          continue;
+        }
+
         if (!frontmatter.description) {
           warnings.push({
             code: WarningCode.Skipped,
@@ -462,6 +475,39 @@ async function discoverSkills(root: string): Promise<{
           ...specFields,
         };
         items.push(agentSkillIO);
+      } else if (frontmatter.hasPaths) {
+        // Bare skill + paths ≡ globbed FileRule. Slash-only cannot make that jump.
+        if (frontmatter.disableModelInvocation === true) {
+          warnings.push({
+            code: WarningCode.Skipped,
+            message:
+              `Skipped skill '${displayName}': Cursor paths: with disable-model-invocation ` +
+              `cannot become a FileRule without changing invocation semantics`,
+            sources: [skillPath],
+          });
+          continue;
+        }
+        if (paths.length === 0) {
+          warnings.push({
+            code: WarningCode.Skipped,
+            message:
+              `Skipped skill '${displayName}': Cursor paths: is empty; ` +
+              `converting would widen skill scope`,
+            sources: [skillPath],
+          });
+          continue;
+        }
+
+        const fileRule: FileRule = {
+          id: createId(CustomizationType.FileRule, skillPath),
+          type: CustomizationType.FileRule,
+          version: CURRENT_IR_VERSION,
+          sourcePath: skillPath,
+          content: body,
+          globs: paths,
+          metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
+        };
+        items.push(fileRule);
       } else if (frontmatter.disableModelInvocation === true) {
         // ManualPrompt
         items.push({

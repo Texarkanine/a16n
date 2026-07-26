@@ -74,7 +74,17 @@ function normalizeStemPreservingCase(stem: string): string {
  */
 function sanitizeRuleFilename(sourcePath: string): string {
   const basename = path.basename(sourcePath);
-  const nameWithoutExt = basename.replace(/\.[^.]+$/, '');
+  let nameWithoutExt = basename.replace(/\.[^.]+$/, '');
+
+  // FileRules discovered from `*/SKILL.md` skills: the basename is always SKILL.
+  // Use the skill directory name so emit does not collapse every skill to SKILL.md.
+  if (/^skill$/i.test(nameWithoutExt)) {
+    const parent = path.basename(path.dirname(sourcePath));
+    if (parent && parent !== '.' && parent !== path.sep) {
+      nameWithoutExt = parent;
+    }
+  }
+
   const stem = normalizeStemPreservingCase(nameWithoutExt) || 'rule';
   return normalizeReservedRuleStem(stem);
 }

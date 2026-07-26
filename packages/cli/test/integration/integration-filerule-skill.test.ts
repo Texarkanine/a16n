@@ -101,9 +101,9 @@ describe('Integration Tests - FileRule and SimpleAgentSkill', () => {
     });
   });
 
-  describe('cursor-skill-paths-refuse-to-claude', () => {
-    it('should refuse a Cursor skill with paths: rather than widen scope', async () => {
-      const fixturePath = path.join(fixturesDir, 'cursor-skill-paths-refuse-to-claude');
+  describe('cursor-skill-paths-to-claude', () => {
+    it('should convert a Cursor skill with paths: into a Claude FileRule (not a widened skill)', async () => {
+      const fixturePath = path.join(fixturesDir, 'cursor-skill-paths-to-claude');
       const fromDir = path.join(fixturePath, 'from-cursor');
 
       await copyDir(fromDir, tempDir);
@@ -114,17 +114,26 @@ describe('Integration Tests - FileRule and SimpleAgentSkill', () => {
         root: tempDir,
       });
 
-      expect(result.discovered.filter(d => d.sourcePath.includes('scoped'))).toHaveLength(0);
+      const fileRules = result.discovered.filter(d => d.type === 'file-rule');
+      expect(fileRules).toHaveLength(1);
+      expect(fileRules[0]?.sourcePath).toContain('scoped');
 
       await expect(
         fs.access(path.join(tempDir, '.claude', 'skills', 'scoped', 'SKILL.md'))
       ).rejects.toThrow();
 
-      const warning = result.warnings.find(
-        w => w.code === WarningCode.Skipped && w.message.toLowerCase().includes('paths')
+      const ruleContent = await fs.readFile(
+        path.join(tempDir, '.claude', 'rules', 'scoped.md'),
+        'utf-8'
       );
-      expect(warning).toBeDefined();
-      expect(warning?.sources?.some(s => s.includes('scoped'))).toBe(true);
+      expect(ruleContent).toContain('paths:');
+      expect(ruleContent).toContain('src/**');
+      expect(ruleContent).toContain('Delete temporary build artifacts under matching paths.');
+      expect(
+        result.warnings.filter(
+          w => w.code === WarningCode.Skipped && w.message.toLowerCase().includes('paths')
+        )
+      ).toHaveLength(0);
     });
   });
 

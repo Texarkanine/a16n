@@ -279,11 +279,12 @@ describe('Cursor Skills Discovery', () => {
   });
 
   /**
-   * Cursor harness `paths:` on skills is Category A (#148): not in AgentSkills.io,
-   * not modelled in the IR. Converting without it would widen skill scope, so
-   * discovery must refuse the skill (Claude `hooks:` precedent) — Skipped, no item.
+   * Cursor harness `paths:` on a bare skill is the same scoping contract as a
+   * globbed FileRule (#148). Discover as FileRule so conversion preserves scope.
+   * Ride-along resources (AgentSkillIO) and slash-only ManualPrompt cannot make
+   * that translation — those still refuse rather than widen.
    */
-  describe('skills with paths: → refuse (Skipped)', () => {
+  describe('skills with paths:', () => {
     beforeEach(async () => {
       await fs.mkdir(tempDir, { recursive: true });
     });
@@ -292,23 +293,32 @@ describe('Cursor Skills Discovery', () => {
       await fs.rm(tempDir, { recursive: true, force: true });
     });
 
-    it('should refuse a SimpleAgentSkill that declares paths:', async () => {
+    it('should discover a description+paths skill as a FileRule', async () => {
       const result = await discoverProbeSkill(
-        'description: Scoped helper\npaths:\n  - "src/**"'
+        'description: Scoped helper\npaths:\n  - "src/**"\n  - "lib/**/*.ts"'
       );
 
-      expect(
-        result.items.find(i => i.sourcePath.includes('probe'))
-      ).toBeUndefined();
-
-      const warning = result.warnings.find(w => w.sources?.some(s => s.includes('probe')));
-      expect(warning).toBeDefined();
-      expect(warning?.code).toBe(WarningCode.Skipped);
-      expect(warning?.message.toLowerCase()).toContain('paths');
-      expect(warning?.message.toLowerCase()).toMatch(/widen|scope|portable|cursor/);
+      const rule = result.items.find(
+        i => i.type === CustomizationType.FileRule && i.sourcePath?.includes('probe')
+      ) as import('@a16njs/models').FileRule | undefined;
+      expect(rule).toBeDefined();
+      expect(rule?.globs).toEqual(['src/**', 'lib/**/*.ts']);
+      expect(rule?.content).toBe('Probe body.');
+      expect(result.warnings.filter(w => w.sources?.some(s => s.includes('probe')))).toHaveLength(0);
     });
 
-    it('should refuse before AgentSkillIO classification when paths: is present', async () => {
+    it('should accept paths: as a comma-separated string', async () => {
+      const result = await discoverProbeSkill(
+        'description: String paths\npaths: "src/**, lib/**"'
+      );
+
+      const rule = result.items.find(
+        i => i.type === CustomizationType.FileRule && i.sourcePath?.includes('probe')
+      ) as import('@a16njs/models').FileRule | undefined;
+      expect(rule?.globs).toEqual(['src/**', 'lib/**']);
+    });
+
+    it('should refuse AgentSkillIO when paths: is present (ride-alongs cannot become a FileRule)', async () => {
       const skillDir = path.join(tempDir, '.cursor', 'skills', 'probe');
       await fs.mkdir(skillDir, { recursive: true });
       await fs.writeFile(
@@ -325,7 +335,7 @@ describe('Cursor Skills Discovery', () => {
       expect(warning?.code).toBe(WarningCode.Skipped);
     });
 
-    it('should refuse before ManualPrompt classification when paths: is present', async () => {
+    it('should refuse ManualPrompt when paths: is present (slash-only is not a FileRule)', async () => {
       const result = await discoverProbeSkill(
         'description: Manual scoped\ndisable-model-invocation: true\npaths:\n  - "lib/**"'
       );
@@ -349,20 +359,7 @@ describe('Cursor Skills Discovery', () => {
       ).toBe(WarningCode.Skipped);
     });
 
-    it('should refuse when paths: is a string rather than a list', async () => {
-      const result = await discoverProbeSkill(
-        'description: String paths\npaths: "src/**"'
-      );
-
-      expect(
-        result.items.find(i => i.sourcePath.includes('probe'))
-      ).toBeUndefined();
-      expect(
-        result.warnings.find(w => w.message.toLowerCase().includes('paths'))?.code
-      ).toBe(WarningCode.Skipped);
-    });
-
-    it('should still discover a skill that has no paths: key', async () => {
+    it('should still discover a skill that has no paths: key as SimpleAgentSkill', async () => {
       const result = await discoverProbeSkill('description: Unscoped helper');
 
       const skill = result.items.find(

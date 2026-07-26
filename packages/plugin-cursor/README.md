@@ -40,7 +40,7 @@ This plugin supports five customization types:
 
 > **Note:** Legacy `.cursorrules` files are not supported. Use `.cursor/rules/*.mdc` instead.
 
-**Skills with `paths:`** are refused at discovery (`skipped`). Cursor's `paths:` key scopes a skill to matching files and is not part of AgentSkills.io; a16n does not model it. Converting without that scoping would widen the skill's applicability, so the skill is not converted and a warning names the field.
+**Skills with `paths:`** are treated as glob-scoped FileRules when the skill is otherwise bare (description + body, no ride-along files). Cursor's `paths:` is the same scoping contract as a rule's `globs:` / Claude `paths:`. Skills that also have resource files or `disable-model-invocation: true` cannot make that translation without losing semantics, so those are refused (`skipped`) rather than converted into an always-wider skill.
 
 ### Commands
 

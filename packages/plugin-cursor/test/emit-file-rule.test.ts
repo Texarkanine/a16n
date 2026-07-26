@@ -37,6 +37,8 @@ describe('Cursor FileRule Emission', () => {
 
       expect(result.written).toHaveLength(1);
       expect(result.unsupported).toHaveLength(0);
+      // SKILL.md basename is meaningless — use the skill directory name.
+      expect(path.basename(result.written[0]!.path)).toBe('react.mdc');
 
       const content = await fs.readFile(result.written[0]!.path, 'utf-8');
       expect(content).toContain('globs:');
