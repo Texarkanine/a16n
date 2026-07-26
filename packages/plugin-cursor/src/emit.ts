@@ -78,16 +78,7 @@ function sanitizeFilename(sourcePath: string): string {
   const basename = path.basename(sourcePath);
 
   // Remove extension
-  let nameWithoutExt = basename.replace(/\.[^.]+$/, '');
-
-  // FileRules discovered from `*/SKILL.md` skills: the basename is always SKILL.
-  // Use the skill directory name so emit does not collapse every skill to SKILL.mdc.
-  if (/^skill$/i.test(nameWithoutExt)) {
-    const parent = path.basename(path.dirname(sourcePath));
-    if (parent && parent !== '.' && parent !== path.sep) {
-      nameWithoutExt = parent;
-    }
-  }
+  const nameWithoutExt = basename.replace(/\.[^.]+$/, '');
 
   // Replace unsafe characters; preserve case
   const sanitized = nameWithoutExt

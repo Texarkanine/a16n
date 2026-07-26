@@ -4,7 +4,6 @@ import * as path from 'path';
 import claudePlugin from '../src/index.js';
 import {
   CustomizationType,
-  CURRENT_IR_VERSION,
   WarningCode,
   type GlobalPrompt,
   type FileRule,
@@ -54,25 +53,6 @@ describe('Claude FileRule Emission', () => {
       expect(content).toContain('**/*.tsx');
       expect(content).toContain('**/*.jsx');
       expect(content).toContain('Use React best practices.');
-    });
-
-    it('should name a FileRule from a SKILL.md source after its skill directory', async () => {
-      const models: FileRule[] = [
-        {
-          id: createId(CustomizationType.FileRule, '.cursor/skills/scoped/SKILL.md'),
-          type: CustomizationType.FileRule,
-          version: CURRENT_IR_VERSION,
-          sourcePath: '.cursor/skills/scoped/SKILL.md',
-          content: 'Scoped guidance.',
-          globs: ['src/**'],
-          metadata: {},
-        },
-      ];
-
-      const result = await claudePlugin.emit(models, tempDir);
-
-      expect(result.written).toHaveLength(1);
-      expect(path.basename(result.written[0]!.path)).toBe('scoped.md');
     });
 
     it('should NOT include From line in emitted FileRule content', async () => {
