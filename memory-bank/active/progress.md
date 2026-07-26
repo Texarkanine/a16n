@@ -47,3 +47,18 @@ Three open questions explored, all resolved at high confidence.
     - The OQ3 disposition table gets encoded in exactly one module, which is also the mitigation if its central premise is wrong.
 * Insights
     - The pre-mortem's sharpest finding was not a risk but a layering doubt: `ManualPrompt` swallowing `description` suggests skill identity is modelled by routing rather than by type. Scoped out, but it is the thing most likely to make this fix look partial in hindsight.
+
+## 2026-07-25 - PREFLIGHT - COMPLETE (PASS)
+
+* Work completed
+    - Probed every load-bearing plan assumption against the codebase rather than re-reading the source: dependency versions, fixture contents, snapshot usage, `Skipped` consumers, `.mdc` route reachability, `ManualPrompt` emit destinations, and overlap with existing modules. All held.
+    - Finding A (blocking): the numbered steps lacked per-unit test-before-code ordering. Restructured all steps into explicit a/b/c/d TDD cycles, with step 6 carrying the special "characterization tests must pass green *before* the parser swap" instruction.
+    - Finding B (advisory, adopted): added step 10, a 16-combination fidelity property test.
+    - Wrote `.preflight-status` = PASS.
+* Decisions made
+    - Remediated Finding A in-phase rather than returning to `/niko-plan`, on the grounds that the deficiency was in step encoding and no design or creative decision changed. Flagged explicitly so the operator can overrule.
+    - Step count 12 → 13; the cursor parser swap gets its own commit.
+* Insights
+    - The plan's own TDD encoding was the weakest thing preflight found, and it was self-inflicted: a thorough separate "Test Plan" section made the numbered steps *feel* test-driven while none of them said so. A well-written artifact in the wrong place reads as coverage.
+    - Every probe confirmed the plan, which is itself worth noting: last task's preflight lesson was that its evaluative half was unreliable while its mechanical half was sound. The mechanical half held again.
+    - The one premise that could not be verified locally — Cursor's tolerance of unknown frontmatter keys — is recorded as carried risk with a named containment, rather than being quietly upgraded to fact.

@@ -1,0 +1,34 @@
+PASS
+
+Task: issue-143-spec-field-fidelity
+Level: 3
+Date: 2026-07-25
+
+TDD plan encoding:   PASS (after in-phase remediation — see Finding A)
+Convention compliance: PASS
+Dependency impact:     PASS (blast radius probed, not estimated)
+Conflict detection:    PASS
+Completeness:          PASS (7/7 brief requirements mapped to steps)
+
+Findings:
+  A. BLOCKING, remediated in-phase — numbered steps lacked per-unit
+     test-before-code ordering. Restructured into a/b/c/d cycles.
+     Strict reading of the skill would have returned this to /niko-plan;
+     operator may reject the in-phase fix and require a replan.
+  B. ADVISORY, adopted — fidelity was asserted by example only. Added
+     step 10, a 16-combination property test.
+
+Probed and confirmed (not inferred):
+  - no snapshot tests, no exact-frontmatter assertions -> additive
+    fields cannot break existing emit tests
+  - zero v1beta2 literals in fixtures -> version bump is safe
+  - WarningCode.Skipped has one consumer (handleDeleteSource); it does
+    not suppress emission -> OQ3 fail-closed mechanism is real
+  - .mdc downgrade route reachable via plugin-a16n discoverAgentSkillIO
+  - ManualPrompt emits to SKILL.md on both targets -> OQ2 consistent
+  - gray-matter absent from plugin-cursor, ^4.0.3 elsewhere
+
+Unverified premise carried into build (pre-mortem item 1):
+  Cursor treats unknown frontmatter keys as inert. Inferred from Cursor
+  documenting that it loads .claude/skills/ directly. If false, OQ3
+  collapses to omit-and-warn, contained to skill-field-support.ts.

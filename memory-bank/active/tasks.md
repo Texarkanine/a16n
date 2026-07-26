@@ -178,42 +178,65 @@ flowchart LR
 
 Ordered fewest-dependencies-first: models → claude (already gray-matter, lowest friction) → cursor (parser swap, highest risk) → a16n → CLI → docs.
 
+**Every step below is one TDD cycle and is written in execution order.** Within a step, the lettered substeps are mandatory and sequential: (a) stub/extend tests, (b) stub the interface with empty bodies where new code is introduced, (c) implement the tests and run them **expecting red**, (d) write production code until green. Do not begin (d) before (c) has produced a failing run.
+
 1. **Add `AgentSkillSpecFields` to the IR.**
-    - Files: `packages/models/src/types.ts`, `packages/models/src/index.ts`, `packages/models/test/types.test.ts`
-    - Changes: new exported interface (`license`, `compatibility`, `specMetadata`, `allowedTools`, all optional); `SimpleAgentSkill`, `AgentSkillIO`, `ManualPrompt` extend it; paired doc comments on `metadata` and `specMetadata` stating the opposing contracts; export from the package index.
+    - a. Add cases to `packages/models/test/types.test.ts` for all four fields on `SimpleAgentSkill`, `AgentSkillIO`, `ManualPrompt`, plus the all-omitted case.
+    - b. Stub the interface in `packages/models/src/types.ts` with the four optional properties and no consumers yet.
+    - c. Run the new cases — red (properties do not exist on the three types).
+    - d. Extend the three types; write the paired doc comments on `metadata` / `specMetadata`; export from `packages/models/src/index.ts`. Green.
     - Creative ref: OQ1 (naming), OQ2 (placement).
 2. **Teach the verbatim AgentSkills.io reader/writer the new fields.**
-    - Files: `packages/models/src/agentskills-io.ts`, `packages/models/test/agentskills-io.test.ts`
-    - Changes: extend `ParsedSkillFrontmatter`; `parseSkillFrontmatter()` extracts the four (with `metadata` value coercion to string); `writeAgentSkillIO()` writes them under spec key names, omitting absent/empty ones.
+    - a. Add cases to `packages/models/test/agentskills-io.test.ts`: parse-all-four, parse-none, verbatim `allowed-tools` string, non-string `metadata` coercion, empty-`metadata` omission, spec key names on write, write→read round-trip.
+    - b. Extend `ParsedSkillFrontmatter` with the four optional fields; leave `parseSkillFrontmatter()` / `writeAgentSkillIO()` bodies unchanged.
+    - c. Run — red.
+    - d. Implement extraction in `parseSkillFrontmatter()` and serialization in `writeAgentSkillIO()`. Green.
 3. **Bump the IR version.**
-    - Files: `packages/models/src/version.ts`, `packages/models/test/version.test.ts`, plus the 18 `v1beta2` literals in `plugin-a16n` src/tests/README and `packages/docs/docs/plugin-a16n/index.md`
-    - Changes: `CURRENT_IR_VERSION = 'v1beta3'`; update the version doc comment to say what v1beta3 adds.
+    - a. Update `packages/models/test/version.test.ts` to expect `v1beta3` and add `areVersionsCompatible('v1beta3','v1beta2') === true`.
+    - b. *(no interface to stub)*
+    - c. Run — red.
+    - d. Set `CURRENT_IR_VERSION = 'v1beta3'`, update its doc comment to state what v1beta3 adds, and sweep the remaining `v1beta2` literals in `plugin-a16n` src/tests/README and `packages/docs/docs/plugin-a16n/index.md`. Green.
 4. **`plugin-claude` discover.**
-    - Files: `packages/plugin-claude/src/discover.ts`, `test/discover-simple-agent-skill.test.ts`, `test/discover-agent-skill-io.test.ts`, `test/discover-manual-prompt.test.ts`, new fixture `test/fixtures/claude-skills-spec-fields/`
-    - Changes: extend the local `SkillFrontmatter` interface and `parseSkillFrontmatter()` (gray-matter already in place, raw `data` already retained); populate the four fields on all three constructed item types.
+    - a. Add cases to `test/discover-simple-agent-skill.test.ts`, `test/discover-agent-skill-io.test.ts`, and `test/discover-manual-prompt.test.ts` (the `ManualPrompt` + `allowed-tools` case is the critical one); add fixture `test/fixtures/claude-skills-spec-fields/`; add the "spec fields raise zero warnings" regression case.
+    - b. Extend the local `SkillFrontmatter` interface only.
+    - c. Run — red.
+    - d. Extract the four in `parseSkillFrontmatter()` and populate them on all three constructed item types. Green.
 5. **`plugin-claude` emit.**
-    - Files: `packages/plugin-claude/src/emit.ts`, `test/emit-simple-agent-skill.test.ts`, `test/emit-agent-skill-io.test.ts`, `test/emit-manual-prompt.test.ts`
-    - Changes: `formatSkill()`, `formatManualPromptAsSkill()`, and `emitAgentSkillIO()` append the four fields. **`metadata` is a nested map and cannot be appended with the existing `JSON.stringify` one-line pattern** — introduce a small shared frontmatter builder in this file rather than hand-rolling nested YAML three times.
-6. **`plugin-cursor` skill frontmatter parser swap.** *(highest-risk step — do it alone, with characterization tests written first)*
-    - Files: `packages/plugin-cursor/package.json`, `packages/plugin-cursor/src/discover.ts`, `test/discover-skills.test.ts`
-    - Changes: add the `gray-matter` dependency (already used by `models`, `plugin-claude`, `plugin-a16n`); replace the hand-rolled line-regex `parseSkillFrontmatter()` — which structurally cannot read a nested `metadata:` map — with gray-matter parsing. **`parseMdc()` in `src/mdc.ts` is NOT touched**: Cursor's `.mdc` format is deliberately not standards-compliant YAML.
+    - a. Add cases to `test/emit-simple-agent-skill.test.ts`, `test/emit-agent-skill-io.test.ts`, `test/emit-manual-prompt.test.ts`: all four present → written with spec key names, zero warnings; none present → no stray keys; `license` containing punctuation survives quoting.
+    - b. Stub a frontmatter-builder helper in `src/emit.ts` returning the current output shape.
+    - c. Run — red.
+    - d. Route `formatSkill()`, `formatManualPromptAsSkill()`, and `emitAgentSkillIO()` through the builder and add the four fields. **`metadata` is nested and cannot use the existing one-line `JSON.stringify` pattern** — this is why the builder exists rather than three hand-rolled indentation sites. Green.
+6. **`plugin-cursor` skill frontmatter parser swap.** *(highest-risk step — perform alone, commit alone)*
+    - a. **Characterization first**: add cases to `test/discover-skills.test.ts` pinning the *current* regex parser's behavior for `description` values containing `:`, `#`, single and double quotes, and trailing spaces. Run them **green against the unmodified parser** — this is the one place in the plan where a new test must pass before the change.
+    - b. Add the (currently failing) cases for the four spec fields, including a nested `metadata:` map.
+    - c. Run — the spec-field cases red, characterization cases green.
+    - d. Add `gray-matter@^4.0.3` to `packages/plugin-cursor/package.json` (matching the version already used by `models`, `plugin-claude`, `plugin-a16n`) and replace the hand-rolled line-regex `parseSkillFrontmatter()` in `src/discover.ts`. Re-run both sets; every characterization diff must be either eliminated or converted into a deliberately asserted fix with a comment saying why. **`parseMdc()` in `src/mdc.ts` is NOT touched** — Cursor's `.mdc` format is deliberately not standards-compliant YAML.
 7. **`plugin-cursor` disposition table.**
-    - Files: **new** `packages/plugin-cursor/src/skill-field-support.ts`, **new** `packages/plugin-cursor/test/skill-field-support.test.ts`
-    - Changes: encode the OQ3 table once as a pure function mapping (surface, skill) → `{ fieldsToWrite, warning | null }`; single source of truth for all three cursor emit surfaces.
+    - a. Write `test/skill-field-support.test.ts` as a pure table test over (surface × field-combination) → expected `{ fieldsToWrite, warning }`, including the one-warning-not-four case.
+    - b. Stub `src/skill-field-support.ts` with the exported signature and an empty body.
+    - c. Run — red.
+    - d. Implement the OQ3 table as the single source of truth for all three cursor emit surfaces. Green.
     - Creative ref: OQ3.
 8. **`plugin-cursor` emit.**
-    - Files: `packages/plugin-cursor/src/emit.ts`, `test/emit-skills.test.ts`, `test/emit-agent-skill-io.test.ts`, `test/emit-manual-prompt.test.ts`
-    - Changes: `formatAgentSkillMd()`, `formatManualPromptAsSkill()`, and both branches of `emitAgentSkillIO()` consult `skill-field-support.ts`, write the permitted fields, and push at most one warning per item with `sources: [sourcePath]`.
+    - a. Add cases to `test/emit-skills.test.ts`, `test/emit-agent-skill-io.test.ts`, `test/emit-manual-prompt.test.ts`: inert fields written silently; `allowedTools` written **plus** exactly one `Skipped` carrying `sources: [sourcePath]`; all four → one warning; `.mdc` route → one `Approximated`, escalating to `Skipped` when `allowedTools` is among the dropped fields.
+    - b. *(no new interface — consumes step 7)*
+    - c. Run — red.
+    - d. Route `formatAgentSkillMd()`, `formatManualPromptAsSkill()`, and both branches of `emitAgentSkillIO()` through `skill-field-support.ts`. Green.
 9. **`plugin-a16n` IR serialization.**
-    - Files: `packages/plugin-a16n/src/format.ts`, `src/parse.ts`, `test/format.test.ts`, `test/parse.test.ts`
-    - Changes: `formatIRFile()` writes the four under spec key names for skill-bearing types; `parseIRFile()` reads them back symmetrically. `AgentSkillIO` needs no change here — it delegates to the models utilities updated in step 2.
-10. **CLI integration.**
-    - Files: **new** `packages/cli/test/integration/fixtures/claude-spec-fields-to-cursor/`, an integration spec for the round-trip, and a `--delete-source` safety case.
-    - Changes: the issue reproduction end to end; `claude → a16n → claude` field identity; deletion guard.
-11. **Documentation.**
+    - a. Add cases to `test/format.test.ts` and `test/parse.test.ts`: spec key names on write, symmetric read, format→parse round-trip identity.
+    - b. *(no new interface)*
+    - c. Run — red.
+    - d. Extend `formatIRFile()` and `parseIRFile()`. `AgentSkillIO` needs no change here — it delegates to the models utilities from step 2. Green.
+10. **Fidelity property test.** *(added at preflight — see Finding B)*
+    - a. Write `packages/cli/test/integration/integration-skill-field-fidelity.test.ts`: for each of the 16 combinations of the four fields, assert that a `claude → a16n → claude` round-trip recovers exactly the fields that went in, and that a `claude → cursor` conversion either preserves each field or produces a warning naming it. No combination may be both absent from the output and unmentioned in the warnings.
+    - b–d. Standard cycle; expected to pass once steps 1–9 are green, and to fail loudly if any single combination was missed.
+11. **CLI integration.**
+    - a. Add fixture `packages/cli/test/integration/fixtures/claude-spec-fields-to-cursor/` reproducing the issue exactly (`license: MIT`, `allowed-tools: Bash(rm:*)`), plus a `--delete-source` case asserting the source survives when a `Skipped` warning names it.
+    - b–d. Standard cycle.
+12. **Documentation.**
     - Files: `packages/docs/docs/understanding-conversions/index.md` (add rows to the approximated/skipped tables), `packages/docs/docs/models/index.md` (new IR fields), `packages/docs/docs/plugin-a16n/index.md` (v1beta3), `packages/plugin-cursor/README.md`, `packages/plugin-claude/README.md`, `packages/models/README.md` if it enumerates IR fields.
     - Changes: document the four fields, the per-target disposition table, and the `metadata` vs `specMetadata` distinction.
-12. **File follow-ups.**
+13. **File follow-ups.**
     - `ManualPrompt` discards the authored `description` in favour of a synthesized `Invoke with /<name>` (deferred from OQ2 — required-field loss, needs its own design decision).
     - Cursor's `paths:` on skills is unmodelled (Category A gap, out of scope per invariant 6).
     - Update `memory-bank/systemPatterns.md` **only** where this work makes it factually wrong — specifically the "`hooks:` is currently the only fail-closed case" claim, which `allowed-tools` invalidates.
@@ -237,6 +260,29 @@ One new dependency edge, no new technology: `gray-matter` added to `packages/plu
 - **A missing constraint: nobody validates spec limits.** a16n will happily carry a 900-character `compatibility` or a `name` with consecutive hyphens. This task makes a16n *more* spec-shaped without making it spec-*validating*, which could read as half-done. → Non-goal, stated explicitly: a16n converts, it does not lint (the "report the loss, do not inventory the instances" rule). Assert pass-through in tests so the choice is visible rather than accidental.
 - **Scope creep through adjacency.** `paths:`, `description`-on-`ManualPrompt`, and spec validation all sit one step away and each looks like "while we're here." → Invariant 6 plus step 12 make the boundary explicit and filed rather than forgotten.
 
+## Preflight Findings
+
+Verified by scripted probe against the codebase rather than by reading, per the #142 process improvement.
+
+**Finding A — TDD plan encoding (blocking) — remediated in-phase.** The original 12 steps listed test files alongside source files but never ordered test-writing before production code per unit; TDD lived only in the plan's preamble. That is the exact failure mode the preflight rule names. Steps were restructured into explicit `a/b/c/d` cycles with a "do not begin (d) before (c) is red" instruction. A strict reading of the preflight skill would have returned this to `/niko-plan`; the remediation was made in-phase because the deficiency was in step *encoding*, not design, and no creative decision changed. **The operator may reject this and require a replan.**
+
+**Finding B — fidelity is asserted by example, not by property (advisory) — adopted.** The test plan enumerated good cases but nothing would catch *one* field/route combination being missed, which is precisely how this bug class arose in the first place. Added step 10: a 16-combination property test asserting no field is ever both absent from output and unmentioned in warnings. Within L3 scope, so adopted rather than escalated.
+
+**Verified assumptions (all held):**
+
+- `gray-matter` is `^4.0.3` in `models`, `plugin-claude`, `plugin-a16n`; **absent** in `plugin-cursor` — confirming step 6 adds a dependency edge, not a new technology.
+- Zero `v1beta2` literals inside any fixture directory; 18 total, all in src/tests/docs. The version bump will not churn fixtures.
+- **No snapshot tests anywhere** in the repo, and no exact-full-file assertions on emitted skill frontmatter. Adding optional fields cannot break existing emit assertions, because absent fields are not written.
+- `WarningCode.Skipped` has exactly one consumer outside the plugins: `handleDeleteSource()`. Nothing suppresses emission on `Skipped`, confirming the OQ3 fail-closed mechanism.
+- The `.mdc` downgrade route is genuinely reachable: `plugin-a16n`'s `discoverAgentSkillIO()` sets `resources: skill.frontmatter.resources` (undefined when absent) and `files: {}`, which satisfies `isSimple` in the cursor emitter.
+- `ManualPrompt` is emitted to `.claude/skills/*/SKILL.md` (`plugin-claude/src/emit.ts:674`) and `.cursor/skills/*/SKILL.md`, never as a command — so OQ2's decision to give it spec fields is consistent with its emitted form on both targets.
+- `parseSkillFrontmatter` in `@a16njs/models` is consumed only by `readAgentSkillIO()`; it is a public export, so extending it with optional fields is additive and non-breaking.
+- No existing module overlaps `skill-field-support.ts`.
+
+**Convention compliance:** file locations, `discover-*`/`emit-*` test naming, fixture layout, and the "encode the set once" pattern (mirroring `NON_SPEC_FEATURES`) all match `systemPatterns.md`. No deviations.
+
+**Completeness:** all seven brief requirements map to concrete steps — R1→1, R2→1, R3→4/6, R4→5/8, R5→7/8, R6→2/9, R7→12.
+
 ## Status
 
 - [x] Component analysis complete
@@ -245,7 +291,7 @@ One new dependency edge, no new technology: `gray-matter` added to `packages/plu
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
+- [x] Preflight
 - [ ] Build
 - [ ] QA
 
