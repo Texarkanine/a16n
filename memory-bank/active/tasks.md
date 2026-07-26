@@ -344,6 +344,8 @@ Two hand-maintained docs-site pages restate the gate and were not in the plan; s
 - [x] Preflight — PASS (OQ4 resolved; plan amended)
 - [x] Build
 - [x] QA — PASS (one trivial fix applied; two observations routed to reflection)
+- [x] Reflect — COMPLETE
+- [x] PR #145 review — addressed (3 fixed, 1 dismissed, lint follow-up still open/unfiled)
 
 ## QA Findings
 
@@ -354,6 +356,6 @@ Reviewed 2026-07-25 against the plan above. Full suite re-run at QA time rather 
 - **Fixed (operator decision) — trimmed `positional-arguments` too, and made the rule self-enforcing.** It also never fires alone: its gate *is* another feature's presence, so `$ARGUMENTS`, `arguments:`, or `argument-hint:` always reports first. I argued for keeping the `argument-hint:`-gated path (the one case where the companion is a mere display hint and understates body breakage); operator overruled with the general form — *detectors that can't fire alone get cut; we keep only the top-level detectors we need so that we DO emit a warning when something that should warn, happens.* Removed the feature, its gate, `declaresArguments`, two `$N gating` tests, and one now-tautological false-positive test; updated the ordering test, README (two paragraphs), and the docs-site feature list.
 - **Rule now enforced by test, not convention.** The per-feature positive case tightened from `toContain(label)` to `toEqual([label])`, so any future detector that cannot warn on its own fails CI on the day it is added. Recorded in `systemPatterns.md` and in the module doc comment (which explains why `$1`/`$name` are absent despite being real Claude features).
 - **Net:** `NON_SPEC_FEATURES` 15 → 13, suite 1042 → 1038. Warning *counts* are unchanged on every possible input in both trims — only the label lists shorten.
-- **Observation (not fixed, out of scope) — `techContext.md` overstates validation.** Its "Full validation" line lists `pnpm lint`, which executes zero tasks in this repo. Pre-existing.
+- **Observation — `techContext.md` overstated validation.** Its "Full validation" line listed `pnpm lint`, which executes zero tasks. Recorded here as out of scope at QA time; corrected during PR #145 review (along with AC6 and step 11) on operator direction. Whether the repo should gain a real lint task remains open and unfiled.
 - **Verified clean:** no orphaned `COMPLEX_COMMAND_PATTERNS` / `isComplexCommand` / `cursor-command-complex` references in source, tests, fixtures, or docs (remaining hits are CHANGELOGs and memory-bank history, both correctly immutable). No TODOs, stubs, debug artifacts, or placeholder values introduced. The stale "Complex Commands" rows under `packages/docs/static/a16n/.generated/` are gitignored build output, not tracked files.
 - **Documentation complete:** five docs surfaces plus the warn-and-continue section of `systemPatterns.md`, all landed in-commit with the code. `plugin-claude/README.md`'s feature table matches `NON_SPEC_FEATURES` exactly (9 frontmatter keys + 4 body substitutions = 13).

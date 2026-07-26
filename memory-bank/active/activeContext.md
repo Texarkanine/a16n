@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: issue-142-spec-compliance-gates
-**Phase:** BUILD - COMPLETE
+**Phase:** REFLECT - COMPLETE (PR #145 review addressed; awaiting archive)
 
 ## What Was Done
 - Pre-verified issue #142's premise against current primary sources instead of taking it at face value. Result: the premise inverts.
@@ -93,7 +93,7 @@
 ## Reflect Phase Outcome
 - Wrote `memory-bank/active/reflection/reflection-issue-142-spec-compliance-gates.md`.
 - **Independently discharged the pre-mortem's last open risk.** `pnpm test` returned FULL TURBO (17/17 cached), which is exactly the "caching masks stale results" scenario the pre-mortem named. Forced an uncached run: 17/17 tasks executed, **1038 tests**, zero failures — identical to QA's number, so the figure is real rather than replayed.
-- **Requirements vs outcome:** seven of eight delivered as written. Requirement 2 ("cover *all* non-spec features") was deliberately *not* met — `$1` and `$name` are real Claude features excluded on operator principle, documented in the module header so nobody "fixes" the omission. AC6 is vacuous in its fourth term (`pnpm lint` runs zero tasks). Three deliverables were added beyond plan: the OQ4 Cursor advisory, a second follow-up issue, and a fifth docs surface.
+- **Requirements vs outcome:** seven of eight delivered as written. Requirement 2 ("cover *all* non-spec features") was deliberately *not* met — `$1` and `$name` are real Claude features excluded on operator principle, documented in the module header so nobody "fixes" the omission. AC6 originally listed a no-op `pnpm lint`; corrected during PR review. Three deliverables were added beyond plan: the OQ4 Cursor advisory, a second follow-up issue, and a fifth docs surface.
 - **Creative phase split its record.** `creative-hooks-disposition.md` held completely, zero churn, and its generalized rule was reused in `systemPatterns.md`. `creative-body-feature-detection.md` was overturned in its *selection* and vindicated in its *eliminations*: cutting `$1`/`$name` deleted the gating machinery that was the sole distinction between Option C and Option A, so **what shipped is Option A**. Its rejection of fence-stripping on correctness grounds remains a real, non-obvious save.
 - **Forecasting record was poor in a specific way.** Ten predictions (5 Challenges + 5 Pre-Mortem); essentially none materialized, while both events that actually reshaped the task — preflight Finding C and the fire-alone redundancy — were unforecast by every phase.
 - **Root cause of the only expensive rework chain sits at requirement-writing time.** "Cover every non-spec feature" (feature enumeration) and "report every loss" (loss enumeration) read as the same instruction and produce different sets. The divergence is invisible while enumerating and obvious once you ask which members can fire alone.
