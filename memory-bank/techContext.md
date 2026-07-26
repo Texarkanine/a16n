@@ -37,9 +37,9 @@ TypeScript ESM-only monorepo managed by pnpm workspaces, built with Turborepo, t
 
 ## Notable Technical Decisions
 
-- MDC frontmatter is parsed with regex, not a YAML parser, because Cursor's format is not standards-compliant YAML
-- Claude frontmatter (both `.claude/rules/*.md` and `.claude/skills/*/SKILL.md`) is also parsed with regex, though Claude uses standard YAML — this should be migrated to a proper YAML parser (see GitHub issue)
+- Cursor `.mdc` frontmatter is parsed with a hand-rolled parser, not YAML, because Cursor's format is not standards-compliant YAML
+- Skill `SKILL.md` frontmatter (Claude and Cursor) and Claude rule frontmatter are parsed with `gray-matter`
 - `@a16njs/glob-hook` is a standalone utility package for Claude Code hooks; it is **not** used by the conversion pipeline (FileRules are emitted as native `.claude/rules/*.md` with `paths:` frontmatter)
 - Generated IR artifacts (when converting to/from the `a16n` format) are written under `.a16n/`
 - The `--delete-source` flag is conservative: it only deletes sources that were fully consumed during conversion
-- IR version is tracked (currently `v1beta2`); `areVersionsCompatible()` warns on mismatch but still processes items
+- IR version is tracked via `CURRENT_IR_VERSION` in `@a16njs/models`; `areVersionsCompatible()` warns on mismatch but still processes items

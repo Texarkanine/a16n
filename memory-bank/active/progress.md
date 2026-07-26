@@ -94,3 +94,13 @@ All 13 steps implemented. Final verification (cache-disabled): **1147 tests** gr
     - Treated the object-form key-mapping duplication as in-scope for QA (completes the build's "spell key names once" intent) rather than a design question to FAIL on.
 * Insights
     - The same stale-`dist` trap from build resurfaced immediately when `plugin-a16n` imported a brand-new models export before rebuild — the failure mode is now predictable enough to check for first.
+
+## 2026-07-26 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-issue-143-spec-field-fidelity.md`.
+    - Reconciled persistent files: surgically updated `techContext.md` (Claude/Cursor skill frontmatter now `gray-matter`; IR version pointer no longer hardcodes `v1beta2`). `systemPatterns.md` and `productContext.md` unchanged.
+* Decisions made
+    - None new; reflection confirmed OQ1–OQ3 and the deferred follow-ups as the right boundary.
+* Insights
+    - See reflection: stale `dist` as first hypothesis; bytes vs behavior as independent emit axes; mutation-check silence-detectors.
