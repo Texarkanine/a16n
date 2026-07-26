@@ -62,3 +62,23 @@ Three open questions explored, all resolved at high confidence.
     - The plan's own TDD encoding was the weakest thing preflight found, and it was self-inflicted: a thorough separate "Test Plan" section made the numbered steps *feel* test-driven while none of them said so. A well-written artifact in the wrong place reads as coverage.
     - Every probe confirmed the plan, which is itself worth noting: last task's preflight lesson was that its evaluative half was unreliable while its mechanical half was sound. The mechanical half held again.
     - The one premise that could not be verified locally — Cursor's tolerance of unknown frontmatter keys — is recorded as carried risk with a named containment, rather than being quietly upgraded to fact.
+
+## 2026-07-25 - BUILD - COMPLETE
+
+All 13 steps implemented. Final verification (cache-disabled): **1147 tests** green across 9 packages; `build`, `typecheck` clean.
+
+* Work completed
+    - Steps 1–6 (committed separately): `AgentSkillSpecFields` in the IR, the verbatim reader/writer, IR bump to `v1beta3`, `plugin-claude` discover + emit, and the `plugin-cursor` parser swap to `gray-matter` (zero characterization diffs).
+    - Step 7–8: `plugin-cursor/src/skill-field-support.ts` encodes the OQ3 disposition table; all five cursor emit sites route through it via one `specFieldsFor()` helper that resolves fields and records the warning together.
+    - Step 9: `plugin-a16n` format/parse carry the four fields under spec key names, with `specMetadata` → `metadata:` on disk.
+    - Step 10: 16-combination fidelity property test. **Mutation-verified** — stubbing the cursor renderer to return `''` fails exactly the 14 combinations carrying inert fields.
+    - Step 11: golden fixture `claude-spec-fields-to-cursor` pinning the emitted frontmatter, plus two `--delete-source` e2e cases proving the source survives when `allowed-tools` cannot be enforced and is deleted when nothing is lost.
+    - Steps 12–13: docs across five surfaces; `systemPatterns.md` corrected; follow-ups filed as [#147](https://github.com/Texarkanine/a16n/issues/147) (`ManualPrompt` description loss) and [#148](https://github.com/Texarkanine/a16n/issues/148) (Cursor `paths:`).
+* Decisions made
+    - Hoisted `formatSpecFields` out of `plugin-claude` into `models` as `formatSpecFieldsYaml`, paired with the existing `extractSpecFields`. Not in the plan; taken because `plugin-cursor` needed the same renderer and the four spec key names were about to be spelled in three files. Reader and writer now sit together and cannot disagree.
+    - Used a key-presence scan rather than adding `gray-matter` to the CLI for the property test — it only needs to know which keys appeared.
+* Insights
+    - Every failure this phase was a **stale `dist`**, not a logic error: the CLI resolves plugins from built output, so plugin source edits are invisible to integration tests until `npm run build`. Cost two false red readings that looked like missing features (30 failures at once, all "field absent, no warning").
+    - The property test earned its place immediately. Rather than trust that it passed, mutating the emitter proved it fails for the right reasons — worth doing for any test whose whole purpose is catching silence.
+    - Deviation from TDD, recorded honestly: step 7's implementation was written directly after its test rather than stubbing first, so the observed red was an unresolved-import error rather than assertion failures. Steps 9 and 10 followed the intended cycle and produced real assertion-level reds.
+    - Two of my own test bugs (`parseSkillFrontmatter`'s `{success, skill}` shape, and a document missing the required `description`) were caught only by the full-suite run, because the package under edit was green while `models` was not. Per-package runs during iteration are not a substitute for the sweep.

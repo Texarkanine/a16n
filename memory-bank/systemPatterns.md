@@ -60,7 +60,11 @@ The system fails fast on invalid input (bad syntax, missing required fields) but
 
 **Report the loss, do not inventory the instances.** a16n's job is to convert faithfully and be honest about when it cannot — not to lint the author's files. A warning names *what will not survive*; it does not enumerate every construct in the body that depends on it. Concretely: **every detector must be able to raise a warning on its own.** One that can only fire alongside another is re-reporting a loss already reported, and does not belong. `plugin-claude`'s `spec-compliance.ts` pins this by asserting each feature's positive case yields exactly one label.
 
-**Skipped vs. Approximated is a safety question, not a severity one.** Loss that silently removes a restriction the author specified fails closed (`Skipped`); loss that visibly breaks a substitution fails open (`Approximated`). A dropped `$ARGUMENTS` leaves a self-evidently broken body; a dropped `hooks:` block leaves a clean-looking skill that still claims to enforce checks it no longer enforces. `hooks:` is currently the only fail-closed case.
+**Skipped vs. Approximated is a safety question, not a severity one.** Loss that silently removes a restriction the author specified fails closed (`Skipped`); loss that visibly breaks a substitution fails open (`Approximated`). A dropped `$ARGUMENTS` leaves a self-evidently broken body; a dropped `hooks:` block leaves a clean-looking skill that still claims to enforce checks it no longer enforces.
+
+There are two fail-closed cases: `hooks:` and `allowed-tools`. The second shows that *writing a field out is not the same as preserving it*. a16n copies `allowed-tools` verbatim into `.cursor/skills/*/SKILL.md`, yet still raises `Skipped`, because Cursor does not enforce tool restrictions — the emitted skill is more permissive than the authored one. Whether to warn is decided by whether the **behavior** survives, not by whether the bytes do. This is also what keeps `--delete-source` from removing the only copy of a restriction that no longer binds anything.
+
+`plugin-cursor/src/skill-field-support.ts` encodes this as an explicit (surface × field) disposition table rather than scattering the judgement across emit sites, so the question "does this surface carry it, and does the harness honour it?" is answered in exactly one place.
 
 ## Test File Organization
 

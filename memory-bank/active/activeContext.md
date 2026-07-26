@@ -1,17 +1,33 @@
 # Active Context
 
 ## Current Task: issue-143-spec-field-fidelity
-**Phase:** PLAN - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Mapped the blast radius: `@a16njs/models` (types + the shared verbatim AgentSkills.io reader/writer + IR version), `plugin-claude` (discover + emit), `plugin-cursor` (discover + emit), `plugin-a16n` (IR format/parse), CLI fixtures, docs. `plugin-agentsmd` needs **no** change — it already skips whole skills with a warning, so a field cannot be lost more finely than the item already is.
-- Resolved three open questions through creative exploration, all high confidence:
-    - **OQ1 (`metadata` collision)** → add flat `specMetadata`; leave `AgentCustomization.metadata` alone. Measured the alternative: renaming touches ~326 sites and breaks a published 1.0.0 interface. The collision is TypeScript-only — the on-disk key stays the spec's `metadata`.
-    - **OQ2 (field placement)** → shared `AgentSkillSpecFields` on `SimpleAgentSkill`, `AgentSkillIO`, **and `ManualPrompt`**. A `disable-model-invocation` skill classifies as `ManualPrompt`, so omitting it would close the common path and leave the highest-stakes one (`allowed-tools` on a manual skill) open.
-    - **OQ3 (emit disposition)** → behavior-keyed: write wherever the surface carries bytes, warn only where something is genuinely lost. `allowed-tools` to Cursor is written **and** raises one `Skipped`; inert fields stay silent; the `.mdc` route raises one warning per item.
-- Key evidence gathered rather than assumed: Cursor's official frontmatter schema (fetched) omits `license`/`compatibility`/`allowed-tools` but Cursor loads `.claude/skills/` directly, so unknown keys are inert; and `handleDeleteSource()` proves a `Skipped` warning blocks source deletion **without** suppressing emission, which is what makes "emit + `Skipped`" a real fail-closed posture.
-- Corrected an invariant mid-plan: "warnings never name a destination harness" is a discover-side rule only; emit-side warnings already name targets.
-- Produced a 12-step TDD implementation plan, challenges, and a pre-mortem. Highest-risk step is isolated: swapping `plugin-cursor`'s hand-rolled skill frontmatter parser for gray-matter (structurally required to read a nested `metadata:` map), gated behind characterization tests.
+
+All 13 planned steps are implemented. Cache-disabled verification: **1147 tests** green across 9 packages; `build` and `typecheck` clean.
+
+The four AgentSkills.io spec fields (`license`, `compatibility`, `metadata`, `allowed-tools`) now survive conversion end to end:
+
+- **`@a16njs/models`** — `AgentSkillSpecFields` is carried by `SimpleAgentSkill`, `AgentSkillIO`, and `ManualPrompt`. `extractSpecFields()` and `formatSpecFieldsYaml()` sit together in `agentskills-io.ts` as reader and writer, so the four spec key names are spelled in exactly one file. IR is `v1beta3`.
+- **`plugin-claude`** — discovers and re-emits all four verbatim, no warnings (Claude honors them).
+- **`plugin-cursor`** — `src/skill-field-support.ts` holds the OQ3 disposition table; all five emit sites route through one `specFieldsFor()` helper that resolves the fields and records the warning together. `SKILL.md` carries everything; `.mdc` carries nothing; `allowed-tools` warns either way.
+- **`plugin-a16n`** — spec fields round-trip through `.a16n/` under spec key names, with `specMetadata` written as `metadata:`.
+
+## Notable Deviations from Plan
+
+- **Hoisted the frontmatter renderer into `models`** (not planned). `plugin-cursor` needed the renderer `plugin-claude` already had, and copying it would have put the spec key names in three files. `formatSpecFieldsYaml` is now the exported inverse of `extractSpecFields`.
+- **Step 7's red was an import error, not assertion failures** — the implementation was written directly after the test rather than stubbing first. Steps 9 and 10 followed the intended a/b/c/d cycle.
+
+## Verification Worth Trusting
+
+The step-10 property test was **mutation-verified**: stubbing the cursor renderer to return `''` fails exactly the 14 combinations that carry inert fields. It is not vacuous.
+
+## Follow-Ups Filed
+
+- [#147](https://github.com/Texarkanine/a16n/issues/147) — `ManualPrompt` discards the authored `description`.
+- [#148](https://github.com/Texarkanine/a16n/issues/148) — Cursor skill `paths:` is unmodelled.
 
 ## Next Step
-- Preflight phase — validate the plan before build.
+
+QA phase — post-implementation semantic review (required before reflect for L2+).

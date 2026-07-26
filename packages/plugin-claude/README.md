@@ -57,6 +57,8 @@ a16n's IR is shaped after the [AgentSkills.io specification](https://agentskills
 
 `paths:` and `disable-model-invocation:` are also non-spec, but a16n models them natively, so they convert without a warning.
 
+The spec's own optional fields — `license`, `compatibility`, `metadata`, and `allowed-tools` — are discovered and re-emitted verbatim, with no warning in either direction. Claude honors all four, so nothing is lost. They ride along on skills classified as `SimpleAgentSkill`, `AgentSkillIO`, *and* `ManualPrompt`; the last matters because a skill with `disable-model-invocation: true` becomes a `ManualPrompt`, and those are precisely the skills most likely to declare `allowed-tools`.
+
 `$1` positionals and `$name` named arguments are absent for a different reason: neither can appear in a skill that is not already warned about by `$ARGUMENTS`, `arguments:`, or `argument-hint:`. Reporting a loss is this warning's job; listing every construct in your body that depends on that loss would be linting your file. So the advisory names what will not survive, once.
 
 Detection is otherwise conservative where Claude syntax collides with ordinary shell or prose: `@` references need path shape, so `@reviewer` and `@scope/pkg` stay silent. The tradeoff is a known false negative on extensionless references like `@src/utils`, which are lexically identical to a scoped package name.

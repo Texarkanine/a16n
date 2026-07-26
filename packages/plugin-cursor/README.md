@@ -53,6 +53,23 @@ Commands in `.cursor/commands/*.md` are prepackaged prompts invoked via `/comman
 - Creates `.cursor/commands/<name>.md` files for AgentCommand items
 - Creates `.cursorignore` from AgentIgnore patterns
 
+### AgentSkills.io Spec Fields
+
+Skills may carry `license`, `compatibility`, `metadata`, and `allowed-tools`. What happens to them depends on the surface being written and on whether Cursor acts on them:
+
+| Field | `.cursor/skills/*/SKILL.md` | `.cursor/rules/*.mdc` |
+| --- | --- | --- |
+| `license` | Written | Dropped, `approximated` |
+| `compatibility` | Written | Dropped, `approximated` |
+| `metadata` | Written | Dropped, `approximated` |
+| `allowed-tools` | Written, but `skipped` | Dropped, `skipped` |
+
+`SKILL.md` carries arbitrary frontmatter keys, so nothing is lost on disk. `.mdc` has a fixed schema and carries none of them.
+
+`allowed-tools` warns even where it is written, because Cursor does not enforce tool restrictions: the emitted skill is more permissive than the source. That is a behavior change, not a formatting one, so it fails closed — and `--delete-source` will keep the original file as a result.
+
+Exactly one warning is raised per skill per surface, naming the fields actually lost, rather than one warning per field.
+
 ## MDC Format
 
 Cursor uses MDC (Markdown Configuration) format with YAML frontmatter:

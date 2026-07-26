@@ -211,32 +211,32 @@ Ordered fewest-dependencies-first: models → claude (already gray-matter, lowes
     - b. Add the (currently failing) cases for the four spec fields, including a nested `metadata:` map.
     - c. Run — the spec-field cases red, characterization cases green.
     - d. Add `gray-matter@^4.0.3` to `packages/plugin-cursor/package.json` (matching the version already used by `models`, `plugin-claude`, `plugin-a16n`) and replace the hand-rolled line-regex `parseSkillFrontmatter()` in `src/discover.ts`. Re-run both sets; every characterization diff must be either eliminated or converted into a deliberately asserted fix with a comment saying why. **`parseMdc()` in `src/mdc.ts` is NOT touched** — Cursor's `.mdc` format is deliberately not standards-compliant YAML.
-7. **`plugin-cursor` disposition table.**
+7. ✅ **`plugin-cursor` disposition table.**
     - a. Write `test/skill-field-support.test.ts` as a pure table test over (surface × field-combination) → expected `{ fieldsToWrite, warning }`, including the one-warning-not-four case.
     - b. Stub `src/skill-field-support.ts` with the exported signature and an empty body.
     - c. Run — red.
     - d. Implement the OQ3 table as the single source of truth for all three cursor emit surfaces. Green.
     - Creative ref: OQ3.
-8. **`plugin-cursor` emit.**
+8. ✅ **`plugin-cursor` emit.**
     - a. Add cases to `test/emit-skills.test.ts`, `test/emit-agent-skill-io.test.ts`, `test/emit-manual-prompt.test.ts`: inert fields written silently; `allowedTools` written **plus** exactly one `Skipped` carrying `sources: [sourcePath]`; all four → one warning; `.mdc` route → one `Approximated`, escalating to `Skipped` when `allowedTools` is among the dropped fields.
     - b. *(no new interface — consumes step 7)*
     - c. Run — red.
     - d. Route `formatAgentSkillMd()`, `formatManualPromptAsSkill()`, and both branches of `emitAgentSkillIO()` through `skill-field-support.ts`. Green.
-9. **`plugin-a16n` IR serialization.**
+9. ✅ **`plugin-a16n` IR serialization.**
     - a. Add cases to `test/format.test.ts` and `test/parse.test.ts`: spec key names on write, symmetric read, format→parse round-trip identity.
     - b. *(no new interface)*
     - c. Run — red.
     - d. Extend `formatIRFile()` and `parseIRFile()`. `AgentSkillIO` needs no change here — it delegates to the models utilities from step 2. Green.
-10. **Fidelity property test.** *(added at preflight — see Finding B)*
+10. ✅ **Fidelity property test.** *(added at preflight — see Finding B)*
     - a. Write `packages/cli/test/integration/integration-skill-field-fidelity.test.ts`: for each of the 16 combinations of the four fields, assert that a `claude → a16n → claude` round-trip recovers exactly the fields that went in, and that a `claude → cursor` conversion either preserves each field or produces a warning naming it. No combination may be both absent from the output and unmentioned in the warnings.
     - b–d. Standard cycle; expected to pass once steps 1–9 are green, and to fail loudly if any single combination was missed.
-11. **CLI integration.**
+11. ✅ **CLI integration.**
     - a. Add fixture `packages/cli/test/integration/fixtures/claude-spec-fields-to-cursor/` reproducing the issue exactly (`license: MIT`, `allowed-tools: Bash(rm:*)`), plus a `--delete-source` case asserting the source survives when a `Skipped` warning names it.
     - b–d. Standard cycle.
-12. **Documentation.**
+12. ✅ **Documentation.**
     - Files: `packages/docs/docs/understanding-conversions/index.md` (add rows to the approximated/skipped tables), `packages/docs/docs/models/index.md` (new IR fields), `packages/docs/docs/plugin-a16n/index.md` (v1beta3), `packages/plugin-cursor/README.md`, `packages/plugin-claude/README.md`, `packages/models/README.md` if it enumerates IR fields.
     - Changes: document the four fields, the per-target disposition table, and the `metadata` vs `specMetadata` distinction.
-13. **File follow-ups.**
+13. ✅ **File follow-ups.**
     - `ManualPrompt` discards the authored `description` in favour of a synthesized `Invoke with /<name>` (deferred from OQ2 — required-field loss, needs its own design decision).
     - Cursor's `paths:` on skills is unmodelled (Category A gap, out of scope per invariant 6).
     - Update `memory-bank/systemPatterns.md` **only** where this work makes it factually wrong — specifically the "`hooks:` is currently the only fail-closed case" claim, which `allowed-tools` invalidates.
