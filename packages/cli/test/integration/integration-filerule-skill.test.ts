@@ -102,7 +102,10 @@ describe('Integration Tests - FileRule and SimpleAgentSkill', () => {
   });
 
   describe('cursor-skill-paths-to-claude', () => {
-    it('should convert a Cursor skill with paths: into a Claude FileRule (not a widened skill)', async () => {
+    /**
+     * Positive: bare skill + paths: ≡ FileRule. Scope survives as Claude paths:.
+     */
+    it('should convert a bare Cursor skill with paths: into a Claude FileRule', async () => {
       const fixturePath = path.join(fixturesDir, 'cursor-skill-paths-to-claude');
       const fromDir = path.join(fixturePath, 'from-cursor');
 
@@ -134,6 +137,43 @@ describe('Integration Tests - FileRule and SimpleAgentSkill', () => {
           w => w.code === WarningCode.Skipped && w.message.toLowerCase().includes('paths')
         )
       ).toHaveLength(0);
+    });
+  });
+
+  describe('cursor-skill-io-paths-refuse-to-claude', () => {
+    /**
+     * Negative: AgentSkillIO + paths: cannot become a FileRule (ride-alongs).
+     * Refuse rather than emit an unscoped skill that widens scope.
+     */
+    it('should refuse an AgentSkillIO Cursor skill with paths:', async () => {
+      const fixturePath = path.join(fixturesDir, 'cursor-skill-io-paths-refuse-to-claude');
+      const fromDir = path.join(fixturePath, 'from-cursor');
+
+      await copyDir(fromDir, tempDir);
+
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+
+      expect(
+        result.discovered.filter(d => d.sourcePath?.includes('scoped-io'))
+      ).toHaveLength(0);
+
+      await expect(
+        fs.access(path.join(tempDir, '.claude', 'skills', 'scoped-io', 'SKILL.md'))
+      ).rejects.toThrow();
+      await expect(
+        fs.access(path.join(tempDir, '.claude', 'rules', 'scoped-io.md'))
+      ).rejects.toThrow();
+
+      const warning = result.warnings.find(
+        w => w.code === WarningCode.Skipped && w.message.toLowerCase().includes('paths')
+      );
+      expect(warning).toBeDefined();
+      expect(warning?.sources?.some(s => s.includes('scoped-io'))).toBe(true);
+      expect(warning?.message.toLowerCase()).toMatch(/resource|widen|scope/);
     });
   });
 
