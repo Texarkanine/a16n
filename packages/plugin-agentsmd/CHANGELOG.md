@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-agentsmd@1.0.4...@a16njs/plugin-agentsmd@1.1.0) (2026-07-26)
+
+
+### Features
+
+* **models:** preserve ManualPrompt authored description [[#147](https://github.com/Texarkanine/a16n/issues/147)] ([#151](https://github.com/Texarkanine/a16n/issues/151)) ([cc1eb2f](https://github.com/Texarkanine/a16n/commit/cc1eb2ff1f58e0849376f13656cf6693fa5a9b9f))
+
 ## [1.0.4](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-agentsmd@1.0.3...@a16njs/plugin-agentsmd@1.0.4) (2026-06-13)
 
 
