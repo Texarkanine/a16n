@@ -34,10 +34,13 @@ This plugin supports five customization types:
 ### Discovery
 
 - `.cursor/rules/**/*.mdc` - MDC format rules with frontmatter (recursive)
+- `.cursor/skills/**/SKILL.md` - Agent skills (recursive under category directories)
 - `.cursor/commands/**/*.md` - Command files (recursive)
 - `.cursorignore` - Gitignore-style patterns for files to exclude
 
 > **Note:** Legacy `.cursorrules` files are not supported. Use `.cursor/rules/*.mdc` instead.
+
+**Skills with `paths:`** are refused at discovery (`skipped`). Cursor's `paths:` key scopes a skill to matching files and is not part of AgentSkills.io; a16n does not model it. Converting without that scoping would widen the skill's applicability, so the skill is not converted and a warning names the field.
 
 ### Commands
 

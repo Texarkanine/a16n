@@ -240,6 +240,11 @@ interface SkillFrontmatter {
   name?: string;
   description?: string;
   disableModelInvocation?: boolean;
+  /**
+   * True when Cursor's harness-specific `paths:` key is declared (even if empty).
+   * Category A (#148): converting without it would widen skill scope, so discovery refuses.
+   */
+  hasPaths?: boolean;
 }
 
 interface ParsedSkill {
@@ -268,6 +273,8 @@ function parseSkillFrontmatter(content: string): ParsedSkill {
     if (typeof data['disable-model-invocation'] === 'boolean') {
       frontmatter.disableModelInvocation = data['disable-model-invocation'];
     }
+    // Key presence, not value shape — empty/`paths: "src/**"` still scopes in Cursor.
+    if ('paths' in data) frontmatter.hasPaths = true;
 
     return {
       frontmatter,
@@ -366,8 +373,9 @@ async function readSkillFiles(skillDir: string): Promise<Record<string, string>>
 
 /**
  * Discover skills from .cursor/skills/.
- * 
+ *
  * Classification:
+ * - Skills with `paths:` → SKIP (Cursor harness scoping is not portable; dropping it widens scope)
  * - Skills with extra files -> AgentSkillIO (Phase 8 B3)
  * - Skills with disable-model-invocation: true -> ManualPrompt
  * - Skills with description only -> SimpleAgentSkill
@@ -403,16 +411,30 @@ async function discoverSkills(root: string): Promise<{
 
       // Display name from frontmatter; invocation name is always the dirName
       const displayName = frontmatter.name?.trim() || dirName;
+
+      // Cursor `paths:` scopes the skill to matching files. a16n does not model it
+      // (Category A / #148). Emitting without it would widen scope, so refuse.
+      if (frontmatter.hasPaths) {
+        warnings.push({
+          code: WarningCode.Skipped,
+          message:
+            `Skipped skill '${displayName}': Cursor paths: scoping is not portable; ` +
+            `converting would widen skill scope`,
+          sources: [skillPath],
+        });
+        continue;
+      }
       
       // Read all other files in the skill directory
       const files = await readSkillFiles(skillDir);
       const hasExtraFiles = Object.keys(files).length > 0;
       
       // Classification priority:
-      // 1. Has extra files → AgentSkillIO (with description required)
-      // 2. disable-model-invocation: true → ManualPrompt
-      // 3. description present → SimpleAgentSkill
-      // 4. Neither → Skip with warning
+      // 1. Has paths → SKIP (above)
+      // 2. Has extra files → AgentSkillIO (with description required)
+      // 3. disable-model-invocation: true → ManualPrompt
+      // 4. description present → SimpleAgentSkill
+      // 5. Neither → Skip with warning
       
       if (hasExtraFiles) {
         // AgentSkillIO - complex skill with resources

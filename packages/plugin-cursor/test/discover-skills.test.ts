@@ -277,4 +277,100 @@ describe('Cursor Skills Discovery', () => {
       expect(result.warnings).toEqual([]);
     });
   });
+
+  /**
+   * Cursor harness `paths:` on skills is Category A (#148): not in AgentSkills.io,
+   * not modelled in the IR. Converting without it would widen skill scope, so
+   * discovery must refuse the skill (Claude `hooks:` precedent) — Skipped, no item.
+   */
+  describe('skills with paths: → refuse (Skipped)', () => {
+    beforeEach(async () => {
+      await fs.mkdir(tempDir, { recursive: true });
+    });
+
+    afterEach(async () => {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    });
+
+    it('should refuse a SimpleAgentSkill that declares paths:', async () => {
+      const result = await discoverProbeSkill(
+        'description: Scoped helper\npaths:\n  - "src/**"'
+      );
+
+      expect(
+        result.items.find(i => i.sourcePath.includes('probe'))
+      ).toBeUndefined();
+
+      const warning = result.warnings.find(w => w.sources?.some(s => s.includes('probe')));
+      expect(warning).toBeDefined();
+      expect(warning?.code).toBe(WarningCode.Skipped);
+      expect(warning?.message.toLowerCase()).toContain('paths');
+      expect(warning?.message.toLowerCase()).toMatch(/widen|scope|portable|cursor/);
+    });
+
+    it('should refuse before AgentSkillIO classification when paths: is present', async () => {
+      const skillDir = path.join(tempDir, '.cursor', 'skills', 'probe');
+      await fs.mkdir(skillDir, { recursive: true });
+      await fs.writeFile(
+        path.join(skillDir, 'SKILL.md'),
+        '---\ndescription: Scoped with resources\npaths:\n  - "src/**"\n---\n\nBody.\n',
+        'utf-8'
+      );
+      await fs.writeFile(path.join(skillDir, 'notes.md'), 'resource\n', 'utf-8');
+
+      const result = await cursorPlugin.discover(tempDir);
+
+      expect(result.items.filter(i => i.sourcePath.includes('probe'))).toHaveLength(0);
+      const warning = result.warnings.find(w => w.message.toLowerCase().includes('paths'));
+      expect(warning?.code).toBe(WarningCode.Skipped);
+    });
+
+    it('should refuse before ManualPrompt classification when paths: is present', async () => {
+      const result = await discoverProbeSkill(
+        'description: Manual scoped\ndisable-model-invocation: true\npaths:\n  - "lib/**"'
+      );
+
+      expect(
+        result.items.find(i => i.sourcePath.includes('probe'))
+      ).toBeUndefined();
+      expect(
+        result.warnings.find(w => w.message.toLowerCase().includes('paths'))?.code
+      ).toBe(WarningCode.Skipped);
+    });
+
+    it('should refuse when paths: is present but empty', async () => {
+      const result = await discoverProbeSkill('description: Empty paths\npaths: []');
+
+      expect(
+        result.items.find(i => i.sourcePath.includes('probe'))
+      ).toBeUndefined();
+      expect(
+        result.warnings.find(w => w.message.toLowerCase().includes('paths'))?.code
+      ).toBe(WarningCode.Skipped);
+    });
+
+    it('should refuse when paths: is a string rather than a list', async () => {
+      const result = await discoverProbeSkill(
+        'description: String paths\npaths: "src/**"'
+      );
+
+      expect(
+        result.items.find(i => i.sourcePath.includes('probe'))
+      ).toBeUndefined();
+      expect(
+        result.warnings.find(w => w.message.toLowerCase().includes('paths'))?.code
+      ).toBe(WarningCode.Skipped);
+    });
+
+    it('should still discover a skill that has no paths: key', async () => {
+      const result = await discoverProbeSkill('description: Unscoped helper');
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.SimpleAgentSkill && i.sourcePath.includes('probe')
+      ) as SimpleAgentSkill | undefined;
+      expect(skill).toBeDefined();
+      expect(skill?.description).toBe('Unscoped helper');
+      expect(result.warnings.filter(w => w.message.toLowerCase().includes('paths'))).toHaveLength(0);
+    });
+  });
 });
