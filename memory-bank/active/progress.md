@@ -28,3 +28,14 @@ Refuse conversion of Cursor skills that declare harness-specific `paths:` scopin
     - Detect `'paths' in data` before classification; key presence including empty values
 * Insights
     - cursor→cursor also refuses until a future survival design; acceptable under refuse-only acceptance
+
+## 2026-07-26 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated plan against TDD encoding, conventions, dependencies, conflicts, completeness
+    - Amended plan with CLI integration refuse case (B6 / step 3)
+    - Wrote `.preflight-status` PASS
+* Decisions made
+    - Keep discover-skip refuse; do not expand to CLI exit-code redesign
+* Insights
+    - No existing `from-cursor` skill fixtures currently declare `paths:` — low regression blast radius

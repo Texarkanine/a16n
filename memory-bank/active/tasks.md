@@ -19,32 +19,37 @@ Cursor `.cursor/skills/*/SKILL.md` may declare harness-specific `paths:` scoping
 - [B5 message]: warning message makes clear conversion was refused because Cursor `paths:` scoping is not portable / would widen scope
 - [Edge non-array]: `paths: "src/**"` (string) → refused (key present), not parsed into IR
 - [Edge regression]: existing discover-skills / spec-field cases without `paths` still pass
+- [B6 integration]: `cursor → claude` on a fixture skill with `paths:` → skill absent from `discovered` / not written under `.claude/skills/`; conversion warnings include the refuse `Skipped` for that source
 
 ### Test Infrastructure
 
 - Framework: Vitest
-- Test location: `packages/plugin-cursor/test/`
-- Conventions: flat `discover-<domain>.test.ts`; probe helper `discoverProbeSkill()` already in `discover-skills.test.ts` for ephemeral frontmatter cases; committed fixtures under `test/fixtures/` when shared
-- New test files: none preferred — extend `packages/plugin-cursor/test/discover-skills.test.ts` with a `paths:` refuse describe block (reuse `discoverProbeSkill` / temp dir). Optional committed fixture only if an integration assertion needs one.
+- Test location: `packages/plugin-cursor/test/` (unit) and `packages/cli/test/integration/` (engine convert)
+- Conventions: flat `discover-<domain>.test.ts`; probe helper `discoverProbeSkill()` already in `discover-skills.test.ts` for ephemeral frontmatter cases; CLI fixtures under `packages/cli/test/integration/fixtures/<name>/{from-cursor,...}`
+- New test files: extend `packages/plugin-cursor/test/discover-skills.test.ts`; add one CLI integration describe (new fixture dir e.g. `cursor-skill-paths-refuse-to-claude`, or temp-written frontmatter inside an existing integration pattern) in `packages/cli/test/integration/integration-filerule-skill.test.ts` (or sibling skill integration file)
 - Docs/memory: update assertions are manual / review — `systemPatterns.md`, `plugin-cursor` README (and Claude README only if it claims Cursor skill `paths:` converts)
 
 ## Implementation Plan
 
 1. **Failing discover tests for `paths:` refuse**
    - Files: `packages/plugin-cursor/test/discover-skills.test.ts`
-   - Changes: add describe covering B1–B5 and edges via `discoverProbeSkill` (and one AgentSkillIO-style probe with an extra file under the temp skill dir)
+   - Changes: add describe covering B1–B5 and edges via `discoverProbeSkill` (and one AgentSkillIO-style probe with an extra file under the temp skill dir). Run; confirm red.
 
-2. **Detect `paths` and skip before classification**
+2. **Failing CLI integration for refuse end-to-end**
+   - Files: `packages/cli/test/integration/integration-filerule-skill.test.ts` (or adjacent skill integration file); new fixture under `packages/cli/test/integration/fixtures/cursor-skill-paths-refuse-to-claude/`
+   - Changes: assert B6 — `engine.convert({ source: 'cursor', target: 'claude', ... })` does not emit the skill; warning is `Skipped` and names `paths`. Run; confirm red (still no production change).
+
+3. **Detect `paths` and skip before classification**
    - Files: `packages/plugin-cursor/src/discover.ts` (`parseSkillFrontmatter` and/or `discoverSkills`)
-   - Changes: after successful YAML parse, if `'paths' in data` (raw gray-matter data), push `WarningCode.Skipped` with a clear message and `continue` — same control-flow position as Claude's `hasHooks` check in `packages/plugin-claude/src/discover.ts`. Do not add `paths` to `SkillFrontmatter` / IR types.
+   - Changes: after successful YAML parse, if `'paths' in data` (raw gray-matter data), push `WarningCode.Skipped` with a clear message and `continue` — same control-flow position as Claude's `hasHooks` check in `packages/plugin-claude/src/discover.ts`. Do not add `paths` to `SkillFrontmatter` / IR types. Re-run steps 1–2 tests to green.
 
-3. **Document the fail-closed case**
+4. **Document the fail-closed case**
    - Files: `memory-bank/systemPatterns.md` (add Cursor skill `paths:` alongside `hooks:` / `allowed-tools` fail-closed cases; document Cursor `.cursor/skills` classification skip if missing); `packages/plugin-cursor/README.md` (skills discovery: `paths:` → skipped/refused); skim `packages/plugin-claude/README.md` / docs site only if they currently imply Cursor skill `paths:` survives or converts
    - Changes: state refusal semantics and that this is Category A (harness extension), not AgentSkills.io
 
-4. **Verify package suite**
+5. **Verify package suite**
    - Files: n/a (commands)
-   - Changes: run `packages/plugin-cursor` tests (then full workspace suite before calling build done), fix any fixture that unintentionally includes skill `paths:`
+   - Changes: run `packages/plugin-cursor` + affected CLI integration tests, then full workspace suite before calling build done; fix any fixture that unintentionally includes skill `paths:`
 
 ## Technology Validation
 
@@ -70,6 +75,11 @@ No new technology - validation not required
 - **Plan modeled `paths` on IR “just in case” and turned into L3 Category A fidelity work**: Already cut — acceptance is refuse-only; survival is a later design if wanted.
 - **Warning wording named AgentSkills.io for a non-spec Cursor key (wrong advisory axis)**: Message must name Cursor / non-portable scoping / widened scope, not “not in the spec” alone.
 
+## Preflight Amendments
+
+- Added B6 and ordered it as implementation step 2 (failing tests) before production step 3, so TDD encoding stays explicit per unit.
+- CLI/engine integration fixture proves refuse is visible on `cursor → claude`, not only at unit discover (preflight radical-innovation, in-scope).
+
 ## Status
 
 - [x] Initialization complete
@@ -77,6 +87,6 @@ No new technology - validation not required
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
+- [x] Preflight
 - [ ] Build
 - [ ] QA

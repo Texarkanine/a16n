@@ -1,17 +1,15 @@
 # Active Context
 
 ## Current Task: issue-148-cursor-skill-paths-refuse
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE
 
 ## What Was Done
-- Planned Level 2 refuse-on-`paths:` work for [#148](https://github.com/Texarkanine/a16n/issues/148).
-- Selected mechanism: discover-time fail-closed skip (Claude `hooks:` precedent) — `WarningCode.Skipped`, no IR item; not WARN-and-emit; not IR modeling.
-- Test plan maps to `packages/plugin-cursor/test/discover-skills.test.ts` via existing `discoverProbeSkill` helper.
+- Preflight PASS on Level 2 refuse-on-`paths:` plan.
+- Amended plan: B6 CLI integration + TDD-safe step order (all failing tests before `discover.ts` change).
 
 ## Decisions
-- **REFUSE** = item-level discover skip, not whole-CLI hard fail redesign.
-- Do **not** model `paths` on the IR in this task (cursor→cursor also refuses until a future survival design).
-- Detect via `'paths' in data` (key presence), before skill classification.
+- Discover-skip refuse retained; no CLI exit-code redesign.
+- No existing `from-cursor` skill fixtures declare `paths:` (low blast radius).
 
 ## Next Step
-- Preflight validation (automatic for Level 2)
+- Build phase
