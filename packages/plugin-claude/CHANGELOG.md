@@ -1,5 +1,18 @@
 # @a16njs/plugin-claude
 
+## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@1.0.0...@a16njs/plugin-claude@1.1.0) (2026-07-26)
+
+
+### Features
+
+* **models:** preserve AgentSkills.io skill fields through conversion [[#143](https://github.com/Texarkanine/a16n/issues/143)] ([#149](https://github.com/Texarkanine/a16n/issues/149)) ([250f246](https://github.com/Texarkanine/a16n/commit/250f2466e8307c00d9ce1966a1f839155841768d))
+* **models:** preserve ManualPrompt authored description [[#147](https://github.com/Texarkanine/a16n/issues/147)] ([#151](https://github.com/Texarkanine/a16n/issues/151)) ([cc1eb2f](https://github.com/Texarkanine/a16n/commit/cc1eb2ff1f58e0849376f13656cf6693fa5a9b9f))
+
+
+### Bug Fixes
+
+* realign conversion gates with the AgentSkills.io spec ([#145](https://github.com/Texarkanine/a16n/issues/145)) ([5246865](https://github.com/Texarkanine/a16n/commit/52468651da678557b3199d90f81b6b14c7e8dbf9))
+
 ## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@0.14.1...@a16njs/plugin-claude@1.0.0) (2026-06-13)
 
 
