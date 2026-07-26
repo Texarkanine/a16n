@@ -3,6 +3,7 @@ import {
   CustomizationType,
   CURRENT_IR_VERSION,
   type AgentCustomization,
+  type AgentSkillSpecFields,
   type GlobalPrompt,
   type ManualPrompt,
   type SimpleAgentSkill,
@@ -203,5 +204,96 @@ describe('AgentSkillIO', () => {
     };
 
     expect(skill.disableModelInvocation).toBe(true);
+  });
+});
+
+describe('AgentSkillSpecFields', () => {
+  /**
+   * The optional AgentSkills.io frontmatter fields that a16n models but that
+   * carry no runtime behavior in the IR itself. Every skill-shaped IR type
+   * carries them, including ManualPrompt: a SKILL.md with
+   * `disable-model-invocation: true` classifies as ManualPrompt, and that is
+   * the highest-stakes route for `allowed-tools` loss.
+   */
+
+  const allFields: AgentSkillSpecFields = {
+    license: 'Apache-2.0',
+    compatibility: 'Requires Python 3.14+ and uv',
+    specMetadata: { author: 'Texarkanine', version: '1.2.0' },
+    allowedTools: 'Bash(git:*) Bash(jq:*) Read',
+  };
+
+  it('should carry all four fields on SimpleAgentSkill', () => {
+    const skill: SimpleAgentSkill = {
+      id: 'spec-1',
+      type: CustomizationType.SimpleAgentSkill,
+      version: CURRENT_IR_VERSION,
+      sourcePath: '.claude/skills/deploy/SKILL.md',
+      content: 'Deploy content',
+      name: 'deploy',
+      description: 'Deploy the app',
+      metadata: {},
+      ...allFields,
+    };
+
+    expect(skill.license).toBe('Apache-2.0');
+    expect(skill.compatibility).toBe('Requires Python 3.14+ and uv');
+    expect(skill.specMetadata).toEqual({ author: 'Texarkanine', version: '1.2.0' });
+    expect(skill.allowedTools).toBe('Bash(git:*) Bash(jq:*) Read');
+  });
+
+  it('should carry all four fields on AgentSkillIO', () => {
+    const skill: AgentSkillIO = {
+      id: 'spec-2',
+      type: CustomizationType.AgentSkillIO,
+      version: CURRENT_IR_VERSION,
+      sourcePath: '.claude/skills/deploy/SKILL.md',
+      content: 'Deploy content',
+      name: 'deploy',
+      description: 'Deploy the app',
+      files: {},
+      metadata: {},
+      ...allFields,
+    };
+
+    expect(skill.license).toBe('Apache-2.0');
+    expect(skill.compatibility).toBe('Requires Python 3.14+ and uv');
+    expect(skill.specMetadata).toEqual({ author: 'Texarkanine', version: '1.2.0' });
+    expect(skill.allowedTools).toBe('Bash(git:*) Bash(jq:*) Read');
+  });
+
+  it('should carry all four fields on ManualPrompt', () => {
+    const prompt: ManualPrompt = {
+      id: 'spec-3',
+      type: CustomizationType.ManualPrompt,
+      version: CURRENT_IR_VERSION,
+      sourcePath: '.claude/skills/clean/SKILL.md',
+      content: 'Clean content',
+      promptName: 'clean',
+      metadata: {},
+      ...allFields,
+    };
+
+    expect(prompt.license).toBe('Apache-2.0');
+    expect(prompt.compatibility).toBe('Requires Python 3.14+ and uv');
+    expect(prompt.specMetadata).toEqual({ author: 'Texarkanine', version: '1.2.0' });
+    expect(prompt.allowedTools).toBe('Bash(git:*) Bash(jq:*) Read');
+  });
+
+  it('should leave all four undefined when omitted', () => {
+    const skill: SimpleAgentSkill = {
+      id: 'spec-4',
+      type: CustomizationType.SimpleAgentSkill,
+      version: CURRENT_IR_VERSION,
+      content: 'Plain content',
+      name: 'plain',
+      description: 'A plain skill',
+      metadata: {},
+    };
+
+    expect(skill.license).toBeUndefined();
+    expect(skill.compatibility).toBeUndefined();
+    expect(skill.specMetadata).toBeUndefined();
+    expect(skill.allowedTools).toBeUndefined();
   });
 });

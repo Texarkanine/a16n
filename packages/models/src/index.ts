@@ -4,6 +4,7 @@
 export {
   CustomizationType,
   type AgentCustomization,
+  type AgentSkillSpecFields,
   type GlobalPrompt,
   type SimpleAgentSkill,
   type AgentSkill, // Deprecated alias for SimpleAgentSkill

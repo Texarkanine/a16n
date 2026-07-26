@@ -29,8 +29,10 @@ export interface ParsedIRVersion {
 /**
  * The current IR version used by this version of a16n.
  * v1beta2: SimpleAgentSkill.name is required (was optional in v1beta1).
+ * v1beta3: skill types carry the optional AgentSkills.io spec fields
+ * (`license`, `compatibility`, `metadata`, `allowed-tools`).
  */
-export const CURRENT_IR_VERSION: IRVersion = 'v1beta2' as IRVersion;
+export const CURRENT_IR_VERSION: IRVersion = 'v1beta3' as IRVersion;
 
 /**
  * Parse an IR version string into its components.

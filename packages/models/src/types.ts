@@ -39,8 +39,45 @@ export interface AgentCustomization {
   relativeDir?: string;
   /** The actual prompt/rule content */
   content: string;
-  /** Tool-specific extras that don't fit the standard model (transient, not serialized in IR) */
+  /**
+   * Tool-specific extras that don't fit the standard model (transient, not serialized in IR).
+   *
+   * This is **not** the AgentSkills.io `metadata` frontmatter field — that one is
+   * author-authored and must persist. See {@link AgentSkillSpecFields.specMetadata}.
+   */
   metadata: Record<string, unknown>;
+}
+
+/**
+ * Optional AgentSkills.io frontmatter fields shared by every skill-shaped IR type.
+ *
+ * These are modeled purely so they survive conversion; a16n does not act on them
+ * and does not validate the spec's length or format constraints.
+ *
+ * @see https://agentskills.io/specification.md
+ */
+export interface AgentSkillSpecFields {
+  /** License name or a reference to a bundled license file. Provenance only. */
+  license?: string;
+  /** Environment requirements, e.g. `Requires Python 3.14+ and uv`. Documentation only. */
+  compatibility?: string;
+  /**
+   * The AgentSkills.io spec's `metadata` field: author-authored client properties,
+   * persisted to disk under the key `metadata`.
+   *
+   * Distinct from {@link AgentCustomization.metadata}, which is transient and is
+   * never serialized.
+   */
+  specMetadata?: Record<string, string>;
+  /**
+   * Space-separated list of pre-approved tools, preserved as the authored string
+   * (e.g. `Bash(git:*) Bash(jq:*) Read`) rather than split, because re-joining a
+   * parsed list invites normalization bugs.
+   *
+   * Experimental in the spec, but the only one of these fields with enforcement
+   * semantics: dropping it makes the emitted skill more permissive than authored.
+   */
+  allowedTools?: string;
 }
 
 /**
@@ -64,7 +101,7 @@ export interface GlobalPrompt extends AgentCustomization {
  * For full AgentSkills.io standard skills with resources and files,
  * use AgentSkillIO instead.
  */
-export interface SimpleAgentSkill extends AgentCustomization {
+export interface SimpleAgentSkill extends AgentCustomization, AgentSkillSpecFields {
   type: CustomizationType.SimpleAgentSkill;
   /** Invocation name — the directory name (or rule filename) used for slash-command invocation (e.g., "banana" for /banana). Required for skills to invoke properly. */
   name: string;
@@ -89,7 +126,7 @@ export type AgentSkill = SimpleAgentSkill;
  * - Resource files (checklists, configs, scripts)
  * - Multiple files in a skill directory
  */
-export interface AgentSkillIO extends AgentCustomization {
+export interface AgentSkillIO extends AgentCustomization, AgentSkillSpecFields {
   type: CustomizationType.AgentSkillIO;
 
   /** Skill name (from frontmatter or directory name) */
@@ -136,8 +173,12 @@ export interface AgentIgnore extends AgentCustomization {
  * Examples: Cursor commands in .cursor/commands/, skills with disable-model-invocation: true
  *
  * These prompts are only activated when explicitly invoked by the user.
+ *
+ * Both target plugins emit this type as a `SKILL.md`, which is why it carries
+ * {@link AgentSkillSpecFields}. Those fields are always `undefined` for prompts
+ * originating from `.cursor/commands/*.md`, which have no frontmatter.
  */
-export interface ManualPrompt extends AgentCustomization {
+export interface ManualPrompt extends AgentCustomization, AgentSkillSpecFields {
   type: CustomizationType.ManualPrompt;
   /** Prompt name for invocation (e.g., "review" for /review) */
   promptName: string;

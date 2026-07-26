@@ -9,8 +9,8 @@ import {
 
 describe('IRVersion', () => {
   describe('CURRENT_IR_VERSION', () => {
-    it('should be v1beta2', () => {
-      expect(CURRENT_IR_VERSION).toBe('v1beta2');
+    it('should be v1beta3', () => {
+      expect(CURRENT_IR_VERSION).toBe('v1beta3');
     });
   });
 
@@ -92,6 +92,7 @@ describe('IRVersion', () => {
     it('should return true when reader has newer revision (forward compat)', () => {
       // v1beta2 reader, v1beta1 file -> compatible (reader can read older files)
       expect(areVersionsCompatible('v1beta2', 'v1beta1')).toBe(true);
+      expect(areVersionsCompatible('v1beta3', 'v1beta2')).toBe(true);
       expect(areVersionsCompatible('v1beta10', 'v1beta1')).toBe(true);
       expect(areVersionsCompatible('v2alpha5', 'v2alpha3')).toBe(true);
     });
@@ -137,7 +138,7 @@ describe('IRVersion', () => {
     it('should return the current IR version', () => {
       // Should match CURRENT_IR_VERSION
       expect(getCurrentVersion()).toBe(CURRENT_IR_VERSION);
-      expect(getCurrentVersion()).toBe('v1beta2');
+      expect(getCurrentVersion()).toBe('v1beta3');
     });
   });
 });

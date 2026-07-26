@@ -6,12 +6,13 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import matter from 'gray-matter';
+import type { AgentSkillSpecFields } from './types.js';
 
 /**
  * Parsed frontmatter from an AgentSkills.io SKILL.md file.
  * This is the VERBATIM AgentSkills.io format, NOT the IR format.
  */
-export interface ParsedSkillFrontmatter {
+export interface ParsedSkillFrontmatter extends AgentSkillSpecFields {
   /** Skill name (required) */
   name: string;
   /** Skill description for activation matching (required) */
@@ -20,6 +21,32 @@ export interface ParsedSkillFrontmatter {
   resources?: string[];
   /** If true, only invoked via /name (optional) */
   disableModelInvocation?: boolean;
+}
+
+/**
+ * Coerce a parsed `metadata:` map to the spec's string→string shape.
+ *
+ * YAML types unquoted scalars, so `version: 1.0` arrives as a number. Primitives
+ * are stringified; anything structural (nested map, sequence, null) is malformed
+ * against the spec and is dropped rather than rendered as `[object Object]`.
+ *
+ * @returns The coerced map, or `undefined` if nothing usable survived.
+ */
+function coerceSpecMetadata(value: unknown): Record<string, string> | undefined {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const coerced: Record<string, string> = {};
+  for (const [key, raw] of Object.entries(value)) {
+    if (typeof raw === 'string') {
+      coerced[key] = raw;
+    } else if (typeof raw === 'number' || typeof raw === 'boolean') {
+      coerced[key] = String(raw);
+    }
+  }
+
+  return Object.keys(coerced).length > 0 ? coerced : undefined;
 }
 
 /**
@@ -40,6 +67,10 @@ export interface ParsedSkill {
  * - description (required)
  * - resources (optional)
  * - disable-model-invocation (optional)
+ * - license, compatibility, metadata, allowed-tools (optional spec fields)
+ *
+ * The spec's `metadata` key lands on `specMetadata` to keep it distinct from the
+ * IR's transient `metadata`.
  *
  * It does NOT parse IR-specific fields (version, type, relativeDir).
  *
@@ -86,6 +117,23 @@ export function parseSkillFrontmatter(
 
     if (typeof data['disable-model-invocation'] === 'boolean') {
       frontmatter.disableModelInvocation = data['disable-model-invocation'];
+    }
+
+    if (typeof data.license === 'string') {
+      frontmatter.license = data.license;
+    }
+
+    if (typeof data.compatibility === 'string') {
+      frontmatter.compatibility = data.compatibility;
+    }
+
+    const specMetadata = coerceSpecMetadata(data.metadata);
+    if (specMetadata) {
+      frontmatter.specMetadata = specMetadata;
+    }
+
+    if (typeof data['allowed-tools'] === 'string') {
+      frontmatter.allowedTools = data['allowed-tools'];
     }
 
     return {
@@ -146,7 +194,8 @@ export async function readSkillFiles(
  * Write an AgentSkillIO to disk in verbatim AgentSkills.io format.
  *
  * This writes the VERBATIM AgentSkills.io format:
- * - SKILL.md with name, description, resources, disable-model-invocation
+ * - SKILL.md with name, description, resources, disable-model-invocation,
+ *   license, compatibility, metadata, allowed-tools
  * - Resource files in the skill directory
  *
  * It does NOT write IR-specific fields (version, type, relativeDir).
@@ -188,6 +237,22 @@ export async function writeAgentSkillIO(
 
   if (frontmatter.disableModelInvocation) {
     yamlData['disable-model-invocation'] = frontmatter.disableModelInvocation;
+  }
+
+  if (frontmatter.license) {
+    yamlData.license = frontmatter.license;
+  }
+
+  if (frontmatter.compatibility) {
+    yamlData.compatibility = frontmatter.compatibility;
+  }
+
+  if (frontmatter.specMetadata && Object.keys(frontmatter.specMetadata).length > 0) {
+    yamlData.metadata = frontmatter.specMetadata;
+  }
+
+  if (frontmatter.allowedTools) {
+    yamlData['allowed-tools'] = frontmatter.allowedTools;
   }
 
   // Write SKILL.md with gray-matter

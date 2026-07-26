@@ -39,7 +39,7 @@ describe('formatIRFile', () => {
       const formatted = formatIRFile(gp);
       
       expect(formatted).toContain('---');
-      expect(formatted).toContain('version: v1beta2');
+      expect(formatted).toContain('version: v1beta3');
       expect(formatted).toContain('type: global-prompt');
       expect(formatted).toContain('Always use TypeScript.');
     });

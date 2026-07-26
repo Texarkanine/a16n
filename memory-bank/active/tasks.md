@@ -180,18 +180,18 @@ Ordered fewest-dependencies-first: models → claude (already gray-matter, lowes
 
 **Every step below is one TDD cycle and is written in execution order.** Within a step, the lettered substeps are mandatory and sequential: (a) stub/extend tests, (b) stub the interface with empty bodies where new code is introduced, (c) implement the tests and run them **expecting red**, (d) write production code until green. Do not begin (d) before (c) has produced a failing run.
 
-1. **Add `AgentSkillSpecFields` to the IR.**
+1. ✅ **Add `AgentSkillSpecFields` to the IR.**
     - a. Add cases to `packages/models/test/types.test.ts` for all four fields on `SimpleAgentSkill`, `AgentSkillIO`, `ManualPrompt`, plus the all-omitted case.
     - b. Stub the interface in `packages/models/src/types.ts` with the four optional properties and no consumers yet.
     - c. Run the new cases — red (properties do not exist on the three types).
     - d. Extend the three types; write the paired doc comments on `metadata` / `specMetadata`; export from `packages/models/src/index.ts`. Green.
     - Creative ref: OQ1 (naming), OQ2 (placement).
-2. **Teach the verbatim AgentSkills.io reader/writer the new fields.**
+2. ✅ **Teach the verbatim AgentSkills.io reader/writer the new fields.**
     - a. Add cases to `packages/models/test/agentskills-io.test.ts`: parse-all-four, parse-none, verbatim `allowed-tools` string, non-string `metadata` coercion, empty-`metadata` omission, spec key names on write, write→read round-trip.
     - b. Extend `ParsedSkillFrontmatter` with the four optional fields; leave `parseSkillFrontmatter()` / `writeAgentSkillIO()` bodies unchanged.
     - c. Run — red.
     - d. Implement extraction in `parseSkillFrontmatter()` and serialization in `writeAgentSkillIO()`. Green.
-3. **Bump the IR version.**
+3. ✅ **Bump the IR version.**
     - a. Update `packages/models/test/version.test.ts` to expect `v1beta3` and add `areVersionsCompatible('v1beta3','v1beta2') === true`.
     - b. *(no interface to stub)*
     - c. Run — red.
