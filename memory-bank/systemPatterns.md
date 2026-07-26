@@ -46,6 +46,13 @@ Both plugins classify source files into IR types using strict priority orders. R
 4. `description` present → SimpleAgentSkill
 5. None of the above → **SKIP** (warning: missing description)
 
+**Cursor SKILL.md files** (`.cursor/skills/**/SKILL.md`):
+1. `paths:` present → **SKIP** (Cursor harness scoping is not portable; converting would widen skill scope — Category A / #148)
+2. Extra files in skill directory → AgentSkillIO
+3. `disable-model-invocation: true` → ManualPrompt
+4. `description` present → SimpleAgentSkill
+5. None of the above → **SKIP** (warning: missing description)
+
 ## Skill Directory Model
 
 Skills follow the pattern `.<tool>/skills/<name>/SKILL.md`. The first directory containing a `SKILL.md` is the skill root; its subdirectories are resource directories (read recursively by `readSkillFiles()`), not nested skills. Directories without `SKILL.md` are treated as categories and recursed into.
@@ -62,7 +69,9 @@ The system fails fast on invalid input (bad syntax, missing required fields) but
 
 **Skipped vs. Approximated is a safety question, not a severity one.** Loss that silently removes a restriction the author specified fails closed (`Skipped`); loss that visibly breaks a substitution fails open (`Approximated`). A dropped `$ARGUMENTS` leaves a self-evidently broken body; a dropped `hooks:` block leaves a clean-looking skill that still claims to enforce checks it no longer enforces.
 
-There are two fail-closed cases: `hooks:` and `allowed-tools`. The second shows that *writing a field out is not the same as preserving it*. a16n copies `allowed-tools` verbatim into `.cursor/skills/*/SKILL.md`, yet still raises `Skipped`, because Cursor does not enforce tool restrictions — the emitted skill is more permissive than the authored one. Whether to warn is decided by whether the **behavior** survives, not by whether the bytes do. This is also what keeps `--delete-source` from removing the only copy of a restriction that no longer binds anything.
+There are three fail-closed cases: `hooks:`, `allowed-tools`, and Cursor skill `paths:`. The second shows that *writing a field out is not the same as preserving it*. a16n copies `allowed-tools` verbatim into `.cursor/skills/*/SKILL.md`, yet still raises `Skipped`, because Cursor does not enforce tool restrictions — the emitted skill is more permissive than the authored one. Whether to warn is decided by whether the **behavior** survives, not by whether the bytes do. This is also what keeps `--delete-source` from removing the only copy of a restriction that no longer binds anything.
+
+Cursor skill `paths:` is the third fail-closed case and the only one that **refuses the item entirely** rather than emitting with a warning: the field is a harness extension outside AgentSkills.io and is not modelled in the IR, so discovery skips the skill (`Skipped`) instead of producing an always-applicable conversion.
 
 `plugin-cursor/src/skill-field-support.ts` encodes this as an explicit (surface × field) disposition table rather than scattering the judgement across emit sites, so the question "does this surface carry it, and does the harness honour it?" is answered in exactly one place.
 

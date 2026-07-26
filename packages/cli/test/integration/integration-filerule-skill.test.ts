@@ -101,6 +101,33 @@ describe('Integration Tests - FileRule and SimpleAgentSkill', () => {
     });
   });
 
+  describe('cursor-skill-paths-refuse-to-claude', () => {
+    it('should refuse a Cursor skill with paths: rather than widen scope', async () => {
+      const fixturePath = path.join(fixturesDir, 'cursor-skill-paths-refuse-to-claude');
+      const fromDir = path.join(fixturePath, 'from-cursor');
+
+      await copyDir(fromDir, tempDir);
+
+      const result = await engine.convert({
+        source: 'cursor',
+        target: 'claude',
+        root: tempDir,
+      });
+
+      expect(result.discovered.filter(d => d.sourcePath.includes('scoped'))).toHaveLength(0);
+
+      await expect(
+        fs.access(path.join(tempDir, '.claude', 'skills', 'scoped', 'SKILL.md'))
+      ).rejects.toThrow();
+
+      const warning = result.warnings.find(
+        w => w.code === WarningCode.Skipped && w.message.toLowerCase().includes('paths')
+      );
+      expect(warning).toBeDefined();
+      expect(warning?.sources?.some(s => s.includes('scoped'))).toBe(true);
+    });
+  });
+
   describe('claude-skill-to-cursor', () => {
     it('should convert Claude skill to Cursor rule with description', async () => {
       const fixturePath = path.join(fixturesDir, 'claude-skill-to-cursor');

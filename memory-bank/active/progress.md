@@ -39,3 +39,14 @@ Refuse conversion of Cursor skills that declare harness-specific `paths:` scopin
     - Keep discover-skip refuse; do not expand to CLI exit-code redesign
 * Insights
     - No existing `from-cursor` skill fixtures currently declare `paths:` — low regression blast radius
+
+## 2026-07-26 - BUILD - COMPLETE
+
+* Work completed
+    - Implemented discover-time `paths:` refuse in plugin-cursor
+    - Added unit + CLI integration coverage; updated README and systemPatterns
+    - Full monorepo `pnpm test` passed
+* Decisions made
+    - Key-presence detection (`'paths' in data`); message cites Cursor scoping / widen scope
+* Insights
+    - Same control-flow slot as Claude `hasHooks` made the change a near-port
