@@ -76,6 +76,45 @@ export function extractSpecFields(data: Record<string, unknown>): AgentSkillSpec
 }
 
 /**
+ * Render the optional AgentSkills.io spec fields as YAML frontmatter lines.
+ *
+ * The inverse of {@link extractSpecFields}, and shared for the same reason: the
+ * four spec key names are spelled once, so a reader and a writer can never
+ * disagree about what a field is called on disk.
+ *
+ * Returns lines ready to append inside an existing frontmatter block (each
+ * prefixed with a newline), or `''` when the item carries none of the fields.
+ * Values are JSON-quoted because JSON string syntax is a subset of YAML's
+ * double-quoted scalar style — safe for colons, punctuation, and embedded
+ * quotes alike, and already how the plugins quote `name` and `description`.
+ *
+ * @param fields - The spec fields carried by the item being emitted
+ * @returns YAML lines to append, or `''` if there is nothing to write
+ *
+ * @example
+ * formatSpecFieldsYaml({ license: 'MIT' })
+ * // '\nlicense: "MIT"'
+ */
+export function formatSpecFieldsYaml(fields: AgentSkillSpecFields): string {
+  let out = '';
+
+  if (fields.license) out += `\nlicense: ${JSON.stringify(fields.license)}`;
+  if (fields.compatibility) out += `\ncompatibility: ${JSON.stringify(fields.compatibility)}`;
+
+  const entries = Object.entries(fields.specMetadata ?? {});
+  if (entries.length > 0) {
+    out += '\nmetadata:';
+    for (const [key, value] of entries) {
+      out += `\n  ${JSON.stringify(key)}: ${JSON.stringify(value)}`;
+    }
+  }
+
+  if (fields.allowedTools) out += `\nallowed-tools: ${JSON.stringify(fields.allowedTools)}`;
+
+  return out;
+}
+
+/**
  * A parsed AgentSkills.io skill with content and frontmatter.
  */
 export interface ParsedSkill {

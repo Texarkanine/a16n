@@ -7,9 +7,66 @@ import {
   readSkillFiles,
   writeAgentSkillIO,
   readAgentSkillIO,
+  extractSpecFields,
+  formatSpecFieldsYaml,
   type ParsedSkillFrontmatter,
   type ParsedSkill,
 } from '../src/agentskills-io.js';
+
+/**
+ * The inverse of `extractSpecFields`. Both live here so the four spec key
+ * names are spelled exactly once in the codebase; every plugin that hand-rolls
+ * frontmatter (Claude, Cursor) renders through this.
+ */
+describe('formatSpecFieldsYaml', () => {
+  it('should return an empty string when no spec fields are present', () => {
+    expect(formatSpecFieldsYaml({})).toBe('');
+  });
+
+  it('should render each field under its spec key name, JSON-quoted', () => {
+    const out = formatSpecFieldsYaml({
+      license: 'Apache-2.0',
+      compatibility: 'Requires Node 22+',
+      allowedTools: 'Bash(rm:*)',
+    });
+
+    expect(out).toContain('\nlicense: "Apache-2.0"');
+    expect(out).toContain('\ncompatibility: "Requires Node 22+"');
+    // Spec key is hyphenated on disk even though the IR field is camelCase.
+    expect(out).toContain('\nallowed-tools: "Bash(rm:*)"');
+  });
+
+  it('should render specMetadata as a nested map under the spec metadata key', () => {
+    const out = formatSpecFieldsYaml({ specMetadata: { author: 'Texarkanine', version: '1.0' } });
+
+    expect(out).toBe('\nmetadata:\n  "author": "Texarkanine"\n  "version": "1.0"');
+  });
+
+  it('should omit an empty specMetadata rather than emit a dangling key', () => {
+    expect(formatSpecFieldsYaml({ specMetadata: {} })).toBe('');
+  });
+
+  it('should round-trip through extractSpecFields', () => {
+    const fields = {
+      license: 'MIT',
+      compatibility: 'Any: harness',
+      specMetadata: { author: 'a "quoted" name' },
+      allowedTools: 'Bash(git:*) Read',
+    };
+
+    const doc = `---\nname: "x"\ndescription: "y"${formatSpecFieldsYaml(fields)}\n---\n\nbody\n`;
+    const parsed = parseSkillFrontmatter(doc);
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+
+    const { frontmatter } = parsed.skill;
+    expect(frontmatter.license).toBe('MIT');
+    expect(frontmatter.compatibility).toBe('Any: harness');
+    expect(frontmatter.specMetadata).toEqual({ author: 'a "quoted" name' });
+    expect(frontmatter.allowedTools).toBe('Bash(git:*) Read');
+  });
+});
 
 describe('parseSkillFrontmatter', () => {
   it('should parse valid AgentSkills.io frontmatter', () => {
