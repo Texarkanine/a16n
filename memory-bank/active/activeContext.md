@@ -1,11 +1,12 @@
 # Active Context
 
 ## Current Task: issue-147-manualprompt-description
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Intent clarified and approved for [#147](https://github.com/Texarkanine/a16n/issues/147)
-- Classified as Level 2: optional `description` on `ManualPrompt` across models/discover/emit; not a type-system redesign (option 2 deferred)
+- Level 2 plan written for [#147](https://github.com/Texarkanine/a16n/issues/147)
+- Confirmed option 1: optional `description` on `ManualPrompt`; keep `disable-model-invocation` → ManualPrompt classification (Cursor + Claude share the flag; not yet in agentskills.io spec)
+- Noted #99 migrated ManualPrompt emit to skills — live bug is silent overwrite on a carrying surface
 
 ## Next Step
-- Load Level 2 workflow and execute plan phase
+- Preflight validation (autonomous for Level 2)
