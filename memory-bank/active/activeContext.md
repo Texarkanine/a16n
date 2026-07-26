@@ -1,12 +1,17 @@
 # Active Context
 
 ## Current Task: issue-148-cursor-skill-paths-refuse
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Intent confirmed for [#148](https://github.com/Texarkanine/a16n/issues/148): stop silent drop of Cursor skill `paths:`.
-- Operator decision recorded: must **REFUSE** conversion (not WARN); never widen skill scope.
-- Complexity determined: **Level 2** — contained fidelity/guard enhancement; policy settled; no IR redesign required for acceptance (refusal, not field survival).
+- Planned Level 2 refuse-on-`paths:` work for [#148](https://github.com/Texarkanine/a16n/issues/148).
+- Selected mechanism: discover-time fail-closed skip (Claude `hooks:` precedent) — `WarningCode.Skipped`, no IR item; not WARN-and-emit; not IR modeling.
+- Test plan maps to `packages/plugin-cursor/test/discover-skills.test.ts` via existing `discoverProbeSkill` helper.
+
+## Decisions
+- **REFUSE** = item-level discover skip, not whole-CLI hard fail redesign.
+- Do **not** model `paths` on the IR in this task (cursor→cursor also refuses until a future survival design).
+- Detect via `'paths' in data` (key presence), before skill classification.
 
 ## Next Step
-- Load Level 2 workflow and execute Plan phase
+- Preflight validation (automatic for Level 2)

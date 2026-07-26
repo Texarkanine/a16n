@@ -17,3 +17,14 @@ Refuse conversion of Cursor skills that declare harness-specific `paths:` scopin
 * Insights
     - Adjacent to #143 Category B work; this is Category A (harness extension)
     - Existing `unsupported` / `Skipped` / skill-field-support patterns from #143 are likely reuse points
+
+## 2026-07-26 - PLAN - COMPLETE
+
+* Work completed
+    - Wrote Level 2 TDD test plan and linear implementation steps into `tasks.md`
+    - Mapped refuse semantics to Claude `hooks:` discover-skip precedent
+* Decisions made
+    - Refuse = discover-time `Skipped` + no IR item (not WARN-and-emit, not IR `paths` modeling)
+    - Detect `'paths' in data` before classification; key presence including empty values
+* Insights
+    - cursor→cursor also refuses until a future survival design; acceptable under refuse-only acceptance
