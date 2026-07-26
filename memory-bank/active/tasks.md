@@ -48,32 +48,37 @@ Skills with `disable-model-invocation: true` classify as `ManualPrompt`, which t
 
 ## Implementation Plan
 
+Each numbered step is one TDD cycle: write the listed failing tests → implement production code → re-run until green. Do not implement a step's production changes before its tests exist and fail for the right reason.
+
 1. **Models: optional `description` on ManualPrompt**
-   - Files: `packages/models/src/types.ts`, `packages/models/src/version.ts` (bump `CURRENT_IR_VERSION` v1beta3 → v1beta4 with changelog comment), docs in `packages/docs/docs/models/index.md`
-   - Changes: `description?: string` on `ManualPrompt`; document that it is authored prose when present and absent for command-origin prompts; IR version bump for additive ManualPrompt field (same pattern as #143)
+   - Files: `packages/models/src/types.ts`, `packages/models/src/version.ts`, `packages/models/test/types.test.ts`, `packages/models/test/` version tests if present
+   - Tests first: assert ManualPrompt may carry optional `description`; assert `CURRENT_IR_VERSION` is `v1beta4` (or whatever bump lands)
+   - Then implement: `description?: string` on `ManualPrompt`; bump `CURRENT_IR_VERSION` v1beta3 → v1beta4 with comment (same pattern as #143)
 
 2. **Discover: preserve when present (Claude + Cursor skills)**
-   - Files: `packages/plugin-claude/src/discover.ts`, `packages/plugin-cursor/src/discover.ts`
-   - Changes: when building ManualPrompt from skill frontmatter, set `description` from parsed frontmatter when non-empty; leave undefined for commands/rules-origin ManualPrompts
-   - Tests first: B1–B3, B10
+   - Files: `packages/plugin-claude/test/discover-manual-prompt.test.ts`, `packages/plugin-cursor/test/discover-skills.test.ts` (or peer), `packages/plugin-claude/src/discover.ts`, `packages/plugin-cursor/src/discover.ts`
+   - Tests first: B1–B3, B10 (failing until discover copies non-empty frontmatter `description`)
+   - Then implement: when building ManualPrompt from skill frontmatter, set `description` when non-empty; leave undefined for commands/rules-origin ManualPrompts
 
 3. **IR: format + parse optional description**
-   - Files: `packages/plugin-a16n/src/format.ts`, `packages/plugin-a16n/src/parse.ts`, fixtures under `packages/plugin-a16n/test/fixtures/`
-   - Changes: write `description` when defined; read into ManualPrompt when present
+   - Files: `packages/plugin-a16n/test/format.test.ts`, `packages/plugin-a16n/test/parse.test.ts`, fixtures under `packages/plugin-a16n/test/fixtures/`, `packages/plugin-a16n/src/format.ts`, `packages/plugin-a16n/src/parse.ts`
    - Tests first: B7–B8
+   - Then implement: write `description` when defined; read into ManualPrompt when present
 
 4. **Emit: preserve ‖ synthesize (Claude + Cursor)**
-   - Files: `packages/plugin-claude/src/emit.ts` (`formatManualPromptAsSkill`), `packages/plugin-cursor/src/emit.ts` (`formatManualPromptAsSkill`)
-   - Changes: `const description = prompt.description ?? \`Invoke with /${prompt.promptName}\``
-   - Tests first: B4–B6; update existing expectations that only covered synthesize
+   - Files: `packages/plugin-claude/test/emit-manual-prompt.test.ts`, `packages/plugin-cursor/test/emit-manual-prompt.test.ts`, `packages/plugin-claude/src/emit.ts` (`formatManualPromptAsSkill`), `packages/plugin-cursor/src/emit.ts` (`formatManualPromptAsSkill`)
+   - Tests first: B4–B6 (authored preserved; absent still synthesizes); keep existing synthesize assertions
+   - Then implement: `const description = prompt.description ?? \`Invoke with /${prompt.promptName}\``
 
 5. **Cannot-carry / agentsmd**
-   - Files: confirm `packages/plugin-agentsmd` Unsupported path; add/adjust test if needed (B9)
-   - Changes: none expected beyond assertion that unsupport warning still fires (no silent description invent)
+   - Files: `packages/plugin-agentsmd/test/emit-unsupported.test.ts` (extend if needed)
+   - Tests first: B9 — ManualPrompt with authored `description` still yields Unsupported (no invented skill/description write)
+   - Then implement: only if the test fails (expect no production change)
 
 6. **Docs / patterns**
-   - Files: `packages/docs/docs/models/index.md` (ManualPrompt section), light touch `packages/plugin-claude/README.md` / `packages/plugin-cursor` docs if they hardcode synthesize-only wording; `memory-bank/systemPatterns.md` only if a stated fact is invalidated
+   - Files: `packages/docs/docs/models/index.md`, light touch plugin READMEs if they hardcode synthesize-only wording; `memory-bank/systemPatterns.md` only if a stated fact is invalidated
    - Changes: document optional authored `description` on ManualPrompt; synthesize-when-absent remains for command-origin
+   - (Documentation-only; no behavior tests required beyond prior steps)
 
 7. **Full suite**
    - Run package tests then full `pnpm test` with cache disabled per project practice before declaring build done
@@ -101,6 +106,12 @@ No new technology - validation not required
 - **Plan accidentally pursued option 2 mid-build after seeing field awkwardness:** Direction locked above; classification stays ManualPrompt.
 - **Existing emit tests pinning `Invoke with /review` were "fixed" by weakening assertions instead of adding preserve cases:** Add authored-description cases alongside synthesize cases; keep synthesize tests.
 
+## Preflight Amendments
+
+- Strengthened Implementation Plan so every code step orders failing tests before production changes (TDD encoding gate).
+- Confirmed `packages/models/test/types.test.ts` already hosts ManualPrompt shape tests — extend there for optional `description`.
+- Confirmed `plugin-agentsmd/test/emit-unsupported.test.ts` already covers ManualPrompt Unsupported — extend with authored-description case for B9.
+
 ## Status
 
 - [x] Initialization complete
@@ -108,6 +119,6 @@ No new technology - validation not required
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
+- [x] Preflight
 - [ ] Build
 - [ ] QA

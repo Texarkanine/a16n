@@ -1,12 +1,11 @@
 # Active Context
 
 ## Current Task: issue-147-manualprompt-description
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE
 
 ## What Was Done
-- Level 2 plan written for [#147](https://github.com/Texarkanine/a16n/issues/147)
-- Confirmed option 1: optional `description` on `ManualPrompt`; keep `disable-model-invocation` → ManualPrompt classification (Cursor + Claude share the flag; not yet in agentskills.io spec)
-- Noted #99 migrated ManualPrompt emit to skills — live bug is silent overwrite on a carrying surface
+- Preflight PASS: TDD ordering amended into each implementation step; conventions and touchpoints match systemPatterns; agentsmd Unsupported covers cannot-carry
+- Advisory only: shared `resolveManualPromptDescription` helper would dedupe two identical emit lines — optional, not required
 
 ## Next Step
-- Preflight validation (autonomous for Level 2)
+- Build phase (autonomous for Level 2)

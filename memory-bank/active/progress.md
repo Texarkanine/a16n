@@ -27,3 +27,14 @@ Preserve authored `description` on `ManualPrompt` (skills with `disable-model-in
 * Insights
     - agentskills/agentskills#236 proposed standardizing the flag but it is not in the official spec; Cursor + Claude already share it
     - #99 already moved ManualPrompt emit to skills, so the issue's "commands cannot carry description" example is historical relative to live emit
+
+## 2026-07-26 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated plan against codebase (ManualPrompt type, discover drop sites, emit synthesize sites, IR format/parse, agentsmd Unsupported)
+    - Amended plan for explicit per-step TDD ordering
+    - Wrote `.preflight-status` = PASS
+* Decisions made
+    - No rearchitect; option 1 stands
+* Insights
+    - Radical-innovation advisory: a tiny shared description resolver could dedupe Claude/Cursor emit — defer unless duplication bites during build
