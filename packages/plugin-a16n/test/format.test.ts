@@ -484,4 +484,146 @@ describe('formatIRFile', () => {
       expect(result.item!.relativeDir).toBe('shared');
     });
   });
+
+  describe('AgentSkills.io spec fields', () => {
+    /**
+     * The IR is the lossless waypoint: whatever a plugin discovered has to
+     * survive a write and a read, or every conversion routed through `.a16n/`
+     * silently degrades. On disk these use the *spec* key names, not the IR
+     * property names, so an `.a16n/` file is readable by anything that already
+     * understands AgentSkills.io frontmatter.
+     *
+     * Note `specMetadata` serializes as `metadata:` even though the IR's own
+     * `metadata` property is deliberately never written — they are different
+     * things that collided on a name (see creative-metadata-collision).
+     */
+    const specFields = {
+      license: 'Apache-2.0',
+      compatibility: 'Requires Node 22+',
+      specMetadata: { author: 'Texarkanine', version: '1.0' },
+      allowedTools: 'Bash(git:*) Read',
+    };
+
+    function skill(extra: Partial<SimpleAgentSkill> = {}): SimpleAgentSkill {
+      return {
+        id: createId(CustomizationType.SimpleAgentSkill, 'deploy.md'),
+        type: CustomizationType.SimpleAgentSkill,
+        version: CURRENT_IR_VERSION,
+        sourcePath: '.a16n/simple-agent-skill/deploy.md',
+        content: 'Deploy the app.',
+        name: 'deploy',
+        description: 'Deployment helper',
+        ...extra,
+      };
+    }
+
+    it('should write spec key names, not IR property names', () => {
+      const formatted = formatIRFile(skill(specFields));
+
+      expect(formatted).toContain('license: Apache-2.0');
+      expect(formatted).toContain('compatibility: Requires Node 22+');
+      expect(formatted).toContain('allowed-tools: Bash(git:*) Read');
+      expect(formatted).toContain('metadata:');
+      expect(formatted).toContain('author: Texarkanine');
+      // The camelCase IR names must never reach disk.
+      expect(formatted).not.toContain('allowedTools');
+      expect(formatted).not.toContain('specMetadata');
+    });
+
+    it('should omit spec keys entirely when the item carries none', () => {
+      const formatted = formatIRFile(skill());
+
+      expect(formatted).not.toContain('license');
+      expect(formatted).not.toContain('compatibility');
+      expect(formatted).not.toContain('allowed-tools');
+      expect(formatted).not.toContain('metadata');
+    });
+
+    it('should not serialize the transient IR metadata property', () => {
+      const formatted = formatIRFile(skill({ metadata: { discoveredBy: 'claude' } }));
+
+      expect(formatted).not.toContain('discoveredBy');
+      expect(formatted).not.toContain('metadata');
+    });
+
+    it('should round-trip all four fields on a SimpleAgentSkill', async () => {
+      const original = skill(specFields);
+      const formatted = formatIRFile(original);
+      const result = await parseIRFile(
+        mockWorkspace(formatted),
+        'deploy.md',
+        'deploy.md',
+        original.sourcePath
+      );
+
+      expect(result.error).toBeUndefined();
+      const parsed = result.item as SimpleAgentSkill;
+      expect(parsed.license).toBe('Apache-2.0');
+      expect(parsed.compatibility).toBe('Requires Node 22+');
+      expect(parsed.specMetadata).toEqual({ author: 'Texarkanine', version: '1.0' });
+      expect(parsed.allowedTools).toBe('Bash(git:*) Read');
+    });
+
+    it('should round-trip all four fields on a ManualPrompt', async () => {
+      const original: ManualPrompt = {
+        id: createId(CustomizationType.ManualPrompt, 'clean.md'),
+        type: CustomizationType.ManualPrompt,
+        version: CURRENT_IR_VERSION,
+        sourcePath: '.a16n/manual-prompt/clean.md',
+        content: 'Clean the workspace.',
+        promptName: 'clean',
+        ...specFields,
+      };
+
+      const formatted = formatIRFile(original);
+      const result = await parseIRFile(
+        mockWorkspace(formatted),
+        'clean.md',
+        'clean.md',
+        original.sourcePath
+      );
+
+      expect(result.error).toBeUndefined();
+      const parsed = result.item as ManualPrompt;
+      expect(parsed.allowedTools).toBe('Bash(git:*) Read');
+      expect(parsed.license).toBe('Apache-2.0');
+      expect(parsed.compatibility).toBe('Requires Node 22+');
+      expect(parsed.specMetadata).toEqual({ author: 'Texarkanine', version: '1.0' });
+    });
+
+    it('should leave spec fields undefined when the IR file omits them', async () => {
+      const formatted = formatIRFile(skill());
+      const result = await parseIRFile(
+        mockWorkspace(formatted),
+        'deploy.md',
+        'deploy.md',
+        '.a16n/simple-agent-skill/deploy.md'
+      );
+
+      const parsed = result.item as SimpleAgentSkill;
+      expect(parsed.license).toBeUndefined();
+      expect(parsed.compatibility).toBeUndefined();
+      expect(parsed.specMetadata).toBeUndefined();
+      expect(parsed.allowedTools).toBeUndefined();
+    });
+
+    it('should survive values that need YAML quoting', async () => {
+      const original = skill({
+        license: 'SEE LICENSE IN: ./LICENSE.md',
+        compatibility: '#1 priority: "quoted" & odd',
+      });
+
+      const formatted = formatIRFile(original);
+      const result = await parseIRFile(
+        mockWorkspace(formatted),
+        'deploy.md',
+        'deploy.md',
+        original.sourcePath
+      );
+
+      const parsed = result.item as SimpleAgentSkill;
+      expect(parsed.license).toBe('SEE LICENSE IN: ./LICENSE.md');
+      expect(parsed.compatibility).toBe('#1 priority: "quoted" & odd');
+    });
+  });
 });
