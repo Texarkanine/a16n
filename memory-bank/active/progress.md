@@ -50,3 +50,13 @@ Preserve authored `description` on `ManualPrompt` (skills with `disable-model-in
     - Empty/missing description → synthesize; non-empty authored prose preserved byte-for-byte
 * Insights
     - Live skill emit surfaces can carry description; silent overwrite was the real bug, not a missing command emit path
+
+## 2026-07-26 - QA - COMPLETE
+
+* Work completed
+    - Semantic review against plan: KISS/DRY/YAGNI/completeness/regression/integrity/docs
+    - Wrote `.qa-validation-status` = PASS
+* Decisions made
+    - Keep duplicated one-line emit resolver (two call sites); not worth a shared helper
+* Insights
+    - Issue AC "warn when cannot carry" is satisfied by agentsmd `unsupported` (no write / no boilerplate), not a field-level Approximated warning — matches the approved plan
