@@ -98,6 +98,37 @@ describe('ManualPrompt', () => {
     expect(manualPrompt).toHaveProperty('promptName');
     expect(manualPrompt.promptName).toBe('deploy');
   });
+
+  /**
+   * Authored skill description when the item came from a SKILL.md with
+   * disable-model-invocation. Absent for command-origin ManualPrompts.
+   */
+  it('should allow optional authored description on ManualPrompt', () => {
+    const manualPrompt: ManualPrompt = {
+      id: 'mp-3',
+      type: CustomizationType.ManualPrompt,
+      sourcePath: '.claude/skills/cleanup/SKILL.md',
+      content: 'Clean up temporary files',
+      promptName: 'cleanup',
+      description: 'Remove build artifacts and temp files',
+      metadata: {},
+    };
+
+    expect(manualPrompt.description).toBe('Remove build artifacts and temp files');
+  });
+
+  it('should allow ManualPrompt without description (command-origin shape)', () => {
+    const manualPrompt: ManualPrompt = {
+      id: 'mp-4',
+      type: CustomizationType.ManualPrompt,
+      sourcePath: '.cursor/commands/review.md',
+      content: 'Review the change',
+      promptName: 'review',
+      metadata: {},
+    };
+
+    expect(manualPrompt.description).toBeUndefined();
+  });
 });
 
 describe('SimpleAgentSkill', () => {

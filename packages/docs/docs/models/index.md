@@ -69,6 +69,8 @@ Examples include:
 - Cursor rules with no `globs` or `description`, when `@mention`'d
 - AgentSkills.io Skills with `disable-model-invocation: true`
 
+Optional `description` holds authored prose from skill frontmatter when present (skills with `disable-model-invocation: true`). Command-origin prompts leave it unset; emitters synthesize `Invoke with /<promptName>` only in that case so the emitted skill remains valid.
+
 ### AgentIgnore
 
 An AgentIgnore is a file pattern specifying files that should be ignored - not read, not written, maybe not even visible to - the agent.

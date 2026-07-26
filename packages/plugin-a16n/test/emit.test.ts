@@ -78,7 +78,7 @@ describe('A16n Plugin Emission', () => {
       const content = await fs.readFile(expectedPath, 'utf-8');
       
       // Verify frontmatter contains version and type
-      expect(content).toContain('version: v1beta3');
+      expect(content).toContain('version: v1beta4');
       expect(content).toContain('type: global-prompt');
       
       // Verify content is present

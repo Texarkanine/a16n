@@ -38,3 +38,15 @@ Preserve authored `description` on `ManualPrompt` (skills with `disable-model-in
     - No rearchitect; option 1 stands
 * Insights
     - Radical-innovation advisory: a tiny shared description resolver could dedupe Claude/Cursor emit — defer unless duplication bites during build
+
+## 2026-07-26 - BUILD - COMPLETE
+
+* Work completed
+    - Optional `ManualPrompt.description` through discover → IR → emit
+    - IR version `v1beta4`
+    - Full suite + typecheck green (`pnpm test -- --force`)
+* Decisions made
+    - Keep identical one-liner `prompt.description ?? synthesize` in both emitters (no shared helper)
+    - Empty/missing description → synthesize; non-empty authored prose preserved byte-for-byte
+* Insights
+    - Live skill emit surfaces can carry description; silent overwrite was the real bug, not a missing command emit path

@@ -31,8 +31,9 @@ export interface ParsedIRVersion {
  * v1beta2: SimpleAgentSkill.name is required (was optional in v1beta1).
  * v1beta3: skill types carry the optional AgentSkills.io spec fields
  * (`license`, `compatibility`, `metadata`, `allowed-tools`).
+ * v1beta4: ManualPrompt may carry an optional authored `description`.
  */
-export const CURRENT_IR_VERSION: IRVersion = 'v1beta3' as IRVersion;
+export const CURRENT_IR_VERSION: IRVersion = 'v1beta4' as IRVersion;
 
 /**
  * Parse an IR version string into its components.

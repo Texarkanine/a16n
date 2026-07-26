@@ -67,5 +67,19 @@ describe('Claude ManualPrompt Discovery', () => {
       expect(prompt.specMetadata).toEqual({ author: 'Texarkanine' });
       expect(prompt.allowedTools).toBe('Bash(rm:*)');
     });
+
+    it('should preserve authored description on a ManualPrompt', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-spec-fields/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const prompt = result.items.find(
+        i => i.type === CustomizationType.ManualPrompt
+      ) as ManualPrompt;
+
+      expect(prompt).toBeDefined();
+      expect(prompt.description).toBe(
+        'A manual-invocation skill carrying every optional spec field'
+      );
+    });
   });
 });

@@ -39,7 +39,7 @@ describe('formatIRFile', () => {
       const formatted = formatIRFile(gp);
       
       expect(formatted).toContain('---');
-      expect(formatted).toContain('version: v1beta3');
+      expect(formatted).toContain('version: v1beta4');
       expect(formatted).toContain('type: global-prompt');
       expect(formatted).toContain('Always use TypeScript.');
     });
@@ -259,6 +259,35 @@ describe('formatIRFile', () => {
       // Should NOT include "promptName:" field (derived from relativeDir + filename)
       expect(formatted).not.toMatch(/\npromptName:/);
     });
+
+    it('should include authored description when present', () => {
+      const prompt: ManualPrompt = {
+        id: createId(CustomizationType.ManualPrompt, 'cleanup.md'),
+        type: CustomizationType.ManualPrompt,
+        version: CURRENT_IR_VERSION,
+        sourcePath: '.a16n/manual-prompt/cleanup.md',
+        content: 'Clean up.',
+        promptName: 'cleanup',
+        description: 'Remove build artifacts and temp files',
+      };
+
+      const formatted = formatIRFile(prompt);
+      expect(formatted).toContain('description: Remove build artifacts and temp files');
+    });
+
+    it('should omit description when absent', () => {
+      const prompt: ManualPrompt = {
+        id: createId(CustomizationType.ManualPrompt, 'review.md'),
+        type: CustomizationType.ManualPrompt,
+        version: CURRENT_IR_VERSION,
+        sourcePath: '.a16n/manual-prompt/review.md',
+        content: 'Content.',
+        promptName: 'review',
+      };
+
+      const formatted = formatIRFile(prompt);
+      expect(formatted).not.toMatch(/\ndescription:/);
+    });
   });
 
   describe('AgentIgnore', () => {
@@ -443,6 +472,26 @@ describe('formatIRFile', () => {
       expect(result.item!.version).toBe(CURRENT_IR_VERSION);
       expect(result.item!.content).toContain('Review content.');
       expect((result.item as ManualPrompt).promptName).toBe('review');
+    });
+
+    it('should round-trip ManualPrompt authored description', async () => {
+      const prompt: ManualPrompt = {
+        id: createId(CustomizationType.ManualPrompt, 'cleanup.md'),
+        type: CustomizationType.ManualPrompt,
+        version: CURRENT_IR_VERSION,
+        sourcePath: '.a16n/manual-prompt/cleanup.md',
+        content: 'Clean up.',
+        promptName: 'cleanup',
+        description: 'Remove build artifacts and temp files',
+      };
+
+      const formatted = formatIRFile(prompt);
+      const result = await parseIRFile(mockWorkspace(formatted), 'cleanup.md', 'cleanup.md', prompt.sourcePath);
+
+      expect(result.error).toBeUndefined();
+      expect((result.item as ManualPrompt).description).toBe(
+        'Remove build artifacts and temp files'
+      );
     });
 
     it('should round-trip AgentIgnore (format -> parse -> format)', async () => {

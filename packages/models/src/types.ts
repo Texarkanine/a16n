@@ -177,9 +177,18 @@ export interface AgentIgnore extends AgentCustomization {
  * Both target plugins emit this type as a `SKILL.md`, which is why it carries
  * {@link AgentSkillSpecFields}. Those fields are always `undefined` for prompts
  * originating from `.cursor/commands/*.md`, which have no frontmatter.
+ *
+ * Optional {@link ManualPrompt.description} holds authored prose from skill
+ * frontmatter when present. Command-origin prompts leave it unset; emitters
+ * synthesize `Invoke with /<promptName>` only in that case.
  */
 export interface ManualPrompt extends AgentCustomization, AgentSkillSpecFields {
   type: CustomizationType.ManualPrompt;
   /** Prompt name for invocation (e.g., "review" for /review) */
   promptName: string;
+  /**
+   * Authored description from skill frontmatter, when present.
+   * Absent for prompts discovered from `.cursor/commands/*.md`.
+   */
+  description?: string;
 }

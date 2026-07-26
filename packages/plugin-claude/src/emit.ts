@@ -200,12 +200,13 @@ ${skill.content}
 
 /**
  * Format a ManualPrompt as a Claude skill.
- * The description enables /prompt-name invocation.
+ * Preserves authored description when present; otherwise synthesizes
+ * `Invoke with /<promptName>` so the skill remains valid for slash invocation.
  * Includes disable-model-invocation: true to indicate manual-only.
  */
 function formatManualPromptAsSkill(prompt: ManualPrompt): string {
   const safeName = JSON.stringify(prompt.promptName);
-  const description = `Invoke with /${prompt.promptName}`;
+  const description = prompt.description ?? `Invoke with /${prompt.promptName}`;
   const safeDescription = JSON.stringify(description);
 
   return `---

@@ -69,7 +69,7 @@ describe('Claude ManualPrompt Emission', () => {
       expect(content).toContain('name: "review"');
     });
 
-    it('should include description for slash invocation', async () => {
+    it('should synthesize description for slash invocation when absent', async () => {
       const models: ManualPrompt[] = [
         {
           id: createId(CustomizationType.ManualPrompt, '.cursor/commands/review.md'),
@@ -86,7 +86,28 @@ describe('Claude ManualPrompt Emission', () => {
       const skillPath = path.join(tempDir, '.claude', 'skills', 'review', 'SKILL.md');
       const content = await fs.readFile(skillPath, 'utf-8');
       expect(content).toContain('description:');
-      expect(content).toContain('/review');
+      expect(content).toContain('Invoke with /review');
+    });
+
+    it('should preserve authored description when present', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.claude/skills/cleanup/SKILL.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.claude/skills/cleanup/SKILL.md',
+          content: 'Clean up temporary files.',
+          promptName: 'cleanup',
+          description: 'Remove build artifacts and temp files',
+          metadata: {},
+        },
+      ];
+
+      await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'cleanup', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+      expect(content).toContain('description: "Remove build artifacts and temp files"');
+      expect(content).not.toContain('Invoke with /cleanup');
     });
 
     it('should include disable-model-invocation: true in frontmatter', async () => {

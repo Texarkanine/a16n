@@ -61,6 +61,16 @@ describe('ManualPrompt Discovery (commands)', () => {
       expect(reviewCommand.content).toContain('Performance issues');
     });
 
+    it('should leave description undefined for command-origin ManualPrompts', async () => {
+      const root = path.join(fixturesDir, 'cursor-command-simple/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const reviewCommand = result.items.find(
+        i => i.type === CustomizationType.ManualPrompt && (i as ManualPrompt).promptName === 'review',
+      ) as ManualPrompt;
+      expect(reviewCommand.description).toBeUndefined();
+    });
+
     it('should discover commands alongside rules', async () => {
       const root = path.join(fixturesDir, 'cursor-command-simple/from-cursor');
       const result = await cursorPlugin.discover(root);

@@ -244,6 +244,19 @@ describe('Cursor Skills Discovery', () => {
       expect(prompt.allowedTools).toBe('Bash(rm:*)');
     });
 
+    it('should preserve authored description on a ManualPrompt', async () => {
+      const result = await cursorPlugin.discover(specRoot());
+
+      const prompt = result.items.find(
+        i => i.type === CustomizationType.ManualPrompt
+      ) as ManualPrompt;
+
+      expect(prompt).toBeDefined();
+      expect(prompt.description).toBe(
+        'A manual-invocation skill carrying every optional spec field'
+      );
+    });
+
     it('should leave the spec fields undefined when absent', async () => {
       const result = await cursorPlugin.discover(specRoot());
 

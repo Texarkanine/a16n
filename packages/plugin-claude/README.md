@@ -69,7 +69,7 @@ Detection is otherwise conservative where Claude syntax collides with ordinary s
 - **FileRule** → `.claude/rules/<name>.md` with `paths:` YAML frontmatter
 - **SimpleAgentSkill** → `.claude/skills/<name>/SKILL.md` with description frontmatter
 - **AgentIgnore** → `.claude/settings.json` with `permissions.deny` Read rules
-- **AgentCommand** → `.claude/skills/<commandName>/SKILL.md` with `Invoke with /command` description
+- **ManualPrompt** → `.claude/skills/<promptName>/SKILL.md` with authored `description` when present, otherwise `Invoke with /command`
 
 ## File Formats
 

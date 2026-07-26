@@ -88,7 +88,7 @@ Always follow these coding standards...
 
 The plugin enforces forward compatibility:
 
-- Readers with version `v1beta3` can read files with `v1beta1` or `v1beta2`
+- Readers with version `v1beta4` can read files with `v1beta1` or `v1beta2`
 - Major version must match (v1 != v2)
 - Stability must match (beta != alpha != stable)
 - Files with incompatible versions emit warnings but are processed
