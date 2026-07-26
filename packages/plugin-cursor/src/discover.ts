@@ -1,8 +1,10 @@
 import * as fs from 'fs/promises';
 import * as nodePath from 'path';
+import matter from 'gray-matter';
 import {
   type AgentCustomization,
   type AgentIgnore,
+  type AgentSkillSpecFields,
   type ManualPrompt,
   type DiscoveryResult,
   type Warning,
@@ -14,6 +16,7 @@ import {
   CustomizationType,
   WarningCode,
   createId,
+  extractSpecFields,
   inferGlobalPromptName,
   resolveRoot,
   CURRENT_IR_VERSION,
@@ -227,8 +230,11 @@ async function discoverCommands(root: string): Promise<{
 }
 
 /**
- * Parse YAML-like frontmatter from a SKILL.md file.
- * Returns the frontmatter key-values and body content.
+ * Frontmatter fields a `.cursor/skills/*​/SKILL.md` can declare.
+ *
+ * Unlike `.mdc` rules, SKILL.md is standards-compliant YAML in both Cursor and
+ * the AgentSkills.io spec, so it is parsed with a real YAML parser. `parseMdc()`
+ * is deliberately NOT used here, and vice versa.
  */
 interface SkillFrontmatter {
   name?: string;
@@ -238,69 +244,44 @@ interface SkillFrontmatter {
 
 interface ParsedSkill {
   frontmatter: SkillFrontmatter;
+  /** Optional AgentSkills.io spec fields, carried straight onto the emitted item. */
+  specFields: AgentSkillSpecFields;
   body: string;
+  parseError?: string;
 }
 
+/**
+ * Parse YAML frontmatter from a SKILL.md file via gray-matter.
+ *
+ * @param content - The complete SKILL.md file content
+ * @returns The recognized frontmatter fields, the body, and a parse error if
+ *   the frontmatter is not valid YAML
+ */
 function parseSkillFrontmatter(content: string): ParsedSkill {
-  const lines = content.split('\n');
-  
-  let frontmatterStart = -1;
-  let frontmatterEnd = -1;
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]?.trim();
-    if (line === '---') {
-      if (frontmatterStart === -1) {
-        frontmatterStart = i;
-      } else {
-        frontmatterEnd = i;
-        break;
-      }
+  try {
+    const parsed = matter(content);
+    const data: Record<string, unknown> = parsed.data ?? {};
+    const frontmatter: SkillFrontmatter = {};
+
+    if (typeof data.name === 'string') frontmatter.name = data.name;
+    if (typeof data.description === 'string') frontmatter.description = data.description;
+    if (typeof data['disable-model-invocation'] === 'boolean') {
+      frontmatter.disableModelInvocation = data['disable-model-invocation'];
     }
-  }
-  
-  // No frontmatter found
-  if (frontmatterStart === -1 || frontmatterEnd === -1) {
+
+    return {
+      frontmatter,
+      specFields: extractSpecFields(data),
+      body: parsed.content.trim(),
+    };
+  } catch (err) {
     return {
       frontmatter: {},
+      specFields: {},
       body: content.trim(),
+      parseError: err instanceof Error ? err.message : String(err),
     };
   }
-  
-  const frontmatter: SkillFrontmatter = {};
-  
-  // Parse frontmatter lines
-  for (let i = frontmatterStart + 1; i < frontmatterEnd; i++) {
-    const line = lines[i];
-    if (!line) continue;
-    
-    // Parse disable-model-invocation: true
-    const disableMatch = line.match(/^disable-model-invocation:\s*(true|false)\s*$/);
-    if (disableMatch) {
-      frontmatter.disableModelInvocation = disableMatch[1] === 'true';
-      continue;
-    }
-    
-    // Parse description: "..."
-    const descriptionMatch = line.match(/^description:\s*["']?(.+?)["']?\s*$/);
-    if (descriptionMatch) {
-      frontmatter.description = descriptionMatch[1];
-      continue;
-    }
-    
-    // Parse name: "..."
-    const nameMatch = line.match(/^name:\s*["']?(.+?)["']?\s*$/);
-    if (nameMatch) {
-      frontmatter.name = nameMatch[1];
-      continue;
-    }
-  }
-  
-  // Extract body (everything after second ---)
-  const bodyLines = lines.slice(frontmatterEnd + 1);
-  const body = bodyLines.join('\n').trim();
-  
-  return { frontmatter, body };
 }
 
 interface SkillDirInfo {
@@ -409,8 +390,17 @@ async function discoverSkills(root: string): Promise<{
     
     try {
       const content = await fs.readFile(fullPath, 'utf-8');
-      const { frontmatter, body } = parseSkillFrontmatter(content);
-      
+      const { frontmatter, specFields, body, parseError } = parseSkillFrontmatter(content);
+
+      if (parseError) {
+        warnings.push({
+          code: WarningCode.Skipped,
+          message: `Skipped skill '${dirName}': Invalid frontmatter: ${parseError}`,
+          sources: [skillPath],
+        });
+        continue;
+      }
+
       // Display name from frontmatter; invocation name is always the dirName
       const displayName = frontmatter.name?.trim() || dirName;
       
@@ -447,6 +437,7 @@ async function discoverSkills(root: string): Promise<{
           resources: Object.keys(files),
           files,
           metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
+          ...specFields,
         };
         items.push(agentSkillIO);
       } else if (frontmatter.disableModelInvocation === true) {
@@ -459,6 +450,7 @@ async function discoverSkills(root: string): Promise<{
           content: body,
           promptName: dirName,
           metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
+          ...specFields,
         } as ManualPrompt);
       } else if (frontmatter.description) {
         // SimpleAgentSkill — dirName is the invocation name
@@ -471,6 +463,7 @@ async function discoverSkills(root: string): Promise<{
           name: dirName,
           description: frontmatter.description,
           metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
+          ...specFields,
         } as SimpleAgentSkill);
       } else {
         // Skip with warning

@@ -206,7 +206,7 @@ Ordered fewest-dependencies-first: models → claude (already gray-matter, lowes
     - b. Stub a frontmatter-builder helper in `src/emit.ts` returning the current output shape.
     - c. Run — red.
     - d. Route `formatSkill()`, `formatManualPromptAsSkill()`, and `emitAgentSkillIO()` through the builder and add the four fields. **`metadata` is nested and cannot use the existing one-line `JSON.stringify` pattern** — this is why the builder exists rather than three hand-rolled indentation sites. Green.
-6. **`plugin-cursor` skill frontmatter parser swap.** *(highest-risk step — perform alone, commit alone)*
+6. ✅ **`plugin-cursor` skill frontmatter parser swap.** *(highest-risk step — perform alone, commit alone)* — **zero characterization diffs**; all 7 pinned cases parse identically before and after, and the full repo suite stayed green.
     - a. **Characterization first**: add cases to `test/discover-skills.test.ts` pinning the *current* regex parser's behavior for `description` values containing `:`, `#`, single and double quotes, and trailing spaces. Run them **green against the unmodified parser** — this is the one place in the plan where a new test must pass before the change.
     - b. Add the (currently failing) cases for the four spec fields, including a nested `metadata:` map.
     - c. Run — the spec-field cases red, characterization cases green.

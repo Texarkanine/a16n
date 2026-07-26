@@ -1,10 +1,44 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import cursorPlugin from '../src/index.js';
-import { CustomizationType, WarningCode, type ManualPrompt } from '@a16njs/models';
+import {
+  CustomizationType,
+  WarningCode,
+  type ManualPrompt,
+  type SimpleAgentSkill,
+} from '@a16njs/models';
 import { discoverFixturesDir } from './test-support/discover-helpers.js';
+import { suiteTempDir } from './test-support/emit-helpers.js';
 
 const fixturesDir = discoverFixturesDir(import.meta.url);
+const tempDir = suiteTempDir(import.meta.url, 'discover-skills');
+
+/**
+ * Write a single `.cursor/skills/probe/SKILL.md` with the given frontmatter and
+ * run discovery over it. Used by the parser characterization suite, where each
+ * case needs a different frontmatter body and a committed fixture per case
+ * would be unwieldy.
+ */
+async function discoverProbeSkill(frontmatter: string) {
+  const skillDir = path.join(tempDir, '.cursor', 'skills', 'probe');
+  await fs.mkdir(skillDir, { recursive: true });
+  await fs.writeFile(
+    path.join(skillDir, 'SKILL.md'),
+    `---\n${frontmatter}\n---\n\nProbe body.\n`,
+    'utf-8'
+  );
+  return cursorPlugin.discover(tempDir);
+}
+
+/** The description discovery produced for a probe skill, or undefined if it was skipped. */
+async function probeDescription(frontmatter: string): Promise<string | undefined> {
+  const result = await discoverProbeSkill(frontmatter);
+  const skill = result.items.find(
+    i => i.type === CustomizationType.SimpleAgentSkill
+  ) as SimpleAgentSkill | undefined;
+  return skill?.description;
+}
 
 describe('Cursor Skills Discovery', () => {
   describe('skills with description → SimpleAgentSkill', () => {
@@ -131,6 +165,116 @@ describe('Cursor Skills Discovery', () => {
       const tomato = skills.find(s => s.name === 'tomato');
       expect(tomato).toBeDefined();
       expect(tomato!.name).toBe('tomato');
+    });
+  });
+
+  describe('skill frontmatter parser characterization', () => {
+    /**
+     * Pins how awkward `description:` values parse. Written against the
+     * hand-rolled line-regex parser and re-run after the swap to gray-matter,
+     * so every behavior change is a decision on the record rather than a
+     * discovery made later.
+     */
+    beforeEach(async () => {
+      await fs.mkdir(tempDir, { recursive: true });
+    });
+
+    afterEach(async () => {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    });
+
+    it('should parse a plain description', async () => {
+      expect(await probeDescription('description: Simple value')).toBe('Simple value');
+    });
+
+    it('should parse a double-quoted description', async () => {
+      expect(await probeDescription('description: "Quoted value"')).toBe('Quoted value');
+    });
+
+    it('should parse a single-quoted description', async () => {
+      expect(await probeDescription("description: 'Quoted value'")).toBe('Quoted value');
+    });
+
+    it('should strip trailing whitespace from a description', async () => {
+      expect(await probeDescription('description: Trailing space   ')).toBe('Trailing space');
+    });
+
+    it('should preserve an apostrophe inside an unquoted description', async () => {
+      expect(await probeDescription("description: It's fine")).toBe("It's fine");
+    });
+
+    it('should preserve a hash inside a quoted description', async () => {
+      expect(await probeDescription('description: "Tagged #hash"')).toBe('Tagged #hash');
+    });
+
+    it('should preserve a colon inside a quoted description', async () => {
+      expect(await probeDescription('description: "Deploy: the app"')).toBe('Deploy: the app');
+    });
+  });
+
+  describe('AgentSkills.io spec fields', () => {
+    const specRoot = () => path.join(fixturesDir, 'cursor-skills-spec-fields/from-cursor');
+
+    it('should populate all four spec fields on a SimpleAgentSkill', async () => {
+      const result = await cursorPlugin.discover(specRoot());
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.SimpleAgentSkill && i.sourcePath.includes('simple-spec')
+      ) as SimpleAgentSkill;
+
+      expect(skill).toBeDefined();
+      expect(skill.license).toBe('Apache-2.0');
+      expect(skill.compatibility).toBe('Requires Python 3.14+ and uv');
+      expect(skill.specMetadata).toEqual({ author: 'Texarkanine', version: '1.2.0' });
+      expect(skill.allowedTools).toBe('Bash(git:*) Bash(jq:*) Read');
+    });
+
+    it('should populate all four spec fields on a ManualPrompt', async () => {
+      const result = await cursorPlugin.discover(specRoot());
+
+      const prompt = result.items.find(
+        i => i.type === CustomizationType.ManualPrompt
+      ) as ManualPrompt;
+
+      expect(prompt).toBeDefined();
+      expect(prompt.promptName).toBe('manual-spec');
+      expect(prompt.license).toBe('Proprietary. LICENSE.txt has complete terms');
+      expect(prompt.compatibility).toBe('Requires a POSIX shell');
+      expect(prompt.specMetadata).toEqual({ author: 'Texarkanine' });
+      expect(prompt.allowedTools).toBe('Bash(rm:*)');
+    });
+
+    it('should leave the spec fields undefined when absent', async () => {
+      const result = await cursorPlugin.discover(specRoot());
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.SimpleAgentSkill && i.sourcePath.includes('no-spec')
+      ) as SimpleAgentSkill;
+
+      expect(skill).toBeDefined();
+      expect(skill.license).toBeUndefined();
+      expect(skill.compatibility).toBeUndefined();
+      expect(skill.specMetadata).toBeUndefined();
+      expect(skill.allowedTools).toBeUndefined();
+    });
+
+    it('should not change classification (invariant 5)', async () => {
+      const result = await cursorPlugin.discover(specRoot());
+
+      const simple = result.items.filter(i => i.type === CustomizationType.SimpleAgentSkill);
+      const io = result.items.filter(i => i.type === CustomizationType.AgentSkillIO);
+      const manual = result.items.filter(i => i.type === CustomizationType.ManualPrompt);
+
+      expect(simple).toHaveLength(2);
+      expect(io).toHaveLength(1);
+      expect(manual).toHaveLength(1);
+    });
+
+    it('should raise zero warnings at discover time', async () => {
+      // discover() is target-unaware: spec fields are read, never judged here.
+      const result = await cursorPlugin.discover(specRoot());
+
+      expect(result.warnings).toEqual([]);
     });
   });
 });

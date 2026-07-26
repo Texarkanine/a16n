@@ -139,4 +139,22 @@ describe('AgentSkillIO Discovery', () => {
       expect(simpleSkills[0]?.sourcePath).toContain('simple');
     });
   });
+
+  describe('AgentSkills.io spec fields', () => {
+    it('should populate all four spec fields on an AgentSkillIO', async () => {
+      const root = path.join(fixturesDir, 'cursor-skills-spec-fields/from-cursor');
+      const result = await cursorPlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO,
+      ) as AgentSkillIO;
+
+      expect(skill).toBeDefined();
+      expect(skill.name).toBe('io-spec');
+      expect(skill.license).toBe('MIT');
+      expect(skill.compatibility).toBe('Requires Node 22+');
+      expect(skill.specMetadata).toEqual({ author: 'Texarkanine', team: 'platform' });
+      expect(skill.allowedTools).toBe('Bash(rm:*) Write');
+    });
+  });
 });
