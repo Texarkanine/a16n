@@ -61,3 +61,13 @@ Refuse conversion of Cursor skills that declare harness-specific `paths:` scopin
     - No substantive gaps; refuse-only scope preserved
 * Insights
     - Mirror sibling-plugin field placement early to avoid QA nits
+
+## 2026-07-26 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote reflection document
+    - Reconciled persistent files (systemPatterns already current; others unchanged)
+* Decisions made
+    - None new
+* Insights
+    - Discover-skip is the right refuse shape for Category A fields that widen scope when dropped

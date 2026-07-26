@@ -1,11 +1,11 @@
 # Active Context
 
 ## Current Task: issue-148-cursor-skill-paths-refuse
-**Phase:** QA - COMPLETE
+**Phase:** REFLECT COMPLETE
 
 ## What Was Done
-- QA PASS. Trivial fix: moved `hasPaths` onto `SkillFrontmatter` (Claude `hasHooks` symmetry).
-- Requirements R1–R4 satisfied; docs updated; full suite previously green; targeted re-tests after QA fix green.
+- Reflection written to `memory-bank/active/reflection/reflection-issue-148-cursor-skill-paths-refuse.md`.
+- Persistent files reconciled: `systemPatterns.md` already updated in build; product/tech context unchanged.
 
 ## Next Step
-- Reflect phase
+- Run `/niko-archive` to archive and finalize
