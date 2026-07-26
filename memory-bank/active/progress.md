@@ -60,3 +60,13 @@ Preserve authored `description` on `ManualPrompt` (skills with `disable-model-in
     - Keep duplicated one-line emit resolver (two call sites); not worth a shared helper
 * Insights
     - Issue AC "warn when cannot carry" is satisfied by agentsmd `unsupported` (no write / no boilerplate), not a field-level Approximated warning — matches the approved plan
+
+## 2026-07-26 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-issue-147-manualprompt-description.md`
+    - Reconciled persistent files: no updates required
+* Decisions made
+    - None new
+* Insights
+    - Diagnose fidelity against current emit paths; #99 already made skill emit the carrying surface for ManualPrompt
