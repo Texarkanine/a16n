@@ -10,6 +10,7 @@ import {
   type Workspace,
   CustomizationType,
   createId,
+  extractSpecFields,
   parseIRVersion,
   toWorkspace,
 } from '@a16njs/models';
@@ -93,6 +94,10 @@ export async function parseIRFile(
     
     // Extract name from filename (without extension)
     const nameWithoutExt = filename.replace(/\.[^.]+$/, '');
+
+    // Spec fields are read through the shared models helper so IR files and
+    // native SKILL.md files agree on key names and metadata coercion.
+    const specFields = extractSpecFields(frontmatter);
     
     // Build base IR item
     // metadata is NOT serialized to IR files (transient only), so initialize as empty
@@ -143,6 +148,7 @@ export async function parseIRFile(
           type: CustomizationType.SimpleAgentSkill,
           name,
           description: frontmatter.description,
+          ...specFields,
         };
         return { item };
       }
@@ -157,6 +163,7 @@ export async function parseIRFile(
           ...baseItem,
           type: CustomizationType.ManualPrompt,
           promptName,
+          ...specFields,
         };
         return { item };
       }

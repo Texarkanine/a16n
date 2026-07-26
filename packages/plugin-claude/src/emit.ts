@@ -2,6 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
   type AgentCustomization,
+  formatSpecFieldsYaml,
   type ManualPrompt,
   type EmitResult,
   type EmitOptions,
@@ -190,7 +191,7 @@ function formatSkill(skill: SimpleAgentSkill): string {
   const safeName = JSON.stringify(displayName);
   return `---
 name: ${safeName}
-description: ${safeDescription}
+description: ${safeDescription}${formatSpecFieldsYaml(skill)}
 ---
 
 ${skill.content}
@@ -210,7 +211,7 @@ function formatManualPromptAsSkill(prompt: ManualPrompt): string {
   return `---
 name: ${safeName}
 description: ${safeDescription}
-disable-model-invocation: true
+disable-model-invocation: true${formatSpecFieldsYaml(prompt)}
 ---
 
 ${prompt.content}
@@ -262,6 +263,7 @@ description: ${safeDescription}`;
     frontmatter += '\ndisable-model-invocation: true';
   }
 
+  frontmatter += formatSpecFieldsYaml(skill);
   frontmatter += '\n---';
 
   const skillContent = `${frontmatter}\n\n${skill.content}\n`;

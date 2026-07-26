@@ -4,6 +4,7 @@ import * as path from 'path';
 import cursorPlugin from '../src/index.js';
 import {
   CustomizationType,
+  WarningCode,
   type SimpleAgentSkill,
   type ManualPrompt,
   createId,
@@ -130,6 +131,113 @@ describe('Cursor Skills Emission', () => {
       // Collision warning emitted (unified skill namespace post-migration)
       const collisionWarnings = result.warnings.filter(w => w.message.includes('collision'));
       expect(collisionWarnings).toHaveLength(1);
+    });
+  });
+
+  describe('AgentSkills.io spec fields', () => {
+    /**
+     * `.cursor/skills/*​/SKILL.md` can carry all four fields, but Cursor does
+     * not enforce `allowed-tools`. So everything is written, and only
+     * `allowed-tools` warns — fail-closed, because the emitted skill is
+     * otherwise quietly more permissive than the source.
+     */
+    function skillWith(fields: Partial<SimpleAgentSkill>): SimpleAgentSkill {
+      return {
+        id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/deploy/SKILL.md'),
+        type: CustomizationType.SimpleAgentSkill,
+        name: 'deploy',
+        sourcePath: '.claude/skills/deploy/SKILL.md',
+        content: 'Deploy the app.',
+        description: 'Deploy patterns',
+        metadata: {},
+        ...fields,
+      };
+    }
+
+    async function readDeploySkill(): Promise<string> {
+      return fs.readFile(
+        path.join(tempDir, '.cursor', 'skills', 'deploy', 'SKILL.md'),
+        'utf-8'
+      );
+    }
+
+    it('should write inert fields verbatim with zero warnings', async () => {
+      const result = await cursorPlugin.emit(
+        [
+          skillWith({
+            license: 'Apache-2.0',
+            compatibility: 'Requires Node 22+',
+            specMetadata: { author: 'Texarkanine' },
+          }),
+        ],
+        tempDir
+      );
+
+      const content = await readDeploySkill();
+      expect(content).toContain('license: "Apache-2.0"');
+      expect(content).toContain('compatibility: "Requires Node 22+"');
+      expect(content).toContain('metadata:');
+      expect(content).toContain('  "author": "Texarkanine"');
+      expect(result.warnings).toEqual([]);
+    });
+
+    it('should write allowed-tools AND raise one Skipped warning naming the source', async () => {
+      const result = await cursorPlugin.emit(
+        [skillWith({ allowedTools: 'Bash(rm:*)' })],
+        tempDir
+      );
+
+      const content = await readDeploySkill();
+      expect(content).toContain('allowed-tools: "Bash(rm:*)"');
+
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0]?.code).toBe(WarningCode.Skipped);
+      expect(result.warnings[0]?.message).toContain('allowed-tools');
+      // Without sourcePath in sources, --delete-source protection does not engage.
+      expect(result.warnings[0]?.sources).toContain('.claude/skills/deploy/SKILL.md');
+    });
+
+    it('should raise exactly one warning when all four fields are present', async () => {
+      const result = await cursorPlugin.emit(
+        [
+          skillWith({
+            license: 'Apache-2.0',
+            compatibility: 'Requires Node 22+',
+            specMetadata: { author: 'Texarkanine' },
+            allowedTools: 'Bash(rm:*)',
+          }),
+        ],
+        tempDir
+      );
+
+      expect(result.warnings).toHaveLength(1);
+    });
+
+    it('should write spec fields on a ManualPrompt and warn for allowed-tools', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.claude/skills/clean/SKILL.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.claude/skills/clean/SKILL.md',
+          content: 'Clean the workspace.',
+          promptName: 'clean',
+          metadata: {},
+          license: 'MIT',
+          allowedTools: 'Bash(rm:*)',
+        },
+      ];
+
+      const result = await cursorPlugin.emit(models, tempDir);
+
+      const content = await fs.readFile(
+        path.join(tempDir, '.cursor', 'skills', 'clean', 'SKILL.md'),
+        'utf-8'
+      );
+      expect(content).toContain('license: "MIT"');
+      expect(content).toContain('allowed-tools: "Bash(rm:*)"');
+
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0]?.code).toBe(WarningCode.Skipped);
     });
   });
 });

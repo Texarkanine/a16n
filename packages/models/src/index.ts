@@ -4,6 +4,7 @@
 export {
   CustomizationType,
   type AgentCustomization,
+  type AgentSkillSpecFields,
   type GlobalPrompt,
   type SimpleAgentSkill,
   type AgentSkill, // Deprecated alias for SimpleAgentSkill
@@ -58,6 +59,9 @@ export { type Workspace, type WorkspaceEntry, resolveRoot, LocalWorkspace, toWor
 export {
   type ParsedSkillFrontmatter,
   type ParsedSkill,
+  extractSpecFields,
+  formatSpecFieldsYaml,
+  assignSpecFields,
   parseSkillFrontmatter,
   readSkillFiles,
   writeAgentSkillIO,

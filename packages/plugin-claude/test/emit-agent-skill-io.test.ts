@@ -561,5 +561,40 @@ describe('Claude AgentSkillIO Emission', () => {
       expect(result.written[0]?.path).toBe(expectedPath);
     });
   });
+
+  describe('AgentSkills.io spec fields', () => {
+    it('should write all four spec fields on an AgentSkillIO', async () => {
+      const models: AgentSkillIO[] = [
+        {
+          id: createId(CustomizationType.AgentSkillIO, '.claude/skills/deploy/SKILL.md'),
+          type: CustomizationType.AgentSkillIO,
+          sourcePath: '.claude/skills/deploy/SKILL.md',
+          content: 'Deploy the app.',
+          name: 'deploy',
+          description: 'Deploy patterns',
+          resources: ['checklist.md'],
+          files: { 'checklist.md': '# Checklist' },
+          metadata: {},
+          license: 'Apache-2.0',
+          compatibility: 'Requires Node 22+',
+          specMetadata: { author: 'Texarkanine', team: 'platform' },
+          allowedTools: 'Bash(rm:*) Write',
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'deploy', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+
+      expect(content).toContain('license: "Apache-2.0"');
+      expect(content).toContain('compatibility: "Requires Node 22+"');
+      expect(content).toContain('metadata:');
+      expect(content).toContain('  "author": "Texarkanine"');
+      expect(content).toContain('  "team": "platform"');
+      expect(content).toContain('allowed-tools: "Bash(rm:*) Write"');
+      expect(result.warnings).toEqual([]);
+    });
+  });
 });
 

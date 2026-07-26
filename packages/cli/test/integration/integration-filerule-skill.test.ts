@@ -5,10 +5,13 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { A16nEngine } from '@a16njs/engine';
+import { WarningCode } from '@a16njs/models';
 import {
+  compareOutputs,
   copyDir,
   createIntegrationEngine,
   fixturesDirFor,
+  readDirFiles,
   suiteTempDir,
 } from '../test-support/integration-helpers.js';
 
@@ -129,6 +132,41 @@ describe('Integration Tests - FileRule and SimpleAgentSkill', () => {
       expect(skillContent).toContain('description:');
       expect(skillContent).toContain('Testing best practices');
       expect(skillContent).toContain('Write unit tests first');
+    });
+  });
+
+  describe('claude-spec-fields-to-cursor', () => {
+    /**
+     * Issue #143 verbatim: a Claude skill carrying all four AgentSkills.io spec
+     * fields used to arrive in Cursor with every one of them stripped and no
+     * warning. The golden fixture pins the exact frontmatter a user now gets.
+     */
+    it('should carry all four AgentSkills.io spec fields into the Cursor skill', async () => {
+      const fixturePath = path.join(fixturesDir, 'claude-spec-fields-to-cursor');
+      await copyDir(path.join(fixturePath, 'from-claude'), tempDir);
+
+      await engine.convert({ source: 'claude', target: 'cursor', root: tempDir });
+
+      const actual = await readDirFiles(path.join(tempDir, '.cursor', 'skills', 'cleanup'));
+      const expected = await readDirFiles(
+        path.join(fixturePath, 'to-cursor', '.cursor', 'skills', 'cleanup')
+      );
+
+      compareOutputs(actual, expected);
+    });
+
+    it('should warn that Cursor will not enforce the skill\'s allowed-tools', async () => {
+      const fixturePath = path.join(fixturesDir, 'claude-spec-fields-to-cursor');
+      await copyDir(path.join(fixturePath, 'from-claude'), tempDir);
+
+      const result = await engine.convert({ source: 'claude', target: 'cursor', root: tempDir });
+
+      // Exactly one warning: the fields that Cursor ignores harmlessly are not
+      // losses, so only the unenforced restriction is reported.
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0]?.code).toBe(WarningCode.Skipped);
+      expect(result.warnings[0]?.message).toContain('allowed-tools');
+      expect(result.warnings[0]?.sources).toEqual(['.claude/skills/cleanup/SKILL.md']);
     });
   });
 

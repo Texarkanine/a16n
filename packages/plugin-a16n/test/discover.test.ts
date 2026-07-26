@@ -274,7 +274,7 @@ Just the SKILL.md content.
       const fixturePath = path.join(fixturesDir, 'discover-version-mismatch');
       const result = await discover(fixturePath);
 
-      // current.md has v1beta1; v1beta2 reader accepts it, no version warning
+      // current.md has v1beta1; v1beta3 reader accepts it, no version warning
       const items = result.items.filter(
         (i) => i.content.includes('Current version content')
       );

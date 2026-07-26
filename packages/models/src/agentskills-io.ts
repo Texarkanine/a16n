@@ -6,12 +6,13 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import matter from 'gray-matter';
+import type { AgentSkillSpecFields } from './types.js';
 
 /**
  * Parsed frontmatter from an AgentSkills.io SKILL.md file.
  * This is the VERBATIM AgentSkills.io format, NOT the IR format.
  */
-export interface ParsedSkillFrontmatter {
+export interface ParsedSkillFrontmatter extends AgentSkillSpecFields {
   /** Skill name (required) */
   name: string;
   /** Skill description for activation matching (required) */
@@ -20,6 +21,122 @@ export interface ParsedSkillFrontmatter {
   resources?: string[];
   /** If true, only invoked via /name (optional) */
   disableModelInvocation?: boolean;
+}
+
+/**
+ * Coerce a parsed `metadata:` map to the spec's string→string shape.
+ *
+ * YAML types unquoted scalars, so `version: 1.0` arrives as a number. Primitives
+ * are stringified; anything structural (nested map, sequence, null) is malformed
+ * against the spec and is dropped rather than rendered as `[object Object]`.
+ *
+ * @returns The coerced map, or `undefined` if nothing usable survived.
+ */
+function coerceSpecMetadata(value: unknown): Record<string, string> | undefined {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const coerced: Record<string, string> = {};
+  for (const [key, raw] of Object.entries(value)) {
+    if (typeof raw === 'string') {
+      coerced[key] = raw;
+    } else if (typeof raw === 'number' || typeof raw === 'boolean') {
+      coerced[key] = String(raw);
+    }
+  }
+
+  return Object.keys(coerced).length > 0 ? coerced : undefined;
+}
+
+/**
+ * Extract the optional AgentSkills.io spec fields from parsed YAML frontmatter.
+ *
+ * Shared by every plugin that reads a `SKILL.md`, so the spec key names and the
+ * `metadata` coercion rule are defined exactly once.
+ *
+ * @param data - Frontmatter key-values as produced by gray-matter
+ * @returns Only the spec fields that were present and well-formed
+ *
+ * @example
+ * extractSpecFields({ license: 'MIT', 'allowed-tools': 'Read' })
+ * // { license: 'MIT', allowedTools: 'Read' }
+ */
+export function extractSpecFields(data: Record<string, unknown>): AgentSkillSpecFields {
+  const fields: AgentSkillSpecFields = {};
+
+  if (typeof data.license === 'string') fields.license = data.license;
+  if (typeof data.compatibility === 'string') fields.compatibility = data.compatibility;
+  if (typeof data['allowed-tools'] === 'string') fields.allowedTools = data['allowed-tools'];
+
+  const specMetadata = coerceSpecMetadata(data.metadata);
+  if (specMetadata) fields.specMetadata = specMetadata;
+
+  return fields;
+}
+
+/**
+ * Render the optional AgentSkills.io spec fields as YAML frontmatter lines.
+ *
+ * The inverse of {@link extractSpecFields}, and shared for the same reason: the
+ * four spec key names are spelled once, so a reader and a writer can never
+ * disagree about what a field is called on disk.
+ *
+ * Returns lines ready to append inside an existing frontmatter block (each
+ * prefixed with a newline), or `''` when the item carries none of the fields.
+ * Values are JSON-quoted because JSON string syntax is a subset of YAML's
+ * double-quoted scalar style — safe for colons, punctuation, and embedded
+ * quotes alike, and already how the plugins quote `name` and `description`.
+ *
+ * @param fields - The spec fields carried by the item being emitted
+ * @returns YAML lines to append, or `''` if there is nothing to write
+ *
+ * @example
+ * formatSpecFieldsYaml({ license: 'MIT' })
+ * // '\nlicense: "MIT"'
+ */
+export function formatSpecFieldsYaml(fields: AgentSkillSpecFields): string {
+  let out = '';
+
+  if (fields.license) out += `\nlicense: ${JSON.stringify(fields.license)}`;
+  if (fields.compatibility) out += `\ncompatibility: ${JSON.stringify(fields.compatibility)}`;
+
+  const entries = Object.entries(fields.specMetadata ?? {});
+  if (entries.length > 0) {
+    out += '\nmetadata:';
+    for (const [key, value] of entries) {
+      out += `\n  ${JSON.stringify(key)}: ${JSON.stringify(value)}`;
+    }
+  }
+
+  if (fields.allowedTools) out += `\nallowed-tools: ${JSON.stringify(fields.allowedTools)}`;
+
+  return out;
+}
+
+/**
+ * Copy an item's AgentSkills.io spec fields into a frontmatter object under
+ * their *spec* key names (`allowed-tools`, `metadata`, …).
+ *
+ * The object-form counterpart of {@link formatSpecFieldsYaml}: use this when the
+ * caller builds a data object for `gray-matter` / `yaml.stringify`, and the
+ * string form when it hand-builds YAML lines. Both spell the same four keys.
+ *
+ * Empty `specMetadata` is omitted rather than written as `{}`.
+ *
+ * @param target - Frontmatter object being built, mutated in place
+ * @param fields - The item whose spec fields should be copied
+ */
+export function assignSpecFields(
+  target: Record<string, unknown>,
+  fields: AgentSkillSpecFields
+): void {
+  if (fields.license) target.license = fields.license;
+  if (fields.compatibility) target.compatibility = fields.compatibility;
+  if (fields.specMetadata && Object.keys(fields.specMetadata).length > 0) {
+    target.metadata = fields.specMetadata;
+  }
+  if (fields.allowedTools) target['allowed-tools'] = fields.allowedTools;
 }
 
 /**
@@ -40,6 +157,10 @@ export interface ParsedSkill {
  * - description (required)
  * - resources (optional)
  * - disable-model-invocation (optional)
+ * - license, compatibility, metadata, allowed-tools (optional spec fields)
+ *
+ * The spec's `metadata` key lands on `specMetadata` to keep it distinct from the
+ * IR's transient `metadata`.
  *
  * It does NOT parse IR-specific fields (version, type, relativeDir).
  *
@@ -87,6 +208,8 @@ export function parseSkillFrontmatter(
     if (typeof data['disable-model-invocation'] === 'boolean') {
       frontmatter.disableModelInvocation = data['disable-model-invocation'];
     }
+
+    Object.assign(frontmatter, extractSpecFields(data));
 
     return {
       success: true,
@@ -146,7 +269,8 @@ export async function readSkillFiles(
  * Write an AgentSkillIO to disk in verbatim AgentSkills.io format.
  *
  * This writes the VERBATIM AgentSkills.io format:
- * - SKILL.md with name, description, resources, disable-model-invocation
+ * - SKILL.md with name, description, resources, disable-model-invocation,
+ *   license, compatibility, metadata, allowed-tools
  * - Resource files in the skill directory
  *
  * It does NOT write IR-specific fields (version, type, relativeDir).
@@ -189,6 +313,8 @@ export async function writeAgentSkillIO(
   if (frontmatter.disableModelInvocation) {
     yamlData['disable-model-invocation'] = frontmatter.disableModelInvocation;
   }
+
+  assignSpecFields(yamlData, frontmatter);
 
   // Write SKILL.md with gray-matter
   const skillContent = matter.stringify(content, yamlData);

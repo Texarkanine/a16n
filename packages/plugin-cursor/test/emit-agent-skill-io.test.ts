@@ -4,6 +4,7 @@ import * as path from 'path';
 import cursorPlugin from '../src/index.js';
 import {
   CustomizationType,
+  WarningCode,
   type GlobalPrompt,
   type FileRule,
   type AgentSkillIO,
@@ -317,6 +318,103 @@ describe('Cursor AgentSkillIO Emission', () => {
       // WrittenFile.path should reflect the nested path
       const expectedPath = path.join(tempDir, '.cursor', 'rules', 'shared', 'niko', 'main.mdc');
       expect(result.written[0]?.path).toBe(expectedPath);
+    });
+  });
+
+  describe('AgentSkills.io spec fields on the .mdc route', () => {
+    /**
+     * A simple, model-invocable AgentSkillIO routes to `.cursor/rules/*.mdc`,
+     * whose schema is fixed at `description`/`globs`/`alwaysApply`. Everything
+     * else is dropped, so this is the one Cursor path where a skill's
+     * `allowed-tools` disappears outright — it must warn, and warn as `Skipped`
+     * so `--delete-source` refuses to remove the only copy of the restriction.
+     */
+    function skillIOWith(fields: Partial<AgentSkillIO>): AgentSkillIO {
+      return {
+        id: createId(CustomizationType.AgentSkillIO, '.claude/skills/deploy/SKILL.md'),
+        type: CustomizationType.AgentSkillIO,
+        sourcePath: '.claude/skills/deploy/SKILL.md',
+        content: 'Deployment guidelines',
+        name: 'deploy',
+        description: 'Help with deployments',
+        files: {},
+        metadata: {},
+        ...fields,
+      };
+    }
+
+    it('should drop inert fields with one Approximated warning', async () => {
+      const result = await cursorPlugin.emit(
+        [skillIOWith({ license: 'Apache-2.0', compatibility: 'Requires Node 22+' })],
+        tempDir
+      );
+
+      const content = await fs.readFile(
+        path.join(tempDir, '.cursor', 'rules', 'deploy.mdc'),
+        'utf-8'
+      );
+      expect(content).not.toContain('license');
+      expect(content).not.toContain('compatibility');
+
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0]?.code).toBe(WarningCode.Approximated);
+      expect(result.warnings[0]?.sources).toEqual(['.claude/skills/deploy/SKILL.md']);
+    });
+
+    it('should escalate to Skipped when allowed-tools is dropped', async () => {
+      const result = await cursorPlugin.emit(
+        [skillIOWith({ license: 'Apache-2.0', allowedTools: 'Bash(rm:*)' })],
+        tempDir
+      );
+
+      const content = await fs.readFile(
+        path.join(tempDir, '.cursor', 'rules', 'deploy.mdc'),
+        'utf-8'
+      );
+      expect(content).not.toContain('allowed-tools');
+
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0]?.code).toBe(WarningCode.Skipped);
+      expect(result.warnings[0]?.message).toContain('allowed-tools');
+    });
+
+    it('should stay silent for a skill carrying no spec fields', async () => {
+      const result = await cursorPlugin.emit([skillIOWith({})], tempDir);
+
+      expect(result.warnings).toEqual([]);
+    });
+
+    it('should write spec fields when the skill routes to SKILL.md instead', async () => {
+      // Same skill, but disable-model-invocation sends it to a surface that carries them.
+      const result = await cursorPlugin.emit(
+        [skillIOWith({ disableModelInvocation: true, license: 'Apache-2.0' })],
+        tempDir
+      );
+
+      const content = await fs.readFile(
+        path.join(tempDir, '.cursor', 'skills', 'deploy', 'SKILL.md'),
+        'utf-8'
+      );
+      expect(content).toContain('license: "Apache-2.0"');
+      expect(result.warnings).toEqual([]);
+    });
+
+    it('should write spec fields on a complex skill with resource files', async () => {
+      const result = await cursorPlugin.emit(
+        [skillIOWith({ files: { 'ref.md': 'reference' }, license: 'MIT', allowedTools: 'Read' })],
+        tempDir
+      );
+
+      const content = await fs.readFile(
+        path.join(tempDir, '.cursor', 'skills', 'deploy', 'SKILL.md'),
+        'utf-8'
+      );
+      expect(content).toContain('license: "MIT"');
+      expect(content).toContain('allowed-tools: "Read"');
+
+      // Written, but unenforced by Cursor — still a real loss of restriction.
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0]?.code).toBe(WarningCode.Skipped);
     });
   });
 });

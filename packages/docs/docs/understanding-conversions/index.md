@@ -58,6 +58,7 @@ Some concepts have clear equivalents across tools.
 | AgentSkills.io Skills | `.cursor/skills/*/SKILL.md` | `.claude/skills/*/SKILL.md`                  |
 | Manual Prompts        | `.cursor/commands/*.md`     | Skills with `disable-model-invocation: true` |
 | Ignore Patterns       | `.cursorignore`             | `permissions.deny` rules                     |
+| Skill `license`, `compatibility`, `metadata` | `.cursor/skills/*/SKILL.md` frontmatter | `.claude/skills/*/SKILL.md` frontmatter |
 
 These translations preserve both meaning and behavior, though file layout may differ.
 
@@ -72,6 +73,7 @@ Some features exist in both ecosystems but behave slightly differently. In these
 | Ignore patterns         | Cursor | Claude | ≈ Converted to read-deny permissions                                                |
 | Command frontmatter     | Cursor | Any    | ≈ Preserved as body content (Cursor commands have no frontmatter)                   |
 | Non-spec skill features | Claude | Any    | ≈ Content preserved, runtime behavior not (`$ARGUMENTS`, `` !`cmd` ``, `model:`, …) |
+| Skill `license`, `compatibility`, `metadata` | Any | Cursor rule (`.mdc`) | ≈ Dropped — `.mdc` frontmatter has a fixed schema |
 
 Approximate translations are chosen to keep **agent behavior as close as possible** to the original configuration.
 
@@ -85,6 +87,22 @@ Some features simply do not exist in the target toolchain. These are skipped and
 | Hooks             | Any    | Any    | [Not convertible](./hooks)                                |
 | Non-directory File Rules | Any | AGENTS.md | AGENTS.md scoping is directory-only (no glob patterns)    |
 | Skills, Manual Prompts, Ignores | Any | AGENTS.md | AGENTS.md is plain markdown with no frontmatter           |
+| Skill `allowed-tools` | Any | Cursor | Cursor does not enforce tool restrictions ([see below](#tool-restrictions-are-never-silently-relaxed)) |
+
+### Tool restrictions are never silently relaxed
+
+`allowed-tools` is the one skill field where writing it out is not enough. a16n
+copies the value verbatim into `.cursor/skills/*/SKILL.md`, so nothing is lost
+on disk — but Cursor does not act on it, which means the converted skill is
+**more permissive than the one you wrote**. That is a real change in behavior,
+so a16n reports it as skipped rather than as a clean translation.
+
+The practical consequence is that `--delete-source` will refuse to remove a
+skill whose `allowed-tools` could not be carried across. The original stays put,
+because the converted copy is not a faithful substitute for it.
+
+A skill routed to a Cursor **rule** file (`.mdc`) loses the field outright,
+since that format has a fixed frontmatter schema.
 
 ## Structural Differences and Non-Invertibility
 

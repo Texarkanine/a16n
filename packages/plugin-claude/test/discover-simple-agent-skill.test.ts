@@ -5,6 +5,7 @@ import { CustomizationType, WarningCode, type SimpleAgentSkill } from '@a16njs/m
 import { discoverFixturesDir } from './test-support/discover-helpers.js';
 
 const fixturesDir = discoverFixturesDir(import.meta.url);
+const specFieldsRoot = 'claude-skills-spec-fields/from-claude';
 
 describe('Claude SimpleAgentSkill Discovery', () => {
   describe('simple skills without hooks', () => {
@@ -59,6 +60,56 @@ describe('Claude SimpleAgentSkill Discovery', () => {
       const hooksWarning = result.warnings.find(w => w.message.toLowerCase().includes('hooks'));
       expect(hooksWarning).toBeDefined();
       expect(hooksWarning?.code).toBe(WarningCode.Skipped);
+    });
+  });
+
+  describe('AgentSkills.io spec fields', () => {
+    async function simpleSpecSkill(): Promise<SimpleAgentSkill> {
+      const root = path.join(fixturesDir, specFieldsRoot);
+      const result = await claudePlugin.discover(root);
+      return result.items.find(
+        i => i.type === CustomizationType.SimpleAgentSkill && i.sourcePath?.includes('simple-spec')
+      ) as SimpleAgentSkill;
+    }
+
+    it('should populate all four spec fields', async () => {
+      const skill = await simpleSpecSkill();
+
+      expect(skill).toBeDefined();
+      expect(skill.license).toBe('Apache-2.0');
+      expect(skill.compatibility).toBe('Requires Python 3.14+ and uv');
+      expect(skill.specMetadata).toEqual({ author: 'Texarkanine', version: '1.2.0' });
+      expect(skill.allowedTools).toBe('Bash(git:*) Bash(jq:*) Read');
+    });
+
+    it('should not change classification (invariant 5)', async () => {
+      const skill = await simpleSpecSkill();
+
+      expect(skill.type).toBe(CustomizationType.SimpleAgentSkill);
+    });
+
+    it('should leave the spec fields undefined when absent', async () => {
+      const root = path.join(fixturesDir, specFieldsRoot);
+      const result = await claudePlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.SimpleAgentSkill && i.sourcePath?.includes('no-spec')
+      ) as SimpleAgentSkill;
+
+      expect(skill).toBeDefined();
+      expect(skill.license).toBeUndefined();
+      expect(skill.compatibility).toBeUndefined();
+      expect(skill.specMetadata).toBeUndefined();
+      expect(skill.allowedTools).toBeUndefined();
+    });
+
+    it('should raise zero warnings for spec-compliant fields', async () => {
+      // Regression guard: these are spec fields, so detectNonSpecFeatures must
+      // not treat them as Claude-only extensions.
+      const root = path.join(fixturesDir, specFieldsRoot);
+      const result = await claudePlugin.discover(root);
+
+      expect(result.warnings).toEqual([]);
     });
   });
 });

@@ -1,13 +1,7 @@
 import * as yaml from 'yaml';
 import {
   type AgentCustomization,
-  type GlobalPrompt,
-  type FileRule,
-  type SimpleAgentSkill,
-  type ManualPrompt,
-  type AgentIgnore,
-  CustomizationType,
-  isGlobalPrompt,
+  assignSpecFields,
   isFileRule,
   isSimpleAgentSkill,
   isManualPrompt,
@@ -49,6 +43,12 @@ export function formatIRFile(item: AgentCustomization): string {
   }
   // ManualPrompt: DO NOT include promptName (derived from relativeDir + filename)
   // GlobalPrompt: no extra fields
+
+  if (isSimpleAgentSkill(item) || isManualPrompt(item)) {
+    // Spec key names (`allowed-tools`, `metadata`, …) live in models so the IR
+    // on-disk format cannot drift from native SKILL.md writers.
+    assignSpecFields(frontmatter, item);
+  }
   
   // Generate YAML frontmatter with clean, readable output
   const yamlStr = yaml.stringify(frontmatter, {

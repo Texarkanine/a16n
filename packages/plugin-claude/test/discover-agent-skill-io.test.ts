@@ -156,6 +156,24 @@ describe('AgentSkillIO Discovery', () => {
     });
   });
 
+  describe('AgentSkills.io spec fields', () => {
+    it('should populate all four spec fields on an AgentSkillIO', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-spec-fields/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const skill = result.items.find(
+        i => i.type === CustomizationType.AgentSkillIO,
+      ) as AgentSkillIO;
+
+      expect(skill).toBeDefined();
+      expect(skill.name).toBe('io-spec');
+      expect(skill.license).toBe('MIT');
+      expect(skill.compatibility).toBe('Requires Node 22+');
+      expect(skill.specMetadata).toEqual({ author: 'Texarkanine', team: 'platform' });
+      expect(skill.allowedTools).toBe('Bash(rm:*) Write');
+    });
+  });
+
   describe('backward compatibility', () => {
     it('should skip skills with hooks and emit warning', async () => {
       // Skills with hooks are NOT supported by AgentSkills.io

@@ -213,4 +213,74 @@ This skill has no description - should be ignored`
       expect(line).not.toContain(normalizedTempDir);
     }
   });
+
+  /**
+   * A `Skipped` warning is the mechanism that keeps `--delete-source` from
+   * destroying the only copy of something the target cannot represent. The
+   * spec fields lean on this: Cursor does not enforce `allowed-tools`, so the
+   * emitted skill is more permissive than the source, and deleting the source
+   * would erase the restriction with no way back.
+   */
+  it('should preserve a source whose allowed-tools cannot be enforced by the target', async () => {
+    const skillDir = path.join(tempDir, '.claude', 'skills', 'cleanup');
+    await fs.mkdir(skillDir, { recursive: true });
+    const skillPath = path.join(skillDir, 'SKILL.md');
+    await fs.writeFile(
+      skillPath,
+      `---
+name: cleanup
+description: Removes build artifacts
+license: MIT
+allowed-tools: Bash(rm:*)
+---
+
+Remove the dist directory.
+`
+    );
+
+    const { exitCode } = runCli(
+      ['convert', '--from', 'claude', '--to', 'cursor', '--delete-source'],
+      tempDir
+    );
+
+    expect(exitCode).toBe(0);
+
+    // The conversion still happened...
+    const emitted = await fs.readFile(
+      path.join(tempDir, '.cursor', 'skills', 'cleanup', 'SKILL.md'),
+      'utf-8'
+    );
+    expect(emitted).toContain('allowed-tools');
+    expect(emitted).toContain('license');
+
+    // ...but the source survives, because the restriction is not enforceable there.
+    await expect(fs.access(skillPath)).resolves.not.toThrow();
+  });
+
+  it('should still delete a source when the target loses nothing', async () => {
+    // Same skill minus allowed-tools: license alone is inert everywhere, so
+    // there is no loss to guard against and deletion proceeds normally.
+    const skillDir = path.join(tempDir, '.claude', 'skills', 'cleanup');
+    await fs.mkdir(skillDir, { recursive: true });
+    const skillPath = path.join(skillDir, 'SKILL.md');
+    await fs.writeFile(
+      skillPath,
+      `---
+name: cleanup
+description: Removes build artifacts
+license: MIT
+---
+
+Remove the dist directory.
+`
+    );
+
+    const { exitCode } = runCli(
+      ['convert', '--from', 'claude', '--to', 'cursor', '--delete-source'],
+      tempDir
+    );
+
+    expect(exitCode).toBe(0);
+    await expect(fs.access(skillPath)).rejects.toThrow();
+  });
 });

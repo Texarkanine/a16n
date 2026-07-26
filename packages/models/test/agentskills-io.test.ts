@@ -7,9 +7,66 @@ import {
   readSkillFiles,
   writeAgentSkillIO,
   readAgentSkillIO,
+  extractSpecFields,
+  formatSpecFieldsYaml,
   type ParsedSkillFrontmatter,
   type ParsedSkill,
 } from '../src/agentskills-io.js';
+
+/**
+ * The inverse of `extractSpecFields`. Both live here so the four spec key
+ * names are spelled exactly once in the codebase; every plugin that hand-rolls
+ * frontmatter (Claude, Cursor) renders through this.
+ */
+describe('formatSpecFieldsYaml', () => {
+  it('should return an empty string when no spec fields are present', () => {
+    expect(formatSpecFieldsYaml({})).toBe('');
+  });
+
+  it('should render each field under its spec key name, JSON-quoted', () => {
+    const out = formatSpecFieldsYaml({
+      license: 'Apache-2.0',
+      compatibility: 'Requires Node 22+',
+      allowedTools: 'Bash(rm:*)',
+    });
+
+    expect(out).toContain('\nlicense: "Apache-2.0"');
+    expect(out).toContain('\ncompatibility: "Requires Node 22+"');
+    // Spec key is hyphenated on disk even though the IR field is camelCase.
+    expect(out).toContain('\nallowed-tools: "Bash(rm:*)"');
+  });
+
+  it('should render specMetadata as a nested map under the spec metadata key', () => {
+    const out = formatSpecFieldsYaml({ specMetadata: { author: 'Texarkanine', version: '1.0' } });
+
+    expect(out).toBe('\nmetadata:\n  "author": "Texarkanine"\n  "version": "1.0"');
+  });
+
+  it('should omit an empty specMetadata rather than emit a dangling key', () => {
+    expect(formatSpecFieldsYaml({ specMetadata: {} })).toBe('');
+  });
+
+  it('should round-trip through extractSpecFields', () => {
+    const fields = {
+      license: 'MIT',
+      compatibility: 'Any: harness',
+      specMetadata: { author: 'a "quoted" name' },
+      allowedTools: 'Bash(git:*) Read',
+    };
+
+    const doc = `---\nname: "x"\ndescription: "y"${formatSpecFieldsYaml(fields)}\n---\n\nbody\n`;
+    const parsed = parseSkillFrontmatter(doc);
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+
+    const { frontmatter } = parsed.skill;
+    expect(frontmatter.license).toBe('MIT');
+    expect(frontmatter.compatibility).toBe('Any: harness');
+    expect(frontmatter.specMetadata).toEqual({ author: 'a "quoted" name' });
+    expect(frontmatter.allowedTools).toBe('Bash(git:*) Read');
+  });
+});
 
 describe('parseSkillFrontmatter', () => {
   it('should parse valid AgentSkills.io frontmatter', () => {
@@ -119,6 +176,175 @@ Line 3`;
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.skill.content).toBe('Line 1\nLine 2\n\nLine 3');
+    }
+  });
+});
+
+describe('parseSkillFrontmatter — AgentSkills.io spec fields', () => {
+  /**
+   * The optional spec fields (`license`, `compatibility`, `metadata`,
+   * `allowed-tools`) were historically discarded by this parser. They must now
+   * be read, with `metadata` landing on `specMetadata` to avoid colliding with
+   * the IR's unrelated transient `metadata`.
+   */
+
+  it('should parse all four spec fields', () => {
+    const content = `---
+name: deploy
+description: Deploy the application
+license: Apache-2.0
+compatibility: Requires Python 3.14+ and uv
+metadata:
+  author: Texarkanine
+  version: "1.2.0"
+allowed-tools: Bash(git:*) Bash(jq:*) Read
+---
+
+Deploy instructions.`;
+
+    const result = parseSkillFrontmatter(content);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const fm = result.skill.frontmatter;
+      expect(fm.license).toBe('Apache-2.0');
+      expect(fm.compatibility).toBe('Requires Python 3.14+ and uv');
+      expect(fm.specMetadata).toEqual({ author: 'Texarkanine', version: '1.2.0' });
+      expect(fm.allowedTools).toBe('Bash(git:*) Bash(jq:*) Read');
+    }
+  });
+
+  it('should leave all four undefined when absent', () => {
+    const content = `---
+name: plain
+description: A plain skill
+---
+
+Content.`;
+
+    const result = parseSkillFrontmatter(content);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const fm = result.skill.frontmatter;
+      expect(fm.license).toBeUndefined();
+      expect(fm.compatibility).toBeUndefined();
+      expect(fm.specMetadata).toBeUndefined();
+      expect(fm.allowedTools).toBeUndefined();
+    }
+  });
+
+  it('should preserve allowed-tools as the exact authored string', () => {
+    const content = `---
+name: risky
+description: Risky skill
+allowed-tools: Bash(git:*)   Read Bash(jq:*)
+---
+
+Content.`;
+
+    const result = parseSkillFrontmatter(content);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      // Neither split nor reordered nor whitespace-normalized.
+      expect(result.skill.frontmatter.allowedTools).toBe('Bash(git:*)   Read Bash(jq:*)');
+    }
+  });
+
+  it('should coerce non-string metadata values to strings', () => {
+    const content = `---
+name: coerce
+description: Coercion test
+metadata:
+  version: 1.0
+  stable: true
+  count: 3
+---
+
+Content.`;
+
+    const result = parseSkillFrontmatter(content);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.skill.frontmatter.specMetadata).toEqual({
+        version: '1',
+        stable: 'true',
+        count: '3',
+      });
+    }
+  });
+
+  it('should omit empty metadata rather than returning an empty map', () => {
+    const content = `---
+name: empty
+description: Empty metadata
+metadata: {}
+---
+
+Content.`;
+
+    const result = parseSkillFrontmatter(content);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.skill.frontmatter.specMetadata).toBeUndefined();
+    }
+  });
+
+  it('should keep metadata keys that collide with reserved names nested', () => {
+    const content = `---
+name: collide
+description: Real description
+metadata:
+  name: not-the-skill-name
+  description: not-the-skill-description
+---
+
+Content.`;
+
+    const result = parseSkillFrontmatter(content);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      const fm = result.skill.frontmatter;
+      expect(fm.name).toBe('collide');
+      expect(fm.description).toBe('Real description');
+      expect(fm.specMetadata).toEqual({
+        name: 'not-the-skill-name',
+        description: 'not-the-skill-description',
+      });
+    }
+  });
+
+  it('should pass through a license containing punctuation', () => {
+    const content = `---
+name: proprietary
+description: Proprietary skill
+license: Proprietary. LICENSE.txt has complete terms
+---
+
+Content.`;
+
+    const result = parseSkillFrontmatter(content);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.skill.frontmatter.license).toBe(
+        'Proprietary. LICENSE.txt has complete terms'
+      );
+    }
+  });
+
+  it('should pass through an over-long compatibility without truncating', () => {
+    // a16n converts; it does not validate the spec's 500-character limit.
+    const long = 'x'.repeat(900);
+    const content = `---
+name: long
+description: Long compatibility
+compatibility: ${long}
+---
+
+Content.`;
+
+    const result = parseSkillFrontmatter(content);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.skill.frontmatter.compatibility).toBe(long);
     }
   });
 });
@@ -274,6 +500,50 @@ describe('writeAgentSkillIO', () => {
     expect(exists).toBe(true);
   });
 
+  it('should write spec fields using spec key names', async () => {
+    const frontmatter: ParsedSkillFrontmatter = {
+      name: 'deploy',
+      description: 'Deploy the application',
+      license: 'Apache-2.0',
+      compatibility: 'Requires Python 3.14+ and uv',
+      specMetadata: { author: 'Texarkanine', version: '1.2.0' },
+      allowedTools: 'Bash(git:*) Bash(jq:*) Read',
+    };
+
+    const outputDir = path.join(testDir, 'deploy');
+    await writeAgentSkillIO(outputDir, frontmatter, 'Content', {});
+
+    const skillContent = await fs.readFile(path.join(outputDir, 'SKILL.md'), 'utf-8');
+
+    expect(skillContent).toContain('license: Apache-2.0');
+    expect(skillContent).toContain('compatibility: Requires Python 3.14+ and uv');
+    expect(skillContent).toContain('metadata:');
+    expect(skillContent).toContain('author: Texarkanine');
+    // YAML-quotes the value; the round-trip test pins that it reads back intact.
+    expect(skillContent).toMatch(/^allowed-tools: .*Bash\(git:\*\) Bash\(jq:\*\) Read/m);
+
+    // Spec key names, never the IR property names.
+    expect(skillContent).not.toContain('allowedTools');
+    expect(skillContent).not.toContain('specMetadata');
+  });
+
+  it('should omit spec fields that are absent', async () => {
+    const frontmatter: ParsedSkillFrontmatter = {
+      name: 'plain',
+      description: 'Plain skill',
+    };
+
+    const outputDir = path.join(testDir, 'plain');
+    await writeAgentSkillIO(outputDir, frontmatter, 'Content', {});
+
+    const skillContent = await fs.readFile(path.join(outputDir, 'SKILL.md'), 'utf-8');
+
+    expect(skillContent).not.toContain('license:');
+    expect(skillContent).not.toContain('compatibility:');
+    expect(skillContent).not.toContain('metadata:');
+    expect(skillContent).not.toContain('allowed-tools:');
+  });
+
   it('should prevent path traversal attacks in resource writes', async () => {
     const outputDir = path.join(testDir, 'safe');
     const frontmatter: ParsedSkillFrontmatter = {
@@ -368,6 +638,29 @@ Simple content.`
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error).toContain('SKILL.md');
+    }
+  });
+
+  it('should read spec fields written by writeAgentSkillIO', async () => {
+    const skillDir = path.join(testDir, 'roundtrip');
+    const frontmatter: ParsedSkillFrontmatter = {
+      name: 'roundtrip',
+      description: 'Round-trip skill',
+      resources: ['note.md'],
+      disableModelInvocation: true,
+      license: 'Proprietary. LICENSE.txt has complete terms',
+      compatibility: 'Requires Python 3.14+ and uv',
+      specMetadata: { author: 'Texarkanine', version: '1.2.0' },
+      allowedTools: 'Bash(git:*) Bash(jq:*) Read',
+    };
+
+    await writeAgentSkillIO(skillDir, frontmatter, 'Body text.', { 'note.md': 'Note' });
+
+    const result = await readAgentSkillIO(skillDir);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.skill.frontmatter).toEqual(frontmatter);
+      expect(result.skill.content).toBe('Body text.');
     }
   });
 
