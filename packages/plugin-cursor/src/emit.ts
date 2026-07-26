@@ -9,9 +9,11 @@ import {
   type FileRule,
   type SimpleAgentSkill,
   type AgentSkillIO,
+  type AgentSkillSpecFields,
   type Workspace,
   CustomizationType,
   WarningCode,
+  formatSpecFieldsYaml,
   isGlobalPrompt,
   isFileRule,
   isSimpleAgentSkill,
@@ -22,6 +24,41 @@ import {
   normalizeReservedRuleStem,
   resolveRoot,
 } from '@a16njs/models';
+import { resolveSkillFieldSupport, type CursorSkillSurface } from './skill-field-support.js';
+
+/**
+ * Resolve an item's AgentSkills.io spec fields for a given output surface,
+ * recording the single warning the disposition table calls for.
+ *
+ * Every Cursor emit site routes its spec fields through here so that "what gets
+ * written" and "what gets reported" cannot drift apart: the table decides both,
+ * and the caller only has to splice the returned YAML into its frontmatter.
+ * `.mdc` callers get `''` back and exist purely for the warning.
+ *
+ * @param surface - The output surface being written
+ * @param item - The item being emitted, carrying spec fields and a source path
+ * @param displayName - Skill name, for the warning message
+ * @param warnings - Emit-level warning list, appended to in place
+ * @returns YAML frontmatter lines to append, or `''` if nothing is written
+ */
+function specFieldsFor(
+  surface: CursorSkillSurface,
+  item: AgentSkillSpecFields & { sourcePath?: string },
+  displayName: string,
+  warnings: Warning[]
+): string {
+  const { fields, warning } = resolveSkillFieldSupport(surface, item, displayName);
+
+  if (warning) {
+    warnings.push({
+      code: warning.code,
+      message: warning.message,
+      sources: item.sourcePath ? [item.sourcePath] : [],
+    });
+  }
+
+  return formatSpecFieldsYaml(fields);
+}
 
 /**
  * Sanitize a source file path to a safe *rule filename* stem, preserving
@@ -142,15 +179,18 @@ ${content}
 /**
  * Format SimpleAgentSkill as a SKILL.md file.
  * Used for .cursor/skills/ emission (Phase 7).
+ *
+ * @param skill - The skill to format
+ * @param specFields - Rendered AgentSkills.io spec-field YAML, from {@link specFieldsFor}
  */
-function formatAgentSkillMd(skill: import('@a16njs/models').SimpleAgentSkill): string {
+function formatAgentSkillMd(skill: SimpleAgentSkill, specFields: string): string {
   // skill.name is the canonical invocation name; metadata.name may carry original display name from source
   const safeName = JSON.stringify(skill.name);
   const safeDescription = JSON.stringify(skill.description);
 
   return `---
 name: ${safeName}
-description: ${safeDescription}
+description: ${safeDescription}${specFields}
 ---
 
 ${skill.content}
@@ -165,9 +205,10 @@ ${skill.content}
  * Matches the Claude Code reference implementation for consistency.
  *
  * @param prompt - The ManualPrompt to format
+ * @param specFields - Rendered AgentSkills.io spec-field YAML, from {@link specFieldsFor}
  * @returns Formatted SKILL.md content with frontmatter
  */
-function formatManualPromptAsSkill(prompt: ManualPrompt): string {
+function formatManualPromptAsSkill(prompt: ManualPrompt, specFields: string): string {
   const safeName = JSON.stringify(prompt.promptName);
   const description = `Invoke with /${prompt.promptName}`;
   const safeDescription = JSON.stringify(description);
@@ -175,7 +216,7 @@ function formatManualPromptAsSkill(prompt: ManualPrompt): string {
   return `---
 name: ${safeName}
 description: ${safeDescription}
-disable-model-invocation: true
+disable-model-invocation: true${specFields}
 ---
 
 ${prompt.content}
@@ -237,10 +278,11 @@ async function emitAgentSkillIO(
       const filepath = path.join(skillDir, 'SKILL.md');
       const safeName = JSON.stringify(skill.name);
       const safeDescription = JSON.stringify(skill.description);
+      const specFields = specFieldsFor('skill-md', skill, skill.name, warnings);
       const content = `---
 name: ${safeName}
 description: ${safeDescription}
-disable-model-invocation: true
+disable-model-invocation: true${specFields}
 ---
 
 ${skill.content}
@@ -279,6 +321,8 @@ ${skill.content}
       }
 
       const filepath = path.join(rulesDir, filename);
+      // Rule files have a fixed schema; this call exists to report the loss.
+      specFieldsFor('mdc', skill, skill.name, warnings);
       const content = formatAgentSkillMdc(skill.content, skill.description);
 
       let isNewFile = true;
@@ -333,6 +377,7 @@ description: ${safeDescription}`;
       frontmatter += '\ndisable-model-invocation: true';
     }
 
+    frontmatter += specFieldsFor('skill-md', skill, skill.name, warnings);
     frontmatter += '\n---';
 
     const skillContent = `${frontmatter}\n\n${skill.content}\n`;
@@ -629,7 +674,10 @@ export async function emit(
     }
 
     const filepath = path.join(skillDir, 'SKILL.md');
-    const content = formatAgentSkillMd(skill);
+    const content = formatAgentSkillMd(
+      skill,
+      specFieldsFor('skill-md', skill, skillName, warnings)
+    );
 
     // Check if file exists before writing
     let isNewFile = true;
@@ -739,7 +787,10 @@ export async function emit(
     }
 
     const filepath = path.join(targetDir, 'SKILL.md');
-    const content = formatManualPromptAsSkill(prompt);
+    const content = formatManualPromptAsSkill(
+      prompt,
+      specFieldsFor('skill-md', prompt, prompt.promptName, warnings)
+    );
 
     let isNewFile = true;
     try {
