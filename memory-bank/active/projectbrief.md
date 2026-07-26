@@ -24,9 +24,14 @@ A Cursor skill without `paths:` continues to convert as today (including AgentSk
 ## Constraints
 
 1. Decision settled by operator: **REFUSE**, not WARN / Approximated / Skipped-with-emit. Dropping `paths:` widens scope; that must not happen.
-2. `paths:` is Category A (harness extension outside AgentSkills.io). Do not pretend it is a portable spec field unless a later design explicitly models it for round-trip survival; this task's acceptance is refusal, not fidelity-preserving emit.
-3. TDD throughout; prefer the existing unsupported / skip / warning machinery over new frameworks.
-4. Follow-on from [#143](https://github.com/Texarkanine/a16n/issues/143) / [#148](https://github.com/Texarkanine/a16n/issues/148); do not reopen Category B spec-field work.
+2. Do **not** map skill `paths:` to FileRule: a globbed rule is always in scope on match; skill `paths:` only surfaces the description. That is a different activation contract (also a widening).
+3. `paths:` is Category A (harness extension outside AgentSkills.io). Acceptance is refusal, not fidelity-preserving emit.
+4. TDD throughout; prefer the existing unsupported / skip / warning machinery over new frameworks.
+5. Follow-on from [#143](https://github.com/Texarkanine/a16n/issues/143) / [#148](https://github.com/Texarkanine/a16n/issues/148); do not reopen Category B spec-field work.
+
+## Rework
+
+Briefly tried FileRule translation; reverted. Refuse-all remains correct. Integration coverage needs only the **negative** refuse case (a positive FileRule conversion test is not applicable).
 
 ## Acceptance Criteria
 
