@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: issue-142-spec-compliance-gates
-**Phase:** REFLECT - COMPLETE (PR #145 review addressed; awaiting archive)
+**Phase:** ARCHIVE - IN-PROGRESS
 
 ## What Was Done
 - Pre-verified issue #142's premise against current primary sources instead of taking it at face value. Result: the premise inverts.

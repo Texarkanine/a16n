@@ -210,3 +210,8 @@ Realign a16n's conversion gates with what the AgentSkills.io spec and each harne
     - **"Fails its own test case" is the cheapest possible rebuttal, and it is only available if you actually run the suggestion.** The reviewer even supplied the assertion it would have failed.
     - **Historical records and archive-feeding records are different things, and the distinction is finer than "don't rewrite history."** Wrong *facts* (a bad sum, a self-contradicting summary) must be fixed because the archive inherits them. Wrong-in-hindsight *intent* (a requirement that turned out too broad) must not be, because the divergence is the finding. I had been treating both as untouchable.
     - **Deferring on "this is a decision, not a correction" can smuggle in a real correction.** The `pnpm lint` claim bundled two things: a false statement about what validation runs, and an open question about whether linting should exist. The first was correctable all along; I let the second hold it hostage.
+
+## 2026-07-25 - ARCHIVE - IN-PROGRESS
+
+* Work completed
+    - Reflect phase complete; PR #145 review feedback addressed. Entering archive.
