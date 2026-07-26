@@ -16,3 +16,34 @@ Bring a16n's skill IR up to date with the current AgentSkills.io specification, 
 * Insights
     - The issue names three missing fields; the fresh spec read finds four. `metadata` is the one the issue missed, and it is also the one with a naming conflict against an existing IR concept — the IR's `metadata` is transient and never serialized (`systemPatterns.md`), which is the opposite of what the spec's `metadata` requires.
     - `allowed-tools` is flagged experimental by the spec but is the highest-stakes field here: dropping it makes the emitted artifact more permissive than authored, which the recorded disposition rule says must fail closed.
+
+## 2026-07-25 - CREATIVE - COMPLETE
+
+Three open questions explored, all resolved at high confidence.
+
+* Work completed
+    - `creative-metadata-collision.md` — how to model the spec's `metadata` against the IR's existing transient `metadata`.
+    - `creative-ir-field-placement.md` — which IR types carry the new fields.
+    - `creative-emit-disposition.md` — what each emit surface does with each field.
+* Decisions made
+    - OQ1: flat `specMetadata?: Record<string, string>`; do not rename `AgentCustomization.metadata`.
+    - OQ2: shared `AgentSkillSpecFields` extended by `SimpleAgentSkill`, `AgentSkillIO`, and `ManualPrompt`; `allowedTools` stays one space-separated string.
+    - OQ3: behavior-keyed disposition; `allowed-tools`→Cursor is written and raises one `Skipped`; inert fields silent; `.mdc` route raises one warning per item.
+    - Deferred with reasons recorded: `description` loss on `ManualPrompt`, Cursor `paths:` on skills, spec-limit validation.
+* Insights
+    - Measuring beat estimating twice. The `metadata` rename looked defensible until counted (~326 sites, public 1.0.0 break); the IR version bump looked risky until counted (18 literals, no fixtures).
+    - The collision that framed OQ1 turned out to exist only in TypeScript — transient `metadata` never reaches disk, so the file format was never actually contested. Naming the layer a conflict lives in dissolved most of it.
+    - `Skipped` does not mean "no output" — it means "do not delete the source." That single verified fact is what let OQ3 preserve the author's bytes *and* fail closed, instead of trading one against the other.
+    - An invariant carried forward from #142 was over-general: spec-only warning wording is a constraint on `discover()` because it is target-unaware, not a universal rule. Emit may name the target.
+
+## 2026-07-25 - PLAN - COMPLETE
+
+* Work completed
+    - Full component analysis with a pinned field-support matrix (spec vs. Claude vs. Cursor, sourced from freshly fetched docs) and a dataflow diagram of where skill frontmatter travels today.
+    - 12-step ordered TDD implementation plan, test plan with edge cases, challenges, and pre-mortem written to `tasks.md`.
+* Decisions made
+    - Sequence models → claude → cursor → a16n → CLI → docs, so the riskiest step (cursor parser swap) lands alone and late.
+    - `plugin-agentsmd` explicitly out of scope; IR version bumps to `v1beta3`.
+    - The OQ3 disposition table gets encoded in exactly one module, which is also the mitigation if its central premise is wrong.
+* Insights
+    - The pre-mortem's sharpest finding was not a risk but a layering doubt: `ManualPrompt` swallowing `description` suggests skill identity is modelled by routing rather than by type. Scoped out, but it is the thing most likely to make this fix look partial in hindsight.
