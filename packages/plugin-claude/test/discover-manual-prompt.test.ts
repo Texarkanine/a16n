@@ -44,4 +44,28 @@ describe('Claude ManualPrompt Discovery', () => {
       expect(skills).toHaveLength(1);
     });
   });
+
+  describe('AgentSkills.io spec fields', () => {
+    /**
+     * The highest-stakes discover case: a `disable-model-invocation` skill
+     * classifies as ManualPrompt, so if ManualPrompt did not carry the spec
+     * fields, a manual skill's `allowed-tools` would be lost with no warning
+     * anywhere in the pipeline.
+     */
+    it('should populate all four spec fields on a ManualPrompt', async () => {
+      const root = path.join(fixturesDir, 'claude-skills-spec-fields/from-claude');
+      const result = await claudePlugin.discover(root);
+
+      const prompt = result.items.find(
+        i => i.type === CustomizationType.ManualPrompt
+      ) as ManualPrompt;
+
+      expect(prompt).toBeDefined();
+      expect(prompt.promptName).toBe('manual-spec');
+      expect(prompt.license).toBe('Proprietary. LICENSE.txt has complete terms');
+      expect(prompt.compatibility).toBe('Requires a POSIX shell');
+      expect(prompt.specMetadata).toEqual({ author: 'Texarkanine' });
+      expect(prompt.allowedTools).toBe('Bash(rm:*)');
+    });
+  });
 });

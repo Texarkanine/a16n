@@ -15,6 +15,7 @@ import {
   CustomizationType,
   WarningCode,
   createId,
+  extractSpecFields,
   resolveRoot,
   CURRENT_IR_VERSION,
   inferGlobalPromptName,
@@ -399,6 +400,7 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
       const { frontmatter, data, body } = parsedSkill;
       const displayName = frontmatter.name || dirName;
       const itemsBefore = items.length;
+      const specFields = extractSpecFields(data);
       
       // Read all other files in the skill directory
       const files = await readSkillFiles(skillDir);
@@ -447,6 +449,7 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
           resources: Object.keys(files),
           files,
           metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
+          ...specFields,
         };
         items.push(agentSkillIO);
       } else if (frontmatter.disableModelInvocation === true) {
@@ -458,6 +461,7 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
           content: body,
           promptName: dirName,
           metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
+          ...specFields,
         };
         items.push(prompt);
       } else if (frontmatter.description) {
@@ -470,6 +474,7 @@ export async function discover(rootOrWorkspace: string | Workspace): Promise<Dis
           name: dirName,
           description: frontmatter.description,
           metadata: frontmatter.name !== undefined ? { name: frontmatter.name } : {},
+          ...specFields,
         };
         items.push(skill);
       } else {

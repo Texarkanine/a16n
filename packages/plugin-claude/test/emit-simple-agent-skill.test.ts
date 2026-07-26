@@ -192,5 +192,87 @@ describe('Claude SimpleAgentSkill Emission', () => {
       expect(content).toContain('Use JWT.');
     });
   });
+
+  describe('AgentSkills.io spec fields', () => {
+    /**
+     * Claude natively honours all four spec fields, so emission writes them
+     * verbatim and raises no warning — nothing is lost.
+     */
+    function skillWith(fields: Partial<SimpleAgentSkill>): SimpleAgentSkill {
+      return {
+        id: createId(CustomizationType.SimpleAgentSkill, '.claude/skills/deploy/SKILL.md'),
+        type: CustomizationType.SimpleAgentSkill,
+        name: 'deploy',
+        sourcePath: '.claude/skills/deploy/SKILL.md',
+        content: 'Deploy the app.',
+        description: 'Deploy patterns',
+        metadata: {},
+        ...fields,
+      };
+    }
+
+    async function emitAndRead(skill: SimpleAgentSkill): Promise<string> {
+      await claudePlugin.emit([skill], tempDir);
+      return fs.readFile(
+        path.join(tempDir, '.claude', 'skills', 'deploy', 'SKILL.md'),
+        'utf-8'
+      );
+    }
+
+    it('should write all four spec fields with spec key names', async () => {
+      const content = await emitAndRead(
+        skillWith({
+          license: 'Apache-2.0',
+          compatibility: 'Requires Python 3.14+ and uv',
+          specMetadata: { author: 'Texarkanine', version: '1.2.0' },
+          allowedTools: 'Bash(git:*) Bash(jq:*) Read',
+        })
+      );
+
+      expect(content).toContain('license: "Apache-2.0"');
+      expect(content).toContain('compatibility: "Requires Python 3.14+ and uv"');
+      expect(content).toContain('metadata:');
+      expect(content).toContain('  "author": "Texarkanine"');
+      expect(content).toContain('  "version": "1.2.0"');
+      expect(content).toContain('allowed-tools: "Bash(git:*) Bash(jq:*) Read"');
+
+      // Spec key names, never the IR property names.
+      expect(content).not.toContain('allowedTools');
+      expect(content).not.toContain('specMetadata');
+    });
+
+    it('should raise zero warnings when writing spec fields', async () => {
+      const result = await claudePlugin.emit(
+        [
+          skillWith({
+            license: 'Apache-2.0',
+            compatibility: 'Requires Python 3.14+ and uv',
+            specMetadata: { author: 'Texarkanine' },
+            allowedTools: 'Bash(rm:*)',
+          }),
+        ],
+        tempDir
+      );
+
+      expect(result.warnings).toEqual([]);
+    });
+
+    it('should write no stray keys when the spec fields are absent', async () => {
+      const content = await emitAndRead(skillWith({}));
+
+      expect(content).not.toContain('license:');
+      expect(content).not.toContain('compatibility:');
+      expect(content).not.toContain('metadata:');
+      expect(content).not.toContain('allowed-tools:');
+    });
+
+    it('should survive YAML quoting for a license containing punctuation', async () => {
+      const content = await emitAndRead(
+        skillWith({ license: 'Proprietary. LICENSE.txt has complete terms' })
+      );
+
+      expect(content).toContain('license: "Proprietary. LICENSE.txt has complete terms"');
+    });
+  });
 });
 

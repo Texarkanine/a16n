@@ -2,6 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
   type AgentCustomization,
+  type AgentSkillSpecFields,
   type ManualPrompt,
   type EmitResult,
   type EmitOptions,
@@ -180,6 +181,39 @@ ${pathsArray}
 }
 
 /**
+ * Render the optional AgentSkills.io spec fields as YAML frontmatter lines.
+ *
+ * Returns lines ready to append to a frontmatter block (each prefixed with a
+ * newline), or an empty string when the item carries none of them. Claude
+ * honours all four natively, so they are always written and never warned about.
+ *
+ * Values are JSON-quoted, matching how this emitter already quotes `name` and
+ * `description`: JSON string syntax is a subset of YAML's double-quoted scalar
+ * style, so it is safe for punctuation, colons, and embedded quotes alike.
+ *
+ * @param fields - The spec fields carried by the item being emitted
+ * @returns YAML lines to append, or `''` if there is nothing to write
+ */
+function formatSpecFields(fields: AgentSkillSpecFields): string {
+  let out = '';
+
+  if (fields.license) out += `\nlicense: ${JSON.stringify(fields.license)}`;
+  if (fields.compatibility) out += `\ncompatibility: ${JSON.stringify(fields.compatibility)}`;
+
+  const entries = Object.entries(fields.specMetadata ?? {});
+  if (entries.length > 0) {
+    out += '\nmetadata:';
+    for (const [key, value] of entries) {
+      out += `\n  ${JSON.stringify(key)}: ${JSON.stringify(value)}`;
+    }
+  }
+
+  if (fields.allowedTools) out += `\nallowed-tools: ${JSON.stringify(fields.allowedTools)}`;
+
+  return out;
+}
+
+/**
  * Format a skill file with YAML frontmatter.
  * Name and description are quoted to handle YAML special characters.
  */
@@ -190,7 +224,7 @@ function formatSkill(skill: SimpleAgentSkill): string {
   const safeName = JSON.stringify(displayName);
   return `---
 name: ${safeName}
-description: ${safeDescription}
+description: ${safeDescription}${formatSpecFields(skill)}
 ---
 
 ${skill.content}
@@ -210,7 +244,7 @@ function formatManualPromptAsSkill(prompt: ManualPrompt): string {
   return `---
 name: ${safeName}
 description: ${safeDescription}
-disable-model-invocation: true
+disable-model-invocation: true${formatSpecFields(prompt)}
 ---
 
 ${prompt.content}
@@ -262,6 +296,7 @@ description: ${safeDescription}`;
     frontmatter += '\ndisable-model-invocation: true';
   }
 
+  frontmatter += formatSpecFields(skill);
   frontmatter += '\n---';
 
   const skillContent = `${frontmatter}\n\n${skill.content}\n`;

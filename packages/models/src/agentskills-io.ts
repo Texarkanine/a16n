@@ -50,6 +50,32 @@ function coerceSpecMetadata(value: unknown): Record<string, string> | undefined 
 }
 
 /**
+ * Extract the optional AgentSkills.io spec fields from parsed YAML frontmatter.
+ *
+ * Shared by every plugin that reads a `SKILL.md`, so the spec key names and the
+ * `metadata` coercion rule are defined exactly once.
+ *
+ * @param data - Frontmatter key-values as produced by gray-matter
+ * @returns Only the spec fields that were present and well-formed
+ *
+ * @example
+ * extractSpecFields({ license: 'MIT', 'allowed-tools': 'Read' })
+ * // { license: 'MIT', allowedTools: 'Read' }
+ */
+export function extractSpecFields(data: Record<string, unknown>): AgentSkillSpecFields {
+  const fields: AgentSkillSpecFields = {};
+
+  if (typeof data.license === 'string') fields.license = data.license;
+  if (typeof data.compatibility === 'string') fields.compatibility = data.compatibility;
+  if (typeof data['allowed-tools'] === 'string') fields.allowedTools = data['allowed-tools'];
+
+  const specMetadata = coerceSpecMetadata(data.metadata);
+  if (specMetadata) fields.specMetadata = specMetadata;
+
+  return fields;
+}
+
+/**
  * A parsed AgentSkills.io skill with content and frontmatter.
  */
 export interface ParsedSkill {
@@ -119,22 +145,7 @@ export function parseSkillFrontmatter(
       frontmatter.disableModelInvocation = data['disable-model-invocation'];
     }
 
-    if (typeof data.license === 'string') {
-      frontmatter.license = data.license;
-    }
-
-    if (typeof data.compatibility === 'string') {
-      frontmatter.compatibility = data.compatibility;
-    }
-
-    const specMetadata = coerceSpecMetadata(data.metadata);
-    if (specMetadata) {
-      frontmatter.specMetadata = specMetadata;
-    }
-
-    if (typeof data['allowed-tools'] === 'string') {
-      frontmatter.allowedTools = data['allowed-tools'];
-    }
+    Object.assign(frontmatter, extractSpecFields(data));
 
     return {
       success: true,

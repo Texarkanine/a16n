@@ -196,12 +196,12 @@ Ordered fewest-dependencies-first: models → claude (already gray-matter, lowes
     - b. *(no interface to stub)*
     - c. Run — red.
     - d. Set `CURRENT_IR_VERSION = 'v1beta3'`, update its doc comment to state what v1beta3 adds, and sweep the remaining `v1beta2` literals in `plugin-a16n` src/tests/README and `packages/docs/docs/plugin-a16n/index.md`. Green.
-4. **`plugin-claude` discover.**
+4. ✅ **`plugin-claude` discover.**
     - a. Add cases to `test/discover-simple-agent-skill.test.ts`, `test/discover-agent-skill-io.test.ts`, and `test/discover-manual-prompt.test.ts` (the `ManualPrompt` + `allowed-tools` case is the critical one); add fixture `test/fixtures/claude-skills-spec-fields/`; add the "spec fields raise zero warnings" regression case.
     - b. Extend the local `SkillFrontmatter` interface only.
     - c. Run — red.
     - d. Extract the four in `parseSkillFrontmatter()` and populate them on all three constructed item types. Green.
-5. **`plugin-claude` emit.**
+5. ✅ **`plugin-claude` emit.**
     - a. Add cases to `test/emit-simple-agent-skill.test.ts`, `test/emit-agent-skill-io.test.ts`, `test/emit-manual-prompt.test.ts`: all four present → written with spec key names, zero warnings; none present → no stray keys; `license` containing punctuation survives quoting.
     - b. Stub a frontmatter-builder helper in `src/emit.ts` returning the current output shape.
     - c. Run — red.

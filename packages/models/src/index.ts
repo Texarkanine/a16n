@@ -59,6 +59,7 @@ export { type Workspace, type WorkspaceEntry, resolveRoot, LocalWorkspace, toWor
 export {
   type ParsedSkillFrontmatter,
   type ParsedSkill,
+  extractSpecFields,
   parseSkillFrontmatter,
   readSkillFiles,
   writeAgentSkillIO,

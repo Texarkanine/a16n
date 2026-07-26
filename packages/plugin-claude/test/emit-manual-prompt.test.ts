@@ -339,5 +339,37 @@ describe('Claude ManualPrompt Emission', () => {
       expect(content).toContain('Content');
     });
   });
+
+  describe('AgentSkills.io spec fields', () => {
+    it('should write all four spec fields on a ManualPrompt', async () => {
+      const models: ManualPrompt[] = [
+        {
+          id: createId(CustomizationType.ManualPrompt, '.claude/skills/clean/SKILL.md'),
+          type: CustomizationType.ManualPrompt,
+          sourcePath: '.claude/skills/clean/SKILL.md',
+          content: 'Clean the workspace.',
+          promptName: 'clean',
+          metadata: {},
+          license: 'MIT',
+          compatibility: 'Requires a POSIX shell',
+          specMetadata: { author: 'Texarkanine' },
+          allowedTools: 'Bash(rm:*)',
+        },
+      ];
+
+      const result = await claudePlugin.emit(models, tempDir);
+
+      const skillPath = path.join(tempDir, '.claude', 'skills', 'clean', 'SKILL.md');
+      const content = await fs.readFile(skillPath, 'utf-8');
+
+      expect(content).toContain('disable-model-invocation: true');
+      expect(content).toContain('license: "MIT"');
+      expect(content).toContain('compatibility: "Requires a POSIX shell"');
+      expect(content).toContain('metadata:');
+      expect(content).toContain('  "author": "Texarkanine"');
+      expect(content).toContain('allowed-tools: "Bash(rm:*)"');
+      expect(result.warnings).toEqual([]);
+    });
+  });
 });
 
