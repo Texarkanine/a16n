@@ -2,6 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/a16n.svg)](https://www.npmjs.com/package/a16n)
 [![codecov](https://codecov.io/github/Texarkanine/a16n/graph/badge.svg)](https://codecov.io/github/Texarkanine/a16n)
+[![REUSE status](https://api.reuse.software/badge/github.com/Texarkanine/a16n)](https://api.reuse.software/info/github.com/Texarkanine/a16n)
 
 **Agent customization portability for AI coding tools.**
 
