@@ -24,7 +24,7 @@ Never invent filenames, rewrite note bytes, or delete memory files by hand. The 
 
 # Agent context
 
-Tracked agent-facing project knowledge lives under `memory-bank/`. Prefer those files over inventing project facts. SumMem is committed concurrent memory for durable repository facts; Niko's `memory-bank/` is task-scoped working documentation.
+Tracked agent-facing project knowledge lives under `memory-bank/`. Prefer those files over inventing project facts.
 
 ## Persistent files
 
@@ -42,4 +42,4 @@ Completed work is summarized under `memory-bank/archive/<kind>/YYYYMMDD-<task-id
 
 ## When to load
 
-When the task needs project, architecture, or stack context, read the relevant persistent file(s). Do not load every memory-bank file on every chat. Package-scoped SumMem facts live in the cataloged stores under `packages/`.
+When the task needs project, architecture, or stack context, read the relevant persistent file(s). Do not load every memory-bank file on every chat. The algorithm and store layout live in `docs/architecture/index.md`.
