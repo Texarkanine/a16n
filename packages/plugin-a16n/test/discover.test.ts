@@ -7,7 +7,6 @@ import {
   CustomizationType,
   CURRENT_IR_VERSION,
   WarningCode,
-  type AgentCustomization,
   type GlobalPrompt,
   type FileRule,
   type SimpleAgentSkill,

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import { CustomizationType, CURRENT_IR_VERSION, LocalWorkspace, type IRVersion } from '@a16njs/models';
+import { CustomizationType, LocalWorkspace } from '@a16njs/models';
 import { parseIRFile } from '../src/parse.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

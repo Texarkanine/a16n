@@ -159,7 +159,7 @@ describe('A16n Plugin Emission', () => {
         },
       ];
 
-      const result = await a16nPlugin.emit(models, tempDir);
+      await a16nPlugin.emit(models, tempDir);
 
       const expectedPath = path.join(tempDir, '.a16n', 'file-rule', 'frontend', 'nested-filerule.md');
       const content = await fs.readFile(expectedPath, 'utf-8');
@@ -238,7 +238,7 @@ describe('A16n Plugin Emission', () => {
         },
       ];
 
-      const result = await a16nPlugin.emit(models, tempDir);
+      await a16nPlugin.emit(models, tempDir);
 
       const expectedPath = path.join(tempDir, '.a16n', 'simple-agent-skill', 'deploy.md');
       const content = await fs.readFile(expectedPath, 'utf-8');

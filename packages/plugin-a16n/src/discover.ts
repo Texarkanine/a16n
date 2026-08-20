@@ -34,7 +34,6 @@ import {
   resolveRoot,
 } from '@a16njs/models';
 import { parseIRFile } from './parse.js';
-import { extractRelativeDir } from './utils.js';
 
 /** Set of valid CustomizationType enum values for directory name validation */
 const VALID_TYPE_DIRS = new Set<string>(Object.values(CustomizationType));
@@ -143,7 +142,6 @@ async function discoverStandardType(
   const mdFiles = await findMdFiles(typeDir, '', warnings);
 
   for (const relativeMdPath of mdFiles) {
-    const filepath = path.join(typeDir, relativeMdPath);
     const filename = path.basename(relativeMdPath);
 
     // Compute the sourcePath for parseIRFile (file path relative to project root)
