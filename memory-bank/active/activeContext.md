@@ -1,12 +1,10 @@
 # Active Context
 
 ## Current Task: issue-161 unused-vars in glob-hook and docs
-**Phase:** BUILD - COMPLETE
+**Phase:** QA - COMPLETE
 
 ## What Was Done
-- Removed unused `HookInput` type import from `packages/glob-hook/test/io.test.ts`.
-- Removed unused `dirname` import from `packages/docs/scripts/generate-cli-docs.ts`.
-- Verification: glob-hook 37/37, docs 56/56, grouped oxlint clean.
+- QA PASS on the two-line unused-import diff. No semantic issues, no fixes needed.
 
 ## Next Step
-- QA semantic review of the two-line diff.
+- REFLECT, then stop (do not archive).
