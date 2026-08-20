@@ -1,7 +1,0 @@
-PASS
-
-Validated: 2026-08-20
-Task: issue-157
-Level: 2
-Review: KISS, DRY, YAGNI, completeness, regression, integrity, documentation
-Note: Diff is deletions only in the nine planned test files. Verbose+JSON stdout assertion left intact. No product-src, config, or CI changes.
