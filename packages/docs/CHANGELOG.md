@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.14.0...@a16njs/docs@0.14.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **glob-hook:** clear leftover oxlint unused-vars in glob-hook and docs [[#161](https://github.com/Texarkanine/a16n/issues/161)] ([#168](https://github.com/Texarkanine/a16n/issues/168)) ([b6e3d46](https://github.com/Texarkanine/a16n/commit/b6e3d46ca9df1e0962ed9420c481f114dd699905))
+
 ## [0.14.0](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.13.0...@a16njs/docs@0.14.0) (2026-07-26)
 
 

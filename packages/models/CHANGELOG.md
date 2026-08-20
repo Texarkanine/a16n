@@ -1,5 +1,12 @@
 # @a16njs/models
 
+## [1.1.1](https://github.com/Texarkanine/a16n/compare/@a16njs/models@1.1.0...@a16njs/models@1.1.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **models:** clear leftover oxlint unused-vars in models and engine [[#160](https://github.com/Texarkanine/a16n/issues/160)] ([#165](https://github.com/Texarkanine/a16n/issues/165)) ([cd34396](https://github.com/Texarkanine/a16n/commit/cd343962ac18f1f09927489612d902784b71827f))
+
 ## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@1.0.0...@a16njs/models@1.1.0) (2026-07-26)
 
 
