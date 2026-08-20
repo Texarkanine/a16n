@@ -109,6 +109,19 @@ Verdict: **PASS**. No operator input required before `/niko-build`. This preflig
 - **Completeness (info, pass):** Brief requirements 1–8 map to concrete files. `pnpm exec oxlint` exits 0 on this tip. Hook file is one line; husky 9.1.7 executes it via `sh -e`.
 - **Radical innovation (applied):** Treat `HUSKY=0` as the supported way to install without taking over git hooks — CI install + CONTRIBUTING worktree note. See plan steps 3–4.
 
+## QA Results (2026-08-20)
+
+Verdict: **PASS**. No trivial fixes applied. No operator input required for QA itself (parent owns commit + `/niko-reflect`).
+
+- **KISS (pass):** Wiring is minimal — three root scripts, one-line `.husky/pre-commit`, one CI Lint step + `HUSKY=0` on install. No custom installer or indirection.
+- **DRY (pass):** Hook and CI both call `pnpm lint:check`; local autofix is `pnpm lint` / `lint:fix` alias. No duplicated oxlint invocations with divergent flags.
+- **YAGNI (pass):** `.oxlintrc.json` unchanged (correctness-only). No Vitest change-detectors. No husky `_` scaffolding committed. Other workflows left without `HUSKY=0` (preflight: out of scope; harmless on fresh GHA clones).
+- **Completeness (pass):** Brief requirements 1–8 and plan steps 1–5 match disk: scripts inverted/added, hook check-only, CI check-only after install, docs no longer say optional/not-in-CI/leftovers-expected, `prepare: husky` present, `husky@^9.1.7` in package.json + lockfile.
+- **Regression (pass):** Root script / CI step / CONTRIBUTING command-list shapes match existing DX. `turbo.json` unused `"lint": {}` untouched. No product-package behavior changed.
+- **Integrity (pass):** No debug scaffolding, no `--fix` on hook or CI, no placeholder TODOs in shipped wiring.
+- **Documentation (pass):** `CONTRIBUTING.md` and `memory-bank/techContext.md` document autofix vs check-only, CI failure on leftovers, and worktree `HUSKY=0` install note.
+- **Verification (pass):** `pnpm lint:check`, `pnpm exec oxlint`, and `pnpm lint` exit 0. Shared `core.hooksPath` unset; shared pre-commit hash still `fe889e2f6c007bfa52591a5959150d64226a822ffdfd0a6ebe32d2be60cff560`. QA did not run husky.
+
 ## Status
 
 - [x] Initialization complete
@@ -118,4 +131,5 @@ Verdict: **PASS**. No operator input required before `/niko-build`. This preflig
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA
+

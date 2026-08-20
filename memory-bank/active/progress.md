@@ -61,3 +61,15 @@ Bind existing Oxlint (correctness-as-error from #74) into local autofix, a check
     - No new Vitest cases
 * Insights
     - Isolation held: husky was not re-executed after the plan spike unset
+
+## 2026-08-20 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Semantic review of build wiring against plan/brief (KISS, DRY, YAGNI, Completeness, Regression, Integrity, Documentation)
+    - Re-verified `pnpm lint:check`, `pnpm exec oxlint`, `pnpm lint` exit 0; isolation hooksPath unset; shared pre-commit hash unchanged
+    - Wrote `memory-bank/active/.qa-validation-status` (`PASS`); recorded findings in `tasks.md`
+* Decisions made
+    - No trivial fixes needed; no substantive FAILs
+    - Did not run husky; did not commit; did not start `/niko-reflect` (parent owns those)
+* Insights
+    - Implementation matches the plan with no accretion: check-only surfaces only call `lint:check`
