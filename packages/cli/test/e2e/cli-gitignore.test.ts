@@ -116,7 +116,7 @@ describe('CLI --gitignore-output-with flag', () => {
       '---\nalwaysApply: true\n---\nSecret rule that should go to exclude.'
     );
 
-    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match'], tempDir);
+    const { exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match'], tempDir);
     
     expect(exitCode).toBe(0);
     

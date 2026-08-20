@@ -13,8 +13,6 @@ import {
   removeFromGitIgnore,
   removeFromGitExclude,
   removeFromPreCommitHook,
-  type GitIgnoreResult,
-  type IgnoreSource,
 } from '../src/git-ignore.js';
 
 describe('Git Utilities', () => {

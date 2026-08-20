@@ -5,7 +5,6 @@ import * as os from 'os';
 import type { A16nEngine, ConversionResult } from '@a16njs/engine';
 import { CustomizationType, WarningCode } from '@a16njs/models';
 import { handleConvert, type ConvertCommandOptions } from '../../src/commands/convert.js';
-import type { CommandIO } from '../../src/commands/io.js';
 import {
   isGitRepo,
   isGitIgnored,

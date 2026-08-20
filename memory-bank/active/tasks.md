@@ -97,5 +97,11 @@ No new technology - validation not required
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
 - [x] Preflight
-- [ ] Build
+- [x] Build
 - [ ] QA
+
+## Build Notes
+
+- Step 1: Oxlint baseline was already red (11 unused-vars).
+- Steps 2–4: removed the unused imports, `fixturesDir`/`fixturesDirFor`, and unused `stdout` bindings in the nine listed files.
+- Step 5: `pnpm exec oxlint packages/cli` is clean. `pnpm --filter a16n test` needed a prior `pnpm build` in this fresh worktree, then 229/229 passed.

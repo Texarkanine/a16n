@@ -38,3 +38,14 @@ Remove the CLI package's 11 unused test declarations without changing behavior, 
     - Make no plan amendments.
 * Insights
     - Neighboring e2e cases already omit unused `stdout` from `runCli` destructures, so the planned edits match existing style.
+
+## 2026-08-20 - BUILD - COMPLETE
+
+* Work completed
+    - Removed 11 unused declarations from the nine listed CLI test files.
+    - `pnpm exec oxlint packages/cli` is clean.
+    - `pnpm --filter a16n test` passed 229/229 after `pnpm build`.
+* Decisions made
+    - Followed the plan with no extra files or rule changes.
+* Insights
+    - `pnpm --filter a16n test` does not build dependencies; a fresh worktree must `pnpm build` first.

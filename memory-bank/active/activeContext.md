@@ -2,17 +2,29 @@
 
 **Current Task:** Issue #157 CLI unused-variable cleanup
 
-**Phase:** PREFLIGHT - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
 
-Preflight validated the nine-file unused-declaration plan. No new executable behavior, so Oxlint plus the existing CLI suite remain the gates. No convention, dependency, or completeness conflicts.
+Removed the 11 unused test declarations across nine CLI test files. Oxlint is clean. CLI tests pass after building workspace packages.
+
+## Files Modified
+
+- `/home/mobaxterm/.cursor/worktrees/oxlint-157-cli/a16n/packages/cli/test/create-program.test.ts`
+- `/home/mobaxterm/.cursor/worktrees/oxlint-157-cli/a16n/packages/cli/test/commands/convert.test.ts`
+- `/home/mobaxterm/.cursor/worktrees/oxlint-157-cli/a16n/packages/cli/test/commands/discover.test.ts`
+- `/home/mobaxterm/.cursor/worktrees/oxlint-157-cli/a16n/packages/cli/test/git-ignore.test.ts`
+- `/home/mobaxterm/.cursor/worktrees/oxlint-157-cli/a16n/packages/cli/test/integration/integration-split-dirs.test.ts`
+- `/home/mobaxterm/.cursor/worktrees/oxlint-157-cli/a16n/packages/cli/test/integration/integration-path-rewrite.test.ts`
+- `/home/mobaxterm/.cursor/worktrees/oxlint-157-cli/a16n/packages/cli/test/e2e/cli-convert.test.ts`
+- `/home/mobaxterm/.cursor/worktrees/oxlint-157-cli/a16n/packages/cli/test/e2e/cli-from-to-dir.test.ts`
+- `/home/mobaxterm/.cursor/worktrees/oxlint-157-cli/a16n/packages/cli/test/e2e/cli-gitignore.test.ts`
 
 ## Decisions
 
-- PASS: TDD plan encoding holds because this cleanup adds no executable behavior and schedules no change-detector tests. Oxlint is the tester (#74 lesson).
-- No in-scope plan amendments.
+- Fresh worktree tests need `pnpm build` before `pnpm --filter a16n test`; that filter does not run Turbo's `test` → `build` edge.
+- No deviations from the plan.
 
 ## Next Step
 
-Build the cleanup from the plan.
+QA review of the cleanup.
