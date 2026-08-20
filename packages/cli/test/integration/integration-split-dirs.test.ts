@@ -7,11 +7,8 @@ import * as path from 'path';
 import type { A16nEngine } from '@a16njs/engine';
 import {
   createIntegrationEngine,
-  fixturesDirFor,
   suiteTempDir,
 } from '../test-support/integration-helpers.js';
-
-const fixturesDir = fixturesDirFor(import.meta.url);
 
 describe('Integration Tests - Split Directories (--from-dir / --to-dir)', () => {
   let engine: A16nEngine;

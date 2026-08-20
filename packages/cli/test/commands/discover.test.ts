@@ -5,7 +5,6 @@ import * as os from 'os';
 import type { A16nEngine } from '@a16njs/engine';
 import { CustomizationType } from '@a16njs/models';
 import { handleDiscover, type DiscoverCommandOptions } from '../../src/commands/discover.js';
-import type { CommandIO } from '../../src/commands/io.js';
 
 /**
  * Unit tests for the discover command handler.

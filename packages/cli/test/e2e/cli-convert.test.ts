@@ -91,7 +91,7 @@ describe('CLI convert command', () => {
       '---\nalwaysApply: true\n---\n\nVerbose test'
     );
 
-    const { stdout, stderr, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--verbose'], tempDir);
+    const { stderr, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--verbose'], tempDir);
 
     expect(exitCode).toBe(0);
     expect(stderr).toContain('[verbose]');
@@ -132,7 +132,7 @@ describe('CLI convert command', () => {
       '---\nalwaysApply: true\n---\n\nRule B'
     );
 
-    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--rewrite-path-refs'], tempDir);
+    const { exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--rewrite-path-refs'], tempDir);
 
     expect(exitCode).toBe(0);
     const aContent = await fs.readFile(

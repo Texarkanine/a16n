@@ -7,7 +7,7 @@
  * maintaining a hardcoded duplicate.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Command } from 'commander';
 import { createProgram } from '../src/index.js';
 import type { CommandIO } from '../src/commands/io.js';

@@ -39,7 +39,7 @@ describe('CLI --from-dir and --to-dir flags', () => {
       '---\nalwaysApply: true\n---\n\nToDir test'
     );
 
-    const { stdout, exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--to-dir', targetDir], tempDir);
+    const { exitCode } = runCli(['convert', '--from', 'cursor', '--to', 'claude', '--to-dir', targetDir], tempDir);
 
     expect(exitCode).toBe(0);
     const claudeRulesDir = path.join(targetDir, '.claude', 'rules');

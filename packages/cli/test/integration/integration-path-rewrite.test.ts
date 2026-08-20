@@ -8,11 +8,8 @@ import type { A16nEngine } from '@a16njs/engine';
 import { WarningCode } from '@a16njs/models';
 import {
   createIntegrationEngine,
-  fixturesDirFor,
   suiteTempDir,
 } from '../test-support/integration-helpers.js';
-
-const fixturesDir = fixturesDirFor(import.meta.url);
 
 describe('Integration Tests - Path Reference Rewriting (--rewrite-path-refs)', () => {
   let engine: A16nEngine;

@@ -1,0 +1,1 @@
+CLI leftover unused-vars (#157) are test-only: unused afterEach/CommandIO/GitIgnoreResult/IgnoreSource imports, unused fixturesDir+fixturesDirFor, unused e2e stdout destructures; oxlint --fix does not clear them
