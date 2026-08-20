@@ -15,3 +15,18 @@ Clear 40 leftover `eslint(no-unused-vars)` findings in `plugin-claude` emit test
     - Operator validation rules override L1 "write a failing test": no change-detector tests; Oxlint plus existing package tests are the checker
 * Insights
     - Same class of work as #74 leftovers: unused-vars are not in Oxlint's safe `--fix` set
+
+## 2026-08-20 - BUILD - COMPLETE
+
+* Work completed
+    - Dropped unused type/value imports from nine emit tests
+    - Dropped unused `path` import in `emit-source-items.test.ts`
+    - Dropped only the three unused `const result` assignments (global-prompt ×2, agent-skill-io ×1)
+    - `pnpm exec oxlint packages/plugin-claude` exit 0
+    - `pnpm --filter @a16njs/plugin-claude test` 18/18 files, 197 passed
+* Decisions made
+    - No new tests (operator: unused-var cleanup is not executable behavior; oxlint + existing tests)
+    - Do not globally rewrite `const result = await emit` — most of those bindings are asserted on
+* Insights
+    - Emit tests share a copy-pasted full IR type import list; oxlint unused-vars is almost entirely that list
+    - First `pnpm --filter @a16njs/plugin-claude test` failed until `turbo run build --filter=@a16njs/plugin-claude` (missing `@a16njs/models` dist)

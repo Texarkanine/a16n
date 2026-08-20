@@ -7,10 +7,7 @@ import {
   WarningCode,
   type GlobalPrompt,
   type FileRule,
-  type SimpleAgentSkill,
   type AgentSkillIO,
-  type AgentIgnore,
-  type ManualPrompt,
   createId,
 } from '@a16njs/models';
 import { suiteTempDir } from './test-support/emit-helpers.js';
@@ -142,7 +139,7 @@ describe('Claude AgentSkillIO Emission', () => {
         },
       ];
 
-      const result = await claudePlugin.emit(models, tempDir);
+      await claudePlugin.emit(models, tempDir);
 
       // Verify all 3 files + SKILL.md exist
       const skillDir = path.join(tempDir, '.claude', 'skills', 'multi');

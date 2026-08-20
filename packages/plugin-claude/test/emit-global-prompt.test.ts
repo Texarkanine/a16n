@@ -4,13 +4,7 @@ import * as path from 'path';
 import claudePlugin from '../src/index.js';
 import {
   CustomizationType,
-  WarningCode,
   type GlobalPrompt,
-  type FileRule,
-  type SimpleAgentSkill,
-  type AgentSkillIO,
-  type AgentIgnore,
-  type ManualPrompt,
   createId,
 } from '@a16njs/models';
 import { suiteTempDir } from './test-support/emit-helpers.js';
@@ -108,7 +102,7 @@ describe('Claude Plugin Emission', () => {
         },
       ];
 
-      const result = await claudePlugin.emit(models, tempDir);
+      await claudePlugin.emit(models, tempDir);
 
       const rulePath = path.join(tempDir, '.claude', 'rules', 'test.md');
       const content = await fs.readFile(rulePath, 'utf-8');
@@ -151,7 +145,7 @@ describe('Claude Plugin Emission', () => {
         },
       ];
 
-      const result = await claudePlugin.emit(models, tempDir);
+      await claudePlugin.emit(models, tempDir);
 
       const rulePath = path.join(tempDir, '.claude', 'rules', 'test.md');
       const content = await fs.readFile(rulePath, 'utf-8');
