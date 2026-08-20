@@ -73,3 +73,14 @@ Bind existing Oxlint (correctness-as-error from #74) into local autofix, a check
     - Did not run husky; did not commit; did not start `/niko-reflect` (parent owns those)
 * Insights
     - Implementation matches the plan with no accretion: check-only surfaces only call `lint:check`
+
+## 2026-08-20 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-issue-162.md`
+    - Reconciled persistent files: techContext already updated in build; productContext and systemPatterns unchanged
+    - Stopped before archive per operator
+* Decisions made
+    - No further persistent-file edits
+* Insights
+    - Husky in a shared-`.git` worktree writes parent `core.hooksPath`; `HUSKY=0` is the escape
