@@ -1,0 +1,1 @@
+issue-162 archived to memory-bank/archive/enhancements/20260820-issue-162.md; pnpm lint autofixes, lint:check is husky pre-commit and CI; HUSKY=0 on CI and shared-git worktree installs
