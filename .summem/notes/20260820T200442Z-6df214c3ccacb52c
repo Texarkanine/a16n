@@ -1,0 +1,1 @@
+Issue 161 leftover unused-vars: glob-hook test/io.test.ts unused HookInput type import; docs scripts/generate-cli-docs.ts unused dirname import; oxlint --fix does not clear them
