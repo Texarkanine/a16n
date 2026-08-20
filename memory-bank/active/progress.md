@@ -48,3 +48,13 @@ Remove eight unused-variable findings from the models and engine packages while 
     - Built `@a16njs/plugin-cursor` and `@a16njs/plugin-claude` so engine tests can import them; no product change.
 * Insights
     - Isolated worktrees need those plugin dist folders before `pnpm --filter @a16njs/engine test` can load `engine.test.ts`.
+
+## 2026-08-20 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Semantic review of the seven-file unused-vars diff against the plan and issue #160.
+    - Recorded PASS in `memory-bank/active/.qa-validation-status`.
+* Decisions made
+    - No QA fixes. Unused `__dirname` remains out of scope.
+* Insights
+    - None beyond the build-time plugin-dist dependency.

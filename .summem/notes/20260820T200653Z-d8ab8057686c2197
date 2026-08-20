@@ -1,0 +1,1 @@
+Engine package tests import @a16njs/plugin-cursor and @a16njs/plugin-claude; those packages must be built before pnpm --filter @a16njs/engine test can load engine.test.ts
