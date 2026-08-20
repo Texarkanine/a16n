@@ -1,0 +1,7 @@
+PASS
+
+Validated: 2026-08-20
+Task: issue-157
+Level: 2
+Checks: prerequisites, TDD plan encoding, convention, dependency impact, conflict, completeness
+Note: No new executable behavior. Oxlint is the existing red gate; new tests would be change-detectors.

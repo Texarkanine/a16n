@@ -2,18 +2,17 @@
 
 **Current Task:** Issue #157 CLI unused-variable cleanup
 
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE
 
 ## What Was Done
 
-Planned a nine-file unused-declaration cleanup. Oxlint is the red gate (11 `eslint(no-unused-vars)` findings). Existing `pnpm --filter a16n test` is the regression gate. No new tests, no Oxlint category changes, no CI.
+Preflight validated the nine-file unused-declaration plan. No new executable behavior, so Oxlint plus the existing CLI suite remain the gates. No convention, dependency, or completeness conflicts.
 
 ## Decisions
 
-- Remove unused bindings and imports outright rather than prefixing with `_`.
-- When deleting unused `fixturesDir`, also drop the now-unused `fixturesDirFor` import so Oxlint does not report a replacement unused-var.
-- Leave the `--verbose --json` e2e case that still asserts on `stdout`.
+- PASS: TDD plan encoding holds because this cleanup adds no executable behavior and schedules no change-detector tests. Oxlint is the tester (#74 lesson).
+- No in-scope plan amendments.
 
 ## Next Step
 
-Preflight validation of this plan.
+Build the cleanup from the plan.

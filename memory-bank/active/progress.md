@@ -27,3 +27,14 @@ Remove the CLI package's 11 unused test declarations without changing behavior, 
     - Add no new tests; change-detectors are out of scope.
 * Insights
     - `oxlint --fix` cannot clear unused imports or unused destructure bindings.
+
+## 2026-08-20 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the plan against always-tdd, system patterns, and the issue brief.
+    - Recorded PASS in `memory-bank/active/.preflight-status`.
+* Decisions made
+    - Treat Oxlint as the tester for this unused-declaration cleanup; do not require new tests.
+    - Make no plan amendments.
+* Insights
+    - Neighboring e2e cases already omit unused `stdout` from `runCli` destructures, so the planned edits match existing style.
