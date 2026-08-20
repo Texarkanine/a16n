@@ -35,3 +35,12 @@ Fix 10 oxlint unused-vars and irregular-whitespace errors in the `plugin-cursor`
 * Next
     - Reflect, then stop (no archive)
 
+## 2026-08-20 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-issue-158.md`
+    - Stopped before archive
+* Decisions made
+    - L1 normally skips reflect; ran it under standing consent
+
+

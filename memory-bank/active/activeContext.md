@@ -1,6 +1,6 @@
 # Active Context
 
 **Current Task:** Fix oxlint unused-vars and irregular-whitespace in plugin-cursor
-**Phase:** QA - COMPLETE
-**What Was Done:** Semantic QA against #158. All 10 leftovers cleared; no extra rules/CI/tests; comment meaning preserved. PASS.
-**Next Step:** Reflect (operator standing consent; L1 normally skips this). Stop before archive.
+**Phase:** REFLECT - COMPLETE
+**What Was Done:** Reflection written. Task done; stopped before archive per continuation instructions.
+**Next Step:** Operator: `/niko-archive` when ready (not run in this session).
