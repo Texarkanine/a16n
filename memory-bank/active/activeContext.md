@@ -1,12 +1,12 @@
 # Active Context
 
 ## Current Task: issue-74-oxc-linter
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE
 
 ## What Was Done
-- Planned a root-level Oxlint bind: `oxlint` + `oxlint --fix` scripts, `.oxlintrc.json` from `--init`, no CI, no per-package scripts, no new tests.
-- Tech-validated Oxlint 1.79.0: 165 files; `--init` correctness is 80 errors (76 unused-vars, 4 irregular-whitespace) across 8 packages; `plugin-agentsmd` is already clean.
-- Operator addendum recorded: truly safe autofix (`--fix` only) is in scope.
+- Operator overruled the GPT 5.6 preflight TDD FAIL: root `package.json` script mapping and `.oxlintrc.json` need no tests; Oxlint is the checker.
+- Re-preflight (this session): conventions, deps, conflicts, and completeness still hold. No new tests. Kept pre/post `pnpm test` around `--fix`.
+- Ready to install Oxlint and bind `lint` / `lint:fix`.
 
 ## Next Step
-- Preflight validation of the plan.
+- Build: add oxlint, bind scripts, `--init` config, docs, safe autofix, inventory.

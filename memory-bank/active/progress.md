@@ -31,3 +31,34 @@ Install Oxlint, bind the root `lint` script so it is optionally runnable, apply 
     - Default CLI (no config) reports the same 80 hits as warnings and exits 0; `--init` makes them errors
     - `--silent` empties JSON diagnostics — unusable for inventory
     - Before `--fix`: plugin-claude 40, cli 11, plugin-a16n 9, plugin-cursor 10, engine 4, models 4, glob-hook 1, docs 1, plugin-agentsmd 0
+
+## 2026-08-20 - PREFLIGHT - FAIL
+
+* Work completed
+    - Validated the plan against the root scripts, Turbo task graph, CI workflow, contributor guidance, all nine package manifests, and the repository test layout
+    - Confirmed no package defines a `lint` script and no creative-phase documents exist
+    - Recorded blocking TDD amendments in `tasks.md`
+* Decisions made
+    - Failed preflight because `lint`, `lint:fix`, and `.oxlintrc.json` are executable configuration, but the plan orders implementation before behavior-level failing tests
+    - Kept literal script/config assertions prohibited because they would be change-detectors
+    - Required a pre-autofix `pnpm test` baseline in addition to the planned post-autofix suite
+* Insights
+    - The root Vitest configuration only includes `packages/**/test/**/*.test.ts`; no existing package owns root repository-tooling tests, so planning must identify or add the correct behavioral-test location
+    - CI currently has build, typecheck, coverage tests, and docs checks only; leaving lint out is consistent with the brief
+
+## 2026-08-20 - PLAN - REWORK (operator override)
+
+* Work completed
+    - Operator rejected the TDD FAIL: mapping `lint` in `package.json` needs no test; lint is the tester
+    - Rewrote the plan: no new Vitest files; kept pre/post `pnpm test` around `--fix`
+* Decisions made
+    - Prior preflight TDD finding is overruled and must not be re-litigated on this task
+
+## 2026-08-20 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Re-checked conventions (root scripts + `.oxlintrc.json`), CI (no lint), no package `lint` scripts, completeness of the four implementation steps
+* Decisions made
+    - PASS: no product executable units; verifier is Oxlint; docs/inventory/CI-omission are policy
+* Insights
+    - A test that proves `pnpm lint` "is oxlint" without reading `package.json` is either a change-detector or a vendor test
