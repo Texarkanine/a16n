@@ -2,12 +2,18 @@
 
 **Current Task:** Issue #157 CLI unused-variable cleanup
 
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
 
-Classified the task as Level 2 because the low-risk cleanup spans nine unit, integration, and end-to-end test suites within the CLI subsystem and requires package-wide lint and test validation.
+Planned a nine-file unused-declaration cleanup. Oxlint is the red gate (11 `eslint(no-unused-vars)` findings). Existing `pnpm --filter a16n test` is the regression gate. No new tests, no Oxlint category changes, no CI.
+
+## Decisions
+
+- Remove unused bindings and imports outright rather than prefixing with `_`.
+- When deleting unused `fixturesDir`, also drop the now-unused `fixturesDirFor` import so Oxlint does not report a replacement unused-var.
+- Leave the `--verbose --json` e2e case that still asserts on `stdout`.
 
 ## Next Step
 
-Load the Level 2 workflow and enter the Plan phase.
+Preflight validation of this plan.

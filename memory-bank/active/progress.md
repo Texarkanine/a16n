@@ -15,3 +15,15 @@ Remove the CLI package's 11 unused test declarations without changing behavior, 
     - Exclude rule configuration, CI changes, and new tests from scope.
 * Insights
     - The work is mechanically simple but crosses multiple test-suite components, so the Level 2 workflow provides appropriate plan, preflight, QA, and reflection gates.
+
+## 2026-08-20 - PLAN - COMPLETE
+
+* Work completed
+    - Confirmed all 11 Oxlint leftovers by file and identifier.
+    - Wrote a nine-file removal plan. Oxlint is the red gate; the existing CLI suite is the regression gate.
+    - Recorded that unused `fixturesDir` also requires dropping `fixturesDirFor`.
+* Decisions made
+    - Remove unused bindings instead of prefixing them with `_`.
+    - Add no new tests; change-detectors are out of scope.
+* Insights
+    - `oxlint --fix` cannot clear unused imports or unused destructure bindings.
