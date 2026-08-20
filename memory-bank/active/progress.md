@@ -59,3 +59,13 @@ Remove the CLI package's 11 unused test declarations without changing behavior, 
     - No QA fixes required.
 * Insights
     - The `--verbose --json` case still uses `stdout`; leaving it was the correct completeness check.
+
+## 2026-08-20 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-issue-157.md`.
+    - Persistent files (`productContext`, `systemPatterns`, `techContext`) needed no updates.
+* Decisions made
+    - Stop before `/niko-archive` per operator instruction.
+* Insights
+    - Fresh worktree verification needs `pnpm build` before `pnpm --filter a16n test`.
