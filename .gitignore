@@ -45,3 +45,6 @@ packages/docs/static/**/llms.txt
 packages/docs/static/**/llms-full.txt
 # Per-page .md mirrors from docs:llms:static (img/ is the only committed static content)
 packages/docs/static/**/*.md
+
+# SumMem Python driver bytecode
+**/.summem/__pycache__/
