@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { parseStdin, writeOutput, createEmptyOutput, createMatchOutput } from '../src/io';
-import type { HookInput, HookOutput } from '../src/types';
+import type { HookOutput } from '../src/types';
 
 describe('parseStdin', () => {
   it('parses valid JSON input', () => {
