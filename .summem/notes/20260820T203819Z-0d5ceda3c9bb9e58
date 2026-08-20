@@ -1,0 +1,1 @@
+Root lint: pnpm lint and lint:fix run oxlint --fix; pnpm lint:check is oxlint (husky pre-commit + CI). CI install sets HUSKY=0. Worktree installs that share a parent .git should use HUSKY=0 pnpm install.

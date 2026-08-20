@@ -1,0 +1,1 @@
+Issue 162: bind existing Oxlint into local autofix (pnpm lint), check-only pre-commit on pnpm install, and check-only CI; leftover unused-vars are gone; do not add extra Oxlint categories
