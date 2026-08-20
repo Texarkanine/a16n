@@ -40,3 +40,16 @@ Clear two leftover Oxlint `unused-vars` findings in `@a16njs/glob-hook` and `doc
     - No radical in-scope redesign
 * Insights
     - A Vitest case asserting an import is absent would FAIL preflight as a change-detector
+
+## 2026-08-20 - BUILD - COMPLETE
+
+* Work completed
+    - Dropped unused `HookInput` from glob-hook `test/io.test.ts`
+    - Dropped unused `dirname` from docs `scripts/generate-cli-docs.ts`
+    - `pnpm --filter @a16njs/glob-hook test` 37/37
+    - `pnpm --filter docs test` 56/56
+    - `pnpm exec oxlint packages/glob-hook packages/docs` clean
+* Decisions made
+    - No deviations from plan
+* Insights
+    - `oxlint --fix` still does not remove these unused imports; the edits are one token each

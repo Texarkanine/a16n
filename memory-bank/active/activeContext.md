@@ -1,11 +1,12 @@
 # Active Context
 
 ## Current Task: issue-161 unused-vars in glob-hook and docs
-**Phase:** PREFLIGHT - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Preflight PASS. Plan is two unused-import deletions. Oxlint is the existing red check; no new tests (would be change-detectors).
-- Added plan step 0 to record that baseline explicitly.
+- Removed unused `HookInput` type import from `packages/glob-hook/test/io.test.ts`.
+- Removed unused `dirname` import from `packages/docs/scripts/generate-cli-docs.ts`.
+- Verification: glob-hook 37/37, docs 56/56, grouped oxlint clean.
 
 ## Next Step
-- BUILD: apply the two import edits and run oxlint + package tests.
+- QA semantic review of the two-line diff.

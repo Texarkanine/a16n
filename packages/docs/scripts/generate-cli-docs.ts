@@ -14,7 +14,7 @@
 import { Command, Option, Argument } from 'commander';
 import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join } from 'node:path';
 
 /** Information about a CLI option */
 export interface OptionInfo {

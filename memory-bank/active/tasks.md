@@ -83,5 +83,13 @@ No new technology - validation not required
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
 - [x] Preflight
-- [ ] Build
+- [x] Build
 - [ ] QA
+
+## Build Results
+
+- Step 0: oxlint was already red on the two unused imports
+- Step 1: `HookInput` removed from `packages/glob-hook/test/io.test.ts`
+- Step 2: `@a16njs/glob-hook` test 37/37; `oxlint packages/glob-hook` clean
+- Step 3: `dirname` removed from `packages/docs/scripts/generate-cli-docs.ts`
+- Step 4: `docs` test 56/56; `oxlint packages/glob-hook packages/docs` clean
