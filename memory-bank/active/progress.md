@@ -17,3 +17,14 @@ Clear two leftover Oxlint `unused-vars` findings in `@a16njs/glob-hook` and `doc
 * Insights
     - `HookOutput` in `io.test.ts` is used; only `HookInput` is unused
     - `dirname` is imported in `generate-cli-docs.ts` and never referenced
+
+## 2026-08-20 - PLAN - COMPLETE
+
+* Work completed
+    - Wrote Level 2 plan: two import deletions, oxlint + existing package tests as verification
+    - Confirmed docs has `test` (vitest) including `test/generate-cli-docs.test.ts`
+* Decisions made
+    - No new technology
+    - Implementation is two surgical import edits; stay grouped
+* Insights
+    - Preflight TDD is the main process risk (same as #74); plan names oxlint as the tester

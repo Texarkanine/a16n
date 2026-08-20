@@ -1,12 +1,12 @@
 # Active Context
 
 ## Current Task: issue-161 unused-vars in glob-hook and docs
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Fresh `/niko` on [#161](https://github.com/Texarkanine/a16n/issues/161). Standing consent through REFLECT.
-- Reproduced two `eslint(no-unused-vars)` errors: unused `HookInput` type import in `packages/glob-hook/test/io.test.ts:3`; unused `dirname` import in `packages/docs/scripts/generate-cli-docs.ts:17`.
-- Classified Level 2: bug/error correction spanning two packages (glob-hook + docs), grouped as one task per the issue.
+- Level 2 plan: remove unused `HookInput` type import and unused `dirname` import; verify with oxlint + existing Vitest suites.
+- No new tests (change-detectors forbidden). No extra Oxlint categories. No CI.
+- Files: `packages/glob-hook/test/io.test.ts`, `packages/docs/scripts/generate-cli-docs.ts`.
 
 ## Next Step
-- Load Level 2 workflow and run PLAN.
+- Preflight validation (Grok only: `cursor-grok-4.6-xhigh-fast` or `cursor-grok-4.5-high-fast`).
