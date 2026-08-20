@@ -27,3 +27,14 @@ Remove eight unused-variable findings from the models and engine packages while 
     - Leave unused `__dirname` in `plugin-discovery.test.ts` because Oxlint does not report it.
 * Insights
     - `oxlint --fix` cannot clear these; each unused name must be deleted by hand.
+
+## 2026-08-20 - PREFLIGHT - COMPLETE (PASS)
+
+* Work completed
+    - Validated TDD encoding: each step observes the named Oxlint diagnostic before editing.
+    - Confirmed no exported-signature changes, no extra Oxlint categories, no new tests.
+    - Wrote `memory-bank/active/.preflight-status` as PASS.
+* Decisions made
+    - No plan amendments.
+* Insights
+    - Unused `__dirname` in plugin-discovery tests stays out of scope because it is not an Oxlint finding.
