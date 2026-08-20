@@ -12,4 +12,9 @@
 
 ## QA
 
-- [ ] Semantic review pending
+- [x] Semantic review complete — **PASS**
+- [x] KISS/DRY/YAGNI: minimal import/result cleanup only; no new abstractions
+- [x] Completeness: all 40 `eslint(no-unused-vars)` cleared across nine emit tests; oxlint exit 0; 197 tests pass
+- [x] Regression: `const result` retained wherever asserted; only three bare-`await` conversions where `result` was unused
+- [x] Integrity: no debug artifacts or session-introduced TODOs
+- [x] Documentation: none required (test-only lint cleanup per brief)

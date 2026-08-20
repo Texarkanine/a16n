@@ -30,3 +30,15 @@ Clear 40 leftover `eslint(no-unused-vars)` findings in `plugin-claude` emit test
 * Insights
     - Emit tests share a copy-pasted full IR type import list; oxlint unused-vars is almost entirely that list
     - First `pnpm --filter @a16njs/plugin-claude test` failed until `turbo run build --filter=@a16njs/plugin-claude` (missing `@a16njs/models` dist)
+
+## 2026-08-20 - QA - COMPLETE
+
+* Work completed
+    - Reviewed commit `92dc9dbd` (nine emit test files) against project brief and system patterns
+    - Re-ran `pnpm exec oxlint packages/plugin-claude` — exit 0
+    - Confirmed only three unused `const result` bindings were converted to bare `await`; all other `result` bindings remain where tests assert on emit output
+* Decisions made
+    - PASS: no trivial or substantive fixes required
+    - Pre-existing `TODO` in `emit-mixed-models.test.ts` is out of scope (not introduced this session)
+* Insights
+    - Copy-pasted full IR type import lists remain in emit tests; trimming to per-file used types is the durable fix but was not required for #156
