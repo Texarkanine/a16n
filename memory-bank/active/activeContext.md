@@ -1,10 +1,11 @@
 # Active Context
 
 ## Current Task: issue-161 unused-vars in glob-hook and docs
-**Phase:** QA - COMPLETE
+**Phase:** REFLECT COMPLETE
 
 ## What Was Done
-- QA PASS on the two-line unused-import diff. No semantic issues, no fixes needed.
+- Reflection written. Persistent files unchanged (unused-import cleanup does not invalidate product/system/tech context).
+- Stopped before archive per standing consent.
 
 ## Next Step
-- REFLECT, then stop (do not archive).
+- Operator: `/niko-archive` when ready. Do not open a PR in this run.

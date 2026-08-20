@@ -1,0 +1,1 @@
+Issue 161 leftover unused-vars were unused imports only (glob-hook HookInput type, docs dirname); oxlint --fix does not remove them; no new tests — oxlint is the checker

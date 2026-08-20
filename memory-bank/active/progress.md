@@ -63,3 +63,13 @@ Clear two leftover Oxlint `unused-vars` findings in `@a16njs/glob-hook` and `doc
     - No trivial or substantive fixes
 * Insights
     - Nothing for QA to simplify: the implementation is already the minimum
+
+## 2026-08-20 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-issue-161.md`
+    - Reconciled persistent files: no updates
+* Decisions made
+    - Stop before `/niko-archive` (standing consent)
+* Insights
+    - Two-package leftover grouping is L2 process, not extra design
