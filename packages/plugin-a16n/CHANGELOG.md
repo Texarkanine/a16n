@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@1.1.0...@a16njs/plugin-a16n@1.1.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **plugin-a16n:** clear leftover oxlint unused-vars [[#159](https://github.com/Texarkanine/a16n/issues/159)] ([#167](https://github.com/Texarkanine/a16n/issues/167)) ([f104dd5](https://github.com/Texarkanine/a16n/commit/f104dd543bd3114d21c5c23037c2cca3d81dbcce))
+
 ## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@1.0.0...@a16njs/plugin-a16n@1.1.0) (2026-07-26)
 
 

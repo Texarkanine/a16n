@@ -1,5 +1,12 @@
 # @a16njs/plugin-cursor
 
+## [1.1.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@1.1.0...@a16njs/plugin-cursor@1.1.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **plugin-cursor:** clear leftover oxlint unused-vars and irregular-whitespace [[#158](https://github.com/Texarkanine/a16n/issues/158)] ([#166](https://github.com/Texarkanine/a16n/issues/166)) ([747f6ad](https://github.com/Texarkanine/a16n/commit/747f6ada5052392337262edb06d8892beb3a4b82))
+
 ## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@1.0.0...@a16njs/plugin-cursor@1.1.0) (2026-07-26)
 
 

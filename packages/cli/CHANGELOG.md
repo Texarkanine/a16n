@@ -1,5 +1,12 @@
 # a16n
 
+## [1.1.1](https://github.com/Texarkanine/a16n/compare/a16n@1.1.0...a16n@1.1.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **cli:** clear leftover oxlint unused-vars [[#157](https://github.com/Texarkanine/a16n/issues/157)] ([#164](https://github.com/Texarkanine/a16n/issues/164)) ([de7a587](https://github.com/Texarkanine/a16n/commit/de7a5879ae3912721432357a4835d13ba4527f61))
+
 ## [1.1.0](https://github.com/Texarkanine/a16n/compare/a16n@1.0.0...a16n@1.1.0) (2026-07-26)
 
 
