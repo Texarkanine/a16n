@@ -33,6 +33,9 @@ Clear the two grouped `eslint(no-unused-vars)` leftovers from [#161](https://git
 
 ## Implementation Plan
 
+0. Confirm the existing red check (do not write new tests)
+   - Files: none
+   - Changes: `pnpm exec oxlint packages/glob-hook packages/docs` already fails on `HookInput` (`io.test.ts:3`) and `dirname` (`generate-cli-docs.ts:17`). That is the failing checker. New Vitest cases that only fail if those imports return would be change-detectors.
 1. Drop unused `HookInput` from the type import in glob-hook io tests
    - Files: `packages/glob-hook/test/io.test.ts`
    - Changes: `import type { HookInput, HookOutput }` → `import type { HookOutput }`
@@ -45,6 +48,12 @@ Clear the two grouped `eslint(no-unused-vars)` leftovers from [#161](https://git
 4. Confirm docs still behaves and the grouped gate is green
    - Files: none additional
    - Changes: `pnpm --filter docs test`; `pnpm exec oxlint packages/glob-hook packages/docs` clean
+
+## Preflight Findings
+
+- TDD: no new executable behavior; unused imports have no runtime effect. Oxlint is already red. Change-detector tests are forbidden (issue + always-tdd).
+- Conventions / deps / conflicts: in-place import edits only; glob-hook is standalone; `generate-cli-docs.ts` exports unchanged.
+- Completeness: both leftovers, grouped gate, no extra categories, no CI.
 
 ## Technology Validation
 
@@ -73,6 +82,6 @@ No new technology - validation not required
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
+- [x] Preflight
 - [ ] Build
 - [ ] QA

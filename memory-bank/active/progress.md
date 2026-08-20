@@ -28,3 +28,15 @@ Clear two leftover Oxlint `unused-vars` findings in `@a16njs/glob-hook` and `doc
     - Implementation is two surgical import edits; stay grouped
 * Insights
     - Preflight TDD is the main process risk (same as #74); plan names oxlint as the tester
+
+## 2026-08-20 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated plan against always-tdd, conventions, deps, conflicts, completeness
+    - Wrote `memory-bank/active/.preflight-status` = PASS
+    - Amended plan with step 0: oxlint is already the red check
+* Decisions made
+    - PASS (not advisory): unused-import deletion is not new executable behavior
+    - No radical in-scope redesign
+* Insights
+    - A Vitest case asserting an import is absent would FAIL preflight as a change-detector
