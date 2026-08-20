@@ -1,0 +1,1 @@
+Root pnpm lint / pnpm lint:fix run Oxlint (.oxlintrc.json, correctness-as-error); optional, not in CI. Leftover unused-vars/irregular-whitespace are per-package follow-up, not a merge gate.
