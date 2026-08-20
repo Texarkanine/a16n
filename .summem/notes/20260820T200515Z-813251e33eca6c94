@@ -1,0 +1,1 @@
+plugin-a16n leftover unused-vars (#159) were unused imports and locals only; extractRelativeDir remains a public re-export from src/index.ts

@@ -15,3 +15,16 @@ Clear 9 leftover `eslint(no-unused-vars)` findings in `@a16njs/plugin-a16n` as s
     - L1 workflow has no REFLECT; parent standing consent still asks for a reflection after QA, then stop (no archive)
 * Insights
     - Sibling leftover #156 was also classified L1 unused-vars
+
+## 2026-08-20 - BUILD - COMPLETE
+
+* Work completed
+    - Removed unused imports/bindings in the five listed files (9 findings)
+    - Oxlint on `packages/plugin-a16n` is clean
+    - Package tests 111/111 after building workspace deps
+* Decisions made
+    - Omit unused locals (`filepath`, unused `result`) rather than underscore-prefix
+    - Leave `extractRelativeDir` exported from the package; only the unused discover import was removed
+    - No new tests (operator: not new executable behavior)
+* Insights
+    - Fresh worktree needs `turbo run build --filter=@a16njs/plugin-a16n` before the filter test command; Turbo shared-worktree cache replayed models from the parent log path but restored `dist` into this tree

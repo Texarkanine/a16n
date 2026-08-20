@@ -10,7 +10,7 @@
  * Directory structure: .a16n/<type>/<name>.md
  */
 
-import type { A16nPlugin, AgentCustomization, EmitOptions } from '@a16njs/models';
+import type { A16nPlugin } from '@a16njs/models';
 import { CustomizationType } from '@a16njs/models';
 import { emit as emitImpl } from './emit.js';
 import { discover as discoverImpl } from './discover.js';
