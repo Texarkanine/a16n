@@ -90,3 +90,27 @@ Install Oxlint, bind the root `lint` script so it is optionally runnable, apply 
 | glob-hook | 1 | no-unused-vars |
 | docs | 1 | no-unused-vars |
 | plugin-agentsmd | 0 | — |
+
+## 2026-08-20 - QA - COMPLETE
+
+* Work completed
+    - Semantic review against the brief and plan (KISS/DRY/YAGNI/completeness/regression/integrity/docs)
+    - Verified `pnpm lint` runs Oxlint and exits 1; re-counted leftovers (80 / 40 files) — matches the build inventory
+    - Confirmed no CI lint step (`.github/workflows` have no lint); no new tests; no unused-vars cleanup
+    - Wrote `memory-bank/active/.qa-validation-status` = PASS
+    - Trivial: added trailing newline to `.oxlintrc.json`
+* Decisions made
+    - PASS. Missing Vitest cases are not a fail (operator ruling). Leftover unused-vars are follow-up, not this task.
+    - Did not add lint to CI. Did not open a PR (after QA). Did not start reflect.
+* Insights
+    - `turbo.json` still declares `"lint": {}`; unused after the root script bind. Not blocking.
+
+## 2026-08-20 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-issue-74-oxc-linter.md`
+    - Reconciled persistent files: `techContext.md` already correct; product/system patterns unchanged
+* Decisions made
+    - Standalone L2: next operator step is `/niko-archive`
+* Insights
+    - Script mapping is not a TDD unit; Oxlint `--fix` does not clear unused-vars

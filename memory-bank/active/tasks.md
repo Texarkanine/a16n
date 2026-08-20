@@ -100,4 +100,12 @@ Re-count after `--fix` during build.
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA
+
+## QA Findings
+
+- **PASS.** Bind, safe `--fix`, leftover inventory, docs, and CI-left-alone match the plan. No new Vitest cases (operator ruling). Unused-vars / irregular-whitespace leftovers not cleaned (follow-up).
+- Trivial fix applied: `.oxlintrc.json` was missing a trailing newline (`oxlint --init` output); added to match other root JSON files.
+- Non-blocking leftover: `turbo.json` still has `"lint": {}` from the old Turbo fan-out. Root `pnpm lint` no longer calls Turbo. Left as-is — removing it is a later design call.
+- Re-counted leftovers: 80 errors in 40 files (plugin-claude 40, cli 11, plugin-cursor 10, plugin-a16n 9, models 4, engine 4, glob-hook 1, docs 1, plugin-agentsmd 0). Matches `progress.md`. `pnpm lint` exits 1 as expected.
+- PR to `main` is after this phase (not opened here).
