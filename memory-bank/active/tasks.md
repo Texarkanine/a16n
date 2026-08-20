@@ -43,21 +43,21 @@ Verification is running Oxlint and inspecting the three command bindings. These 
 
 These steps are configuration and prose. They are not TDD cycles.
 
-1. Scripts: invert local lint to autofix; add check-only script
+1. [x] Scripts: invert local lint to autofix; add check-only script
    - Files: `package.json`
    - Changes: `"lint": "oxlint --fix"`; add `"lint:check": "oxlint"`; keep `"lint:fix": "oxlint --fix"` as alias; add `"prepare": "husky"` (husky is already a root devDependency from plan spike: `husky@^9.1.7`)
-2. Pre-commit hook file (check only)
+2. [x] Pre-commit hook file (check only)
    - Files: `.husky/pre-commit` (new)
    - Changes: single command `pnpm lint:check`. Do not source `_/husky.sh` (deprecated in husky 9; fails in 10). Husky 9.1.7 runs the file via `sh -e`; no shebang or +x required. Do not run `pnpm exec husky` or `husky init` in this worktree.
-3. CI check-only step
+3. [x] CI check-only step
    - Files: `.github/workflows/ci.yaml`
    - Changes: after Install dependencies, before Build, add step `name: Lint` / `run: pnpm lint:check`
    - On the existing Install dependencies step, set `env.HUSKY: "0"` (or prefix `HUSKY=0`) so `prepare: husky` does not run in CI. CI lint is the workflow step, not a git hook.
-4. Docs
+4. [x] Docs
    - Files: `CONTRIBUTING.md`, `memory-bank/techContext.md`
    - Changes: document `pnpm lint` (autofix), `pnpm lint:check` (hook + CI), that CI fails on leftover correctness errors. Remove "optional / not in CI / leftovers expected".
    - In CONTRIBUTING, add that `pnpm install` in a git worktree that shares a parent `.git` should use `HUSKY=0` so husky does not write `core.hooksPath` on the shared config. Normal clones run `prepare: husky` as usual.
-5. Verify (Oxlint is the checker)
+5. [x] Verify (Oxlint is the checker)
    - Run `pnpm lint:check` and `pnpm exec oxlint` (expect exit 0)
    - Run `pnpm lint` (autofix; expect exit 0 on this clean tip)
    - Confirm hook and CI command strings have no `--fix`
@@ -117,5 +117,5 @@ Verdict: **PASS**. No operator input required before `/niko-build`. This preflig
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
 - [x] Preflight
-- [ ] Build
+- [x] Build
 - [ ] QA

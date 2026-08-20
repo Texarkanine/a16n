@@ -84,9 +84,12 @@ If `npm view ... dependencies` shows any `workspace:` string, the tarball is poi
 pnpm test              # Run all tests (canonical — always correct)
 pnpm --filter @a16njs/glob-hook test   # Run a single package's full suite
 pnpm typecheck         # Check types across all packages
-pnpm lint              # Oxlint (optional — not required for PRs, not in CI)
-pnpm lint:fix          # Safe Oxlint autofixes only
+pnpm lint              # Oxlint with safe autofix (local manual command)
+pnpm lint:fix          # Same as pnpm lint
+pnpm lint:check        # Oxlint check only (pre-commit hook and CI; no --fix)
 ```
+
+`pnpm lint:check` is what CI runs; leftover correctness errors fail the job. The husky pre-commit hook runs the same check-only command and blocks the commit if Oxlint reports errors. After a normal clone, `pnpm install` runs `prepare` (`husky`) so git uses `.husky/`. In a git worktree that shares a parent `.git`, install with `HUSKY=0 pnpm install` so husky does not write `core.hooksPath` on the shared config.
 
 `pnpm test` uses Turborepo and always runs Vitest inside each package directory, which ensures per-package config (timeouts, include patterns) and package-local binaries (e.g. `tsx`) resolve correctly.
 

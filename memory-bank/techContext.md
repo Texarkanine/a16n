@@ -20,12 +20,12 @@ TypeScript ESM-only monorepo managed by pnpm workspaces, built with Turborepo, t
 
 - **Vitest** — unit and integration tests; `pnpm test` (via Turbo) is canonical and always runs Vitest inside each package directory using each package's own `vitest.config.ts`; the root `vitest.config.ts` is a fallback for ad-hoc `npx vitest` invocations
 - Integration tests use fixture directories (see `test/integration/fixtures/` in each package)
-- Full validation: `pnpm install && pnpm build && pnpm test && pnpm typecheck`. Root `pnpm lint` / `pnpm lint:fix` run Oxlint (`.oxlintrc.json`); optional, not in CI. Leftover findings are expected until per-package cleanup.
+- Full validation: `pnpm install && pnpm build && pnpm test && pnpm typecheck && pnpm lint:check`. Root `pnpm lint` / `pnpm lint:fix` run `oxlint --fix` (`.oxlintrc.json`, correctness as error). `pnpm lint:check` is check-only: husky pre-commit and CI both run it and fail on leftover correctness errors. In a git worktree that shares a parent `.git`, use `HUSKY=0 pnpm install` so husky does not write shared `core.hooksPath`.
 - TDD process and test-running practices are defined in `.cursor/rules/shared/always-tdd.mdc` and `.cursor/rules/shared/test-running-practices.mdc` — do not duplicate those here
 
 ## CI/CD
 
-- **ci.yaml** — build, typecheck, test with coverage, docs build, Codecov upload (per-package flags) on PRs and pushes to main
+- **ci.yaml** — lint (`pnpm lint:check`), build, typecheck, test with coverage, docs build, Codecov upload (per-package flags) on PRs and pushes to main. CI install sets `HUSKY=0` so `prepare` does not install git hooks on the runner.
 - **release.yaml** — Release-Please automation for semantic versioning; publishes via `pnpm --filter publish` (OIDC trusted publishing). Release-Please only cuts a release for a package when a commit touches that package's path — per-package `release-as` overrides the version *if* a release is cut but does not force inclusion. The canonical "add a new publishable package" runbook (traps, first-publish OIDC bootstrap, post-publish verification) lives in `CONTRIBUTING.md`
 - **docs.yaml** — deploy Docusaurus to GitHub Pages
 - **release-lockfile-sync.yaml** — sync pnpm lockfile after releases

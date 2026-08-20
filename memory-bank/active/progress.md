@@ -46,3 +46,18 @@ Bind existing Oxlint (correctness-as-error from #74) into local autofix, a check
 * Insights
     - Husky 9.1.7 runs `.husky/pre-commit` via `sh -e`; a one-line `pnpm lint:check` is enough
     - `git config core.hooksPath` from a worktree writes the shared parent `.git/config` — already a spike finding; now also a shipped CONTRIBUTING note
+
+## 2026-08-20 - BUILD - COMPLETE
+
+* Work completed
+    - Inverted `package.json` `lint` to `oxlint --fix`; added `lint:check` and `prepare: husky`
+    - Added `.husky/pre-commit` (`pnpm lint:check` only)
+    - Added CI Lint step after install; install sets `HUSKY=0`
+    - Updated CONTRIBUTING and techContext
+    - Verified `pnpm lint:check`, `pnpm exec oxlint`, and `pnpm lint` exit 0; hook/CI have no `--fix`; `.oxlintrc.json` unchanged
+    - `pnpm test`: 17/17 turbo tasks, all package suites green
+* Decisions made
+    - Did not run `husky`/`prepare` in this worktree; shared `core.hooksPath` remains unset; shared pre-commit hash unchanged
+    - No new Vitest cases
+* Insights
+    - Isolation held: husky was not re-executed after the plan spike unset
