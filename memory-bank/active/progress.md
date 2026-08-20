@@ -15,3 +15,15 @@ Remove eight unused-variable findings from the models and engine packages while 
     - Preserve source API and callback signatures where required while removing or marking unused names.
 * Insights
     - Dependencies are absent in the isolated worktree and must be installed before validation.
+
+## 2026-08-20 - PLAN - COMPLETE
+
+* Work completed
+    - Named all eight Oxlint unused-vars diagnostics and mapped each to a red/green oxlint step.
+    - Recorded existing Vitest suites as the only behavior regression net; no new tests.
+    - Installed worktree `node_modules` so preflight and build can run the acceptance commands.
+* Decisions made
+    - Production changes are an optional-catch in `readSkillFiles` and dropping unused type imports; no exported signature changes.
+    - Leave unused `__dirname` in `plugin-discovery.test.ts` because Oxlint does not report it.
+* Insights
+    - `oxlint --fix` cannot clear these; each unused name must be deleted by hand.
