@@ -215,7 +215,7 @@ describe('Cursor AgentSkillIO Emission', () => {
         },
       ];
 
-      const result = await cursorPlugin.emit(models, tempDir);
+      await cursorPlugin.emit(models, tempDir);
 
       // Verify all 3 files + SKILL.md exist
       const skillDir = path.join(tempDir, '.cursor', 'skills', 'multi');

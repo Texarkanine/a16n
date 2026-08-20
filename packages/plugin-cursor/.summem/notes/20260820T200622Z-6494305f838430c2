@@ -1,0 +1,1 @@
+Oxlint no-irregular-whitespace flags U+200B used so .cursor/skills/*/SKILL.md does not close a block comment; write .cursor/skills/<name>/SKILL.md instead (#158)
