@@ -59,7 +59,7 @@ describe('Cursor AgentIgnore Emission', () => {
         },
       ];
 
-      const result = await cursorPlugin.emit(models, tempDir);
+      await cursorPlugin.emit(models, tempDir);
 
       const content = await fs.readFile(path.join(tempDir, '.cursorignore'), 'utf-8');
       expect(content).toBe('a/\nb/\nc/\n');
@@ -118,7 +118,7 @@ describe('Cursor AgentIgnore Emission', () => {
         },
       ];
 
-      const result = await cursorPlugin.emit(models, tempDir);
+      await cursorPlugin.emit(models, tempDir);
 
       const content = await fs.readFile(path.join(tempDir, '.cursorignore'), 'utf-8');
       const lines = content.trim().split('\n');

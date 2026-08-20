@@ -96,7 +96,7 @@ describe('Cursor ManualPrompt Emission (Agent Skills)', () => {
         },
       ];
 
-      const result = await cursorPlugin.emit(models, tempDir);
+      await cursorPlugin.emit(models, tempDir);
 
       const skillPath = path.join(tempDir, '.cursor', 'skills', 'deploy', 'SKILL.md');
       const content = await fs.readFile(skillPath, 'utf-8');

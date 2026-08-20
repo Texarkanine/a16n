@@ -136,7 +136,7 @@ describe('Cursor Skills Emission', () => {
 
   describe('AgentSkills.io spec fields', () => {
     /**
-     * `.cursor/skills/*​/SKILL.md` can carry all four fields, but Cursor does
+     * `.cursor/skills/<name>/SKILL.md` can carry all four fields, but Cursor does
      * not enforce `allowed-tools`. So everything is written, and only
      * `allowed-tools` warns — fail-closed, because the emitted skill is
      * otherwise quietly more permissive than the source.

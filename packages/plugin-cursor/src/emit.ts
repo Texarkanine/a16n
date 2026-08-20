@@ -6,7 +6,6 @@ import {
   type EmitOptions,
   type WrittenFile,
   type Warning,
-  type FileRule,
   type SimpleAgentSkill,
   type AgentSkillIO,
   type AgentSkillSpecFields,

@@ -4,7 +4,7 @@
  * Two independent questions decide what happens to `license`, `compatibility`,
  * `metadata`, and `allowed-tools` on the way out:
  *
- * 1. **Can the surface carry the bytes?** `.cursor/skills/*​/SKILL.md` can —
+ * 1. **Can the surface carry the bytes?** `.cursor/skills/<name>/SKILL.md` can —
  *    Cursor loads `.claude/skills/` directly, so unknown frontmatter keys are
  *    inert there. `.cursor/rules/*.mdc` cannot: its schema is fixed.
  * 2. **Does Cursor honour the semantics?** Only `allowed-tools` has any, and
@@ -21,7 +21,7 @@ import { WarningCode, type AgentSkillSpecFields } from '@a16njs/models';
 
 /** A Cursor output surface, keyed by whether it can carry arbitrary frontmatter. */
 export type CursorSkillSurface =
-  /** `.cursor/skills/*​/SKILL.md` — arbitrary YAML frontmatter, unknown keys inert. */
+  /** `.cursor/skills/<name>/SKILL.md` — arbitrary YAML frontmatter, unknown keys inert. */
   | 'skill-md'
   /** `.cursor/rules/*.mdc` — fixed schema, carries no spec fields at all. */
   | 'mdc';

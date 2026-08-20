@@ -230,7 +230,7 @@ async function discoverCommands(root: string): Promise<{
 }
 
 /**
- * Frontmatter fields a `.cursor/skills/*​/SKILL.md` can declare.
+ * Frontmatter fields a `.cursor/skills/<name>/SKILL.md` can declare.
  *
  * Unlike `.mdc` rules, SKILL.md is standards-compliant YAML in both Cursor and
  * the AgentSkills.io spec, so it is parsed with a real YAML parser. `parseMdc()`
