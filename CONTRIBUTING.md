@@ -84,6 +84,8 @@ If `npm view ... dependencies` shows any `workspace:` string, the tarball is poi
 pnpm test              # Run all tests (canonical — always correct)
 pnpm --filter @a16njs/glob-hook test   # Run a single package's full suite
 pnpm typecheck         # Check types across all packages
+pnpm lint              # Oxlint (optional — not required for PRs, not in CI)
+pnpm lint:fix          # Safe Oxlint autofixes only
 ```
 
 `pnpm test` uses Turborepo and always runs Vitest inside each package directory, which ensures per-package config (timeouts, include patterns) and package-local binaries (e.g. `tsx`) resolve correctly.

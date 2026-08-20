@@ -62,3 +62,31 @@ Install Oxlint, bind the root `lint` script so it is optionally runnable, apply 
     - PASS: no product executable units; verifier is Oxlint; docs/inventory/CI-omission are policy
 * Insights
     - A test that proves `pnpm lint` "is oxlint" without reading `package.json` is either a change-detector or a vendor test
+
+## 2026-08-20 - BUILD - COMPLETE
+
+* Work completed
+    - Added `oxlint@1.79.0` (`pnpm add -Dw oxlint`)
+    - Bound `"lint": "oxlint"` and `"lint:fix": "oxlint --fix"`; committed `.oxlintrc.json` from `--init`
+    - Updated `techContext.md` and `CONTRIBUTING.md`
+    - `pnpm test` green before and after `--fix`; `pnpm typecheck` green
+    - `oxlint --fix` changed 0 source files
+* Decisions made
+    - Leftover red `pnpm lint` is expected and not a CI gate
+* Insights
+    - Unused imports and irregular whitespace are not in Oxlint's safe `--fix` set
+    - After `--fix`, still 80 correctness errors in 8 packages (plugin-agentsmd clean)
+
+### Leftover correctness inventory (ticket list)
+
+| Package | Count | Rules |
+|---|---|---|
+| plugin-claude | 40 | no-unused-vars |
+| cli | 11 | no-unused-vars |
+| plugin-cursor | 10 | 6 unused-vars + 4 irregular-whitespace |
+| plugin-a16n | 9 | no-unused-vars |
+| models | 4 | no-unused-vars |
+| engine | 4 | no-unused-vars |
+| glob-hook | 1 | no-unused-vars |
+| docs | 1 | no-unused-vars |
+| plugin-agentsmd | 0 | — |

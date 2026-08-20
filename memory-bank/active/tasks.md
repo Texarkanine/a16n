@@ -28,18 +28,18 @@ Install Oxlint at the monorepo root, bind the existing `lint` script so `npm run
 
 ## Implementation Plan
 
-1. Add Oxlint and bind the root scripts (no tests)
+1. [x] Add Oxlint and bind the root scripts (no tests)
    - Files: `package.json`, `pnpm-lock.yaml`, `.oxlintrc.json`
-   - Changes: `pnpm add -D oxlint`. Set `"lint": "oxlint"` and `"lint:fix": "oxlint --fix"`. Create `.oxlintrc.json` with `oxlint --init`. Do not add per-package `lint` scripts.
-2. Update docs that the new bind would make factually wrong (prose/policy)
+   - Changes: `pnpm add -Dw oxlint` (1.79.0). Set `"lint": "oxlint"` and `"lint:fix": "oxlint --fix"`. Created `.oxlintrc.json` with `oxlint --init`. Do not add per-package `lint` scripts.
+2. [x] Update docs that the new bind would make factually wrong (prose/policy)
    - Files: `memory-bank/techContext.md`, `CONTRIBUTING.md`
    - Changes: replace the no-op-lint claim in `techContext.md`. Add optional `pnpm lint` / `pnpm lint:fix` to `CONTRIBUTING.md`. PR expectations stay test/typecheck/build only.
-3. Safe autofix with suite baseline
-   - Files: whatever `oxlint --fix` rewrites
-   - Changes: run `pnpm test` (baseline), `pnpm lint:fix`, review the diff (no `--fix-suggestions` / `--fix-dangerously`), `pnpm test` again.
-4. Inventory leftovers; PR when the install work is done
-   - Files: `memory-bank/active/progress.md`; PR body
-   - Changes: `oxlint -f json` grouped by package. Open a PR to `main`.
+3. [x] Safe autofix with suite baseline
+   - Files: none — `oxlint --fix` rewrote 0 files (unused-vars / irregular-whitespace have no safe fix)
+   - Changes: `pnpm test` baseline passed; `pnpm lint:fix` applied; `pnpm test` still passed (FULL TURBO cache).
+4. [x] Inventory leftovers (PR after QA)
+   - Files: `memory-bank/active/progress.md`
+   - Changes: after `--fix`, still 80 correctness errors in 8 packages (plugin-agentsmd clean). See progress.md table.
 
 ## Preflight Findings
 
@@ -99,5 +99,5 @@ Re-count after `--fix` during build.
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
 - [x] Preflight
-- [ ] Build
+- [x] Build
 - [ ] QA
