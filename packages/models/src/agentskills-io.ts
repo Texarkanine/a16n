@@ -256,7 +256,7 @@ export async function readSkillFiles(
     try {
       const content = await fs.readFile(resourcePath, 'utf-8');
       files[resource] = content;
-    } catch (error) {
+    } catch {
       // Skip missing files gracefully
       continue;
     }

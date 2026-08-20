@@ -4,7 +4,6 @@ import {
   areVersionsCompatible,
   getCurrentVersion,
   CURRENT_IR_VERSION,
-  type IRVersion,
 } from '../src/version.js';
 
 describe('IRVersion', () => {

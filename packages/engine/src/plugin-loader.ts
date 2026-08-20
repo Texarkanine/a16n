@@ -1,5 +1,5 @@
 import type { A16nPlugin } from '@a16njs/models';
-import type { PluginRegistration, PluginRegistrationInput } from './plugin-registry.js';
+import type { PluginRegistrationInput } from './plugin-registry.js';
 import { PluginRegistry } from './plugin-registry.js';
 import {
   discoverInstalledPlugins,
