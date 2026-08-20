@@ -58,3 +58,13 @@ Remove eight unused-variable findings from the models and engine packages while 
     - No QA fixes. Unused `__dirname` remains out of scope.
 * Insights
     - None beyond the build-time plugin-dist dependency.
+
+## 2026-08-20 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-oxlint-160-models-engine.md`.
+    - Confirmed persistent memory-bank files do not need updates.
+* Decisions made
+    - Stop before archive per operator instruction.
+* Insights
+    - Engine tests in a fresh worktree need plugin-cursor and plugin-claude built.
