@@ -24,3 +24,14 @@ Fix 10 oxlint unused-vars and irregular-whitespace errors in the `plugin-cursor`
     - Drop unused `result` rather than prefix `_result`, matching neighboring tests
 * Next
     - QA
+
+## 2026-08-20 - QA - COMPLETE
+
+* Work completed
+    - Semantic review of the 8-file lint cleanup
+    - `.qa-validation-status` = PASS
+* Decisions made
+    - No QA fixes
+* Next
+    - Reflect, then stop (no archive)
+

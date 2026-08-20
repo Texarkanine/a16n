@@ -25,3 +25,12 @@ Files affected:
 - `packages/plugin-cursor/test/emit-simple-agent-skill.test.ts`
 
 Validation: `pnpm exec oxlint packages/plugin-cursor` clean; `pnpm --filter @a16njs/plugin-cursor test` 21 files / 191 tests passed (after `pnpm --filter @a16njs/models build` — worktree had no `models/dist`).
+
+## QA
+
+PASS. Reviewed KISS/DRY/YAGNI/completeness/regression/integrity/docs against #158.
+
+- Completeness: all 10 listed leftovers gone; oxlint clean; package tests pass.
+- Meaning: U+200B was only a comment terminator dodge; `<name>` matches the skill-directory model.
+- YAGNI: no new tests, no extra oxlint categories, no CI, no `_result` prefixes.
+- No trivial or substantive findings. No fixes applied in QA.

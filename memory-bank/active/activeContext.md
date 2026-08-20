@@ -1,6 +1,6 @@
 # Active Context
 
 **Current Task:** Fix oxlint unused-vars and irregular-whitespace in plugin-cursor
-**Phase:** BUILD - COMPLETE
-**What Was Done:** Cleared all 10 Oxlint leftovers in plugin-cursor. Comment globs now use `<name>` instead of a zero-width space; unused imports and emit `result` bindings removed.
-**Next Step:** QA phase
+**Phase:** QA - COMPLETE
+**What Was Done:** Semantic QA against #158. All 10 leftovers cleared; no extra rules/CI/tests; comment meaning preserved. PASS.
+**Next Step:** Reflect (operator standing consent; L1 normally skips this). Stop before archive.
