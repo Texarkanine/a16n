@@ -29,3 +29,15 @@ Unused type/value imports and unused local bindings. Not new executable behavior
 ### Files affected
 
 `packages/plugin-a16n/src/discover.ts`, `src/index.ts`, `test/emit.test.ts`, `test/parse.test.ts`, `test/discover.test.ts`
+
+## QA
+
+- [x] Semantic review (composer-2.5) against [a16n#159](https://github.com/Texarkanine/a16n/issues/159)
+- **Result:** PASS
+- **Findings:** none substantive. Trivial note: two emit tests now use bare `await` (same pattern as other tests in that file).
+- **Reviewer:** [QA unused-vars cleanup](4776ae9a-3342-46c9-bc1f-d41dc7503b39)
+
+## Reflect
+
+- [x] Reflection written at `memory-bank/active/reflection/reflection-issue-159-plugin-a16n-unused-vars.md`
+- Stop before archive (operator)

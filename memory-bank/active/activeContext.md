@@ -1,13 +1,13 @@
 # Active Context
 
 ## Current Task: issue-159-plugin-a16n-unused-vars
-**Phase:** BUILD - COMPLETE
+**Phase:** REFLECT - COMPLETE
 
 ## What Was Done
-- Cleared 9 leftover unused-vars in `plugin-a16n` (imports and unused locals only)
-- `extractRelativeDir` remains public via `src/index.ts` re-export
-- `pnpm exec oxlint packages/plugin-a16n` clean
-- `pnpm --filter @a16njs/plugin-a16n test` — 111 passed (needed workspace `build` first so `@a16njs/models` resolves)
+- Cleared 9 leftover unused-vars in `plugin-a16n`
+- Oxlint clean; package tests 111/111
+- QA PASS (composer-2.5)
+- Reflection written; stopped before archive
 
 ## Next Step
-- `/niko-qa` semantic review, then write REFLECT (parent stop point; L1 has no archive)
+- Parent inspects and decides archive / PR / push. Do not `/niko-archive` until resumed.

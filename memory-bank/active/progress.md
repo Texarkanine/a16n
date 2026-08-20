@@ -28,3 +28,23 @@ Clear 9 leftover `eslint(no-unused-vars)` findings in `@a16njs/plugin-a16n` as s
     - No new tests (operator: not new executable behavior)
 * Insights
     - Fresh worktree needs `turbo run build --filter=@a16njs/plugin-a16n` before the filter test command; Turbo shared-worktree cache replayed models from the parent log path but restored `dist` into this tree
+
+## 2026-08-20 - QA - COMPLETE
+
+* Work completed
+    - Semantic QA via composer-2.5 against the brief
+    - `.qa-validation-status` = PASS
+* Decisions made
+    - No trivial-fix edits; bare `await emit` already matches neighbors
+* Insights
+    - Parent should decide whether memory-bank / SumMem artifacts ship with the leftover PR or stay local
+
+## 2026-08-20 - REFLECT - COMPLETE
+
+* Work completed
+    - Reflection written; persistent files unchanged
+    - Stop before `/niko-archive` per operator
+* Decisions made
+    - L1 has no reflect phase; reflection written anyway because the leftover-wave parent asked to stop at REFLECT
+* Insights
+    - Unused-vars leftovers in this package were all unused imports/locals; no signature or public-API change
