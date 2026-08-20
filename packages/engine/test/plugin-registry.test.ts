@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PluginRegistry } from '../src/plugin-registry.js';
-import type { PluginRegistration } from '../src/plugin-registry.js';
 import { CustomizationType } from '@a16njs/models';
 import type { A16nPlugin } from '@a16njs/models';
 

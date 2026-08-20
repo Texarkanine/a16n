@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CustomizationType, WarningCode } from '@a16njs/models';
-import type { A16nPlugin, AgentCustomization, EmitResult, WrittenFile } from '@a16njs/models';
+import type { A16nPlugin, AgentCustomization, WrittenFile } from '@a16njs/models';
 import {
   PathRewritingTransformation,
   type TransformationContext,

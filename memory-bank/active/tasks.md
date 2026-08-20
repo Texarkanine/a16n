@@ -117,7 +117,7 @@ No new technology - validation not required
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
 - [x] Preflight
-- [ ] Build
+- [x] Build
 - [ ] QA
 
 ## Preflight Findings
@@ -126,3 +126,11 @@ No new technology - validation not required
 - Each implementation step orders oxlint-red before the edit; no change-detector tests are scheduled
 - No plan amendments
 - Advisory: none in scope
+
+## Build Results
+
+- All eight unused-vars diagnostics removed; no other files touched
+- `pnpm exec oxlint packages/models packages/engine` clean
+- `pnpm --filter @a16njs/models test`: 131 passed
+- `pnpm --filter @a16njs/engine test`: 175 passed after building plugin-cursor and plugin-claude (engine.integration imports those packages)
+- Deviations: none

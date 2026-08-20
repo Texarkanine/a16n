@@ -38,3 +38,13 @@ Remove eight unused-variable findings from the models and engine packages while 
     - No plan amendments.
 * Insights
     - Unused `__dirname` in plugin-discovery tests stays out of scope because it is not an Oxlint finding.
+
+## 2026-08-20 - BUILD - COMPLETE
+
+* Work completed
+    - Removed eight unused names across models and engine (6 unused imports, 1 unused type import in src, 1 unused catch binding).
+    - Oxlint clean on both packages. Models tests 131 passed. Engine tests 175 passed.
+* Decisions made
+    - Built `@a16njs/plugin-cursor` and `@a16njs/plugin-claude` so engine tests can import them; no product change.
+* Insights
+    - Isolated worktrees need those plugin dist folders before `pnpm --filter @a16njs/engine test` can load `engine.test.ts`.

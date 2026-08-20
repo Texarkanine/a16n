@@ -7,10 +7,8 @@ import {
   readSkillFiles,
   writeAgentSkillIO,
   readAgentSkillIO,
-  extractSpecFields,
   formatSpecFieldsYaml,
   type ParsedSkillFrontmatter,
-  type ParsedSkill,
 } from '../src/agentskills-io.js';
 
 /**
