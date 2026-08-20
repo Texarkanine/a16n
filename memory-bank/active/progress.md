@@ -49,3 +49,13 @@ Remove the CLI package's 11 unused test declarations without changing behavior, 
     - Followed the plan with no extra files or rule changes.
 * Insights
     - `pnpm --filter a16n test` does not build dependencies; a fresh worktree must `pnpm build` first.
+
+## 2026-08-20 - QA - COMPLETE
+
+* Work completed
+    - Semantic review of the unused-declaration diff against the plan.
+    - Recorded PASS in `memory-bank/active/.qa-validation-status`.
+* Decisions made
+    - No QA fixes required.
+* Insights
+    - The `--verbose --json` case still uses `stdout`; leaving it was the correct completeness check.
