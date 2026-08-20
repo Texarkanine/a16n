@@ -1,12 +1,12 @@
 # Active Context
 
 ## Current Task: issue-74-oxc-linter
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Intent clarified from [issue #74](https://github.com/Texarkanine/a16n/issues/74): install Oxlint, bind `npm run lint`, keep it optional (no CI), inventory remaining violations, open a PR to `main`.
-- Operator addendum: truly safe autofix is fine; per-package lint-fix tickets come later.
-- Complexity determined as Level 2: self-contained repo-tooling enhancement (root script + Oxlint config/dep + inventory), no product-architecture change.
+- Planned a root-level Oxlint bind: `oxlint` + `oxlint --fix` scripts, `.oxlintrc.json` from `--init`, no CI, no per-package scripts, no new tests.
+- Tech-validated Oxlint 1.79.0: 165 files; `--init` correctness is 80 errors (76 unused-vars, 4 irregular-whitespace) across 8 packages; `plugin-agentsmd` is already clean.
+- Operator addendum recorded: truly safe autofix (`--fix` only) is in scope.
 
 ## Next Step
-- Load the Level 2 workflow and execute the plan phase.
+- Preflight validation of the plan.
