@@ -8,6 +8,12 @@ This file contains all documentation content in a single document following the 
 
 # a16n
 
+## [1.1.1](https://github.com/Texarkanine/a16n/compare/a16n@1.1.0...a16n@1.1.1) (2026-08-20)
+
+### Bug Fixes
+
+* **cli:** clear leftover oxlint unused-vars [[#157](https://github.com/Texarkanine/a16n/issues/157)] ([#164](https://github.com/Texarkanine/a16n/issues/164)) ([de7a587](https://github.com/Texarkanine/a16n/commit/de7a5879ae3912721432357a4835d13ba4527f61))
+
 ## [1.1.0](https://github.com/Texarkanine/a16n/compare/a16n@1.0.0...a16n@1.1.0) (2026-07-26)
 
 ### Features
@@ -403,6 +409,12 @@ With `--json`, outputs structured data:
 ## Changelog(Engine)
 
 # @a16njs/engine
+
+## [1.0.1](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@1.0.0...@a16njs/engine@1.0.1) (2026-08-20)
+
+### Bug Fixes
+
+* **models:** clear leftover oxlint unused-vars in models and engine [[#160](https://github.com/Texarkanine/a16n/issues/160)] ([#165](https://github.com/Texarkanine/a16n/issues/165)) ([cd34396](https://github.com/Texarkanine/a16n/commit/cd343962ac18f1f09927489612d902784b71827f))
 
 ## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@0.8.1...@a16njs/engine@1.0.0) (2026-06-13)
 
@@ -861,6 +873,12 @@ Yes, but the API is still in development. See [Plugin Development](/plugin-devel
 ## Changelog(Glob-hook)
 
 
+## [1.0.1](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@1.0.0...@a16njs/glob-hook@1.0.1) (2026-08-20)
+
+### Bug Fixes
+
+* **glob-hook:** clear leftover oxlint unused-vars in glob-hook and docs [[#161](https://github.com/Texarkanine/a16n/issues/161)] ([#168](https://github.com/Texarkanine/a16n/issues/168)) ([b6e3d46](https://github.com/Texarkanine/a16n/commit/b6e3d46ca9df1e0962ed9420c481f114dd699905))
+
 ## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/glob-hook@0.5.2...@a16njs/glob-hook@1.0.0) (2026-06-13)
 
 ### Bug Fixes
@@ -1250,6 +1268,12 @@ Visit our [GitHub repository](https://github.com/Texarkanine/a16n) to get starte
 
 # @a16njs/models
 
+## [1.1.1](https://github.com/Texarkanine/a16n/compare/@a16njs/models@1.1.0...@a16njs/models@1.1.1) (2026-08-20)
+
+### Bug Fixes
+
+* **models:** clear leftover oxlint unused-vars in models and engine [[#160](https://github.com/Texarkanine/a16n/issues/160)] ([#165](https://github.com/Texarkanine/a16n/issues/165)) ([cd34396](https://github.com/Texarkanine/a16n/commit/cd343962ac18f1f09927489612d902784b71827f))
+
 ## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/models@1.0.0...@a16njs/models@1.1.0) (2026-07-26)
 
 ### Features
@@ -1586,6 +1610,12 @@ See the [Models API Reference](/models/api) for complete interface definitions, 
 
 ## Changelog(Plugin-a16n)
 
+
+## [1.1.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@1.1.0...@a16njs/plugin-a16n@1.1.1) (2026-08-20)
+
+### Bug Fixes
+
+* **plugin-a16n:** clear leftover oxlint unused-vars [[#159](https://github.com/Texarkanine/a16n/issues/159)] ([#167](https://github.com/Texarkanine/a16n/issues/167)) ([f104dd5](https://github.com/Texarkanine/a16n/commit/f104dd543bd3114d21c5c23037c2cca3d81dbcce))
 
 ## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@1.0.0...@a16njs/plugin-a16n@1.1.0) (2026-07-26)
 
@@ -2014,6 +2044,12 @@ For complete plugin API details, see the [Plugin AGENTS.md API Reference](/plugi
 
 # @a16njs/plugin-claude
 
+## [1.1.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@1.1.0...@a16njs/plugin-claude@1.1.1) (2026-08-20)
+
+### Bug Fixes
+
+* **plugin-claude:** clear leftover oxlint unused-vars [[#156](https://github.com/Texarkanine/a16n/issues/156)] ([#163](https://github.com/Texarkanine/a16n/issues/163)) ([c9c9c05](https://github.com/Texarkanine/a16n/commit/c9c9c05270cf0c18f39f5b96cc869983cd00597f))
+
 ## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-claude@1.0.0...@a16njs/plugin-claude@1.1.0) (2026-07-26)
 
 ### Features
@@ -2310,6 +2346,12 @@ For complete plugin API details, see the [Plugin Claude API Reference](/plugin-c
 ## Changelog(Plugin-cursor)
 
 # @a16njs/plugin-cursor
+
+## [1.1.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@1.1.0...@a16njs/plugin-cursor@1.1.1) (2026-08-20)
+
+### Bug Fixes
+
+* **plugin-cursor:** clear leftover oxlint unused-vars and irregular-whitespace [[#158](https://github.com/Texarkanine/a16n/issues/158)] ([#166](https://github.com/Texarkanine/a16n/issues/166)) ([747f6ad](https://github.com/Texarkanine/a16n/commit/747f6ada5052392337262edb06d8892beb3a4b82))
 
 ## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-cursor@1.0.0...@a16njs/plugin-cursor@1.1.0) (2026-07-26)
 

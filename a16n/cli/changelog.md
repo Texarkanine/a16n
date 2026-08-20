@@ -1,8 +1,14 @@
 # Changelog
 
-> * **models:** preserve AgentSkills.io skill fields through conversion [[#143](https://github.com/Texarkanine/a16n/issues/143)] ([#149](https://github.com/Texarkanine/a16n/issues/149)) ([250f246](https://github.com/Texarkanine/a16n/commit/250f2466e8307c00d9ce1966a1f839155841768d))
+> * **cli:** clear leftover oxlint unused-vars [[#157](https://github.com/Texarkanine/a16n/issues/157)] ([#164](https://github.com/Texarkanine/a16n/issues/164)) ([de7a587](https://github.com/Texarkanine/a16n/commit/de7a5879ae3912721432357a4835d13ba4527f61))
 
 # a16n
+
+## [1.1.1](https://github.com/Texarkanine/a16n/compare/a16n@1.1.0...a16n@1.1.1) (2026-08-20)
+
+### Bug Fixes
+
+* **cli:** clear leftover oxlint unused-vars [[#157](https://github.com/Texarkanine/a16n/issues/157)] ([#164](https://github.com/Texarkanine/a16n/issues/164)) ([de7a587](https://github.com/Texarkanine/a16n/commit/de7a5879ae3912721432357a4835d13ba4527f61))
 
 ## [1.1.0](https://github.com/Texarkanine/a16n/compare/a16n@1.0.0...a16n@1.1.0) (2026-07-26)
 

@@ -10,7 +10,7 @@
 
 # Interface: Workspace
 
-Defined in: [workspace.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L39)
+Defined in: [workspace.ts:39](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L39)
 
 Abstraction over file operations, enabling local filesystem,
 read-only (dry-run), and in-memory (testing) workspaces.
@@ -41,7 +41,7 @@ await readOnly.write('file.md', 'content'); // throws!
 
 > `readonly` **id**: `string`
 
-Defined in: [workspace.ts:41](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L41)
+Defined in: [workspace.ts:41](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L41)
 
 Unique identifier for this workspace
 
@@ -51,7 +51,7 @@ Unique identifier for this workspace
 
 > `readonly` **root**: `string`
 
-Defined in: [workspace.ts:44](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L44)
+Defined in: [workspace.ts:44](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L44)
 
 The root path of the workspace (for path resolution and display)
 
@@ -61,7 +61,7 @@ The root path of the workspace (for path resolution and display)
 
 > **resolve**(`relativePath`): `string`
 
-Defined in: [workspace.ts:51](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L51)
+Defined in: [workspace.ts:51](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L51)
 
 Resolve a relative path within this workspace to an absolute path.
 
@@ -85,7 +85,7 @@ Absolute path
 
 > **exists**(`relativePath`): `Promise`\<`boolean`\>
 
-Defined in: [workspace.ts:58](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L58)
+Defined in: [workspace.ts:58](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L58)
 
 Check if a path exists in this workspace.
 
@@ -109,7 +109,7 @@ true if the path exists
 
 > **read**(`relativePath`): `Promise`\<`string`\>
 
-Defined in: [workspace.ts:66](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L66)
+Defined in: [workspace.ts:66](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L66)
 
 Read a file from this workspace.
 
@@ -137,7 +137,7 @@ If the file does not exist
 
 > **write**(`relativePath`, `content`): `Promise`\<`void`\>
 
-Defined in: [workspace.ts:75](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L75)
+Defined in: [workspace.ts:75](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L75)
 
 Write a file to this workspace.
 Creates parent directories as needed.
@@ -170,7 +170,7 @@ If the workspace is read-only
 
 > **readdir**(`relativePath`): `Promise`\<[`WorkspaceEntry`](WorkspaceEntry.md)[]\>
 
-Defined in: [workspace.ts:83](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L83)
+Defined in: [workspace.ts:83](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L83)
 
 List entries in a directory.
 
@@ -198,7 +198,7 @@ If the directory does not exist
 
 > **mkdir**(`relativePath`): `Promise`\<`void`\>
 
-Defined in: [workspace.ts:89](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L89)
+Defined in: [workspace.ts:89](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L89)
 
 Create a directory (and any missing parents).
 

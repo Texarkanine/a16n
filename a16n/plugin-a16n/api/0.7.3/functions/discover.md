@@ -12,7 +12,7 @@
 
 > **discover**(`rootOrWorkspace`): `Promise`\<`DiscoveryResult`\>
 
-Defined in: [discover.ts:56](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/discover.ts#L56)
+Defined in: [discover.ts:56](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/discover.ts#L56)
 
 Discover IR items from .a16n/ directory structure.
 

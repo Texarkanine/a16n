@@ -12,7 +12,7 @@
 
 > **areVersionsCompatible**(`readerVersion`, `fileVersion`): `boolean`
 
-Defined in: [version.ts:80](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/version.ts#L80)
+Defined in: [version.ts:80](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/version.ts#L80)
 
 Check if two IR versions are compatible.
 

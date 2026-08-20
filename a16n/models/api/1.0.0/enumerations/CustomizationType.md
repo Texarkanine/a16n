@@ -10,7 +10,7 @@
 
 # Enumeration: CustomizationType
 
-Defined in: [types.ts:5](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L5)
+Defined in: [types.ts:5](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L5)
 
 The taxonomy of agent customization types.
 Each type represents a different way agents can be customized.
@@ -21,7 +21,7 @@ Each type represents a different way agents can be customized.
 
 > **GlobalPrompt**: `"global-prompt"`
 
-Defined in: [types.ts:7](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L7)
+Defined in: [types.ts:7](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L7)
 
 Always-applied prompts (CLAUDE.md, alwaysApply rules)
 
@@ -31,7 +31,7 @@ Always-applied prompts (CLAUDE.md, alwaysApply rules)
 
 > **SimpleAgentSkill**: `"simple-agent-skill"`
 
-Defined in: [types.ts:9](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L9)
+Defined in: [types.ts:9](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L9)
 
 Simple skill triggered by description matching (no resources or extra files)
 
@@ -41,7 +41,7 @@ Simple skill triggered by description matching (no resources or extra files)
 
 > **AgentSkillIO**: `"agent-skill-io"`
 
-Defined in: [types.ts:11](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L11)
+Defined in: [types.ts:11](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L11)
 
 Full AgentSkills.io standard skill with resources and multiple files (NO hooks)
 
@@ -51,7 +51,7 @@ Full AgentSkills.io standard skill with resources and multiple files (NO hooks)
 
 > **FileRule**: `"file-rule"`
 
-Defined in: [types.ts:13](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L13)
+Defined in: [types.ts:13](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L13)
 
 Triggered by file glob patterns
 
@@ -61,7 +61,7 @@ Triggered by file glob patterns
 
 > **AgentIgnore**: `"agent-ignore"`
 
-Defined in: [types.ts:15](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L15)
+Defined in: [types.ts:15](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L15)
 
 Files/patterns to exclude from agent context
 
@@ -71,6 +71,6 @@ Files/patterns to exclude from agent context
 
 > **ManualPrompt**: `"manual-prompt"`
 
-Defined in: [types.ts:17](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L17)
+Defined in: [types.ts:17](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L17)
 
 Explicitly invoked prompts (slash commands, skills with disable-model-invocation)

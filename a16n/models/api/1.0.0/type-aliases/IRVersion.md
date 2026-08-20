@@ -12,7 +12,7 @@
 
 > **IRVersion** = `string` & `object`
 
-Defined in: [version.ts:15](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/version.ts#L15)
+Defined in: [version.ts:15](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/version.ts#L15)
 
 Kubernetes-style IR version format.
 Format: v{major}{stability}{revision}

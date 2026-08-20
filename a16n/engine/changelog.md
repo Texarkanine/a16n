@@ -1,8 +1,14 @@
 # Changelog
 
-> * **release:** Wave B — promote engine + plugins to 1.0.0, re-pin agentsmd to models@1.0.0 ([#125](https://github.com/Texarkanine/a16n/issues/125)) ([d55fa92](https://github.com/Texarkanine/a16n/commit/d55fa9289bac5193187f5cd24f5ff8138d5c94cd))
+> * **models:** clear leftover oxlint unused-vars in models and engine [[#160](https://github.com/Texarkanine/a16n/issues/160)] ([#165](https://github.com/Texarkanine/a16n/issues/165)) ([cd34396](https://github.com/Texarkanine/a16n/commit/cd343962ac18f1f09927489612d902784b71827f))
 
 # @a16njs/engine
+
+## [1.0.1](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@1.0.0...@a16njs/engine@1.0.1) (2026-08-20)
+
+### Bug Fixes
+
+* **models:** clear leftover oxlint unused-vars in models and engine [[#160](https://github.com/Texarkanine/a16n/issues/160)] ([#165](https://github.com/Texarkanine/a16n/issues/165)) ([cd34396](https://github.com/Texarkanine/a16n/commit/cd343962ac18f1f09927489612d902784b71827f))
 
 ## [1.0.0](https://github.com/Texarkanine/a16n/compare/@a16njs/engine@0.8.1...@a16njs/engine@1.0.0) (2026-06-13)
 

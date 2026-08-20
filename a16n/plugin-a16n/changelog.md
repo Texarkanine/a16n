@@ -1,9 +1,14 @@
 # Changelog
 
-> * **models:** preserve AgentSkills.io skill fields through conversion [[#143](https://github.com/Texarkanine/a16n/issues/143)] ([#149](https://github.com/Texarkanine/a16n/issues/149)) ([250f246](https://github.com/Texarkanine/a16n/commit/250f2466e8307c00d9ce1966a1f839155841768d))
-* **models:** preserve ManualPrompt authored description [[#147](https://github.com/Texarkanine/a16n/issues/147)] ([#151](https://github.com/Texarkanine/a16n/issues/151)) ([cc1eb2f](https://github.com/Texarkanine/a16n/commit/cc1eb2ff1f58e0849376f13656cf6693fa5a9b9f))
+> * **plugin-a16n:** clear leftover oxlint unused-vars [[#159](https://github.com/Texarkanine/a16n/issues/159)] ([#167](https://github.com/Texarkanine/a16n/issues/167)) ([f104dd5](https://github.com/Texarkanine/a16n/commit/f104dd543bd3114d21c5c23037c2cca3d81dbcce))
 
 # Changelog
+
+## [1.1.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@1.1.0...@a16njs/plugin-a16n@1.1.1) (2026-08-20)
+
+### Bug Fixes
+
+* **plugin-a16n:** clear leftover oxlint unused-vars [[#159](https://github.com/Texarkanine/a16n/issues/159)] ([#167](https://github.com/Texarkanine/a16n/issues/167)) ([f104dd5](https://github.com/Texarkanine/a16n/commit/f104dd543bd3114d21c5c23037c2cca3d81dbcce))
 
 ## [1.1.0](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@1.0.0...@a16njs/plugin-a16n@1.1.0) (2026-07-26)
 

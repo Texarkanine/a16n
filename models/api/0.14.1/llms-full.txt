@@ -14,7 +14,7 @@ This file contains all documentation content in a single document following the 
 
 # Class: LocalWorkspace
 
-Defined in: [workspace.ts:115](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L115)
+Defined in: [workspace.ts:115](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L115)
 
 Workspace backed by the local filesystem.
 
@@ -38,7 +38,7 @@ await ws.write('.claude/rules/my-rule.md', content);
 
 > **new LocalWorkspace**(`id`, `root`): `LocalWorkspace`
 
-Defined in: [workspace.ts:121](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L121)
+Defined in: [workspace.ts:121](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L121)
 
 Create a new LocalWorkspace.
 
@@ -66,7 +66,7 @@ Absolute path to the workspace root directory
 
 > `readonly` **id**: `string`
 
-Defined in: [workspace.ts:122](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L122)
+Defined in: [workspace.ts:122](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L122)
 
 Unique identifier for this workspace
 
@@ -80,7 +80,7 @@ Unique identifier for this workspace
 
 > `readonly` **root**: `string`
 
-Defined in: [workspace.ts:123](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L123)
+Defined in: [workspace.ts:123](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L123)
 
 Absolute path to the workspace root directory
 
@@ -94,7 +94,7 @@ Absolute path to the workspace root directory
 
 > **resolve**(`relativePath`): `string`
 
-Defined in: [workspace.ts:126](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L126)
+Defined in: [workspace.ts:126](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L126)
 
 Resolve a relative path within this workspace to an absolute path.
 
@@ -122,7 +122,7 @@ Absolute path
 
 > **exists**(`relativePath`): `Promise`\<`boolean`\>
 
-Defined in: [workspace.ts:131](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L131)
+Defined in: [workspace.ts:131](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L131)
 
 Check if a path exists in this workspace.
 
@@ -150,7 +150,7 @@ true if the path exists
 
 > **read**(`relativePath`): `Promise`\<`string`\>
 
-Defined in: [workspace.ts:140](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L140)
+Defined in: [workspace.ts:140](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L140)
 
 Read a file from this workspace.
 
@@ -182,7 +182,7 @@ If the file does not exist
 
 > **write**(`relativePath`, `content`): `Promise`\<`void`\>
 
-Defined in: [workspace.ts:144](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L144)
+Defined in: [workspace.ts:144](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L144)
 
 Write a file to this workspace.
 Creates parent directories as needed.
@@ -219,7 +219,7 @@ If the workspace is read-only
 
 > **readdir**(`relativePath`): `Promise`\<[`WorkspaceEntry`](../interfaces/WorkspaceEntry.md)[]\>
 
-Defined in: [workspace.ts:150](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L150)
+Defined in: [workspace.ts:150](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L150)
 
 List entries in a directory.
 
@@ -251,7 +251,7 @@ If the directory does not exist
 
 > **mkdir**(`relativePath`): `Promise`\<`void`\>
 
-Defined in: [workspace.ts:159](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L159)
+Defined in: [workspace.ts:159](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L159)
 
 Create a directory (and any missing parents).
 
@@ -283,7 +283,7 @@ Path relative to workspace root
 
 # Enumeration: CustomizationType
 
-Defined in: [types.ts:5](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L5)
+Defined in: [types.ts:5](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L5)
 
 The taxonomy of agent customization types.
 Each type represents a different way agents can be customized.
@@ -294,7 +294,7 @@ Each type represents a different way agents can be customized.
 
 > **GlobalPrompt**: `"global-prompt"`
 
-Defined in: [types.ts:7](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L7)
+Defined in: [types.ts:7](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L7)
 
 Always-applied prompts (CLAUDE.md, alwaysApply rules)
 
@@ -304,7 +304,7 @@ Always-applied prompts (CLAUDE.md, alwaysApply rules)
 
 > **SimpleAgentSkill**: `"simple-agent-skill"`
 
-Defined in: [types.ts:9](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L9)
+Defined in: [types.ts:9](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L9)
 
 Simple skill triggered by description matching (no resources or extra files)
 
@@ -314,7 +314,7 @@ Simple skill triggered by description matching (no resources or extra files)
 
 > **AgentSkillIO**: `"agent-skill-io"`
 
-Defined in: [types.ts:11](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L11)
+Defined in: [types.ts:11](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L11)
 
 Full AgentSkills.io standard skill with resources and multiple files (NO hooks)
 
@@ -324,7 +324,7 @@ Full AgentSkills.io standard skill with resources and multiple files (NO hooks)
 
 > **FileRule**: `"file-rule"`
 
-Defined in: [types.ts:13](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L13)
+Defined in: [types.ts:13](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L13)
 
 Triggered by file glob patterns
 
@@ -334,7 +334,7 @@ Triggered by file glob patterns
 
 > **AgentIgnore**: `"agent-ignore"`
 
-Defined in: [types.ts:15](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L15)
+Defined in: [types.ts:15](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L15)
 
 Files/patterns to exclude from agent context
 
@@ -344,7 +344,7 @@ Files/patterns to exclude from agent context
 
 > **ManualPrompt**: `"manual-prompt"`
 
-Defined in: [types.ts:17](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L17)
+Defined in: [types.ts:17](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L17)
 
 Explicitly invoked prompts (slash commands, skills with disable-model-invocation)
 
@@ -360,7 +360,7 @@ Explicitly invoked prompts (slash commands, skills with disable-model-invocation
 
 # Enumeration: WarningCode
 
-Defined in: [warnings.ts:4](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L4)
+Defined in: [warnings.ts:4](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L4)
 
 Warning codes indicating the type of issue encountered.
 
@@ -370,7 +370,7 @@ Warning codes indicating the type of issue encountered.
 
 > **Merged**: `"merged"`
 
-Defined in: [warnings.ts:6](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L6)
+Defined in: [warnings.ts:6](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L6)
 
 Multiple items were collapsed into one file
 
@@ -380,7 +380,7 @@ Multiple items were collapsed into one file
 
 > **Approximated**: `"approximated"`
 
-Defined in: [warnings.ts:8](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L8)
+Defined in: [warnings.ts:8](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L8)
 
 Feature was translated imperfectly
 
@@ -390,7 +390,7 @@ Feature was translated imperfectly
 
 > **Skipped**: `"skipped"`
 
-Defined in: [warnings.ts:10](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L10)
+Defined in: [warnings.ts:10](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L10)
 
 Feature was not supported and omitted
 
@@ -400,7 +400,7 @@ Feature was not supported and omitted
 
 > **Overwritten**: `"overwritten"`
 
-Defined in: [warnings.ts:12](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L12)
+Defined in: [warnings.ts:12](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L12)
 
 Existing file was replaced
 
@@ -410,7 +410,7 @@ Existing file was replaced
 
 > **FileRenamed**: `"file-renamed"`
 
-Defined in: [warnings.ts:14](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L14)
+Defined in: [warnings.ts:14](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L14)
 
 File was renamed to avoid collision
 
@@ -420,7 +420,7 @@ File was renamed to avoid collision
 
 > **BoundaryCrossing**: `"boundary-crossing"`
 
-Defined in: [warnings.ts:16](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L16)
+Defined in: [warnings.ts:16](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L16)
 
 Git-ignored source with tracked output (or vice versa)
 
@@ -430,7 +430,7 @@ Git-ignored source with tracked output (or vice versa)
 
 > **GitStatusConflict**: `"git-status-conflict"`
 
-Defined in: [warnings.ts:18](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L18)
+Defined in: [warnings.ts:18](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L18)
 
 Sources have conflicting git status (some ignored, some tracked)
 
@@ -440,7 +440,7 @@ Sources have conflicting git status (some ignored, some tracked)
 
 > **VersionMismatch**: `"version-mismatch"`
 
-Defined in: [warnings.ts:20](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L20)
+Defined in: [warnings.ts:20](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L20)
 
 IR file version is incompatible with current reader version
 
@@ -450,7 +450,7 @@ IR file version is incompatible with current reader version
 
 > **OrphanPathRef**: `"orphan-path-ref"`
 
-Defined in: [warnings.ts:22](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L22)
+Defined in: [warnings.ts:22](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L22)
 
 A path reference in content points to a source-format file not in the conversion set
 
@@ -460,7 +460,7 @@ A path reference in content points to a source-format file not in the conversion
 
 > **OperationFailed**: `"operation-failed"`
 
-Defined in: [warnings.ts:24](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L24)
+Defined in: [warnings.ts:24](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L24)
 
 A post-conversion operation (e.g. gitignore cleanup) failed
 
@@ -478,7 +478,7 @@ A post-conversion operation (e.g. gitignore cleanup) failed
 
 > **areVersionsCompatible**(`readerVersion`, `fileVersion`): `boolean`
 
-Defined in: [version.ts:80](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/version.ts#L80)
+Defined in: [version.ts:80](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/version.ts#L80)
 
 Check if two IR versions are compatible.
 
@@ -530,7 +530,7 @@ areVersionsCompatible('v1stable1', 'v1beta1') // false (stability mismatch)
 
 > **createId**(`type`, `sourcePath`): `string`
 
-Defined in: [helpers.ts:134](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L134)
+Defined in: [helpers.ts:134](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/helpers.ts#L134)
 
 Create a unique ID from a customization type and source path.
 
@@ -568,7 +568,7 @@ A unique identifier string
 
 > **getCurrentVersion**(): [`IRVersion`](../type-aliases/IRVersion.md)
 
-Defined in: [version.ts:115](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/version.ts#L115)
+Defined in: [version.ts:115](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/version.ts#L115)
 
 Get the current IR version.
 
@@ -592,7 +592,7 @@ The current IR version constant
 
 > **getUniqueFilename**(`baseName`, `usedNames`, `extension?`): `string`
 
-Defined in: [helpers.ts:113](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L113)
+Defined in: [helpers.ts:113](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/helpers.ts#L113)
 
 Get a unique filename by appending a counter if the name already exists.
 
@@ -636,7 +636,7 @@ A unique name not in usedNames
 
 > **inferGlobalPromptName**(`sourcePath`): `string`
 
-Defined in: [helpers.ts:26](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L26)
+Defined in: [helpers.ts:26](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/helpers.ts#L26)
 
 Derives a canonical emission name from a source file path.
 
@@ -675,7 +675,7 @@ The name to use for emission filenames (non-empty string).
 
 > **isAgentIgnore**(`item`): `item is AgentIgnore`
 
-Defined in: [helpers.ts:95](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L95)
+Defined in: [helpers.ts:95](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/helpers.ts#L95)
 
 Type guard to check if an item is an AgentIgnore.
 
@@ -703,7 +703,7 @@ Type guard to check if an item is an AgentIgnore.
 
 > **isAgentSkillIO**(`item`): `item is AgentSkillIO`
 
-Defined in: [helpers.ts:81](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L81)
+Defined in: [helpers.ts:81](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/helpers.ts#L81)
 
 Type guard to check if an item is an AgentSkillIO (full AgentSkills.io skill).
 
@@ -731,7 +731,7 @@ Type guard to check if an item is an AgentSkillIO (full AgentSkills.io skill).
 
 > **isFileRule**(`item`): `item is FileRule`
 
-Defined in: [helpers.ts:88](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L88)
+Defined in: [helpers.ts:88](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/helpers.ts#L88)
 
 Type guard to check if an item is a FileRule.
 
@@ -759,7 +759,7 @@ Type guard to check if an item is a FileRule.
 
 > **isGlobalPrompt**(`item`): `item is GlobalPrompt`
 
-Defined in: [helpers.ts:61](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L61)
+Defined in: [helpers.ts:61](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/helpers.ts#L61)
 
 Type guard to check if an item is a GlobalPrompt.
 
@@ -787,7 +787,7 @@ Type guard to check if an item is a GlobalPrompt.
 
 > **isManualPrompt**(`item`): `item is ManualPrompt`
 
-Defined in: [helpers.ts:102](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L102)
+Defined in: [helpers.ts:102](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/helpers.ts#L102)
 
 Type guard to check if an item is a ManualPrompt.
 
@@ -815,7 +815,7 @@ Type guard to check if an item is a ManualPrompt.
 
 > **isSimpleAgentSkill**(`item`): `item is SimpleAgentSkill`
 
-Defined in: [helpers.ts:68](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L68)
+Defined in: [helpers.ts:68](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/helpers.ts#L68)
 
 Type guard to check if an item is a SimpleAgentSkill.
 
@@ -843,7 +843,7 @@ Type guard to check if an item is a SimpleAgentSkill.
 
 > **normalizeReservedRuleStem**(`stem`): `string`
 
-Defined in: [helpers.ts:54](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L54)
+Defined in: [helpers.ts:54](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/helpers.ts#L54)
 
 Rewrite stems that would collide with harness-level magic filenames when
 emitted as rule files.
@@ -876,7 +876,7 @@ in rules directories. We canonicalize that stem to `AGENTSMD`.
 
 > **parseIRVersion**(`version`): [`ParsedIRVersion`](../interfaces/ParsedIRVersion.md) \| `null`
 
-Defined in: [version.ts:47](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/version.ts#L47)
+Defined in: [version.ts:47](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/version.ts#L47)
 
 Parse an IR version string into its components.
 
@@ -917,7 +917,7 @@ parseIRVersion('v1') // null (missing trailing revision number)
 
 > **parseSkillFrontmatter**(`fileContent`): \{ `success`: `true`; `skill`: [`ParsedSkill`](../interfaces/ParsedSkill.md); \} \| \{ `success`: `false`; `error`: `string`; \}
 
-Defined in: [agentskills-io.ts:62](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L62)
+Defined in: [agentskills-io.ts:62](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L62)
 
 Parse the frontmatter from an AgentSkills.io SKILL.md file.
 
@@ -973,7 +973,7 @@ parseSkillFrontmatter(content)
 
 > **readAgentSkillIO**(`skillDir`): `Promise`\<\{ `success`: `true`; `skill`: [`ParsedSkill`](../interfaces/ParsedSkill.md) & `object`; \} \| \{ `success`: `false`; `error`: `string`; \}\>
 
-Defined in: [agentskills-io.ts:239](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L239)
+Defined in: [agentskills-io.ts:239](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L239)
 
 Read an AgentSkillIO from disk in verbatim AgentSkills.io format.
 
@@ -1022,7 +1022,7 @@ await readAgentSkillIO('.a16n/agent-skill-io/deploy')
 
 > **readSkillFiles**(`skillDir`, `resources`): `Promise`\<`Record`\<`string`, `string`\>\>
 
-Defined in: [agentskills-io.ts:117](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L117)
+Defined in: [agentskills-io.ts:117](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L117)
 
 Read resource files from a skill directory.
 
@@ -1067,7 +1067,7 @@ readSkillFiles('/path/to/skill', ['checklist.md', 'config.json'])
 
 > **resolveRoot**(`rootOrWorkspace`): `string`
 
-Defined in: [workspace.ts:99](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L99)
+Defined in: [workspace.ts:99](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L99)
 
 Helper to extract the root path from a string or Workspace argument.
 Useful for plugins migrating to Workspace support.
@@ -1100,7 +1100,7 @@ The root path string
 
 > **toWorkspace**(`rootOrWorkspace`, `id?`): [`Workspace`](../interfaces/Workspace.md)
 
-Defined in: [workspace.ts:173](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L173)
+Defined in: [workspace.ts:173](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L173)
 
 Convert a string root path or Workspace instance to a Workspace.
 If given a string, wraps it in a LocalWorkspace with the given id.
@@ -1140,7 +1140,7 @@ A Workspace instance
 
 > **writeAgentSkillIO**(`outputDir`, `frontmatter`, `content`, `files`): `Promise`\<`string`[]\>
 
-Defined in: [agentskills-io.ts:168](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L168)
+Defined in: [agentskills-io.ts:168](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L168)
 
 Write an AgentSkillIO to disk in verbatim AgentSkills.io format.
 
@@ -1278,7 +1278,7 @@ await writeAgentSkillIO(
 
 # Interface: A16nPlugin
 
-Defined in: [plugin.ts:84](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L84)
+Defined in: [plugin.ts:84](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L84)
 
 The plugin interface that all a16n plugins must implement.
 Plugins bridge between a16n's internal model and a specific tool's format.
@@ -1289,7 +1289,7 @@ Plugins bridge between a16n's internal model and a specific tool's format.
 
 > **id**: `string`
 
-Defined in: [plugin.ts:86](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L86)
+Defined in: [plugin.ts:86](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L86)
 
 Unique identifier, e.g., 'cursor', 'claude', 'codex'
 
@@ -1299,7 +1299,7 @@ Unique identifier, e.g., 'cursor', 'claude', 'codex'
 
 > **name**: `string`
 
-Defined in: [plugin.ts:88](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L88)
+Defined in: [plugin.ts:88](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L88)
 
 Human-readable name
 
@@ -1309,7 +1309,7 @@ Human-readable name
 
 > **supports**: [`CustomizationType`](../enumerations/CustomizationType.md)[]
 
-Defined in: [plugin.ts:90](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L90)
+Defined in: [plugin.ts:90](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L90)
 
 Which customization types this plugin supports
 
@@ -1319,7 +1319,7 @@ Which customization types this plugin supports
 
 > `optional` **pathPatterns?**: [`PluginPathPatterns`](PluginPathPatterns.md)
 
-Defined in: [plugin.ts:92](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L92)
+Defined in: [plugin.ts:92](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L92)
 
 Path patterns for this plugin's file format (used by transformations)
 
@@ -1329,7 +1329,7 @@ Path patterns for this plugin's file format (used by transformations)
 
 > **discover**(`rootOrWorkspace`): `Promise`\<[`DiscoveryResult`](DiscoveryResult.md)\>
 
-Defined in: [plugin.ts:99](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L99)
+Defined in: [plugin.ts:99](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L99)
 
 Discover all agent customizations in a directory tree.
 
@@ -1353,7 +1353,7 @@ All customizations found and any warnings
 
 > **emit**(`models`, `rootOrWorkspace`, `options?`): `Promise`\<[`EmitResult`](EmitResult.md)\>
 
-Defined in: [plugin.ts:108](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L108)
+Defined in: [plugin.ts:108](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L108)
 
 Emit customization models to disk in this plugin's format.
 
@@ -1395,7 +1395,7 @@ Info about what was written (or would be written) and any issues
 
 # Interface: AgentCustomization
 
-Defined in: [types.ts:29](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L29)
+Defined in: [types.ts:29](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L29)
 
 Base interface for all agent customization items.
 Every customization discovered or emitted extends this interface.
@@ -1420,7 +1420,7 @@ BREAKING CHANGES (Phase 9):
 
 > **id**: `string`
 
-Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L31)
+Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L31)
 
 Unique identifier for this item
 
@@ -1430,7 +1430,7 @@ Unique identifier for this item
 
 > **type**: [`CustomizationType`](../enumerations/CustomizationType.md)
 
-Defined in: [types.ts:33](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L33)
+Defined in: [types.ts:33](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L33)
 
 The type of customization
 
@@ -1440,7 +1440,7 @@ The type of customization
 
 > **version**: `string`
 
-Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L35)
+Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L35)
 
 IR version (required, e.g., 'v1beta1')
 
@@ -1450,7 +1450,7 @@ IR version (required, e.g., 'v1beta1')
 
 > `optional` **sourcePath?**: `string`
 
-Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L37)
+Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L37)
 
 Original file path where this was discovered (optional, omitted in IR format)
 
@@ -1460,7 +1460,7 @@ Original file path where this was discovered (optional, omitted in IR format)
 
 > `optional` **relativeDir?**: `string`
 
-Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L39)
+Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L39)
 
 Relative directory path for preserving directory structure (optional)
 
@@ -1470,7 +1470,7 @@ Relative directory path for preserving directory structure (optional)
 
 > **content**: `string`
 
-Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L41)
+Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L41)
 
 The actual prompt/rule content
 
@@ -1480,7 +1480,7 @@ The actual prompt/rule content
 
 > **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L43)
+Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L43)
 
 Tool-specific extras that don't fit the standard model (transient, not serialized in IR)
 
@@ -1496,7 +1496,7 @@ Tool-specific extras that don't fit the standard model (transient, not serialize
 
 # Interface: AgentIgnore
 
-Defined in: [types.ts:128](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L128)
+Defined in: [types.ts:128](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L128)
 
 Patterns for files the agent should ignore.
 Examples: .cursorignore
@@ -1511,7 +1511,7 @@ Examples: .cursorignore
 
 > **id**: `string`
 
-Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L31)
+Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L31)
 
 Unique identifier for this item
 
@@ -1525,7 +1525,7 @@ Unique identifier for this item
 
 > **version**: `string`
 
-Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L35)
+Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L35)
 
 IR version (required, e.g., 'v1beta1')
 
@@ -1539,7 +1539,7 @@ IR version (required, e.g., 'v1beta1')
 
 > `optional` **sourcePath?**: `string`
 
-Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L37)
+Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L37)
 
 Original file path where this was discovered (optional, omitted in IR format)
 
@@ -1553,7 +1553,7 @@ Original file path where this was discovered (optional, omitted in IR format)
 
 > `optional` **relativeDir?**: `string`
 
-Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L39)
+Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L39)
 
 Relative directory path for preserving directory structure (optional)
 
@@ -1567,7 +1567,7 @@ Relative directory path for preserving directory structure (optional)
 
 > **content**: `string`
 
-Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L41)
+Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L41)
 
 The actual prompt/rule content
 
@@ -1581,7 +1581,7 @@ The actual prompt/rule content
 
 > **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L43)
+Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L43)
 
 Tool-specific extras that don't fit the standard model (transient, not serialized in IR)
 
@@ -1595,7 +1595,7 @@ Tool-specific extras that don't fit the standard model (transient, not serialize
 
 > **type**: [`AgentIgnore`](../enumerations/CustomizationType.md#agentignore)
 
-Defined in: [types.ts:129](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L129)
+Defined in: [types.ts:129](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L129)
 
 The type of customization
 
@@ -1609,7 +1609,7 @@ The type of customization
 
 > **patterns**: `string`[]
 
-Defined in: [types.ts:131](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L131)
+Defined in: [types.ts:131](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L131)
 
 Gitignore-style patterns
 
@@ -1625,7 +1625,7 @@ Gitignore-style patterns
 
 # Interface: AgentSkillIO
 
-Defined in: [types.ts:92](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L92)
+Defined in: [types.ts:92](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L92)
 
 Full AgentSkills.io standard skill.
 Supports multiple resource files in the skill directory.
@@ -1647,7 +1647,7 @@ Use this type for skills that include:
 
 > **id**: `string`
 
-Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L31)
+Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L31)
 
 Unique identifier for this item
 
@@ -1661,7 +1661,7 @@ Unique identifier for this item
 
 > **version**: `string`
 
-Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L35)
+Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L35)
 
 IR version (required, e.g., 'v1beta1')
 
@@ -1675,7 +1675,7 @@ IR version (required, e.g., 'v1beta1')
 
 > `optional` **sourcePath?**: `string`
 
-Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L37)
+Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L37)
 
 Original file path where this was discovered (optional, omitted in IR format)
 
@@ -1689,7 +1689,7 @@ Original file path where this was discovered (optional, omitted in IR format)
 
 > `optional` **relativeDir?**: `string`
 
-Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L39)
+Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L39)
 
 Relative directory path for preserving directory structure (optional)
 
@@ -1703,7 +1703,7 @@ Relative directory path for preserving directory structure (optional)
 
 > **content**: `string`
 
-Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L41)
+Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L41)
 
 The actual prompt/rule content
 
@@ -1717,7 +1717,7 @@ The actual prompt/rule content
 
 > **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L43)
+Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L43)
 
 Tool-specific extras that don't fit the standard model (transient, not serialized in IR)
 
@@ -1731,7 +1731,7 @@ Tool-specific extras that don't fit the standard model (transient, not serialize
 
 > **type**: [`AgentSkillIO`](../enumerations/CustomizationType.md#agentskillio)
 
-Defined in: [types.ts:93](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L93)
+Defined in: [types.ts:93](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L93)
 
 The type of customization
 
@@ -1745,7 +1745,7 @@ The type of customization
 
 > **name**: `string`
 
-Defined in: [types.ts:96](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L96)
+Defined in: [types.ts:96](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L96)
 
 Skill name (from frontmatter or directory name)
 
@@ -1755,7 +1755,7 @@ Skill name (from frontmatter or directory name)
 
 > **description**: `string`
 
-Defined in: [types.ts:99](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L99)
+Defined in: [types.ts:99](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L99)
 
 Description for activation matching (required)
 
@@ -1765,7 +1765,7 @@ Description for activation matching (required)
 
 > `optional` **resources?**: `string`[]
 
-Defined in: [types.ts:102](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L102)
+Defined in: [types.ts:102](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L102)
 
 Optional: Resource file paths relative to skill directory
 
@@ -1775,7 +1775,7 @@ Optional: Resource file paths relative to skill directory
 
 > `optional` **disableModelInvocation?**: `boolean`
 
-Defined in: [types.ts:105](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L105)
+Defined in: [types.ts:105](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L105)
 
 Optional: If true, only invoked via /name
 
@@ -1785,7 +1785,7 @@ Optional: If true, only invoked via /name
 
 > **files**: `Record`\<`string`, `string`\>
 
-Defined in: [types.ts:111](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L111)
+Defined in: [types.ts:111](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L111)
 
 Map of additional files in the skill directory.
 Key: relative path, Value: file content
@@ -1802,7 +1802,7 @@ Key: relative path, Value: file content
 
 # Interface: DiscoveryResult
 
-Defined in: [plugin.ts:8](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L8)
+Defined in: [plugin.ts:8](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L8)
 
 Result of discovering customizations from a project.
 
@@ -1812,7 +1812,7 @@ Result of discovering customizations from a project.
 
 > **items**: [`AgentCustomization`](AgentCustomization.md)[]
 
-Defined in: [plugin.ts:10](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L10)
+Defined in: [plugin.ts:10](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L10)
 
 All customization items found
 
@@ -1822,7 +1822,7 @@ All customization items found
 
 > **warnings**: [`Warning`](Warning.md)[]
 
-Defined in: [plugin.ts:12](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L12)
+Defined in: [plugin.ts:12](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L12)
 
 Any warnings encountered during discovery
 
@@ -1838,7 +1838,7 @@ Any warnings encountered during discovery
 
 # Interface: EmitOptions
 
-Defined in: [plugin.ts:64](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L64)
+Defined in: [plugin.ts:64](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L64)
 
 Options for emitting customizations.
 
@@ -1848,7 +1848,7 @@ Options for emitting customizations.
 
 > `optional` **dryRun?**: `boolean`
 
-Defined in: [plugin.ts:66](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L66)
+Defined in: [plugin.ts:66](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L66)
 
 If true, calculate what would be written without actually writing
 
@@ -1864,7 +1864,7 @@ If true, calculate what would be written without actually writing
 
 # Interface: EmitResult
 
-Defined in: [plugin.ts:52](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L52)
+Defined in: [plugin.ts:52](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L52)
 
 Result of emitting customizations to a project.
 
@@ -1874,7 +1874,7 @@ Result of emitting customizations to a project.
 
 > **written**: [`WrittenFile`](WrittenFile.md)[]
 
-Defined in: [plugin.ts:54](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L54)
+Defined in: [plugin.ts:54](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L54)
 
 Files that were written (or would be written in dry-run)
 
@@ -1884,7 +1884,7 @@ Files that were written (or would be written in dry-run)
 
 > **warnings**: [`Warning`](Warning.md)[]
 
-Defined in: [plugin.ts:56](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L56)
+Defined in: [plugin.ts:56](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L56)
 
 Any warnings encountered during emission
 
@@ -1894,7 +1894,7 @@ Any warnings encountered during emission
 
 > **unsupported**: [`AgentCustomization`](AgentCustomization.md)[]
 
-Defined in: [plugin.ts:58](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L58)
+Defined in: [plugin.ts:58](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L58)
 
 Items that could not be represented by this plugin
 
@@ -1910,7 +1910,7 @@ Items that could not be represented by this plugin
 
 # Interface: FileRule
 
-Defined in: [types.ts:118](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L118)
+Defined in: [types.ts:118](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L118)
 
 A rule that is triggered by file patterns.
 Examples: Cursor rules with globs
@@ -1925,7 +1925,7 @@ Examples: Cursor rules with globs
 
 > **id**: `string`
 
-Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L31)
+Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L31)
 
 Unique identifier for this item
 
@@ -1939,7 +1939,7 @@ Unique identifier for this item
 
 > **version**: `string`
 
-Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L35)
+Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L35)
 
 IR version (required, e.g., 'v1beta1')
 
@@ -1953,7 +1953,7 @@ IR version (required, e.g., 'v1beta1')
 
 > `optional` **sourcePath?**: `string`
 
-Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L37)
+Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L37)
 
 Original file path where this was discovered (optional, omitted in IR format)
 
@@ -1967,7 +1967,7 @@ Original file path where this was discovered (optional, omitted in IR format)
 
 > `optional` **relativeDir?**: `string`
 
-Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L39)
+Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L39)
 
 Relative directory path for preserving directory structure (optional)
 
@@ -1981,7 +1981,7 @@ Relative directory path for preserving directory structure (optional)
 
 > **content**: `string`
 
-Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L41)
+Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L41)
 
 The actual prompt/rule content
 
@@ -1995,7 +1995,7 @@ The actual prompt/rule content
 
 > **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L43)
+Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L43)
 
 Tool-specific extras that don't fit the standard model (transient, not serialized in IR)
 
@@ -2009,7 +2009,7 @@ Tool-specific extras that don't fit the standard model (transient, not serialize
 
 > **type**: [`FileRule`](../enumerations/CustomizationType.md#filerule)
 
-Defined in: [types.ts:119](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L119)
+Defined in: [types.ts:119](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L119)
 
 The type of customization
 
@@ -2023,7 +2023,7 @@ The type of customization
 
 > **globs**: `string`[]
 
-Defined in: [types.ts:121](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L121)
+Defined in: [types.ts:121](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L121)
 
 File patterns that trigger this rule
 
@@ -2039,7 +2039,7 @@ File patterns that trigger this rule
 
 # Interface: GlobalPrompt
 
-Defined in: [types.ts:50](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L50)
+Defined in: [types.ts:50](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L50)
 
 A global prompt that is always applied.
 Examples: CLAUDE.md, Cursor rules with alwaysApply: true
@@ -2054,7 +2054,7 @@ Examples: CLAUDE.md, Cursor rules with alwaysApply: true
 
 > **id**: `string`
 
-Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L31)
+Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L31)
 
 Unique identifier for this item
 
@@ -2068,7 +2068,7 @@ Unique identifier for this item
 
 > **version**: `string`
 
-Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L35)
+Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L35)
 
 IR version (required, e.g., 'v1beta1')
 
@@ -2082,7 +2082,7 @@ IR version (required, e.g., 'v1beta1')
 
 > `optional` **sourcePath?**: `string`
 
-Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L37)
+Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L37)
 
 Original file path where this was discovered (optional, omitted in IR format)
 
@@ -2096,7 +2096,7 @@ Original file path where this was discovered (optional, omitted in IR format)
 
 > `optional` **relativeDir?**: `string`
 
-Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L39)
+Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L39)
 
 Relative directory path for preserving directory structure (optional)
 
@@ -2110,7 +2110,7 @@ Relative directory path for preserving directory structure (optional)
 
 > **content**: `string`
 
-Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L41)
+Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L41)
 
 The actual prompt/rule content
 
@@ -2124,7 +2124,7 @@ The actual prompt/rule content
 
 > **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L43)
+Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L43)
 
 Tool-specific extras that don't fit the standard model (transient, not serialized in IR)
 
@@ -2138,7 +2138,7 @@ Tool-specific extras that don't fit the standard model (transient, not serialize
 
 > **type**: [`GlobalPrompt`](../enumerations/CustomizationType.md#globalprompt)
 
-Defined in: [types.ts:51](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L51)
+Defined in: [types.ts:51](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L51)
 
 The type of customization
 
@@ -2152,7 +2152,7 @@ The type of customization
 
 > **name**: `string`
 
-Defined in: [types.ts:57](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L57)
+Defined in: [types.ts:57](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L57)
 
 Canonical name for emission output filename (e.g. `'cursorrules'`, `'CLAUDE'`).
 Set at discovery time using `inferGlobalPromptName(sourcePath)` from `@a16njs/models`.
@@ -2170,7 +2170,7 @@ Emission plugins use this directly — no re-derivation from source paths needed
 
 # Interface: ManualPrompt
 
-Defined in: [types.ts:140](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L140)
+Defined in: [types.ts:140](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L140)
 
 A manually-invoked prompt (slash command or skill with disable-model-invocation).
 Examples: Cursor commands in .cursor/commands/, skills with disable-model-invocation: true
@@ -2187,7 +2187,7 @@ These prompts are only activated when explicitly invoked by the user.
 
 > **id**: `string`
 
-Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L31)
+Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L31)
 
 Unique identifier for this item
 
@@ -2201,7 +2201,7 @@ Unique identifier for this item
 
 > **version**: `string`
 
-Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L35)
+Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L35)
 
 IR version (required, e.g., 'v1beta1')
 
@@ -2215,7 +2215,7 @@ IR version (required, e.g., 'v1beta1')
 
 > `optional` **sourcePath?**: `string`
 
-Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L37)
+Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L37)
 
 Original file path where this was discovered (optional, omitted in IR format)
 
@@ -2229,7 +2229,7 @@ Original file path where this was discovered (optional, omitted in IR format)
 
 > `optional` **relativeDir?**: `string`
 
-Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L39)
+Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L39)
 
 Relative directory path for preserving directory structure (optional)
 
@@ -2243,7 +2243,7 @@ Relative directory path for preserving directory structure (optional)
 
 > **content**: `string`
 
-Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L41)
+Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L41)
 
 The actual prompt/rule content
 
@@ -2257,7 +2257,7 @@ The actual prompt/rule content
 
 > **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L43)
+Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L43)
 
 Tool-specific extras that don't fit the standard model (transient, not serialized in IR)
 
@@ -2271,7 +2271,7 @@ Tool-specific extras that don't fit the standard model (transient, not serialize
 
 > **type**: [`ManualPrompt`](../enumerations/CustomizationType.md#manualprompt)
 
-Defined in: [types.ts:141](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L141)
+Defined in: [types.ts:141](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L141)
 
 The type of customization
 
@@ -2285,7 +2285,7 @@ The type of customization
 
 > **promptName**: `string`
 
-Defined in: [types.ts:143](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L143)
+Defined in: [types.ts:143](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L143)
 
 Prompt name for invocation (e.g., "review" for /review)
 
@@ -2301,7 +2301,7 @@ Prompt name for invocation (e.g., "review" for /review)
 
 # Interface: ParsedIRVersion
 
-Defined in: [version.ts:20](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/version.ts#L20)
+Defined in: [version.ts:20](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/version.ts#L20)
 
 Parsed components of an IR version.
 
@@ -2311,7 +2311,7 @@ Parsed components of an IR version.
 
 > **major**: `number`
 
-Defined in: [version.ts:22](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/version.ts#L22)
+Defined in: [version.ts:22](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/version.ts#L22)
 
 Major version number (e.g., 1, 2, 10)
 
@@ -2321,7 +2321,7 @@ Major version number (e.g., 1, 2, 10)
 
 > **stability**: `string`
 
-Defined in: [version.ts:24](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/version.ts#L24)
+Defined in: [version.ts:24](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/version.ts#L24)
 
 Stability identifier (alpha, beta, stable, or empty string for stable)
 
@@ -2331,7 +2331,7 @@ Stability identifier (alpha, beta, stable, or empty string for stable)
 
 > **revision**: `number`
 
-Defined in: [version.ts:26](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/version.ts#L26)
+Defined in: [version.ts:26](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/version.ts#L26)
 
 Revision number (e.g., 1, 2, 3)
 
@@ -2347,7 +2347,7 @@ Revision number (e.g., 1, 2, 3)
 
 # Interface: ParsedSkill
 
-Defined in: [agentskills-io.ts:28](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L28)
+Defined in: [agentskills-io.ts:28](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L28)
 
 A parsed AgentSkills.io skill with content and frontmatter.
 
@@ -2357,7 +2357,7 @@ A parsed AgentSkills.io skill with content and frontmatter.
 
 > **frontmatter**: [`ParsedSkillFrontmatter`](ParsedSkillFrontmatter.md)
 
-Defined in: [agentskills-io.ts:30](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L30)
+Defined in: [agentskills-io.ts:30](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L30)
 
 Parsed frontmatter
 
@@ -2367,7 +2367,7 @@ Parsed frontmatter
 
 > **content**: `string`
 
-Defined in: [agentskills-io.ts:32](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L32)
+Defined in: [agentskills-io.ts:32](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L32)
 
 Skill content after frontmatter
 
@@ -2383,7 +2383,7 @@ Skill content after frontmatter
 
 # Interface: ParsedSkillFrontmatter
 
-Defined in: [agentskills-io.ts:14](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L14)
+Defined in: [agentskills-io.ts:14](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L14)
 
 Parsed frontmatter from an AgentSkills.io SKILL.md file.
 This is the VERBATIM AgentSkills.io format, NOT the IR format.
@@ -2394,7 +2394,7 @@ This is the VERBATIM AgentSkills.io format, NOT the IR format.
 
 > **name**: `string`
 
-Defined in: [agentskills-io.ts:16](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L16)
+Defined in: [agentskills-io.ts:16](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L16)
 
 Skill name (required)
 
@@ -2404,7 +2404,7 @@ Skill name (required)
 
 > **description**: `string`
 
-Defined in: [agentskills-io.ts:18](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L18)
+Defined in: [agentskills-io.ts:18](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L18)
 
 Skill description for activation matching (required)
 
@@ -2414,7 +2414,7 @@ Skill description for activation matching (required)
 
 > `optional` **resources?**: `string`[]
 
-Defined in: [agentskills-io.ts:20](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L20)
+Defined in: [agentskills-io.ts:20](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L20)
 
 Resource file paths relative to skill directory (optional)
 
@@ -2424,7 +2424,7 @@ Resource file paths relative to skill directory (optional)
 
 > `optional` **disableModelInvocation?**: `boolean`
 
-Defined in: [agentskills-io.ts:22](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L22)
+Defined in: [agentskills-io.ts:22](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L22)
 
 If true, only invoked via /name (optional)
 
@@ -2440,7 +2440,7 @@ If true, only invoked via /name (optional)
 
 # Interface: PluginPathPatterns
 
-Defined in: [plugin.ts:73](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L73)
+Defined in: [plugin.ts:73](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L73)
 
 Path patterns for a plugin, used by transformations like path rewriting
 to identify and handle file references specific to this plugin's format.
@@ -2451,7 +2451,7 @@ to identify and handle file references specific to this plugin's format.
 
 > **prefixes**: `string`[]
 
-Defined in: [plugin.ts:75](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L75)
+Defined in: [plugin.ts:75](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L75)
 
 Directory prefixes used by this plugin (e.g., ['.cursor/rules/', '.cursor/skills/'])
 
@@ -2461,7 +2461,7 @@ Directory prefixes used by this plugin (e.g., ['.cursor/rules/', '.cursor/skills
 
 > **extensions**: `string`[]
 
-Defined in: [plugin.ts:77](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L77)
+Defined in: [plugin.ts:77](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L77)
 
 File extensions used by this plugin (e.g., ['.mdc', '.md'])
 
@@ -2477,7 +2477,7 @@ File extensions used by this plugin (e.g., ['.mdc', '.md'])
 
 # Interface: SimpleAgentSkill
 
-Defined in: [types.ts:67](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L67)
+Defined in: [types.ts:67](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L67)
 
 A simple skill that is activated by description matching.
 Examples: Cursor rules with description but no globs, simple SKILL.md files
@@ -2495,7 +2495,7 @@ use AgentSkillIO instead.
 
 > **id**: `string`
 
-Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L31)
+Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L31)
 
 Unique identifier for this item
 
@@ -2509,7 +2509,7 @@ Unique identifier for this item
 
 > **version**: `string`
 
-Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L35)
+Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L35)
 
 IR version (required, e.g., 'v1beta1')
 
@@ -2523,7 +2523,7 @@ IR version (required, e.g., 'v1beta1')
 
 > `optional` **sourcePath?**: `string`
 
-Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L37)
+Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L37)
 
 Original file path where this was discovered (optional, omitted in IR format)
 
@@ -2537,7 +2537,7 @@ Original file path where this was discovered (optional, omitted in IR format)
 
 > `optional` **relativeDir?**: `string`
 
-Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L39)
+Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L39)
 
 Relative directory path for preserving directory structure (optional)
 
@@ -2551,7 +2551,7 @@ Relative directory path for preserving directory structure (optional)
 
 > **content**: `string`
 
-Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L41)
+Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L41)
 
 The actual prompt/rule content
 
@@ -2565,7 +2565,7 @@ The actual prompt/rule content
 
 > **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L43)
+Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L43)
 
 Tool-specific extras that don't fit the standard model (transient, not serialized in IR)
 
@@ -2579,7 +2579,7 @@ Tool-specific extras that don't fit the standard model (transient, not serialize
 
 > **type**: [`SimpleAgentSkill`](../enumerations/CustomizationType.md#simpleagentskill)
 
-Defined in: [types.ts:68](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L68)
+Defined in: [types.ts:68](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L68)
 
 The type of customization
 
@@ -2593,7 +2593,7 @@ The type of customization
 
 > **name**: `string`
 
-Defined in: [types.ts:70](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L70)
+Defined in: [types.ts:70](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L70)
 
 Invocation name — the directory name (or rule filename) used for slash-command invocation (e.g., "banana" for /banana). Required for skills to invoke properly.
 
@@ -2603,7 +2603,7 @@ Invocation name — the directory name (or rule filename) used for slash-command
 
 > **description**: `string`
 
-Defined in: [types.ts:72](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L72)
+Defined in: [types.ts:72](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L72)
 
 What triggers this skill
 
@@ -2619,7 +2619,7 @@ What triggers this skill
 
 # Interface: Warning
 
-Defined in: [warnings.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L31)
+Defined in: [warnings.ts:31](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L31)
 
 A warning about something that happened during conversion.
 Warnings don't stop the conversion but should be surfaced to users.
@@ -2630,7 +2630,7 @@ Warnings don't stop the conversion but should be surfaced to users.
 
 > **code**: [`WarningCode`](../enumerations/WarningCode.md)
 
-Defined in: [warnings.ts:33](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L33)
+Defined in: [warnings.ts:33](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L33)
 
 The type of warning
 
@@ -2640,7 +2640,7 @@ The type of warning
 
 > **message**: `string`
 
-Defined in: [warnings.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L35)
+Defined in: [warnings.ts:35](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L35)
 
 Human-readable description of the issue
 
@@ -2650,7 +2650,7 @@ Human-readable description of the issue
 
 > `optional` **sources?**: `string`[]
 
-Defined in: [warnings.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L37)
+Defined in: [warnings.ts:37](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L37)
 
 Source files that were affected (optional)
 
@@ -2660,7 +2660,7 @@ Source files that were affected (optional)
 
 > `optional` **details?**: `Record`\<`string`, `unknown`\>
 
-Defined in: [warnings.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/warnings.ts#L39)
+Defined in: [warnings.ts:39](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/warnings.ts#L39)
 
 Additional details about the warning (optional)
 
@@ -2676,7 +2676,7 @@ Additional details about the warning (optional)
 
 # Interface: Workspace
 
-Defined in: [workspace.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L39)
+Defined in: [workspace.ts:39](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L39)
 
 Abstraction over file operations, enabling local filesystem,
 read-only (dry-run), and in-memory (testing) workspaces.
@@ -2707,7 +2707,7 @@ await readOnly.write('file.md', 'content'); // throws!
 
 > `readonly` **id**: `string`
 
-Defined in: [workspace.ts:41](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L41)
+Defined in: [workspace.ts:41](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L41)
 
 Unique identifier for this workspace
 
@@ -2717,7 +2717,7 @@ Unique identifier for this workspace
 
 > `readonly` **root**: `string`
 
-Defined in: [workspace.ts:44](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L44)
+Defined in: [workspace.ts:44](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L44)
 
 The root path of the workspace (for path resolution and display)
 
@@ -2727,7 +2727,7 @@ The root path of the workspace (for path resolution and display)
 
 > **resolve**(`relativePath`): `string`
 
-Defined in: [workspace.ts:51](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L51)
+Defined in: [workspace.ts:51](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L51)
 
 Resolve a relative path within this workspace to an absolute path.
 
@@ -2751,7 +2751,7 @@ Absolute path
 
 > **exists**(`relativePath`): `Promise`\<`boolean`\>
 
-Defined in: [workspace.ts:58](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L58)
+Defined in: [workspace.ts:58](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L58)
 
 Check if a path exists in this workspace.
 
@@ -2775,7 +2775,7 @@ true if the path exists
 
 > **read**(`relativePath`): `Promise`\<`string`\>
 
-Defined in: [workspace.ts:66](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L66)
+Defined in: [workspace.ts:66](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L66)
 
 Read a file from this workspace.
 
@@ -2803,7 +2803,7 @@ If the file does not exist
 
 > **write**(`relativePath`, `content`): `Promise`\<`void`\>
 
-Defined in: [workspace.ts:75](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L75)
+Defined in: [workspace.ts:75](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L75)
 
 Write a file to this workspace.
 Creates parent directories as needed.
@@ -2836,7 +2836,7 @@ If the workspace is read-only
 
 > **readdir**(`relativePath`): `Promise`\<[`WorkspaceEntry`](WorkspaceEntry.md)[]\>
 
-Defined in: [workspace.ts:83](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L83)
+Defined in: [workspace.ts:83](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L83)
 
 List entries in a directory.
 
@@ -2864,7 +2864,7 @@ If the directory does not exist
 
 > **mkdir**(`relativePath`): `Promise`\<`void`\>
 
-Defined in: [workspace.ts:89](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L89)
+Defined in: [workspace.ts:89](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L89)
 
 Create a directory (and any missing parents).
 
@@ -2892,7 +2892,7 @@ Path relative to workspace root
 
 # Interface: WorkspaceEntry
 
-Defined in: [workspace.ts:7](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L7)
+Defined in: [workspace.ts:7](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L7)
 
 A directory entry returned by workspace readdir.
 
@@ -2902,7 +2902,7 @@ A directory entry returned by workspace readdir.
 
 > **name**: `string`
 
-Defined in: [workspace.ts:9](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L9)
+Defined in: [workspace.ts:9](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L9)
 
 The entry name (not full path)
 
@@ -2912,7 +2912,7 @@ The entry name (not full path)
 
 > **isFile**: `boolean`
 
-Defined in: [workspace.ts:11](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L11)
+Defined in: [workspace.ts:11](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L11)
 
 Whether this entry is a file
 
@@ -2922,7 +2922,7 @@ Whether this entry is a file
 
 > **isDirectory**: `boolean`
 
-Defined in: [workspace.ts:13](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/workspace.ts#L13)
+Defined in: [workspace.ts:13](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/workspace.ts#L13)
 
 Whether this entry is a directory
 
@@ -2938,7 +2938,7 @@ Whether this entry is a directory
 
 # Interface: WrittenFile
 
-Defined in: [plugin.ts:18](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L18)
+Defined in: [plugin.ts:18](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L18)
 
 Information about a file that was written.
 
@@ -2948,7 +2948,7 @@ Information about a file that was written.
 
 > **path**: `string`
 
-Defined in: [plugin.ts:20](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L20)
+Defined in: [plugin.ts:20](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L20)
 
 Path to the written file
 
@@ -2958,7 +2958,7 @@ Path to the written file
 
 > **type**: [`CustomizationType`](../enumerations/CustomizationType.md)
 
-Defined in: [plugin.ts:22](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L22)
+Defined in: [plugin.ts:22](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L22)
 
 Type of customization written
 
@@ -2968,7 +2968,7 @@ Type of customization written
 
 > **itemCount**: `number`
 
-Defined in: [plugin.ts:24](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L24)
+Defined in: [plugin.ts:24](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L24)
 
 How many models went into this file (1 for 1:1, more if merged)
 
@@ -2978,7 +2978,7 @@ How many models went into this file (1 for 1:1, more if merged)
 
 > **isNewFile**: `boolean`
 
-Defined in: [plugin.ts:26](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L26)
+Defined in: [plugin.ts:26](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L26)
 
 True if this file was created fresh; false if merged/edited existing
 
@@ -2988,7 +2988,7 @@ True if this file was created fresh; false if merged/edited existing
 
 > `optional` **sourceItems?**: [`AgentCustomization`](AgentCustomization.md)[]
 
-Defined in: [plugin.ts:32](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L32)
+Defined in: [plugin.ts:32](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L32)
 
 Which source AgentCustomizations contributed to this output file.
 Optional for backwards compatibility.
@@ -3000,7 +3000,7 @@ Enables accurate git-ignore conflict detection in match mode.
 
 > `optional` **sourcePaths?**: `string`[]
 
-Defined in: [plugin.ts:46](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/plugin.ts#L46)
+Defined in: [plugin.ts:46](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/plugin.ts#L46)
 
 Explicit source-relative paths this output file represents, used by
 path-rewriting. When set (and non-empty), takes precedence over
@@ -3028,7 +3028,7 @@ Paths must use POSIX separators to match the normalization applied in
 
 > **AgentSkill** = [`SimpleAgentSkill`](../interfaces/SimpleAgentSkill.md)
 
-Defined in: [types.ts:79](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L79)
+Defined in: [types.ts:79](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L79)
 
 ## Deprecated
 
@@ -3049,7 +3049,7 @@ This type alias is provided for backward compatibility.
 
 > **IRVersion** = `string` & `object`
 
-Defined in: [version.ts:15](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/version.ts#L15)
+Defined in: [version.ts:15](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/version.ts#L15)
 
 Kubernetes-style IR version format.
 Format: v{major}{stability}{revision}
@@ -3084,7 +3084,7 @@ Invalid: v1, v2beta, vbeta1, 1beta1
 
 > `const` **CURRENT\_IR\_VERSION**: [`IRVersion`](../type-aliases/IRVersion.md)
 
-Defined in: [version.ts:33](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/version.ts#L33)
+Defined in: [version.ts:33](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/version.ts#L33)
 
 The current IR version used by this version of a16n.
 v1beta2: SimpleAgentSkill.name is required (was optional in v1beta1).
@@ -3103,7 +3103,7 @@ v1beta2: SimpleAgentSkill.name is required (was optional in v1beta1).
 
 > `const` **isAgentSkill**: (`item`) => `item is SimpleAgentSkill` = `isSimpleAgentSkill`
 
-Defined in: [helpers.ts:76](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L76)
+Defined in: [helpers.ts:76](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/helpers.ts#L76)
 
 Type guard to check if an item is a SimpleAgentSkill.
 

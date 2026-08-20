@@ -12,7 +12,7 @@
 
 > **inferGlobalPromptName**(`sourcePath`): `string`
 
-Defined in: [helpers.ts:26](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/helpers.ts#L26)
+Defined in: [helpers.ts:26](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/helpers.ts#L26)
 
 Derives a canonical emission name from a source file path.
 

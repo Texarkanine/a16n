@@ -12,7 +12,7 @@
 
 > **readSkillFiles**(`skillDir`, `resources`): `Promise`\<`Record`\<`string`, `string`\>\>
 
-Defined in: [agentskills-io.ts:117](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L117)
+Defined in: [agentskills-io.ts:117](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L117)
 
 Read resource files from a skill directory.
 

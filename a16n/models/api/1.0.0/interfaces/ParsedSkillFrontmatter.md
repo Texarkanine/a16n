@@ -10,7 +10,7 @@
 
 # Interface: ParsedSkillFrontmatter
 
-Defined in: [agentskills-io.ts:14](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L14)
+Defined in: [agentskills-io.ts:14](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L14)
 
 Parsed frontmatter from an AgentSkills.io SKILL.md file.
 This is the VERBATIM AgentSkills.io format, NOT the IR format.
@@ -21,7 +21,7 @@ This is the VERBATIM AgentSkills.io format, NOT the IR format.
 
 > **name**: `string`
 
-Defined in: [agentskills-io.ts:16](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L16)
+Defined in: [agentskills-io.ts:16](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L16)
 
 Skill name (required)
 
@@ -31,7 +31,7 @@ Skill name (required)
 
 > **description**: `string`
 
-Defined in: [agentskills-io.ts:18](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L18)
+Defined in: [agentskills-io.ts:18](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L18)
 
 Skill description for activation matching (required)
 
@@ -41,7 +41,7 @@ Skill description for activation matching (required)
 
 > `optional` **resources?**: `string`[]
 
-Defined in: [agentskills-io.ts:20](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L20)
+Defined in: [agentskills-io.ts:20](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L20)
 
 Resource file paths relative to skill directory (optional)
 
@@ -51,6 +51,6 @@ Resource file paths relative to skill directory (optional)
 
 > `optional` **disableModelInvocation?**: `boolean`
 
-Defined in: [agentskills-io.ts:22](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/agentskills-io.ts#L22)
+Defined in: [agentskills-io.ts:22](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/agentskills-io.ts#L22)
 
 If true, only invoked via /name (optional)

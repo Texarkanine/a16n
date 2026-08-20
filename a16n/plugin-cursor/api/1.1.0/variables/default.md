@@ -12,7 +12,7 @@
 
 > `const` **default**: `A16nPlugin`
 
-Defined in: [index.ts:9](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-cursor/src/index.ts#L9)
+Defined in: [index.ts:9](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-cursor/src/index.ts#L9)
 
 Cursor IDE plugin for a16n.
 Supports discovery and emission of Cursor rules.

@@ -10,7 +10,7 @@
 
 # Interface: AgentSkillIO
 
-Defined in: [types.ts:92](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L92)
+Defined in: [types.ts:92](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L92)
 
 Full AgentSkills.io standard skill.
 Supports multiple resource files in the skill directory.
@@ -32,7 +32,7 @@ Use this type for skills that include:
 
 > **id**: `string`
 
-Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L31)
+Defined in: [types.ts:31](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L31)
 
 Unique identifier for this item
 
@@ -46,7 +46,7 @@ Unique identifier for this item
 
 > **version**: `string`
 
-Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L35)
+Defined in: [types.ts:35](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L35)
 
 IR version (required, e.g., 'v1beta1')
 
@@ -60,7 +60,7 @@ IR version (required, e.g., 'v1beta1')
 
 > `optional` **sourcePath?**: `string`
 
-Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L37)
+Defined in: [types.ts:37](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L37)
 
 Original file path where this was discovered (optional, omitted in IR format)
 
@@ -74,7 +74,7 @@ Original file path where this was discovered (optional, omitted in IR format)
 
 > `optional` **relativeDir?**: `string`
 
-Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L39)
+Defined in: [types.ts:39](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L39)
 
 Relative directory path for preserving directory structure (optional)
 
@@ -88,7 +88,7 @@ Relative directory path for preserving directory structure (optional)
 
 > **content**: `string`
 
-Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L41)
+Defined in: [types.ts:41](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L41)
 
 The actual prompt/rule content
 
@@ -102,7 +102,7 @@ The actual prompt/rule content
 
 > **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L43)
+Defined in: [types.ts:43](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L43)
 
 Tool-specific extras that don't fit the standard model (transient, not serialized in IR)
 
@@ -116,7 +116,7 @@ Tool-specific extras that don't fit the standard model (transient, not serialize
 
 > **type**: [`AgentSkillIO`](../enumerations/CustomizationType.md#agentskillio)
 
-Defined in: [types.ts:93](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L93)
+Defined in: [types.ts:93](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L93)
 
 The type of customization
 
@@ -130,7 +130,7 @@ The type of customization
 
 > **name**: `string`
 
-Defined in: [types.ts:96](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L96)
+Defined in: [types.ts:96](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L96)
 
 Skill name (from frontmatter or directory name)
 
@@ -140,7 +140,7 @@ Skill name (from frontmatter or directory name)
 
 > **description**: `string`
 
-Defined in: [types.ts:99](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L99)
+Defined in: [types.ts:99](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L99)
 
 Description for activation matching (required)
 
@@ -150,7 +150,7 @@ Description for activation matching (required)
 
 > `optional` **resources?**: `string`[]
 
-Defined in: [types.ts:102](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L102)
+Defined in: [types.ts:102](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L102)
 
 Optional: Resource file paths relative to skill directory
 
@@ -160,7 +160,7 @@ Optional: Resource file paths relative to skill directory
 
 > `optional` **disableModelInvocation?**: `boolean`
 
-Defined in: [types.ts:105](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L105)
+Defined in: [types.ts:105](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L105)
 
 Optional: If true, only invoked via /name
 
@@ -170,7 +170,7 @@ Optional: If true, only invoked via /name
 
 > **files**: `Record`\<`string`, `string`\>
 
-Defined in: [types.ts:111](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/models/src/types.ts#L111)
+Defined in: [types.ts:111](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/models/src/types.ts#L111)
 
 Map of additional files in the skill directory.
 Key: relative path, Value: file content

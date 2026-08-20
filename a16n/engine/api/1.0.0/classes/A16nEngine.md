@@ -10,7 +10,7 @@
 
 # Class: A16nEngine
 
-Defined in: [index.ts:103](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L103)
+Defined in: [index.ts:103](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/engine/src/index.ts#L103)
 
 The a16n conversion engine.
 Orchestrates plugins to discover and emit agent customizations.
@@ -21,7 +21,7 @@ Orchestrates plugins to discover and emit agent customizations.
 
 > **new A16nEngine**(`plugins?`): `A16nEngine`
 
-Defined in: [index.ts:111](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L111)
+Defined in: [index.ts:111](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/engine/src/index.ts#L111)
 
 Create a new engine with the given plugins.
 
@@ -43,7 +43,7 @@ Plugins to register (registered as 'bundled')
 
 > **registerPlugin**(`plugin`, `source?`): `void`
 
-Defined in: [index.ts:123](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L123)
+Defined in: [index.ts:123](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/engine/src/index.ts#L123)
 
 Register a plugin with the engine.
 
@@ -71,7 +71,7 @@ Whether the plugin is bundled or installed
 
 > **discoverAndRegisterPlugins**(`options?`): `Promise`\<[`DiscoverAndRegisterResult`](../interfaces/DiscoverAndRegisterResult.md)\>
 
-Defined in: [index.ts:132](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L132)
+Defined in: [index.ts:132](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/engine/src/index.ts#L132)
 
 Discover and register installed plugins from node_modules.
 
@@ -95,7 +95,7 @@ Result with registered, skipped, and error info
 
 > **listPlugins**(): [`PluginInfo`](../interfaces/PluginInfo.md)[]
 
-Defined in: [index.ts:155](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L155)
+Defined in: [index.ts:155](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/engine/src/index.ts#L155)
 
 List all registered plugins.
 
@@ -111,7 +111,7 @@ Array of plugin info
 
 > **getPlugin**(`id`): `A16nPlugin` \| `undefined`
 
-Defined in: [index.ts:169](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L169)
+Defined in: [index.ts:169](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/engine/src/index.ts#L169)
 
 Get a plugin by its ID.
 
@@ -135,7 +135,7 @@ The plugin or undefined if not found
 
 > **discover**(`pluginId`, `rootOrWorkspace`): `Promise`\<`DiscoveryResult`\>
 
-Defined in: [index.ts:179](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L179)
+Defined in: [index.ts:179](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/engine/src/index.ts#L179)
 
 Discover customizations using a specific plugin.
 
@@ -165,7 +165,7 @@ Discovery result with items and warnings
 
 > **convert**(`options`): `Promise`\<[`ConversionResult`](../interfaces/ConversionResult.md)\>
 
-Defined in: [index.ts:195](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/engine/src/index.ts#L195)
+Defined in: [index.ts:195](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/engine/src/index.ts#L195)
 
 Convert customizations from one format to another.
 

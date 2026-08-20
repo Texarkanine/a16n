@@ -12,7 +12,7 @@
 
 > **extractRelativeDir**(`fullPath`, `baseDir`): `string` \| `undefined`
 
-Defined in: [utils.ts:14](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/utils.ts#L14)
+Defined in: [utils.ts:14](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/utils.ts#L14)
 
 Extract relative directory from a full path relative to base directory.
 

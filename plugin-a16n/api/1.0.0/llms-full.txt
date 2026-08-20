@@ -16,7 +16,7 @@ This file contains all documentation content in a single document following the 
 
 > **discover**(`rootOrWorkspace`): `Promise`\<`DiscoveryResult`\>
 
-Defined in: [discover.ts:56](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/discover.ts#L56)
+Defined in: [discover.ts:56](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/discover.ts#L56)
 
 Discover IR items from .a16n/ directory structure.
 
@@ -59,7 +59,7 @@ const result = await discover('/path/to/project');
 
 > **emit**(`models`, `rootOrWorkspace`, `options?`): `Promise`\<`EmitResult`\>
 
-Defined in: [emit.ts:56](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/emit.ts#L56)
+Defined in: [emit.ts:56](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/emit.ts#L56)
 
 Emit IR items to .a16n/ directory structure.
 
@@ -103,7 +103,7 @@ EmitResult with written files and warnings
 
 > **extractRelativeDir**(`fullPath`, `baseDir`): `string` \| `undefined`
 
-Defined in: [utils.ts:14](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/utils.ts#L14)
+Defined in: [utils.ts:14](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/utils.ts#L14)
 
 Extract relative directory from a full path relative to base directory.
 
@@ -145,7 +145,7 @@ Relative directory or undefined if file is directly in baseDir
 
 > **formatIRFile**(`item`): `string`
 
-Defined in: [format.ts:29](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/format.ts#L29)
+Defined in: [format.ts:29](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/format.ts#L29)
 
 Format an IR item as a markdown file with YAML frontmatter.
 
@@ -183,7 +183,7 @@ Formatted markdown string with YAML frontmatter
 
 > **getNameWithoutExtension**(`filename`): `string`
 
-Defined in: [utils.ts:55](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/utils.ts#L55)
+Defined in: [utils.ts:55](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/utils.ts#L55)
 
 Get filename without extension.
 Uses path.parse().name to properly handle dotfiles (e.g., ".env" -> ".env").
@@ -216,7 +216,7 @@ Filename without extension
 
 > **parseIRFile**(`rootOrWorkspace`, `filePath`, `filename`, `sourcePath`): `Promise`\<[`ParseIRFileResult`](../interfaces/ParseIRFileResult.md)\>
 
-Defined in: [parse.ts:51](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/parse.ts#L51)
+Defined in: [parse.ts:51](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/parse.ts#L51)
 
 Parse an IR file from a workspace.
 
@@ -266,7 +266,7 @@ ParseIRFileResult with either item or error
 
 > **slugify**(`name`): `string`
 
-Defined in: [utils.ts:40](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/utils.ts#L40)
+Defined in: [utils.ts:40](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/utils.ts#L40)
 
 Slugify a name for use as a filename.
 Converts to lowercase, replaces spaces and special chars with hyphens.
@@ -325,7 +325,7 @@ Slugified name safe for filesystem
 
 # Interface: ParseIRFileResult
 
-Defined in: [parse.ts:21](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/parse.ts#L21)
+Defined in: [parse.ts:21](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/parse.ts#L21)
 
 Result of parsing an IR file.
 Either returns a parsed item or an error message.
@@ -336,7 +336,7 @@ Either returns a parsed item or an error message.
 
 > `optional` **item?**: `AgentCustomization`
 
-Defined in: [parse.ts:22](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/parse.ts#L22)
+Defined in: [parse.ts:22](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/parse.ts#L22)
 
 ***
 
@@ -344,7 +344,7 @@ Defined in: [parse.ts:22](https://github.com/Texarkanine/a16n/blob/deb79c8192cea
 
 > `optional` **error?**: `string`
 
-Defined in: [parse.ts:23](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/parse.ts#L23)
+Defined in: [parse.ts:23](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/parse.ts#L23)
 
 ---
 
@@ -360,7 +360,7 @@ Defined in: [parse.ts:23](https://github.com/Texarkanine/a16n/blob/deb79c8192cea
 
 > `const` **default**: `A16nPlugin`
 
-Defined in: [index.ts:32](https://github.com/Texarkanine/a16n/blob/deb79c8192ceab92f86b2d43632d7b4c46f60bcc/packages/plugin-a16n/src/index.ts#L32)
+Defined in: [index.ts:32](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/index.ts#L32)
 
 The a16n IR plugin.
 
