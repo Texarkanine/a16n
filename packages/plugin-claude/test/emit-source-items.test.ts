@@ -1,14 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 import claudePlugin from '../src/index.js';
 import {
   CustomizationType,
-  WarningCode,
   type GlobalPrompt,
   type FileRule,
   type SimpleAgentSkill,
-  type AgentSkillIO,
   type AgentIgnore,
   type ManualPrompt,
   createId,

@@ -1,0 +1,1 @@
+plugin-claude emit tests copy-paste a full IR type import list; leftover unused-vars were unused specifiers plus three unused emit result bindings, not product code
