@@ -48,13 +48,15 @@ These steps are configuration and prose. They are not TDD cycles.
    - Changes: `"lint": "oxlint --fix"`; add `"lint:check": "oxlint"`; keep `"lint:fix": "oxlint --fix"` as alias; add `"prepare": "husky"` (husky is already a root devDependency from plan spike: `husky@^9.1.7`)
 2. Pre-commit hook file (check only)
    - Files: `.husky/pre-commit` (new)
-   - Changes: single command `pnpm lint:check`. Do not run `pnpm exec husky` or `husky init` in this worktree.
+   - Changes: single command `pnpm lint:check`. Do not source `_/husky.sh` (deprecated in husky 9; fails in 10). Husky 9.1.7 runs the file via `sh -e`; no shebang or +x required. Do not run `pnpm exec husky` or `husky init` in this worktree.
 3. CI check-only step
    - Files: `.github/workflows/ci.yaml`
    - Changes: after Install dependencies, before Build, add step `name: Lint` / `run: pnpm lint:check`
+   - On the existing Install dependencies step, set `env.HUSKY: "0"` (or prefix `HUSKY=0`) so `prepare: husky` does not run in CI. CI lint is the workflow step, not a git hook.
 4. Docs
    - Files: `CONTRIBUTING.md`, `memory-bank/techContext.md`
    - Changes: document `pnpm lint` (autofix), `pnpm lint:check` (hook + CI), that CI fails on leftover correctness errors. Remove "optional / not in CI / leftovers expected".
+   - In CONTRIBUTING, add that `pnpm install` in a git worktree that shares a parent `.git` should use `HUSKY=0` so husky does not write `core.hooksPath` on the shared config. Normal clones run `prepare: husky` as usual.
 5. Verify (Oxlint is the checker)
    - Run `pnpm lint:check` and `pnpm exec oxlint` (expect exit 0)
    - Run `pnpm lint` (autofix; expect exit 0 on this clean tip)
@@ -95,6 +97,18 @@ Spike result: `pnpm exec husky` created `.husky/_` (gitignored via `_/.gitignore
 - CI or hook calls `pnpm lint` after inversion (would autofix in CI / rewrite during commit): plan binds those surfaces to `lint:check` only
 - Docs still say lint is optional: step 4 is explicit file-level edits
 
+## Preflight Findings (2026-08-20)
+
+Verdict: **PASS**. No operator input required before `/niko-build`. This preflight run does not start build.
+
+- **TDD Plan Encoding (info, pass):** No implementable unit of new executable product behavior. Plan schedules no Vitest cases and no change-detectors. Operator + #74: mapping lint scripts / workflow YAML / hook contents / CONTRIBUTING prose is not a TDD unit; Oxlint is the checker. husky is a standard installer with no custom branching, so it does not create a TDD unit.
+- **Prerequisites (info, pass):** Level 2 plan complete. No creative-phase docs required.
+- **Convention (info, pass):** Root `package.json` scripts, `ci.yaml` step shape, and CONTRIBUTING command list match existing DX patterns. `.husky/pre-commit` is new and matches husky 9 manual setup (`prepare: "husky"` + committed hook file). `turbo.json` unused `"lint": {}` stays unused (same as #74).
+- **Dependency impact (info, pass):** `husky@^9.1.7` already in root `package.json` + lockfile. No package-level `"lint"` scripts. No tests snapshot root script strings or `ci.yaml`. Inverting `pnpm lint` to `--fix` is planned and documented. Other workflows (`release.yaml`, `docs.yaml`) also `pnpm install` and will run `prepare` unless they set `HUSKY=0`; harmless in a fresh GHA clone — only `ci.yaml` is in scope.
+- **Conflict (info, pass):** No existing husky / simple-git-hooks / lefthook layout. No `.husky/` on disk. No public published-API contract.
+- **Completeness (info, pass):** Brief requirements 1–8 map to concrete files. `pnpm exec oxlint` exits 0 on this tip. Hook file is one line; husky 9.1.7 executes it via `sh -e`.
+- **Radical innovation (applied):** Treat `HUSKY=0` as the supported way to install without taking over git hooks — CI install + CONTRIBUTING worktree note. See plan steps 3–4.
+
 ## Status
 
 - [x] Initialization complete
@@ -102,6 +116,6 @@ Spike result: `pnpm exec husky` created `.husky/_` (gitignored via `_/.gitignore
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
+- [x] Preflight
 - [ ] Build
 - [ ] QA

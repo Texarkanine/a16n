@@ -31,3 +31,18 @@ Bind existing Oxlint (correctness-as-error from #74) into local autofix, a check
 * Insights
     - In a git worktree, husky's `git config core.hooksPath .husky/_` writes the **shared** parent `.git/config`, which would bypass the machine-local ai-rizz `pre-commit`. Spike unset it. Shared hook hash unchanged.
     - `simple-git-hooks` would overwrite that same shared `pre-commit` file
+
+## 2026-08-20 - PREFLIGHT - COMPLETE (PASS)
+
+* Work completed
+    - Validated the Level 2 plan against `package.json`, `ci.yaml`, `.oxlintrc.json`, `turbo.json`, CONTRIBUTING, techContext, husky 9.1.7 runtime, and the TDD rule
+    - Confirmed `pnpm exec oxlint` exits 0 on this tip
+    - Wrote `memory-bank/active/.preflight-status` (`PASS`)
+    - Amended the plan (CI `HUSKY=0`, CONTRIBUTING worktree note, hook-file format) and recorded findings in `tasks.md`
+* Decisions made
+    - TDD Plan Encoding passes: no Vitest cases and no change-detectors is the correct encoding for this wiring
+    - In-scope innovation applied: `HUSKY=0` is the supported way to install without taking over git hooks
+    - Do not start `/niko-build` from this preflight run (parent owns build)
+* Insights
+    - Husky 9.1.7 runs `.husky/pre-commit` via `sh -e`; a one-line `pnpm lint:check` is enough
+    - `git config core.hooksPath` from a worktree writes the shared parent `.git/config` — already a spike finding; now also a shipped CONTRIBUTING note
