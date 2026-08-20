@@ -16,3 +16,18 @@ Bind existing Oxlint (correctness-as-error from #74) into local autofix, a check
 * Insights
     - #74 already bound `lint` / `lint:fix` and left CI optional; this task inverts local lint to autofix and adds the two check-only gates
     - Mapping lint scripts is not a TDD unit (operator outcome from #74)
+
+## 2026-08-20 - PLAN - COMPLETE
+
+* Work completed
+    - Wrote the Level 2 implementation plan in `tasks.md`
+    - Confirmed `pnpm exec oxlint` is clean on this tip
+    - Spiked `husky@9.1.7`; chose it over `simple-git-hooks` and a custom installer
+* Decisions made
+    - `pnpm lint` = `oxlint --fix`; `pnpm lint:check` = `oxlint`; keep `lint:fix` as alias
+    - Husky pre-commit and CI both run `pnpm lint:check`
+    - No new Vitest cases; no change-detector tests
+    - Do not run `husky` / `prepare` in this worktree; use `HUSKY=0` on later installs
+* Insights
+    - In a git worktree, husky's `git config core.hooksPath .husky/_` writes the **shared** parent `.git/config`, which would bypass the machine-local ai-rizz `pre-commit`. Spike unset it. Shared hook hash unchanged.
+    - `simple-git-hooks` would overwrite that same shared `pre-commit` file

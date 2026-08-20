@@ -1,6 +1,6 @@
 # Active Context
 
 - **Current Task**: Bind Oxlint into CI, local lint, and pre-commit (#162)
-- **Phase**: COMPLEXITY-ANALYSIS - COMPLETE
-- **What Was Done**: Classified as Level 2 (simple enhancement). Same root-tooling subsystem as #74; self-contained wiring of existing Oxlint into scripts, a standard pre-commit hook, CI, and docs. Hook-tool choice is a plan decision, not architecture.
-- **Next Step**: Load the Level 2 workflow and execute the Plan phase.
+- **Phase**: PLAN - COMPLETE
+- **What Was Done**: Level 2 plan. Local `pnpm lint` → `oxlint --fix`; `pnpm lint:check` → `oxlint` for husky pre-commit and CI. husky@9.1.7 spiked and kept as the installer. Do not run husky in this worktree (`HUSKY=0`). No Vitest cases; Oxlint is the checker.
+- **Next Step**: Preflight validation, then build.
