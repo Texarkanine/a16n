@@ -170,6 +170,8 @@ ENTRY_CHARS = 280
 WAKE_LINES = 32
 CLI_NAME = "summem"
 AGENT_BIN = ".summem/summem"
+PROMPT_DOC = "docs/agents-prompt.md"
+__version__ = "0.2.1"  # x-release-please-version
 
 CONFIG_TEMPLATE = """\
 # SumMem per-store settings. Missing values take the script's defaults.
@@ -925,7 +927,7 @@ def require_python(version_info: tuple[int, ...] = sys.version_info) -> None:
 
 
 def prompt_text() -> str:
-    """Return the agent prompt pasted at the top of AGENTS.md."""
+    """Return the agent prompt inserted at the top of AGENTS.md."""
     return f"""\
 # Project Memory
 
@@ -939,7 +941,7 @@ Otherwise run `{AGENT_BIN} wake` from the repository root.
 
 ## While Working: Register Memories (Mandatory)
 
-`{AGENT_BIN} note "…"` records one short line. Call it whenever you learn a fact about this project that another contributor would still need: designs, decisions, invariants, and the like. A note must still be true after a fresh clone on another machine. Personal, machine-local, and user preference facts stay out. If `note` asks for a nap, do that nap before your next action.
+`{AGENT_BIN} note "…"` records one short line. Call it whenever you learn a fact about this project that another contributor would still need: designs, decisions, invariants, and the like. A note must still be true after a fresh clone on another machine. Personal, machine-local, and user preference facts stay out. If `note` asks for a nap, the note is already stored; the nap is extra work on two older view nodes. Do that nap before your next action.
 
 Do not register redundant memories.
 
@@ -954,10 +956,10 @@ Never invent filenames, rewrite note bytes, or delete memory files by hand. The 
 
 
 def init_text() -> str:
-    """Return the full `init` print: paste recipe plus prompt_text()."""
+    """Return the full `init` print: insert recipe plus prompt_text()."""
     return (
-        "Paste this at the top of AGENTS.md. "
-        "If Claude Code should see it too,"
+        f"Insert {PROMPT_DOC} from the SumMem repository at the top of AGENTS.md "
+        "(this print is the same text). If Claude Code should see it too,"
         "\n"
         "put @AGENTS.md at the top of CLAUDE.md.\n"
         "\n"
@@ -976,16 +978,17 @@ SumMem: shared memory for agents in a repository.
   {CLI_NAME} zoom    [--path PATH] ID                 open a nap to its children
   {CLI_NAME} recall  [--path PATH] PATTERN            search remembered text
   {CLI_NAME} start <path>                             create a store in that directory
-  {CLI_NAME} init                                     print the agent prompt to paste
+  {CLI_NAME} init                                     print the agent prompt
+  {CLI_NAME} version                                  print this script's version
 
-Every command except start and init takes optional --path. Omit it to use $PWD.
+Every command except start, init, and version takes optional --path. Omit it to use $PWD.
 --path aims at a file or directory and walks up to the nearest store.
 
 For a command's options: {CLI_NAME} <command> -h
 """
 
 
-_COMMANDS = ("wake", "note", "nap", "zoom", "recall", "start", "init")
+_COMMANDS = ("wake", "note", "nap", "zoom", "recall", "start", "init", "version")
 _HELP_FLAGS = ("-h", "--help")
 
 
@@ -1024,6 +1027,7 @@ def main(argv: list[str] | None = None) -> int:
     start = sub.add_parser("start")
     start.add_argument("dir")
     sub.add_parser("init")
+    sub.add_parser("version")
     for parser_with_path in (wake, note, nap, zoom, recall):
         parser_with_path.add_argument("--path", help="aim at this file or directory")
     try:
@@ -1046,6 +1050,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "init":
         sys.stdout.write(init_text())
         return 0
+    if args.cmd == "version":
+        sys.stdout.write(f"{__version__}\n")
+        return 0
     try:
         parent = resolve_parent(Path.cwd(), args.path)
     except ValueError as exc:
@@ -1054,15 +1061,19 @@ def main(argv: list[str] | None = None) -> int:
     k = knobs(parent)
     if args.cmd == "wake":
         doc = wake_text(parent)
-        cat = catalog_text(find_store_parent(parent), parent)
+        root = find_store_parent(parent)
+        cat = catalog_text(root, parent)
         footer = "You are up to speed.\n"
+        body = ""
         if cat:
-            if doc:
-                sys.stdout.write(cat + "\n== Project-root Memories ==\n" + doc + footer)
-            else:
-                sys.stdout.write(cat + footer)
-        else:
-            sys.stdout.write(doc + footer)
+            body += cat
+        if doc:
+            if Path(parent).resolve() == Path(root).resolve():
+                if body:
+                    body += "\n"
+                body += "== Project-root Memories ==\n"
+            body += doc
+        sys.stdout.write(body + footer)
         return 0
     if args.cmd == "nap":
         for token in (args.id_a, args.id_b):
@@ -1128,7 +1139,10 @@ def main(argv: list[str] | None = None) -> int:
     except ValueError as exc:
         sys.stderr.write(f"{exc}\n")
         return 1
-    sys.stdout.write(out)
+    sys.stdout.write("Saved.\n")
+    if out:
+        sys.stdout.write("\n")
+        sys.stdout.write(out)
     return 0
 
 
