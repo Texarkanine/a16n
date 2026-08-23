@@ -1,19 +1,60 @@
 #!/usr/bin/env python3
 
 # Copyright (C) 2026 Texarkanine
-
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-
+#
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Additional permissions under GNU AGPL version 3 section 7:
+#
+# Invocation. Invoking this Program through ordinary process
+# invocation — a shell, a subprocess call, or an AI agent acting on a
+# prompt — does not make this Program a shared library or dynamically
+# linked subprogram that the invoking work is specifically designed
+# to require, and is not intimate data communication or control flow
+# within the meaning of section 1. The invoking program is not a
+# covered work or a work based on the Program by reason of that
+# invocation. For these additional permissions, "your organization"
+# means you and every entity under common control with you, and
+# "your personnel" means persons acting for your organization.
+#
+# Invocation directed by you, by your personnel, or by an agent
+# acting for your organization, including where that direction
+# reaches the Program over a computer network, is not users
+# interacting with the Program remotely within the meaning of
+# section 13.
+#
+# If you make a modified version available to anyone outside your
+# organization — by distributing it, or by offering remote
+# interaction with it — the preceding paragraph does not apply to
+# that modified version: section 13 and the rest of this License do.
+#
+# Prompt template. The agent prompt template this Program emits for
+# insertion into AGENTS.md may be used separately under 0BSD. The
+# following terms apply only to that template:
+#
+# Copyright (C) 2026 Texarkanine
+#
+# Permission to use, copy, modify, and/or distribute this software for
+# any purpose with or without fee is hereby granted.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+# OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """SumMem: Recency-biased file-based concurrent write-tolerant memory for AI agents."""
 
@@ -171,7 +212,7 @@ WAKE_LINES = 32
 CLI_NAME = "summem"
 AGENT_BIN = ".summem/summem"
 PROMPT_DOC = "docs/agents-prompt.md"
-__version__ = "0.2.1"  # x-release-please-version
+__version__ = "0.4.0"  # x-release-please-version
 
 CONFIG_TEMPLATE = """\
 # SumMem per-store settings. Missing values take the script's defaults.
@@ -832,6 +873,22 @@ def equal_grain_pair(nodes: list[ViewNode]) -> tuple[str, str] | None:
     return None
 
 
+def _fold_path_flag(parent) -> str:
+    """Return `` --path REL`` when walk-up from cwd would not select *parent*, else empty.
+
+    *REL* is the path from cwd to *parent*. The fold request's Run: line is
+    meant to be pasted from the same directory that printed it.
+    """
+    try:
+        walked = resolve_parent(Path.cwd())
+    except ValueError:
+        walked = None
+    if walked is not None and Path(walked).resolve() == Path(parent).resolve():
+        return ""
+    rel = os.path.relpath(Path(parent).resolve(), Path.cwd().resolve())
+    return f" --path {Path(rel).as_posix()}"
+
+
 def fold_request(parent, wake_lines: int | None = None) -> str:
     """Return an OptMem-style nap prompt for the oldest equal-grain pair when over *wake_lines*."""
     if wake_lines is None:
@@ -861,7 +918,7 @@ def fold_request(parent, wake_lines: int | None = None) -> str:
         f"  {format_wake_line(left, ids)}\n"
         f"  {format_wake_line(right, ids)}\n"
         "\n"
-        f'Run: {AGENT_BIN} nap {short_id(left.id, ids)} {short_id(right.id, ids)} "<your line>"\n'
+        f'Run: {AGENT_BIN} nap{_fold_path_flag(parent)} {short_id(left.id, ids)} {short_id(right.id, ids)} "<your line>"\n'
         f"{extra}"
     )
 
