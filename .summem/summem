@@ -69,6 +69,9 @@ import random
 import re
 import subprocess
 import sys
+if sys.version_info < (3, 11):
+    sys.stderr.write("SumMem needs Python 3.11 or newer\n")
+    raise SystemExit(1)
 import tomllib
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone
@@ -212,7 +215,7 @@ WAKE_LINES = 32
 CLI_NAME = "summem"
 AGENT_BIN = ".summem/summem"
 PROMPT_DOC = "docs/agents-prompt.md"
-__version__ = "0.4.0"  # x-release-please-version
+__version__ = "0.5.0"  # x-release-please-version
 
 CONFIG_TEMPLATE = """\
 # SumMem per-store settings. Missing values take the script's defaults.
@@ -621,30 +624,24 @@ def write_nap(parent, id_a, id_b, caption, entry_chars: int | None = None):
     return sum_path
 
 
-def _zoom_note_line(text: str) -> str:
-    cid = leafset_id([note_digest(note_file_bytes(text))])
-    return f"{cid}  {text}"
-
-
-def _zoom_kids(tree: Tree) -> str:
+def _zoom_kids(tree: Tree, ids: list[str]) -> str:
+    """Return one-level listing of *tree* using the wake line grammar."""
     lines = []
     for child in tree.kids:
-        if isinstance(child, NoteChild):
-            lines.append(_zoom_note_line(child.text))
-        elif child.sum:
-            lines.append(f"{child.id}  {child.sum}")
-        else:
-            lines.append(child.id)
+        row = _projected_child(child)
+        if row is None:
+            continue
+        lines.append(format_wake_line(row, ids))
     if not lines:
         return ""
     return "\n".join(lines) + "\n"
 
 
-def _find_in_tree(tree: Tree, cid: str) -> NapChild | str | None:
+def _find_in_tree(tree: Tree, cid: str) -> NoteChild | NapChild | None:
     for child in tree.kids:
         if isinstance(child, NoteChild):
             if leafset_id([note_digest(note_file_bytes(child.text))]) == cid:
-                return child.text
+                return child
             continue
         if child.id == cid:
             return child
@@ -661,17 +658,18 @@ def _warn_skipped_pack() -> None:
 
 def zoom_text(parent, token: str) -> str:
     """Return one-level zoom of *token* (full id or unique prefix), or raise ValueError if unknown."""
-    cid = resolve_id(token, named_ids(parent))
+    ids = named_ids(parent)
+    cid = resolve_id(token, ids)
     nodes = list_view(parent)
     for node in nodes:
         if node.id != cid:
             continue
         if node.kind == "note":
-            return f"{node.id}  {node.caption}\n"
+            return format_wake_line(node, ids) + "\n"
         if node.tree_path is None or not node.tree_path.is_file():
             raise ValueError("unknown id")
         try:
-            return _zoom_kids(loads_tree(node.tree_path.read_bytes()))
+            return _zoom_kids(loads_tree(node.tree_path.read_bytes()), ids)
         except _TREE_PARSE_ERRORS:
             raise ValueError("unreadable pack") from None
     for node in nodes:
@@ -684,9 +682,10 @@ def zoom_text(parent, token: str) -> str:
             continue
         if found is None:
             continue
-        if isinstance(found, str):
-            return f"{cid}  {found}\n"
-        return _zoom_kids(found.tree)
+        if isinstance(found, NoteChild):
+            row = _projected_child(found)
+            return format_wake_line(row, ids) + "\n"
+        return _zoom_kids(found.tree, ids)
     raise ValueError("unknown id. Copy an id from wake.")
 
 
@@ -716,7 +715,7 @@ def named_ids(parent) -> list[str]:
         try:
             nested: list[str] = []
             _collect_ids(loads_tree(node.tree_path.read_bytes()), nested)
-        except (OSError, UnicodeDecodeError, ValueError, TypeError, KeyError):
+        except _TREE_PARSE_ERRORS:
             continue
         for cid in nested:
             add(cid)
@@ -841,9 +840,19 @@ def resolve_id(token: str, ids: list[str]) -> str:
     raise ValueError("ambiguous id. Give a longer prefix.")
 
 
+def _day_from_stamp(stamp: str) -> str:
+    """Return YYYY-MM-DD from a 16-character UTC filename stamp."""
+    return f"{stamp[0:4]}-{stamp[4:6]}-{stamp[6:8]}"
+
+
 def format_wake_line(node, ids: list[str]) -> str:
     """Return one wake line for *node* using unique prefixes from *ids*."""
-    if node.kind == "note" or node.leaves <= 1:
+    if node.kind == "note":
+        day = _day_from_stamp(node.stamp)
+        if node.caption:
+            return f"x1 {day}: {node.caption}"
+        return f"x1 {day}:"
+    if node.leaves <= 1:
         return node.caption
     prefix = short_id(node.id, ids)
     if node.caption:
@@ -863,14 +872,6 @@ def wake_text(parent) -> str:
     if not lines:
         return ""
     return "\n".join(lines) + "\n"
-
-
-def equal_grain_pair(nodes: list[ViewNode]) -> tuple[str, str] | None:
-    """Return the oldest adjacent same-leaf-count file ids, or None."""
-    for i in range(len(nodes) - 1):
-        if nodes[i].leaves == nodes[i + 1].leaves:
-            return nodes[i].id, nodes[i + 1].id
-    return None
 
 
 def _fold_path_flag(parent) -> str:
@@ -923,24 +924,26 @@ def fold_request(parent, wake_lines: int | None = None) -> str:
     )
 
 
-def _recall_nested(tree: Tree, rx, lines: list[str], seen: set[str]) -> None:
+def _recall_nested(tree: Tree, rx, lines: list[str], seen: set[str], ids: list[str]) -> None:
     """Append recall hits from *tree* (original notes and nested nap captions) to *lines*."""
     for child in tree.kids:
         if isinstance(child, NoteChild):
             if not rx.search(child.text):
                 continue
-            cid = leafset_id([note_digest(note_file_bytes(child.text))])
-            line = f"{cid}  {child.text}"
+            row = _projected_child(child)
+            line = format_wake_line(row, ids)
             if line not in seen:
                 lines.append(line)
                 seen.add(line)
             continue
         if rx.search(child.sum):
-            line = f"{child.id}  {child.sum}"
-            if line not in seen:
-                lines.append(line)
-                seen.add(line)
-        _recall_nested(child.tree, rx, lines, seen)
+            row = _projected_child(child)
+            if row is not None:
+                line = format_wake_line(row, ids)
+                if line not in seen:
+                    lines.append(line)
+                    seen.add(line)
+        _recall_nested(child.tree, rx, lines, seen, ids)
 
 
 def recall_text(parent, pattern: str) -> str:
@@ -949,17 +952,19 @@ def recall_text(parent, pattern: str) -> str:
     lines = []
     seen: set[str] = set()
     nodes = list_view(parent)
-    ids = [node.id for node in nodes]
+    ids = named_ids(parent)
     for node in nodes:
+        if not rx.search(node.caption):
+            continue
         line = format_wake_line(node, ids)
-        if rx.search(line):
+        if line not in seen:
             lines.append(line)
             seen.add(line)
     for node in nodes:
         if node.kind != "nap" or node.tree_path is None or not node.tree_path.is_file():
             continue
         try:
-            _recall_nested(loads_tree(node.tree_path.read_bytes()), rx, lines, seen)
+            _recall_nested(loads_tree(node.tree_path.read_bytes()), rx, lines, seen, ids)
         except _TREE_PARSE_ERRORS:
             _warn_skipped_pack()
             continue
@@ -998,7 +1003,7 @@ Otherwise run `{AGENT_BIN} wake` from the repository root.
 
 ## While Working: Register Memories (Mandatory)
 
-`{AGENT_BIN} note "…"` records one short line. Call it whenever you learn a fact about this project that another contributor would still need: designs, decisions, invariants, and the like. A note must still be true after a fresh clone on another machine. Personal, machine-local, and user preference facts stay out. If `note` asks for a nap, the note is already stored; the nap is extra work on two older view nodes. Do that nap before your next action.
+`{AGENT_BIN} note "…"` records one short line. Call it whenever you learn a fact about this project that another contributor would still need: designs, decisions, invariants, and the like. It has to belong in a fresh clone on another machine. Personal, machine-local, and user preference facts stay out. If `note` asks for a nap, the note is already stored; the nap is extra work on two older view nodes. Do that nap before your next action.
 
 Do not register redundant memories.
 
@@ -1007,7 +1012,7 @@ Never invent filenames, rewrite note bytes, or delete memory files by hand. The 
 ## Other commands
 
 - `{AGENT_BIN} recall <regex>` — search remembered text word for word
-- `{AGENT_BIN} zoom <id>` — any memory with a `x<N> <hash>: …` prefix is a nap that can be zoomed in on.
+- `{AGENT_BIN} zoom <id>` — any memory with a `x<N> <hash>: …` prefix is a nap that can be zoomed in on. A leaf is `x1 YYYY-MM-DD:` and is not a zoom target.
 - `{AGENT_BIN} wake --path <path>` — when you work under a cataloged path, pull that store if its wake is not already in this conversation. Ignore `--path` if the root wake didn't have a catalog.
 """
 
