@@ -1,6 +1,26 @@
-# Contributing to a16n
+# Contributing
 
-Thanks for your interest in contributing! Here's how to get started.
+Want to contribute? We'd love to see it! Thoughtful issues and PRs that make the project better are enthusiastically welcomed here!
+
+## Issues
+
+Open an issue for a bug, an idea, or a question.
+
+## Pull requests
+
+1. Fork the repository. If you already have write access, a branch on the origin is fine.
+2. Open a pull request against `main` and fill in the pull request template.
+3. Title the PR as a [conventional commit](https://www.conventionalcommits.org/): `feat`, `fix`, or `chore`. This repository uses release-please: `feat` and `fix` cut a release; `chore` does not.
+
+Keep the change focused: one concern per pull request when practical.
+
+Check the [GitHub issues](https://github.com/Texarkanine/a16n/issues) for open tasks. Issues labeled `good first issue` are a great starting point.
+
+Before you open the PR:
+
+- All tests pass (`pnpm test`)
+- Type-check passes (`pnpm typecheck`)
+- Builds succeed (`pnpm build`)
 
 ## Prerequisites
 
@@ -131,17 +151,10 @@ test/
 
 Unit tests shadow the `src/` directory structure directly under `test/` (no `test/unit/` prefix). All FS-touching tests use `fs.mkdtemp()` per `describe` block (or `suiteTempDir` per suite) to prevent cross-test filesystem interference.
 
-## Pull Request Expectations
-
-- All tests pass (`pnpm test`)
-- Type-check passes (`pnpm typecheck`)
-- Builds succeed (`pnpm build`)
-- Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages (`feat:`, `fix:`, `chore:`, etc.)
-
 ## Plugin Development
 
 Want to add support for a new AI coding tool? See the [Plugin Development Guide](https://texarkanine.github.io/a16n/plugin-development) on the docs site.
 
-## Finding Work
+## License
 
-Check the [GitHub issues](https://github.com/Texarkanine/a16n/issues) for open tasks. Issues labeled `good first issue` are a great starting point.
+By opening a pull request, you license your contribution under this repository's license, and you grant Texarkanine a perpetual, worldwide, non-exclusive right to relicense that contribution as part of this project under any [OSI-approved](https://opensource.org/licenses) license. You keep your copyright.
