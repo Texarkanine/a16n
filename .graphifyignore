@@ -1,0 +1,2 @@
+# git worktrees live here; indexing them duplicates the whole tree
+.worktrees/

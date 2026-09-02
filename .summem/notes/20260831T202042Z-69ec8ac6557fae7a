@@ -1,0 +1,1 @@
+graphify full build on repo root: 515 files (208 code / 307 docs) -> 2050 nodes, 2870 edges, 216 communities; 895 dangling semantic edges because LLM-chunk node IDs do not always match AST IDs

@@ -48,3 +48,18 @@ packages/docs/static/**/*.md
 
 # SumMem Python driver bytecode
 **/.summem/__pycache__/
+
+# graphify knowledge graph: commit the graph, not the local scratch
+graphify-out/cost.json
+graphify-out/cache/
+# absolute path of whoever built the graph; the standard layout resolves
+# the root without it, so committing it would only leak paths and churn
+graphify-out/.graphify_root
+# semantic/LLM passes go to a local graph, never the committed code-only one:
+#   graphify extract . --out .graphify-local
+.graphify-local/
+# absolute path of the interpreter that built the graph; machine-local, same
+# rationale as .graphify_root above
+graphify-out/.graphify_python
+# dated snapshot dirs graphify writes beside the current build
+graphify-out/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/

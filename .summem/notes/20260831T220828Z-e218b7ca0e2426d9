@@ -1,0 +1,1 @@
+graphify: doc and code layers build as disjoint graphs (0 ID overlap, 13 of 2870 edges cross). Cause: semantic node IDs derive from the mentioning file, and extraction subagents run parallel to AST so never see its vocabulary. See issue #173.

@@ -21,10 +21,21 @@ path = [
     ".cursor/rules/**",
     ".cursor/skills/**",
     ".cursor/commands/**",
+    ".claude/CLAUDE.md",
+    ".claude/settings.json",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "Texarkanine"
 SPDX-License-Identifier = "LicenseRef-PPL-S"
+
+# The graphify skill is vendored verbatim from
+# https://github.com/Graphify-Labs/graphify (Apache-2.0). Refreshed by
+# `graphify install --project --platform claude`; do not hand-edit.
+[[annotations]]
+path = [".claude/skills/graphify/**"]
+precedence = "override"
+SPDX-FileCopyrightText = "Safi Shamsi and the Graphify contributors"
+SPDX-License-Identifier = "Apache-2.0"
 
 # Paths under **/shared/** are vendored from upstream
 # with unknown or mixed licensing. No license claims are made for those files here.

@@ -12,7 +12,9 @@
     "lint:check": "oxlint",
     "typecheck": "turbo run typecheck",
     "prepare": "husky",
-    "clean": "turbo run clean && rimraf node_modules"
+    "clean": "turbo run clean && rimraf node_modules",
+    "graph:refresh": "graphify extract . --code-only && graphify cluster-only . --no-label",
+    "graph:refresh:force": "graphify extract . --force --code-only && graphify cluster-only . --no-label"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^3.2.6",
