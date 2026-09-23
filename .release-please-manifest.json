@@ -5,7 +5,7 @@
   "packages/plugin-cursor": "1.1.1",
   "packages/plugin-claude": "1.1.1",
   "packages/glob-hook": "1.0.1",
-  "packages/plugin-a16n": "1.1.1",
+  "packages/plugin-a16n": "1.1.2",
   "packages/plugin-agentsmd": "1.1.0",
   "packages/docs": "0.14.1"
 }
