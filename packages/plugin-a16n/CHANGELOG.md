@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@1.1.1...@a16njs/plugin-a16n@1.1.2) (2026-09-23)
+
+
+### Bug Fixes
+
+* **deps:** bump yaml from 2.9.0 to 2.9.1 ([#175](https://github.com/Texarkanine/a16n/issues/175)) ([1a4d449](https://github.com/Texarkanine/a16n/commit/1a4d449263999dbb4ae5aaa0ba916c1195c90ce0))
+
 ## [1.1.1](https://github.com/Texarkanine/a16n/compare/@a16njs/plugin-a16n@1.1.0...@a16njs/plugin-a16n@1.1.1) (2026-08-20)
 
 
