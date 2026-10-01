@@ -58,7 +58,7 @@
     "@docusaurus/types": "^3.10.2",
     "@easyops-cn/docusaurus-search-local": "^0.55.3",
     "@swc/core": "^1.16.2",
-    "@types/node": "^25.9.3",
+    "@types/node": "^26.6.3",
     "commander": "^15.0.0",
     "tsx": "^4.23.15",
     "typedoc": "^0.28.20",
