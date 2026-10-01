@@ -54,15 +54,15 @@
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.10.1",
-    "@docusaurus/types": "^3.10.1",
-    "@easyops-cn/docusaurus-search-local": "^0.55.2",
-    "@swc/core": "^1.15.43",
+    "@docusaurus/module-type-aliases": "^3.10.2",
+    "@docusaurus/types": "^3.10.2",
+    "@easyops-cn/docusaurus-search-local": "^0.55.3",
+    "@swc/core": "^1.16.2",
     "@types/node": "^25.9.3",
     "commander": "^15.0.0",
-    "tsx": "^4.22.4",
-    "typedoc": "^0.28.19",
-    "typedoc-plugin-markdown": "^4.12.0",
+    "tsx": "^4.23.15",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.13.1",
     "typescript": "^6.0.3",
     "vitest": "^3.2.6"
   },
