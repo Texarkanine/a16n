@@ -19,6 +19,15 @@ updates:
           - 'minor'
           - 'patch'
     open-pull-requests-limit: 10
+    ignore:
+      # TS 7 is a major compiler rewrite; breaks TypeDoc/Docusaurus build until deliberate migration.
+      - dependency-name: 'typescript'
+        versions:
+          - '>=7.0.0'
+      # Keep @types/node aligned with Node engine floor (^22). Majors widen typings beyond supported baseline.
+      - dependency-name: '@types/node'
+        update-types:
+          - 'version-update:semver-major'
     assignees:
       - 'Texarkanine'
     commit-message:
