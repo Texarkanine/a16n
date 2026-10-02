@@ -1,5 +1,12 @@
 # a16n
 
+## [1.1.2](https://github.com/Texarkanine/a16n/compare/a16n@1.1.1...a16n@1.1.2) (2026-10-02)
+
+
+### Bug Fixes
+
+* **deps:** bump chalk from 5.6.2 to 6.0.1 ([#179](https://github.com/Texarkanine/a16n/issues/179)) ([31848c6](https://github.com/Texarkanine/a16n/commit/31848c6d4a8908d0577da2180f5718879a124963))
+
 ## [1.1.1](https://github.com/Texarkanine/a16n/compare/a16n@1.1.0...a16n@1.1.1) (2026-08-20)
 
 
