@@ -12,32 +12,32 @@ This file contains all documentation content in a single document following the 
 
 [@a16njs/plugin-a16n](../) / discover
 
-# Function: discover()
+
 
 > **discover**(`rootOrWorkspace`): `Promise`\<`DiscoveryResult`\>
 
-Defined in: [discover.ts:56](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/discover.ts#L56)
+Defined in: [discover.ts:56](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-a16n/src/discover.ts#L56)
 
 Discover IR items from .a16n/ directory structure.
 
 Scans the .a16n/ directory in the given root, parsing each type subdirectory
 and returning all discovered IR items with any warnings.
 
-## Parameters
+### Parameters
 
-### rootOrWorkspace
+#### rootOrWorkspace
 
 `string` \| `Workspace`
 
 Project root directory or Workspace containing .a16n/
 
-## Returns
+### Returns
 
 `Promise`\<`DiscoveryResult`\>
 
 DiscoveryResult with parsed IR items and warnings
 
-## Example
+### Example
 
 ```ts
 const result = await discover('/path/to/project');
@@ -55,35 +55,35 @@ const result = await discover('/path/to/project');
 
 [@a16njs/plugin-a16n](../) / emit
 
-# Function: emit()
+
 
 > **emit**(`models`, `rootOrWorkspace`, `options?`): `Promise`\<`EmitResult`\>
 
-Defined in: [emit.ts:56](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/emit.ts#L56)
+Defined in: [emit.ts:56](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-a16n/src/emit.ts#L56)
 
 Emit IR items to .a16n/ directory structure.
 
-## Parameters
+### Parameters
 
-### models
+#### models
 
 `AgentCustomization`[]
 
 IR items to emit
 
-### rootOrWorkspace
+#### rootOrWorkspace
 
 `string` \| `Workspace`
 
 Project root directory path or Workspace instance
 
-### options?
+#### options?
 
 `EmitOptions`
 
 Emission options (dryRun, etc.)
 
-## Returns
+### Returns
 
 `Promise`\<`EmitResult`\>
 
@@ -99,11 +99,11 @@ EmitResult with written files and warnings
 
 [@a16njs/plugin-a16n](../) / extractRelativeDir
 
-# Function: extractRelativeDir()
+
 
 > **extractRelativeDir**(`fullPath`, `baseDir`): `string` \| `undefined`
 
-Defined in: [utils.ts:14](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/utils.ts#L14)
+Defined in: [utils.ts:14](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-a16n/src/utils.ts#L14)
 
 Extract relative directory from a full path relative to base directory.
 
@@ -111,21 +111,21 @@ Example:
 - extractRelativeDir('.a16n/global-prompt/coding-standards.md', '.a16n') -> undefined
 - extractRelativeDir('.a16n/global-prompt/shared/company/standards.md', '.a16n/global-prompt') -> 'shared/company'
 
-## Parameters
+### Parameters
 
-### fullPath
+#### fullPath
 
 `string`
 
 Full path to the file
 
-### baseDir
+#### baseDir
 
 `string`
 
 Base directory to extract relative path from
 
-## Returns
+### Returns
 
 `string` \| `undefined`
 
@@ -141,11 +141,11 @@ Relative directory or undefined if file is directly in baseDir
 
 [@a16njs/plugin-a16n](../) / formatIRFile
 
-# Function: formatIRFile()
+
 
 > **formatIRFile**(`item`): `string`
 
-Defined in: [format.ts:23](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/format.ts#L23)
+Defined in: [format.ts:23](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-a16n/src/format.ts#L23)
 
 Format an IR item as a markdown file with YAML frontmatter.
 
@@ -155,15 +155,15 @@ Includes: version, type, relativeDir (if present), type-specific fields
 Excludes: sourcePath (omitted from IR format), metadata (not serialized)
 Note: name is included for SimpleAgentSkill (required in v1beta2); for other types it remains filename-only.
 
-## Parameters
+### Parameters
 
-### item
+#### item
 
 `AgentCustomization`
 
 The IR item to format
 
-## Returns
+### Returns
 
 `string`
 
@@ -179,24 +179,24 @@ Formatted markdown string with YAML frontmatter
 
 [@a16njs/plugin-a16n](../) / getNameWithoutExtension
 
-# Function: getNameWithoutExtension()
+
 
 > **getNameWithoutExtension**(`filename`): `string`
 
-Defined in: [utils.ts:55](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/utils.ts#L55)
+Defined in: [utils.ts:55](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-a16n/src/utils.ts#L55)
 
 Get filename without extension.
 Uses path.parse().name to properly handle dotfiles (e.g., ".env" -> ".env").
 
-## Parameters
+### Parameters
 
-### filename
+#### filename
 
 `string`
 
 Filename with extension
 
-## Returns
+### Returns
 
 `string`
 
@@ -212,41 +212,41 @@ Filename without extension
 
 [@a16njs/plugin-a16n](../) / parseIRFile
 
-# Function: parseIRFile()
+
 
 > **parseIRFile**(`rootOrWorkspace`, `filePath`, `filename`, `sourcePath`): `Promise`\<[`ParseIRFileResult`](../interfaces/ParseIRFileResult.md)\>
 
-Defined in: [parse.ts:52](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/parse.ts#L52)
+Defined in: [parse.ts:52](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-a16n/src/parse.ts#L52)
 
 Parse an IR file from a workspace.
 
-## Parameters
+### Parameters
 
-### rootOrWorkspace
+#### rootOrWorkspace
 
 `string` \| `Workspace`
 
 Workspace or root path string
 
-### filePath
+#### filePath
 
 `string`
 
 Path to the file relative to workspace root
 
-### filename
+#### filename
 
 `string`
 
 Filename (used to derive name)
 
-### sourcePath
+#### sourcePath
 
 `string`
 
 Path relative to .a16n/ directory (e.g., ".a16n/global-prompt/coding-standards.md")
 
-## Returns
+### Returns
 
 `Promise`\<[`ParseIRFileResult`](../interfaces/ParseIRFileResult.md)\>
 
@@ -262,24 +262,24 @@ ParseIRFileResult with either item or error
 
 [@a16njs/plugin-a16n](../) / slugify
 
-# Function: slugify()
+
 
 > **slugify**(`name`): `string`
 
-Defined in: [utils.ts:40](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/utils.ts#L40)
+Defined in: [utils.ts:40](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-a16n/src/utils.ts#L40)
 
 Slugify a name for use as a filename.
 Converts to lowercase, replaces spaces and special chars with hyphens.
 
-## Parameters
+### Parameters
 
-### name
+#### name
 
 `string`
 
 Name to slugify
 
-## Returns
+### Returns
 
 `string`
 
@@ -293,17 +293,17 @@ Slugified name safe for filesystem
 
 ***
 
-# @a16njs/plugin-a16n
+## @a16njs/plugin-a16n
 
-## Interfaces
+### Interfaces
 
 - [ParseIRFileResult](interfaces/ParseIRFileResult.md)
 
-## Variables
+### Variables
 
 - [default](variables/default.md)
 
-## Functions
+### Functions
 
 - [discover](functions/discover.md)
 - [emit](functions/emit.md)
@@ -323,28 +323,28 @@ Slugified name safe for filesystem
 
 [@a16njs/plugin-a16n](../) / ParseIRFileResult
 
-# Interface: ParseIRFileResult
 
-Defined in: [parse.ts:22](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/parse.ts#L22)
+
+Defined in: [parse.ts:22](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-a16n/src/parse.ts#L22)
 
 Result of parsing an IR file.
 Either returns a parsed item or an error message.
 
-## Properties
+### Properties
 
-### item?
+#### item?
 
 > `optional` **item?**: `AgentCustomization`
 
-Defined in: [parse.ts:23](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/parse.ts#L23)
+Defined in: [parse.ts:23](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-a16n/src/parse.ts#L23)
 
 ***
 
-### error?
+#### error?
 
 > `optional` **error?**: `string`
 
-Defined in: [parse.ts:24](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/parse.ts#L24)
+Defined in: [parse.ts:24](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-a16n/src/parse.ts#L24)
 
 ---
 
@@ -356,11 +356,11 @@ Defined in: [parse.ts:24](https://github.com/Texarkanine/a16n/blob/92bc666abe646
 
 [@a16njs/plugin-a16n](../) / default
 
-# Variable: default
+
 
 > `const` **default**: `A16nPlugin`
 
-Defined in: [index.ts:32](https://github.com/Texarkanine/a16n/blob/92bc666abe646617e04ba6f4abc9e322a7ece80a/packages/plugin-a16n/src/index.ts#L32)
+Defined in: [index.ts:32](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-a16n/src/index.ts#L32)
 
 The a16n IR plugin.
 

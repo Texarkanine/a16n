@@ -6,13 +6,15 @@ This file contains links to documentation sections following the llmstxt.org sta
 
 ## Table of Contents
 
-- [Changelog](https://texarkanine.github.io/a16n/cli/changelog.md): * **cli:** clear leftover oxlint unused-vars [[#157](https://github.com/Texarkanine/a16n/issues/157)] ([#164](https://github.com/Texarkanine/a16n/i...
+- [Changelog](https://texarkanine.github.io/a16n/cli/changelog.md): * **cli:** honor gitignore modes in linked worktrees ([#185](https://github.com/Texarkanine/a16n/issues/185)) ([dca7f7b](https://github.com/Texarka...
 - [CLI Overview](https://texarkanine.github.io/a16n/cli.md): The **a16n CLI**, `a16n`, provides command-line tools for converting AI agent configuration files between various agentic development toolchains.
 - [0.15.4](https://texarkanine.github.io/a16n/cli/reference/0.15.4.md): Agent customization portability for AI coding tools
 - [1.0.0](https://texarkanine.github.io/a16n/cli/reference/1.0.0.md): Agent customization portability for AI coding tools
 - [1.1.0](https://texarkanine.github.io/a16n/cli/reference/1.1.0.md): Agent customization portability for AI coding tools
 - [1.1.1](https://texarkanine.github.io/a16n/cli/reference/1.1.1.md): Agent customization portability for AI coding tools
+- [1.1.2](https://texarkanine.github.io/a16n/cli/reference/1.1.2.md): Agent customization portability for AI coding tools
 - [CLI Reference](https://texarkanine.github.io/a16n/cli/reference.md): <VersionPicker pkg="cli" />
+- [Usage Notes](https://texarkanine.github.io/a16n/cli/usage-notes.md): Explanation for options and commands whose reference entry leaves out something you need in order to use them
 - [Class: A16nEngine](https://texarkanine.github.io/a16n/engine/api/0.8.1/classes/A16nEngine.md): [**@a16njs/engine**](../)
 - [0.8.1](https://texarkanine.github.io/a16n/engine/api/0.8.1.md): **@a16njs/engine**
 - [Interface: ConversionOptions](https://texarkanine.github.io/a16n/engine/api/0.8.1/interfaces/ConversionOptions.md): [**@a16njs/engine**](../)
@@ -276,8 +278,18 @@ This file contains links to documentation sections following the llmstxt.org sta
 - [1.1.1](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.1.md): **@a16njs/plugin-a16n**
 - [Interface: ParseIRFileResult](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.1/interfaces/ParseIRFileResult.md): [**@a16njs/plugin-a16n**](../)
 - [Variable: default](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.1/variables/default.md): [**@a16njs/plugin-a16n**](../)
+- [Function: discover()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.2/functions/discover.md): [**@a16njs/plugin-a16n**](../)
+- [Function: emit()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.2/functions/emit.md): [**@a16njs/plugin-a16n**](../)
+- [Function: extractRelativeDir()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.2/functions/extractRelativeDir.md): [**@a16njs/plugin-a16n**](../)
+- [Function: formatIRFile()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.2/functions/formatIRFile.md): [**@a16njs/plugin-a16n**](../)
+- [Function: getNameWithoutExtension()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.2/functions/getNameWithoutExtension.md): [**@a16njs/plugin-a16n**](../)
+- [Function: parseIRFile()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.2/functions/parseIRFile.md): [**@a16njs/plugin-a16n**](../)
+- [Function: slugify()](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.2/functions/slugify.md): [**@a16njs/plugin-a16n**](../)
+- [1.1.2](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.2.md): **@a16njs/plugin-a16n**
+- [Interface: ParseIRFileResult](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.2/interfaces/ParseIRFileResult.md): [**@a16njs/plugin-a16n**](../)
+- [Variable: default](https://texarkanine.github.io/a16n/plugin-a16n/api/1.1.2/variables/default.md): [**@a16njs/plugin-a16n**](../)
 - [a16n IR Plugin API Reference](https://texarkanine.github.io/a16n/plugin-a16n/api.md): <VersionPicker pkg="plugin-a16n" />
-- [Changelog](https://texarkanine.github.io/a16n/plugin-a16n/changelog.md): * **plugin-a16n:** clear leftover oxlint unused-vars [[#159](https://github.com/Texarkanine/a16n/issues/159)] ([#167](https://github.com/Texarkanin...
+- [Changelog](https://texarkanine.github.io/a16n/plugin-a16n/changelog.md): * **deps:** bump yaml from 2.9.0 to 2.9.1 ([#175](https://github.com/Texarkanine/a16n/issues/175)) ([1a4d449](https://github.com/Texarkanine/a16n/c...
 - [a16n IR Plugin Overview](https://texarkanine.github.io/a16n/plugin-a16n.md): The **@a16njs/plugin-a16n** package enables reading and writing the a16n intermediate representation (IR) to/from disk in a human-readable, git-fri...
 - [1.0.0](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.0.md): **@a16njs/plugin-agentsmd**
 - [Variable: default](https://texarkanine.github.io/a16n/plugin-agentsmd/api/1.0.0/variables/default.md): [**@a16njs/plugin-agentsmd**](../)

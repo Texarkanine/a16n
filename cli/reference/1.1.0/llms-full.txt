@@ -6,19 +6,19 @@ This file contains all documentation content in a single document following the 
 
 ## 1.1.0
 
-# CLI Reference
+## CLI Reference
 
 Agent customization portability for AI coding tools
 
-## convert
+### convert
 
 Convert agent customization between tools
 
-### Arguments
+#### Arguments
 
 - `[path]` - Project path (Default: `.`)
 
-### Options
+#### Options
 
 - `-f, --from <tool>` **(required)** - Source tool (available: cursor, claude, a16n, agentsmd)
 - `-t, --to <tool>` **(required)** - Target tool (available: cursor, claude, a16n, agentsmd)
@@ -33,21 +33,21 @@ Convert agent customization between tools
 - `--to-dir <dir>` - Override target directory for writing (emit). Default: positional [path]
 - `--rewrite-path-refs` - Rewrite file path references in content to point to target-format paths
 
-## discover
+### discover
 
 List agent customization without converting
 
-### Arguments
+#### Arguments
 
 - `[path]` - Project path (Default: `.`)
 
-### Options
+#### Options
 
 - `-f, --from <tool>` **(required)** - Tool to discover (available: cursor, claude, a16n, agentsmd)
 - `--json` - Output as JSON
 - `-v, --verbose` - Show detailed output
 - `--from-dir <dir>` - Override source directory for reading. Default: positional [path]
 
-## plugins
+### plugins
 
 Show available plugins

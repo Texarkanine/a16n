@@ -1,0 +1,28 @@
+# Variable: default
+
+> [**@a16njs/plugin-agentsmd**](../)
+
+***
+
+[@a16njs/plugin-agentsmd](../) / default
+
+
+
+> `const` **default**: `A16nPlugin`
+
+Defined in: [index.ts:21](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-agentsmd/src/index.ts#L21)
+
+AGENTS.md plugin for a16n.
+
+Discovers AGENTS.md files at any directory depth (root → GlobalPrompt,
+nested → directory-scoped FileRule) and emits GlobalPrompts and
+directory-shaped FileRules back to AGENTS.md files.
+
+AGENTS.md is plain markdown with no frontmatter, globs, or skills, so
+conversion into this format is lossy for most customization types; the
+standard warning channels (`skipped`, `merged`, `overwritten`) and the
+`unsupported` result surface exactly what could not be represented.
+
+No `pathPatterns`: AGENTS.md files have no fixed directory prefix (they
+live at any depth), so this plugin opts out of the engine's path-reference
+scanning rather than misreporting it.

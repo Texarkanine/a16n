@@ -1,0 +1,35 @@
+# Function: formatIRFile()
+
+> [**@a16njs/plugin-a16n**](../)
+
+***
+
+[@a16njs/plugin-a16n](../) / formatIRFile
+
+
+
+> **formatIRFile**(`item`): `string`
+
+Defined in: [format.ts:23](https://github.com/Texarkanine/a16n/blob/5715060b7361c854f95e5cc86c181602e116ca99/packages/plugin-a16n/src/format.ts#L23)
+
+Format an IR item as a markdown file with YAML frontmatter.
+
+Format: ---\n{yaml}---\n\n{content}\n
+
+Includes: version, type, relativeDir (if present), type-specific fields
+Excludes: sourcePath (omitted from IR format), metadata (not serialized)
+Note: name is included for SimpleAgentSkill (required in v1beta2); for other types it remains filename-only.
+
+## Parameters
+
+### item
+
+`AgentCustomization`
+
+The IR item to format
+
+## Returns
+
+`string`
+
+Formatted markdown string with YAML frontmatter
