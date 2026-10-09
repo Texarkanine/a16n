@@ -159,8 +159,9 @@ export async function isGitTracked(root: string, filepath: string): Promise<bool
 
 /**
  * Check if a directory is a git repository.
- * Looks for .git directory.
- * 
+ * A normal checkout has a `.git` directory. A linked worktree has a `.git`
+ * file whose contents are `gitdir: <path>`.
+ *
  * @param root - The directory to check
  * @returns True if the directory is a git repository, false otherwise
  */
@@ -168,10 +169,37 @@ export async function isGitRepo(root: string): Promise<boolean> {
   try {
     const gitDir = path.join(root, '.git');
     const stat = await fs.stat(gitDir);
-    return stat.isDirectory();
+    if (stat.isDirectory()) {
+      return true;
+    }
+    if (!stat.isFile()) {
+      return false;
+    }
+    const content = await fs.readFile(gitDir, 'utf-8');
+    return content.startsWith('gitdir:');
   } catch {
     return false;
   }
+}
+
+/**
+ * Resolve `info/exclude` or `hooks/pre-commit` to the path git reads.
+ * In a normal checkout that is `.git/<relative>`. In a linked worktree,
+ * `.git` is a file and those paths live in the common git directory.
+ */
+async function gitMetadataPath(root: string, relative: string): Promise<string> {
+  const gitEntry = path.join(root, '.git');
+  const stat = await fs.stat(gitEntry);
+  if (stat.isDirectory()) {
+    return path.join(gitEntry, ...relative.split('/'));
+  }
+
+  const { stdout, exitCode, stderr } = await execGit(root, ['rev-parse', '--git-path', relative]);
+  if (exitCode !== 0) {
+    throw new Error(stderr.trim() || 'Not a git repository');
+  }
+  const reported = stdout.trim();
+  return path.isAbsolute(reported) ? reported : path.resolve(root, reported);
 }
 
 /**
@@ -225,7 +253,7 @@ export async function addToGitExclude(
     throw new Error('Not a git repository');
   }
 
-  const filepath = path.join(root, '.git', 'info', 'exclude');
+  const filepath = await gitMetadataPath(root, 'info/exclude');
   let content = '';
   
   try {
@@ -264,7 +292,7 @@ export async function updatePreCommitHook(
     throw new Error('Not a git repository');
   }
 
-  const filepath = path.join(root, '.git', 'hooks', 'pre-commit');
+  const filepath = await gitMetadataPath(root, 'hooks/pre-commit');
   let content = '';
   let needsShebang = false;
   
@@ -351,7 +379,7 @@ export async function removeFromGitExclude(
     throw new Error('Not a git repository');
   }
 
-  const filepath = path.join(root, '.git', 'info', 'exclude');
+  const filepath = await gitMetadataPath(root, 'info/exclude');
   let content = '';
   
   try {
@@ -392,7 +420,7 @@ export async function removeFromPreCommitHook(
     throw new Error('Not a git repository');
   }
 
-  const filepath = path.join(root, '.git', 'hooks', 'pre-commit');
+  const filepath = await gitMetadataPath(root, 'hooks/pre-commit');
   let content = '';
   
   try {
