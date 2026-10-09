@@ -68,3 +68,13 @@ Document, in one section of the CLI overview, that `--gitignore-output-with` `ex
     - The warning states the shared-file consequence. The table defines every style
 * Insights
     - A reader who copies the `exclude` example meets the warning next, before Split Directories
+
+## 2026-10-09 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the plan against codebase reality: insertion point, admonition syntax, table facts, and untouched-files list all check out
+    - Result: PASS WITH ADVISORY (two advisories: a runtime worktree-guard sketch and one micro-wording note; no plan edits made)
+* Decisions made
+    - TDD encoding passes: docs prose/policy owes no tests per the always-TDD rule, and no change-detectors are scheduled
+* Insights
+    - Table claims verified against `convert.ts` and `git-ignore.ts`, so the build is a pure transcription step
