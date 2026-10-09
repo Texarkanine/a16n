@@ -39,3 +39,12 @@ Make every `--gitignore-output-with` mode (`ignore`, `exclude`, `hook`, `match`)
     - Opened draft pull request https://github.com/Texarkanine/a16n/pull/185 on branch `worktrees`
 * Decisions made
     - Title `fix(cli): honor gitignore modes in linked worktrees` so a squash merge can cut a CLI release
+
+## 2026-10-09 - REWORK - INITIATED
+
+* Work completed
+    - Recorded the operator's choice to rework rather than archive
+* Decisions made
+    - Keep `exclude` and `hook` writing the common git directory
+* Insights
+    - Operator feedback: document that footgun in one section on the CLI overview, with a Docusaurus warning admonition in that section. Do not sprinkle it through help text, the generated reference, the FAQ, examples, comments, or the memory bank.

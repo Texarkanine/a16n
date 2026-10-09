@@ -1,2 +1,0 @@
-PASS
-Worktree gitignore management (L1). Reviewed commit 15d62e91..HEAD diff of packages/cli/src/git-ignore.ts and tests. No KISS/DRY/YAGNI/completeness/regression/integrity/docs findings blocking. CLI vitest 241 passed; tsc --noEmit clean.
