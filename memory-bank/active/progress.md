@@ -57,3 +57,14 @@ Document, in one section of the CLI overview, that `--gitignore-output-with` `ex
     - Level 2: the change adds one explanation section and one warning admonition to `packages/docs/docs/cli/index.md`
 * Insights
     - This is prose. The always-TDD rule puts user-facing docs outside the test cycle.
+
+## 2026-10-09 - PLAN - COMPLETE
+
+* Work completed
+    - Planned one section, `## Git ignore styles`, and one `:::warning Repository-wide` admonition
+    - Placed the section after Examples and before Split Directories
+    - Recorded that no other file changes and that docs prose gets no test
+* Decisions made
+    - The warning states the shared-file consequence. The table defines every style
+* Insights
+    - A reader who copies the `exclude` example meets the warning next, before Split Directories

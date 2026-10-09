@@ -1,6 +1,6 @@
 # Active Context
 
 - **Current Task:** Document repository-wide gitignore scope
-- **Phase:** COMPLEXITY-ANALYSIS - COMPLETE
-- **What Was Done:** Classified as Level 2. One section and one warning admonition on the CLI overview. The behavior of `exclude` and `hook` stays as it is.
-- **Next Step:** Load the Level 2 workflow and run the plan phase.
+- **Phase:** PLAN - COMPLETE
+- **What Was Done:** Planned one `## Git ignore styles` section and one `:::warning Repository-wide` admonition in `packages/docs/docs/cli/index.md`, inserted after Examples. No other files. No tests: prose/policy.
+- **Next Step:** Preflight.
