@@ -69,6 +69,17 @@ Document, in one section of the CLI overview, that `--gitignore-output-with` `ex
 * Insights
     - A reader who copies the `exclude` example meets the warning next, before Split Directories
 
+## 2026-10-09 - BUILD - COMPLETE
+
+* Work completed
+    - Added the Git ignore styles section and the Repository-wide warning to `packages/docs/docs/cli/index.md`
+    - `pnpm build`, `pnpm test`, and `pnpm lint:check` succeeded
+* Decisions made
+    - Used preflight's wording for the opening sentence: the flag chooses how converted files are git-ignored
+    - Did not add a runtime warning
+* Insights
+    - The section is the only user-facing statement of the shared-file scope
+
 ## 2026-10-09 - PREFLIGHT - COMPLETE
 
 * Work completed

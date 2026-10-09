@@ -1,6 +1,7 @@
 # Active Context
 
 - **Current Task:** Document repository-wide gitignore scope
-- **Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
-- **What Was Done:** Planned one `## Git ignore styles` section and one `:::warning Repository-wide` admonition in `packages/docs/docs/cli/index.md`, inserted after Examples. No other files. No tests: prose/policy. Preflight verified insertion point, admonition syntax, table facts, and untouched-files list; two advisories recorded, no plan edits.
-- **Next Step:** Build.
+- **Phase:** BUILD - COMPLETE
+- **What Was Done:** Added `## Git ignore styles` and a `:::warning Repository-wide` admonition to `packages/docs/docs/cli/index.md`, after Examples and before Split Directories. No other files. `pnpm build`, `pnpm test`, and `pnpm lint:check` succeeded.
+- **Next Step:** QA.
+- **Deviation:** The opening sentence says the flag "chooses how converted files are git-ignored", which is preflight advisory 2. The runtime-guard advisory was not adopted.

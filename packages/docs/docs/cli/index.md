@@ -45,6 +45,26 @@ a16n convert --from cursor --to claude --from-dir ./project-a --to-dir ./project
 a16n convert --from cursor --to claude --rewrite-path-refs .
 ```
 
+## Git ignore styles
+
+`--gitignore-output-with` chooses how converted files are git-ignored. It writes in the target repository (`--to-dir` when that flag is set).
+
+| Style | What it writes | Who it affects |
+| --- | --- | --- |
+| `none` | Nothing | |
+| `ignore` | `.gitignore` in the target checkout | That checkout, until the `.gitignore` change is committed |
+| `exclude` | `info/exclude` | The whole target repository, including every linked worktree |
+| `hook` | `hooks/pre-commit` | The whole target repository. The hook unstages those paths on commit |
+| `match` | The same kind of file that ignores the source | A source ignored through `info/exclude` is written as `exclude` |
+
+`--if-gitignore-conflict` values `exclude` and `hook` write those same repository files.
+
+:::warning Repository-wide
+
+`exclude` and `hook` update files Git shares with every linked worktree. Running either one inside a worktree changes the main checkout too. `hook` unstages the listed paths on commit in every worktree. `match` and `--if-gitignore-conflict` do this when they select `exclude` or `hook`.
+
+:::
+
 ## Split Directories
 
 By default, a16n reads and writes in the same directory (the positional `[path]` argument, which defaults to `.`). The `--from-dir` and `--to-dir` flags let you decouple input and output:
