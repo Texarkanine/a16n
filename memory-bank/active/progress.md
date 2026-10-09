@@ -26,3 +26,9 @@ Make every `--gitignore-output-with` mode (`ignore`, `exclude`, `hook`, `match`)
     - Worktree admin paths are whatever git reports, because `info/exclude` and hooks live in the common git directory
 * Insights
     - `ignore`, tracking checks, and `git check-ignore` already worked from a worktree; only the directory check and the hardcoded `.git/` writes failed
+
+## 2026-10-08 - QA - COMPLETE
+
+* Work completed
+    - Semantic review of the `git-ignore.ts` change and its tests against the brief
+    - Result: PASS, advisories only
