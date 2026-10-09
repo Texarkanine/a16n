@@ -109,3 +109,25 @@ Document, in one section of the CLI overview, that `--gitignore-output-with` `ex
     - The docs page is the contract for this fact. The persistent files do not need a copy
 * Insights
     - A preflight runtime-guard suggestion stays out of scope when the brief says the behavior is kept and the change is docs only
+
+## 2026-10-09 - CREATIVE - COMPLETE
+
+* Work completed
+    - Explored where the three CLI flag essays should live
+    - Moved Git ignore styles, Split directories, and Path reference rewriting onto `packages/docs/docs/cli/usage-notes.md`
+* Decisions made
+    - One page titled Usage notes, under CLI, after the overview
+    - The reference landing page stays the version picker and links to the overview and to Usage notes
+* Insights
+    - The overview remains installation, examples, and output format
+
+## 2026-10-09 - USAGE NOTES PREAMBLE - COMPLETE
+
+* Work completed
+    - Replaced the Usage Notes opening so it states the page's job without naming the current sections
+    - Pointed the overview, after Examples, at the reference for the full command list and at Usage Notes for further explanation
+* Decisions made
+    - A new explanation belongs on Usage Notes as its own section when the reference entry leaves out something a reader needs in order to use the option or command
+    - Section headings on that page stay in title case
+* Insights
+    - Another session had already capitalized the headings and drafted a shorter opening. That opening described consequences and did not say what a later section is for

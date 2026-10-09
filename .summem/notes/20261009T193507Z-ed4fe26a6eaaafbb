@@ -1,0 +1,1 @@
+CLI Usage notes (packages/docs/docs/cli/usage-notes.md) is the only user-facing statement that exclude and hook are repository-wide. The overview links there. Do not restate it in help, FAQ, examples, or the generated reference.

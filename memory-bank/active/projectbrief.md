@@ -20,3 +20,7 @@ Document the repository-wide scope of `--gitignore-output-with` once, in a new s
 - `ignore` stays in the target checkout's `.gitignore` until that file is committed.
 - Put a Docusaurus `:::warning` admonition in that same section, in the style already used on the docs site.
 - Do not repeat this in `--help`, the generated CLI reference, the FAQ, the command examples, code comments, or the memory bank.
+
+## Placement
+
+The three flag essays live together on `packages/docs/docs/cli/usage-notes.md`, titled Usage notes. The CLI overview keeps installation, examples, and output format, and links to that page. The CLI reference landing page stays the version picker and points at both pages. It does not host the essays.
