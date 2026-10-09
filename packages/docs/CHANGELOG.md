@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.2](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.14.1...@a16njs/docs@0.14.2) (2026-10-09)
+
+
+### Bug Fixes
+
+* **cli:** honor gitignore modes in linked worktrees ([#185](https://github.com/Texarkanine/a16n/issues/185)) ([dca7f7b](https://github.com/Texarkanine/a16n/commit/dca7f7b84ee2340ed1fa8267a3385a4cda656c94))
+* **deps:** bump the deps-minor-patch group across 1 directory with 7 updates ([#177](https://github.com/Texarkanine/a16n/issues/177)) ([fcfa331](https://github.com/Texarkanine/a16n/commit/fcfa33157f4ac1e74c9cbabbb7ca27b44335a717))
+
 ## [0.14.1](https://github.com/Texarkanine/a16n/compare/@a16njs/docs@0.14.0...@a16njs/docs@0.14.1) (2026-08-20)
 
 
