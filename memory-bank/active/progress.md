@@ -1,8 +1,8 @@
 # Progress
 
-Make every `--gitignore-output-with` mode (`ignore`, `exclude`, `hook`, `match`) work when `a16n convert` runs inside a git worktree, while leaving normal checkouts unchanged.
+Document, in one section of the CLI overview, that `--gitignore-output-with` `exclude` and `hook` write repository-wide git metadata. Include a warning admonition in that section.
 
-**Complexity:** Level 1
+**Complexity:** Level 2
 
 ## 2026-10-08 - COMPLEXITY-ANALYSIS - COMPLETE
 
@@ -48,3 +48,12 @@ Make every `--gitignore-output-with` mode (`ignore`, `exclude`, `hook`, `match`)
     - Keep `exclude` and `hook` writing the common git directory
 * Insights
     - Operator feedback: document that footgun in one section on the CLI overview, with a Docusaurus warning admonition in that section. Do not sprinkle it through help text, the generated reference, the FAQ, examples, comments, or the memory bank.
+
+## 2026-10-09 - COMPLEXITY-ANALYSIS - COMPLETE
+
+* Work completed
+    - Classified the rework as a single-page docs enhancement
+* Decisions made
+    - Level 2: the change adds one explanation section and one warning admonition to `packages/docs/docs/cli/index.md`
+* Insights
+    - This is prose. The always-TDD rule puts user-facing docs outside the test cycle.
