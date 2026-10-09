@@ -1,0 +1,1 @@
+CLI overview section Git ignore styles is the only user-facing statement that exclude and hook are repository-wide, including every linked worktree. Do not restate it in help, FAQ, or examples.

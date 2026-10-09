@@ -443,3 +443,90 @@ describe('CLI --if-gitignore-conflict flag', () => {
     expect(gitignoreContent).toContain('.claude/');
   });
 });
+
+describe('CLI --gitignore-output-with in a linked worktree', () => {
+  let tempDir: string;
+  let worktree: string;
+
+  beforeEach(async () => {
+    tempDir = await createTempDir();
+    const main = path.join(tempDir, 'repo');
+    worktree = path.join(tempDir, 'worktree');
+    await fs.mkdir(main);
+    spawnSync('git', ['init'], { cwd: main });
+    spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: main });
+    spawnSync('git', ['config', 'user.name', 'Test'], { cwd: main });
+    spawnSync('git', ['commit', '--allow-empty', '-m', 'init', '--no-gpg-sign'], { cwd: main });
+    spawnSync('git', ['worktree', 'add', '-b', 'wt', worktree], { cwd: main });
+
+    const cursorDir = path.join(worktree, '.cursor', 'rules');
+    await fs.mkdir(cursorDir, { recursive: true });
+    await fs.writeFile(
+      path.join(cursorDir, 'test.mdc'),
+      '---\nalwaysApply: true\n---\nTest rule.'
+    );
+  });
+
+  afterEach(async () => {
+    await removeTempDir(tempDir);
+  });
+
+  it('excludes new output when run inside a worktree', async () => {
+    const { stderr, exitCode } = runCli(
+      ['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'exclude'],
+      worktree
+    );
+
+    expect(stderr).toBe('');
+    expect(exitCode).toBe(0);
+    const check = spawnSync('git', ['check-ignore', '-q', '.claude/rules/test.md'], { cwd: worktree });
+    expect(check.status).toBe(0);
+  });
+
+  it('writes a pre-commit hook git will run when run inside a worktree', async () => {
+    const { stderr, exitCode } = runCli(
+      ['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'hook'],
+      worktree
+    );
+
+    expect(stderr).toBe('');
+    expect(exitCode).toBe(0);
+    const reported = spawnSync('git', ['rev-parse', '--git-path', 'hooks/pre-commit'], {
+      cwd: worktree,
+      encoding: 'utf-8',
+    });
+    const hookPath = path.isAbsolute(reported.stdout.trim())
+      ? reported.stdout.trim()
+      : path.resolve(worktree, reported.stdout.trim());
+    const hook = await fs.readFile(hookPath, 'utf-8');
+    expect(hook).toContain('.claude/rules/test.md');
+  });
+
+  it('writes .gitignore in the worktree checkout', async () => {
+    const { stderr, exitCode } = runCli(
+      ['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'ignore'],
+      worktree
+    );
+
+    expect(stderr).toBe('');
+    expect(exitCode).toBe(0);
+    const gitignore = await fs.readFile(path.join(worktree, '.gitignore'), 'utf-8');
+    expect(gitignore).toContain('.claude/rules/test.md');
+    const check = spawnSync('git', ['check-ignore', '-q', '.claude/rules/test.md'], { cwd: worktree });
+    expect(check.status).toBe(0);
+  });
+
+  it('matches source ignore status from the worktree', async () => {
+    await fs.writeFile(path.join(worktree, '.gitignore'), '.cursor/rules/\n');
+
+    const { stderr, exitCode } = runCli(
+      ['convert', '--from', 'cursor', '--to', 'claude', '--gitignore-output-with', 'match'],
+      worktree
+    );
+
+    expect(stderr).toBe('');
+    expect(exitCode).toBe(0);
+    const gitignore = await fs.readFile(path.join(worktree, '.gitignore'), 'utf-8');
+    expect(gitignore).toContain('.claude/rules/test.md');
+  });
+});

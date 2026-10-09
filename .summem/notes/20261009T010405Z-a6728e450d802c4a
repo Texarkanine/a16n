@@ -1,0 +1,1 @@
+CLI gitignore exclude and hook resolve via git rev-parse --git-path: a linked worktree's .git is a gitdir file, and info/exclude plus hooks live in the common git dir

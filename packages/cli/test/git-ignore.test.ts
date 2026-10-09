@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { spawnSync } from 'child_process';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -14,6 +15,32 @@ import {
   removeFromGitExclude,
   removeFromPreCommitHook,
 } from '../src/git-ignore.js';
+
+function runGit(cwd: string, args: string[]): string {
+  const result = spawnSync('git', args, { cwd, encoding: 'utf-8' });
+  if (result.status !== 0) {
+    throw new Error(result.stderr || result.stdout || `git ${args.join(' ')} failed`);
+  }
+  return (result.stdout ?? '').trim();
+}
+
+/** Real linked worktree: `.git` is a file, and exclude/hooks live in the main repo. */
+async function addLinkedWorktree(parent: string): Promise<string> {
+  const main = path.join(parent, 'repo');
+  const worktree = path.join(parent, 'worktree');
+  await fs.mkdir(main);
+  runGit(main, ['init']);
+  runGit(main, ['config', 'user.email', 'test@test.com']);
+  runGit(main, ['config', 'user.name', 'Test']);
+  runGit(main, ['commit', '--allow-empty', '-m', 'init', '--no-gpg-sign']);
+  runGit(main, ['worktree', 'add', '-b', 'wt', worktree]);
+  return worktree;
+}
+
+function gitPath(cwd: string, relative: string): string {
+  const reported = runGit(cwd, ['rev-parse', '--git-path', relative]);
+  return path.isAbsolute(reported) ? reported : path.resolve(cwd, reported);
+}
 
 describe('Git Utilities', () => {
   let testDir: string;
@@ -782,6 +809,98 @@ npm run lint
       expect(content).toContain('User hook');
       expect(content).toContain('npm run lint');
       expect(content).not.toContain('# BEGIN a16n managed');
+    });
+  });
+
+  describe('linked git worktree', () => {
+    it('treats a worktree as a git repository', async () => {
+      const worktree = await addLinkedWorktree(testDir);
+      const gitEntry = await fs.stat(path.join(worktree, '.git'));
+
+      expect(gitEntry.isFile()).toBe(true);
+      expect(await isGitRepo(worktree)).toBe(true);
+    });
+
+    it('adds exclude patterns that git honors from the worktree', async () => {
+      const worktree = await addLinkedWorktree(testDir);
+
+      const result = await addToGitExclude(worktree, ['secret.txt']);
+
+      expect(result.file).toBe('.git/info/exclude');
+      const check = spawnSync('git', ['check-ignore', '-q', 'secret.txt'], { cwd: worktree });
+      expect(check.status).toBe(0);
+      expect(await getIgnoreSource(worktree, 'secret.txt')).toBe('.git/info/exclude');
+    });
+
+    it('removes exclude patterns from the file git reads', async () => {
+      const worktree = await addLinkedWorktree(testDir);
+      await addToGitExclude(worktree, ['secret.txt', 'other.txt']);
+
+      await removeFromGitExclude(worktree, ['secret.txt']);
+
+      const secret = spawnSync('git', ['check-ignore', '-q', 'secret.txt'], { cwd: worktree });
+      const other = spawnSync('git', ['check-ignore', '-q', 'other.txt'], { cwd: worktree });
+      expect(secret.status).not.toBe(0);
+      expect(other.status).toBe(0);
+    });
+
+    it('writes the pre-commit hook git will run for the worktree', async () => {
+      const worktree = await addLinkedWorktree(testDir);
+
+      const result = await updatePreCommitHook(worktree, ['secret.txt']);
+
+      expect(result.file).toBe('.git/hooks/pre-commit');
+      const hookPath = gitPath(worktree, 'hooks/pre-commit');
+      const content = await fs.readFile(hookPath, 'utf-8');
+      expect(content).toContain('secret.txt');
+      const stat = await fs.stat(hookPath);
+      expect(stat.mode & 0o111).not.toBe(0);
+    });
+
+    it('removes paths from the pre-commit hook git will run', async () => {
+      const worktree = await addLinkedWorktree(testDir);
+      await updatePreCommitHook(worktree, ['secret.txt', 'other.txt']);
+
+      await removeFromPreCommitHook(worktree, ['secret.txt']);
+
+      const content = await fs.readFile(gitPath(worktree, 'hooks/pre-commit'), 'utf-8');
+      expect(content).not.toContain('secret.txt');
+      expect(content).toContain('other.txt');
+    });
+
+    it('writes .gitignore in the worktree checkout', async () => {
+      const worktree = await addLinkedWorktree(testDir);
+
+      await addToGitIgnore(worktree, ['secret.txt']);
+
+      const content = await fs.readFile(path.join(worktree, '.gitignore'), 'utf-8');
+      expect(content).toContain('secret.txt');
+      const check = spawnSync('git', ['check-ignore', '-q', 'secret.txt'], { cwd: worktree });
+      expect(check.status).toBe(0);
+      expect(await getIgnoreSource(worktree, 'secret.txt')).toBe('.gitignore');
+    });
+
+    it('removes .gitignore entries from the worktree checkout', async () => {
+      const worktree = await addLinkedWorktree(testDir);
+      await addToGitIgnore(worktree, ['secret.txt', 'other.txt']);
+
+      await removeFromGitIgnore(worktree, ['secret.txt']);
+
+      const secret = spawnSync('git', ['check-ignore', '-q', 'secret.txt'], { cwd: worktree });
+      const other = spawnSync('git', ['check-ignore', '-q', 'other.txt'], { cwd: worktree });
+      expect(secret.status).not.toBe(0);
+      expect(other.status).toBe(0);
+    });
+
+    it('reports tracked files in the worktree', async () => {
+      const worktree = await addLinkedWorktree(testDir);
+      await fs.writeFile(path.join(worktree, 'tracked.txt'), 'x');
+      runGit(worktree, ['add', 'tracked.txt']);
+      runGit(worktree, ['commit', '-m', 'track', '--no-gpg-sign']);
+
+      expect(await isGitTracked(worktree, 'tracked.txt')).toBe(true);
+      expect(await isGitTracked(worktree, 'missing.txt')).toBe(false);
+      expect(await isGitIgnored(worktree, 'tracked.txt')).toBe(false);
     });
   });
 });

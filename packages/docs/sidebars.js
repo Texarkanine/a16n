@@ -38,6 +38,7 @@ const sidebars = {
       label: 'CLI',
       items: [
         'cli/index',
+        'cli/usage-notes',
         'cli/changelog',
         {
           type: 'category',
