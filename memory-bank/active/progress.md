@@ -32,3 +32,10 @@ Make every `--gitignore-output-with` mode (`ignore`, `exclude`, `hook`, `match`)
 * Work completed
     - Semantic review of the `git-ignore.ts` change and its tests against the brief
     - Result: PASS, advisories only
+
+## 2026-10-09 - QA - COMPLETE
+
+* Work completed
+    - Opened draft pull request https://github.com/Texarkanine/a16n/pull/185 on branch `worktrees`
+* Decisions made
+    - Title `fix(cli): honor gitignore modes in linked worktrees` so a squash merge can cut a CLI release
