@@ -80,6 +80,16 @@ Document, in one section of the CLI overview, that `--gitignore-output-with` `ex
 * Insights
     - The section is the only user-facing statement of the shared-file scope
 
+## 2026-10-09 - QA - COMPLETE
+
+* Work completed
+    - Semantic review of the `## Git ignore styles` section and `:::warning Repository-wide` admonition against the implementation plan
+    - Result: PASS, one non-blocking advisory (opening-sentence wording follows preflight advisory 2; semantically equivalent to the plan)
+* Decisions made
+    - No build changes required: placement, table, conflict sentence, admonition title/body/syntax, and untouched-files list all check out
+* Insights
+    - The `::::warning` seen in grep output was the ripgrep `line:` separator prefix; the reference admonition is `:::warning`, matching the implementation
+
 ## 2026-10-09 - PREFLIGHT - COMPLETE
 
 * Work completed

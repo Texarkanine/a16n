@@ -79,4 +79,4 @@ No new technology - validation not required
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA — PASS (semantic review 2026-10-09: section placement, table, conflict sentence, and `:::warning Repository-wide` admonition all match the plan; diff touches only `packages/docs/docs/cli/index.md`; opening-sentence wording follows preflight advisory 2, semantically equivalent — advisory only)
