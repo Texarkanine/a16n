@@ -99,3 +99,13 @@ Document, in one section of the CLI overview, that `--gitignore-output-with` `ex
     - TDD encoding passes: docs prose/policy owes no tests per the always-TDD rule, and no change-detectors are scheduled
 * Insights
     - Table claims verified against `convert.ts` and `git-ignore.ts`, so the build is a pure transcription step
+
+## 2026-10-09 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-worktree-gitignore.md`
+    - Left `productContext.md`, `systemPatterns.md`, and `techContext.md` unchanged
+* Decisions made
+    - The docs page is the contract for this fact. The persistent files do not need a copy
+* Insights
+    - A preflight runtime-guard suggestion stays out of scope when the brief says the behavior is kept and the change is docs only
