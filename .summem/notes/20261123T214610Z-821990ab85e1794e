@@ -1,0 +1,1 @@
+vitest and @vitest/coverage-v8 are exact-version peers; bump both, the root manifest, and pnpm-lock.yaml together. A multi-directory Dependabot vitest PR that skips those fails frozen install.

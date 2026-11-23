@@ -8,6 +8,12 @@ updates:
       day: 'monday'
       time: '09:00'
     groups:
+      # vitest and @vitest/* publish lockstep peers (coverage-v8 requires the same vitest version).
+      # Keep them in one group, including majors, so a bump cannot move one without the other.
+      vitest:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
       deps-minor-patch:
         dependency-type: 'production'
         update-types:
