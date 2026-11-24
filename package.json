@@ -17,9 +17,9 @@
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.12",
     "husky": "^9.1.7",
-    "oxlint": "^1.86.0",
-    "rimraf": "^6.1.3",
-    "turbo": "^2.11.5",
+    "oxlint": "^1.94.0",
+    "rimraf": "^6.1.4",
+    "turbo": "^2.11.13",
     "typescript": "^6.0.3",
     "vitest": "^4.1.12"
   },
